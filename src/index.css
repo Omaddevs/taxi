@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #e91e63;
+  --color-brand-dark: #c2185b;
+  --color-brand-soft: #fce4ec;
+  --color-ink: #1c1c28;
+  --color-muted: #6b7280;
+  --color-line: #eceef2;
+  --color-canvas: #f4f6f9;
+  --color-success: #16a34a;
+  --color-danger: #ef4444;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f4f6f9;
+  color: #1c1c28;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: #e7eee6;
+  font-family: inherit;
+}
+
+.location-pin {
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  background: #e91e63;
+  transform: rotate(-45deg);
+  box-shadow: 0 10px 18px rgba(233, 30, 99, 0.42);
+}
+
+.location-pin::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.location-pin-shadow {
+  margin-top: 7px;
+  width: 10px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.28);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.fuel-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.fuel-marker-pin {
+  display: block;
+  width: var(--sz);
+  height: var(--sz);
+  border-radius: 50% 50% 50% 0;
+  background: var(--pin);
+  transform: rotate(-45deg);
+  box-shadow: 0 8px 14px rgb(0 0 0 / 0.25);
+}
+
+.fuel-marker-pin::after {
+  content: "";
+  position: absolute;
+  top: 28%;
+  left: 28%;
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.fuel-user {
+  background: none !important;
+  border: none !important;
+}
+
+.fuel-user-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgb(37 99 235 / 0.2);
+}
+
+@keyframes sos-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 28px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.sos-pulse {
+  animation: sos-pulse 1.6s ease-out infinite;
+}

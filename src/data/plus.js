@@ -1,0 +1,43 @@
+export const PLUS_PLANS = [
+  {
+    id: 'start',
+    name: 'Start',
+    tagline: 'Kundalik safarlar uchun',
+    price: 0,
+    period: 'oyiga',
+    accent: 'slate',
+    features: ['Oddiy taxi chaqirish', 'Standart kutish vaqti', 'Naqd va karta to‘lov', 'Asosiy yordam chizig‘i'],
+  },
+  {
+    id: 'plus',
+    name: 'Plus',
+    tagline: 'Tezroq va arzonroq',
+    price: 39000,
+    period: 'oyiga',
+    accent: 'brand',
+    badge: 'Tavsiya',
+    features: [
+      'Har safarda 10% chegirma',
+      'Haydovchi 2 daqiqada',
+      'Bepul bekor qilish',
+      'Yoqilg‘ida qo‘shimcha -3%',
+      'Ustuvor yordam 24/7',
+    ],
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    tagline: 'Biznes va oila uchun',
+    price: 99000,
+    period: 'oyiga',
+    accent: 'ink',
+    features: [
+      'Har safarda 20% chegirma',
+      'Business klass avto',
+      'Oilaviy 6 o‘rinli tarif',
+      'Shaxsiy menejer',
+      'Aeroport kutib olish',
+      'SOS va GPS ustuvorlik',
+    ],
+  },
+]
