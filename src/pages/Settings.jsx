@@ -1,6 +1,7 @@
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Card } from '../components/ui/Button'
 import { Field, Input } from '../components/ui/Input'
+import { LanguageRow } from '../components/ui/LanguagePicker'
 import { useApp } from '../context/AppContext'
 
 export default function Settings() {
@@ -20,6 +21,7 @@ export default function Settings() {
         <Field label="Email">
           <Input defaultValue={user.email} />
         </Field>
+        <LanguageRow />
         <label className="flex items-center justify-between rounded-xl bg-canvas px-3 py-3 text-sm font-medium">
           Bildirishnomalar
           <input type="checkbox" defaultChecked className="h-4 w-4 accent-brand" />

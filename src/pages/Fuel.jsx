@@ -17,6 +17,8 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { DEFAULT_LOCATION } from '../lib/geocode'
 import { formatSom } from '../lib/utils'
+import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
+import { useShare } from '../components/ui/ShareSheet'
 import {
   FUEL_TYPES,
   PRICE_LABELS,
@@ -58,37 +60,14 @@ function MapReady({ center, selected }) {
   return null
 }
 
-async function shareStation(station) {
-  const text = shareText(station)
-  const url = googleMapsUrl(station.lat, station.lng)
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: station.name, text, url })
-      return
-    }
-  } catch {
-    /* cancelled */
-    return
-  }
-  try {
-    await navigator.clipboard.writeText(text)
-    return 'copied'
-  } catch {
-    return 'failed'
-  }
-}
 
 export default function Fuel() {
   const navigate = useNavigate()
   const { location, gpsFix, gpsStatus, requestUserLocation } = useApp()
+  const geo = useMapGeo()
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
-  const [shareNote, setShareNote] = useState('')
-
-  useEffect(() => {
-    requestUserLocation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { share, sheet } = useShare()
 
   const origin = useMemo(() => {
     if (gpsFix && !gpsFix.error && typeof gpsFix.lat === 'number') {
@@ -107,7 +86,7 @@ export default function Fuel() {
   const center = selected || origin
 
   return (
-    <div className="flex h-[calc(100svh-5.5rem)] flex-col bg-white lg:h-auto lg:min-h-[720px]">
+    <div className="flex h-[calc(100svh-4rem)] flex-col bg-white lg:h-[calc(100svh-6rem)]">
       <header className="relative z-20 flex items-center gap-2 border-b border-line bg-white px-3 pb-2 pt-[max(10px,env(safe-area-inset-top))]">
         <button
           type="button"
@@ -123,7 +102,10 @@ export default function Fuel() {
         </div>
         <button
           type="button"
-          onClick={requestUserLocation}
+          onClick={() => {
+            if (gpsStatus === 'granted') requestUserLocation()
+            else geo.reopen()
+          }}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"
           aria-label="Mening joyim"
         >
@@ -135,14 +117,12 @@ export default function Fuel() {
         </button>
       </header>
 
-      {gpsStatus === 'pending' ? (
-        <p className="bg-brand-soft px-4 py-2 text-xs font-semibold text-brand">
-          Joylashuvga ruxsat bering — yaqin shahobchalar yashil rangda chiqadi.
-        </p>
-      ) : gpsStatus === 'denied' || gpsStatus === 'error' ? (
-        <p className="bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800">
-          Geolokatsiya yoqilmadi. Saqlangan manzil atrofidagi shahobchalar ko‘rsatilmoqda.
-        </p>
+      {gpsStatus === 'pending' && !geo.open ? (
+        <p className="bg-brand-soft px-4 py-2 text-xs font-semibold text-brand">Joylashuv aniqlanmoqda…</p>
+      ) : gpsStatus === 'denied' || gpsStatus === 'error' || gpsStatus === 'timeout' || gpsStatus === 'unsupported' ? (
+        <button type="button" onClick={geo.reopen} className="w-full bg-amber-50 px-4 py-2 text-left text-xs font-semibold text-amber-800">
+          Geolokatsiya yoqilmadi. Yaqin shahobchalar uchun bosing — ruxsat so‘raladi.
+        </button>
       ) : null}
 
       <div className="no-scrollbar z-20 flex gap-2 overflow-x-auto border-b border-line bg-white px-3 py-2">
@@ -198,46 +178,22 @@ export default function Fuel() {
         </div>
       </div>
 
-      {!selected ? (
-        <div className="z-20 max-h-44 overflow-y-auto border-t border-line bg-white pb-2">
-          {stations.slice(0, 5).map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setSelected(s)}
-              className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-canvas"
-            >
-              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${s.near ? 'bg-success' : 'bg-brand'}`} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold">{s.name}</span>
-                <span className="text-[11px] text-muted">
-                  {s.km.toFixed(1)} km · {s.types.map((t) => FUEL_TYPES.find((x) => x.id === t)?.label).join(', ')}
-                </span>
-              </span>
-              <span className="text-xs font-extrabold text-brand">
-                {formatSom(Math.min(...Object.values(s.prices)))}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-
       {selected
         ? createPortal(
-            <div className="fixed inset-0 z-[140] lg:hidden">
-              <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={() => setSelected(null)} />
-              <div className="absolute inset-x-0 bottom-0 max-h-[78vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)]">
+            <div className="fixed inset-0 z-[10000]">
+              <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={() => setSelected(null)} />
+              <div className="absolute inset-x-0 bottom-0 z-10 max-h-[82vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.28)]">
                 <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
                 <DetailBody
                   station={selected}
-                  shareNote={shareNote}
                   onClose={() => setSelected(null)}
-                  onShare={async () => {
-                    const res = await shareStation(selected)
-                    if (res === 'copied') setShareNote('Manzil nusxalandi')
-                    else if (res === 'failed') setShareNote('Ulashib bo‘lmadi')
-                    else setShareNote('')
-                  }}
+                  onShare={() =>
+                    share({
+                      title: selected.name,
+                      text: shareText(selected),
+                      url: googleMapsUrl(selected.lat, selected.lng),
+                    })
+                  }
                 />
               </div>
             </div>,
@@ -245,26 +201,14 @@ export default function Fuel() {
           )
         : null}
 
-      {selected ? (
-        <div className="hidden lg:block">
-          <div className="mx-auto max-w-xl p-4">
-            <DetailBody
-              station={selected}
-              shareNote={shareNote}
-              onClose={() => setSelected(null)}
-              onShare={async () => {
-                const res = await shareStation(selected)
-                if (res === 'copied') setShareNote('Manzil nusxalandi')
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
+      {sheet}
+
+      <GeoAskSheet open={geo.open} status={geo.status} onAllow={geo.allow} onSkip={geo.skip} />
     </div>
   )
 }
 
-function DetailBody({ station, onClose, onShare, shareNote }) {
+function DetailBody({ station, onClose, onShare }) {
   return (
     <div>
       <div className="mb-3 flex items-start justify-between gap-3">
@@ -313,8 +257,6 @@ function DetailBody({ station, onClose, onShare, shareNote }) {
           </div>
         ))}
       </div>
-
-      {shareNote ? <p className="mt-2 text-xs font-semibold text-success">{shareNote}</p> : null}
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <a

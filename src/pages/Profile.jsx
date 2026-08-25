@@ -2,6 +2,8 @@ import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, Se
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card } from '../components/ui/Button'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
+import { CoinCard } from '../components/ui/CoinCard'
+import { LanguageMenuRow } from '../components/ui/LanguagePicker'
 import { useApp } from '../context/AppContext'
 
 const menu = [
@@ -46,7 +48,12 @@ export default function Profile() {
         </div>
       </Card>
 
+      <div className="mt-4">
+        <CoinCard />
+      </div>
+
       <Card className="mt-4 divide-y divide-line">
+        <LanguageMenuRow />
         {menu.map((item) => (
           <Link key={item.to} to={item.to} className="flex items-center gap-3 px-4 py-3.5">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">

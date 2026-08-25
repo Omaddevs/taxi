@@ -8,7 +8,7 @@ export const ecosystem = [
   { id: 'wash', to: '/hub/wash', title: 'Moyka', desc: 'Detailing', emoji: '🚿', phase: 2 },
   { id: 'parking', to: '/hub/parking', title: 'Parking', desc: 'Bo‘sh joylar', emoji: '🅿️', phase: 2 },
   { id: 'ev', to: '/hub/ev', title: 'EV zaryad', desc: 'Elektr stansiya', emoji: '⚡', phase: 2 },
-  { id: 'food', to: '/hub/food', title: 'Ovqat', desc: 'Restoran, grocery', emoji: '🍔', phase: 3 },
+  { id: 'food', to: '/hub/food', title: 'Oshxona', desc: 'Restoran, grocery', emoji: '🍔', phase: 3 },
   { id: 'wallet', to: '/wallet', title: 'Hamyon', desc: 'Bitta balans', emoji: '💳', phase: 4 },
   { id: 'sos', to: '/sos', title: 'SOS', desc: 'Favqulodda', emoji: '🆘', phase: 1 },
 ]
@@ -91,7 +91,7 @@ export const hubs = {
     ],
   },
   food: {
-    title: 'Ovqat va grocery',
+    title: 'Oshxona va grocery',
     subtitle: 'Restoran, supermarket — bir kuryer tarmog‘i',
     items: [
       { title: 'Restoran', desc: 'Tushlik va kechki' },

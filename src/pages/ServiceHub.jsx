@@ -3,9 +3,20 @@ import { ChevronRight } from 'lucide-react'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
 import { hubs } from '../data/ecosystem'
+import { AutoServiceMap, EvMap, ParkingMap, WashMap } from './hubMaps'
+import FoodHub from './FoodHub'
 
 export default function ServiceHub() {
   const { slug } = useParams()
+  if (slug === 'auto-service') return <AutoServiceMap />
+  if (slug === 'wash') return <WashMap />
+  if (slug === 'parking') return <ParkingMap />
+  if (slug === 'ev') return <EvMap />
+  if (slug === 'food') return <FoodHub />
+  return <HubFallback slug={slug} />
+}
+
+function HubFallback({ slug }) {
   const navigate = useNavigate()
   const hub = hubs[slug]
 
@@ -35,9 +46,6 @@ export default function ServiceHub() {
           </Card>
         ))}
       </div>
-      <Button className="mt-5 w-full" onClick={() => navigate('/map')}>
-        Xaritada yaqinlarini ko‘rish
-      </Button>
     </div>
   )
 }

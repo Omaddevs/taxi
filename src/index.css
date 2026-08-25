@@ -27,6 +27,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* iOS 16px dan kichik shriftda inputga bosilsa sahifani zoom qiladi — shuning uchun
+   mobil ekranlarda forma maydonlarini 16px da ushlab turamiz (pinch-zoom saqlanadi). */
+@media (max-width: 1023px) {
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -40,6 +50,8 @@ body {
   width: 100%;
   background: #e7eee6;
   font-family: inherit;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .location-pin {
@@ -110,6 +122,28 @@ body {
   background: #2563eb;
   border: 3px solid #fff;
   box-shadow: 0 0 0 6px rgb(37 99 235 / 0.2);
+}
+
+.place-pin-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.place-pin-label {
+  margin-top: 3px;
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 8px;
+  background: #fff;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #1c1c28;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.16);
 }
 
 @keyframes sos-pulse {

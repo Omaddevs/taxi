@@ -1,8 +1,20 @@
-import { ChevronRight, MapPin, Menu, ScanLine, Search } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ChevronRight, Crown, MapPin, Menu, ScanLine, Search } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { ecosystem } from '../../data/ecosystem'
 import { EcosystemIcon } from '../icons/EcosystemIcon'
+import { PromoCarousel } from './PromoCarousel'
+import { Wordmark } from '../ui/Logo'
+
+const ECO_STRIP = ecosystem.filter((s) => !['taxi', 'delivery', 'roadside', 'fuel'].includes(s.id))
+const ECO_PAGES = 3
+
+function pageScrollLeft(el, page) {
+  const max = el.scrollWidth - el.clientWidth
+  if (max <= 0) return 0
+  return (max * page) / (ECO_PAGES - 1)
+}
 
 const featured = [
   {
@@ -86,14 +98,33 @@ function Art({ type }) {
 export function MobileHome() {
   const { setDrawerOpen, location, openLocationPicker, plusPlan, requestUserLocation } = useApp()
   const navigate = useNavigate()
+  const stripRef = useRef(null)
+  const [ecoPage, setEcoPage] = useState(0)
+
+  const goEcoPage = (page) => {
+    const el = stripRef.current
+    if (!el) return
+    el.scrollTo({ left: pageScrollLeft(el, page), behavior: 'smooth' })
+    setEcoPage(page)
+  }
+
+  const onStripScroll = () => {
+    const el = stripRef.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    if (max <= 0) return
+    const page = Math.round((el.scrollLeft / max) * (ECO_PAGES - 1))
+    setEcoPage(Math.min(ECO_PAGES - 1, Math.max(0, page)))
+  }
 
   return (
     <div className="bg-white pb-4">
-      <header className="sticky top-0 z-30 flex items-center gap-3 bg-white px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
+      {/* 1fr auto 1fr — chap va o‘ng qanotlar teng bo‘lgani uchun logo aynan markazda turadi. */}
+      <header className="sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-2 bg-white px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
-          className="relative flex h-10 w-10 items-center justify-center"
+          className="relative flex h-10 w-10 items-center justify-center justify-self-start"
         >
           <Menu className="h-6 w-6" />
           <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
@@ -103,20 +134,23 @@ export function MobileHome() {
         <button
           type="button"
           onClick={openLocationPicker}
-          className="min-w-0 flex-1 text-center"
+          className="min-w-0 text-center"
           aria-label="Manzilni o‘zgartirish"
         >
-          <p className="text-[17px] font-extrabold tracking-tight">TaxiLine</p>
+          <Wordmark className="text-[19px]" />
           <p className="flex items-center justify-center gap-0.5 text-xs text-muted">
-            <span className="max-w-[180px] truncate">{location.label}</span>
+            <span className="max-w-[150px] truncate">{location.label}</span>
             <ChevronRight className="h-3 w-3 shrink-0" />
           </p>
         </button>
         <Link
           to="/plus"
-          className="flex h-8 items-center gap-1 rounded-full bg-gradient-to-r from-brand to-[#ff6b9d] px-3 text-xs font-extrabold text-white shadow-sm shadow-brand/30"
+          className={`flex h-8 shrink-0 items-center gap-1.5 justify-self-end rounded-full bg-brand px-3.5 text-[13px] font-extrabold text-white shadow-md shadow-brand/30 ${
+            plusPlan && plusPlan !== 'start' ? 'ring-2 ring-brand/25' : ''
+          }`}
         >
-          {plusPlan && plusPlan !== 'start' ? 'Plus' : '+ Plus'}
+          <Crown className="h-3.5 w-3.5 fill-white" strokeWidth={0} />
+          Plus
         </Link>
       </header>
 
@@ -149,24 +183,41 @@ export function MobileHome() {
       </div>
 
       <div className="mt-4 px-4">
-        <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
-          {ecosystem
-            .filter((s) => !['taxi', 'delivery', 'roadside', 'fuel'].includes(s.id))
-            .map((item) => (
-              <Link key={item.id} to={item.to} className="flex w-[72px] shrink-0 flex-col items-center text-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f4f5f7] text-slate-700">
-                  <EcosystemIcon id={item.id} className={`h-6 w-6 ${item.id === 'sos' ? 'text-red-500' : ''}`} />
-                </span>
-                <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-tight">{item.title}</span>
-              </Link>
-            ))}
+        <div
+          ref={stripRef}
+          onScroll={onStripScroll}
+          className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-1"
+        >
+          {ECO_STRIP.map((item) => (
+            <Link key={item.id} to={item.to} className="flex w-[72px] shrink-0 flex-col items-center text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f4f5f7] text-slate-700">
+                <EcosystemIcon id={item.id} className={`h-6 w-6 ${item.id === 'sos' ? 'text-red-500' : ''}`} />
+              </span>
+              <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-tight">{item.title}</span>
+            </Link>
+          ))}
         </div>
-        <div className="mt-2 flex justify-center gap-1">
-          <span className="h-1.5 w-4 rounded-full bg-ink" />
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+        <div className="mt-1 flex justify-center">
+          {Array.from({ length: ECO_PAGES }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`${i + 1}-sahifa`}
+              aria-current={ecoPage === i ? 'true' : undefined}
+              onClick={() => goEcoPage(i)}
+              className="flex h-7 items-center px-1"
+            >
+              <span
+                className={`block h-1.5 rounded-full transition-all ${
+                  ecoPage === i ? 'w-4 bg-ink' : 'w-1.5 bg-slate-300'
+                }`}
+              />
+            </button>
+          ))}
         </div>
       </div>
+
+      <PromoCarousel />
 
       <div className="mt-4 px-4">
         <Link

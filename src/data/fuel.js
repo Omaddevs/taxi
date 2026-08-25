@@ -1,3 +1,7 @@
+import { NEAR_KM, around, googleMapsUrl, yandexMapsUrl } from '../lib/geo'
+
+export { NEAR_KM, googleMapsUrl, yandexMapsUrl }
+
 export const FUEL_TYPES = [
   { id: 'all', label: 'Barchasi' },
   { id: 'benzin', label: 'Benzin' },
@@ -19,7 +23,14 @@ export const PRICE_LABELS = {
   kwh: 'kWh',
 }
 
-export const NEAR_KM = 2.5
+export const FUEL_TYPE_LABEL = {
+  benzin: 'Benzin',
+  metan: 'Metan gaz',
+  propan: 'Propan',
+  dizel: 'Dizel',
+  salarka: 'Salarka',
+  ev: 'EV',
+}
 
 const STATIONS = [
   {
@@ -168,31 +179,12 @@ const STATIONS = [
   },
 ]
 
-export function haversineKm(a, b) {
-  const R = 6371
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180
-  const x =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(x))
-}
-
 export function stationsAround(origin) {
-  return STATIONS.map((s) => {
-    const lat = origin.lat + s.dLat
-    const lng = origin.lng + s.dLng
-    const km = haversineKm(origin, { lat, lng })
-    return { ...s, lat, lng, km, near: km <= NEAR_KM }
-  }).sort((a, b) => a.km - b.km)
-}
-
-export function googleMapsUrl(lat, lng) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-}
-
-export function yandexMapsUrl(lat, lng) {
-  return `https://yandex.uz/maps/?rtext=~${lat},${lng}&rtt=auto`
+  return around(origin, STATIONS).map((s) => ({
+    ...s,
+    group: 'fuel',
+    mapLabel: FUEL_TYPE_LABEL[s.types[0]] || 'Yoqilg‘i',
+  }))
 }
 
 export function shareText(station) {

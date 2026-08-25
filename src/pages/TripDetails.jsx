@@ -7,6 +7,7 @@ import { RouteMap } from '../components/trip/RouteMap'
 import { Badge, Button, Card } from '../components/ui/Button'
 import { trips } from '../data/mock'
 import { formatSom } from '../lib/utils'
+import { useShare } from '../components/ui/ShareSheet'
 import { useApp } from '../context/AppContext'
 
 export default function TripDetails() {
@@ -15,8 +16,22 @@ export default function TripDetails() {
   const { bookTrip, paymentMethod } = useApp()
   const navigate = useNavigate()
   const [started, setStarted] = useState(false)
+  const { share, sheet } = useShare()
 
   const payLabel = { cash: 'Naqd to‘lov', uzcard: 'UzCard', humo: 'Humo', click: 'Click', payme: 'Payme', uzum: 'Uzum Bank' }
+
+  const onShare = () =>
+    share({
+      title: `TaxiLine: ${trip.from} → ${trip.to}`,
+      text: [
+        `${trip.from} → ${trip.to}`,
+        `${trip.date}, ${trip.time} – ${trip.arrive}`,
+        `${trip.driver.name} · ${trip.car} · ${trip.plate}`,
+        formatSom(trip.price),
+        window.location.href,
+      ].join('\n'),
+      url: window.location.href,
+    })
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -49,18 +64,23 @@ export default function TripDetails() {
 
       <div className="mt-4 grid grid-cols-4 gap-2">
         {[
-          { icon: Phone, label: 'Qo‘ng‘iroq', to: `tel:${trip.driver.phone}` },
-          { icon: MessageCircle, label: 'Xabar', to: '/messages/c1' },
-          { icon: Share2, label: 'Ulashish', to: '#' },
-          { icon: X, label: 'Bekor', to: '/history' },
+          { icon: Phone, label: 'Qo‘ng‘iroq', action: 'call' },
+          { icon: MessageCircle, label: 'Xabar', action: 'chat' },
+          { icon: Share2, label: 'Ulashish', action: 'share' },
+          { icon: X, label: 'Bekor', action: 'cancel' },
         ].map((item) => (
           <button
             key={item.label}
             type="button"
-            onClick={() => item.to.startsWith('/') && navigate(item.to)}
+            onClick={() => {
+              if (item.action === 'call') window.location.href = `tel:${trip.driver.phone.replace(/\s/g, '')}`
+              else if (item.action === 'chat') navigate('/messages/c1')
+              else if (item.action === 'cancel') navigate('/history')
+              else onShare()
+            }}
             className="flex flex-col items-center gap-2 rounded-2xl bg-white py-3 text-xs font-medium"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft text-brand">
               <item.icon className="h-4 w-4" />
             </span>
             {item.label}
@@ -94,6 +114,8 @@ export default function TripDetails() {
       >
         {started ? 'Safarni yakunlash' : 'Joy band qilish'}
       </Button>
+
+      {sheet}
     </div>
   )
 }

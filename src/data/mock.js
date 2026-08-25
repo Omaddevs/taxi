@@ -9,6 +9,7 @@ export const user = {
   rating: 4.9,
   points: 1250,
   balance: 1250000,
+  coins: 1250000,
 }
 
 export const cities = [
@@ -240,6 +241,7 @@ export const conversations = [
     id: 'c1',
     name: 'Azizbek',
     role: 'Haydovchi',
+    phone: '+998 91 200 11 22',
     avatar: 'https://i.pravatar.cc/120?img=11',
     last: 'Qarshi vokzal oldida kutaman',
     time: '14:22',
@@ -250,6 +252,7 @@ export const conversations = [
     id: 'c2',
     name: 'Taxiline Support',
     role: 'Yordam',
+    phone: '+998 71 200 00 00',
     avatar: '',
     last: 'Buyurtmangiz tasdiqlandi',
     time: 'Kecha',
@@ -260,6 +263,7 @@ export const conversations = [
     id: 'c3',
     name: 'Madina',
     role: 'Haydovchi',
+    phone: '+998 93 111 22 33',
     avatar: 'https://i.pravatar.cc/120?img=32',
     last: 'Bagaj joyi yetarli',
     time: 'Dush',

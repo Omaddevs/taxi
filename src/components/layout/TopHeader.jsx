@@ -1,4 +1,4 @@
-import { Bell, Menu, MessageCircle } from 'lucide-react'
+import { Bell, Crown, Menu, MessageCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 
@@ -8,7 +8,7 @@ const titles = {
   '/cargo': { title: 'Yuk jo‘natish', subtitle: 'Tez va xavfsiz yetkazish' },
   '/drivers': { title: 'Haydovchilar', subtitle: 'Tasdiqlangan haydovchilar' },
   '/favorites': { title: 'Saqlash', subtitle: 'Saqlangan yo‘nalishlar' },
-  '/wallet': { title: 'To‘lovlar', subtitle: 'Hisob va tranzaksiyalar' },
+  '/wallet': { title: 'Hamyon', subtitle: 'Kartalar va to‘lovlar' },
   '/notifications': { title: 'Xabarnomalar', subtitle: 'So‘nggi yangiliklar' },
   '/promo': { title: 'Promo kodlar', subtitle: 'Chegirmalar va bonuslar' },
   '/help': { title: 'Yordam markazi', subtitle: 'Savollaringizga javob' },
@@ -58,6 +58,13 @@ export function TopHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        <Link
+          to="/plus"
+          className="hidden h-12 items-center gap-2 rounded-full bg-brand px-5 text-sm font-extrabold text-white shadow-md shadow-brand/30 sm:flex"
+        >
+          <Crown className="h-4 w-4 fill-white" strokeWidth={0} />
+          Plus
+        </Link>
         <Link to="/notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-canvas">
           <Bell className="h-5 w-5 text-ink" />
           <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />

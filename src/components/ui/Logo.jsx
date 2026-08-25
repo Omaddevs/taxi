@@ -15,13 +15,22 @@ export function Logo({ size = 36 }) {
   )
 }
 
+export function Wordmark({ className = '' }) {
+  return (
+    <p className={`font-extrabold leading-none tracking-tight ${className}`}>
+      <span className="text-ink">Taxi</span>
+      <span className="text-brand">Line</span>
+    </p>
+  )
+}
+
 export function BrandMark({ compact = false }) {
   return (
     <div className="flex items-center gap-2.5">
       <Logo />
       {compact ? null : (
         <div>
-          <p className="text-[15px] font-extrabold leading-none tracking-tight text-ink">Taxiline</p>
+          <Wordmark className="text-[15px]" />
           <p className="mt-0.5 text-[11px] text-muted">Yo‘l va xizmatlar</p>
         </div>
       )}

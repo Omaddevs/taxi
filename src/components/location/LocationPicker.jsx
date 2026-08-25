@@ -4,6 +4,7 @@ import { Circle, CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } f
 import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, Search, X } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode, searchPlaces } from '../../lib/geocode'
+import { GeoAskSheet, useMapGeo } from './GeoAskSheet'
 import 'leaflet/dist/leaflet.css'
 
 function MapController({ focus, onDragging, onIdle }) {
@@ -66,6 +67,7 @@ export function LocationPicker() {
     gpsStatus,
     requestUserLocation,
   } = useApp()
+  const geo = useMapGeo(locationPickerOpen)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -268,7 +270,10 @@ export function LocationPicker() {
 
         <button
           type="button"
-          onClick={requestUserLocation}
+          onClick={() => {
+            if (gpsStatus === 'granted') requestUserLocation()
+            else geo.reopen()
+          }}
           className="absolute right-4 top-4 z-[410] flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md"
           aria-label="Mening joyim"
         >
@@ -289,7 +294,7 @@ export function LocationPicker() {
           <div className="mb-2 flex items-start justify-between gap-2">
             <p className="text-xs text-amber-700">{hint}</p>
             {gpsStatus === 'denied' || gpsStatus === 'error' ? (
-              <button type="button" onClick={requestUserLocation} className="shrink-0 text-xs font-bold text-brand">
+              <button type="button" onClick={geo.reopen} className="shrink-0 text-xs font-bold text-brand">
                 Qayta so‘rash
               </button>
             ) : null}
@@ -314,6 +319,7 @@ export function LocationPicker() {
           Shu yerni tasdiqlash
         </button>
       </div>
+      <GeoAskSheet open={locationPickerOpen && geo.open} status={geo.status} onAllow={geo.allow} onSkip={geo.skip} />
     </div>,
     document.body,
   )

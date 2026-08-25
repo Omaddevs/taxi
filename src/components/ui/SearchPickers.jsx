@@ -472,7 +472,7 @@ function BagIcon({ className }) {
   )
 }
 
-export function RegionPicker({ label, region, place, onChange, open, onToggle, onClose }) {
+export function RegionPicker({ label, region, place, onChange, open, onToggle, onClose, variant = 'stacked', icon: RowIcon }) {
   const [step, setStep] = useState('region')
   const [picked, setPicked] = useState(region)
   const [query, setQuery] = useState('')
@@ -506,17 +506,36 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
       title={label}
       panelClass="w-[min(360px,calc(100vw-2rem))]"
       trigger={
-        <div>
-          <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{label}</span>
+        variant === 'row' ? (
           <button
             type="button"
             onClick={onToggle}
-            className="flex h-12 w-full items-center justify-between rounded-2xl bg-white px-3.5 text-left text-[15px] font-semibold text-ink"
+            className="flex h-[68px] w-full items-center gap-3 px-3.5 text-left"
           >
-            <span className="min-w-0 truncate">{display}</span>
+            {RowIcon ? (
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                <RowIcon className="h-[18px] w-[18px]" />
+              </span>
+            ) : null}
+            <span className="min-w-0 flex-1 overflow-hidden pr-9">
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
+              <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{display}</span>
+            </span>
             <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
           </button>
-        </div>
+        ) : (
+          <div>
+            <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{label}</span>
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex h-12 w-full items-center justify-between rounded-2xl bg-white px-3.5 text-left text-[15px] font-semibold text-ink"
+            >
+              <span className="min-w-0 truncate">{display}</span>
+              <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
+            </button>
+          </div>
+        )
       }
     >
       <div className="relative mb-3">

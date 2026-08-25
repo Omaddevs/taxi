@@ -1,24 +1,94 @@
+import { useEffect, useMemo } from 'react'
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import { UZ_BOUNDS, findCity } from '../../data/uzCities'
+import { haversineKm } from '../../lib/geo'
+import 'leaflet/dist/leaflet.css'
+
+function cityPin(color, label) {
+  return L.divIcon({
+    className: 'fuel-marker',
+    iconSize: [96, 48],
+    iconAnchor: [48, 28],
+    html: `<span class="place-pin-wrap"><span class="fuel-marker-pin" style="--pin:${color};--sz:26px"></span><span class="place-pin-label">${String(
+      label || '',
+    ).replace(/</g, '')}</span></span>`,
+  })
+}
+
+// Marshrut to‘g‘ri chiziq bo‘lmasin — ikki shahar orasiga yengil yoy chizamiz.
+function arcPoints(a, b, steps = 48) {
+  const midLat = (a.lat + b.lat) / 2
+  const midLng = (a.lng + b.lng) / 2
+  const dLat = b.lat - a.lat
+  const dLng = b.lng - a.lng
+  const ctrlLat = midLat + dLng * 0.12
+  const ctrlLng = midLng - dLat * 0.12
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps
+    const k = (1 - t) ** 2
+    const m = 2 * (1 - t) * t
+    const n = t ** 2
+    return [k * a.lat + m * ctrlLat + n * b.lat, k * a.lng + m * ctrlLng + n * b.lng]
+  })
+}
+
+function FitRoute({ points }) {
+  const map = useMap()
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 80)
+    return () => clearTimeout(t)
+  }, [map])
+  useEffect(() => {
+    if (points?.length) map.fitBounds(points, { padding: [42, 42] })
+    else map.fitBounds(UZ_BOUNDS, { padding: [12, 12] })
+  }, [points, map])
+  return null
+}
+
 export function RouteMap({ from = 'Qarshi', to = 'Toshkent', className = '' }) {
+  const origin = useMemo(() => findCity(from), [from])
+  const target = useMemo(() => findCity(to), [to])
+  const line = useMemo(() => (origin && target ? arcPoints(origin, target) : null), [origin, target])
+  const km = origin && target ? Math.round(haversineKm(origin, target)) : null
+
   return (
     <div className={`relative overflow-hidden rounded-2xl bg-[#eef3f0] ${className}`}>
-      <svg viewBox="0 0 400 220" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-        <rect width="400" height="220" fill="#e8efe9" />
-        <path d="M0 40h400M0 90h400M0 140h400M0 190h400" stroke="#d5e0d8" strokeWidth="1" />
-        <path d="M50 0v220M120 0v220M200 0v220M280 0v220M350 0v220" stroke="#d5e0d8" strokeWidth="1" />
-        <path d="M20 180 C 80 160, 90 70, 160 80 S 260 150, 310 70 S 360 40, 390 55" fill="none" stroke="#E91E63" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="42" cy="176" r="8" fill="#E91E63" />
-        <circle cx="42" cy="176" r="14" fill="#E91E63" opacity="0.2" />
-        <circle cx="372" cy="52" r="8" fill="#1c1c28" />
-        <rect x="150" y="96" width="36" height="18" rx="4" fill="#fff" stroke="#E91E63" />
-        <circle cx="158" cy="116" r="3.5" fill="#1c1c28" />
-        <circle cx="178" cy="116" r="3.5" fill="#1c1c28" />
-      </svg>
-      <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow-sm">
-        {from}
+      <MapContainer
+        bounds={line || UZ_BOUNDS}
+        className="h-full w-full"
+        zoomControl={false}
+        attributionControl={false}
+        scrollWheelZoom={false}
+        dragging={false}
+        doubleClickZoom={false}
+        touchZoom={false}
+        keyboard={false}
+      >
+        <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+        <FitRoute points={line} />
+        {line ? (
+          <>
+            <Polyline positions={line} pathOptions={{ color: '#ffffff', weight: 9, opacity: 0.9 }} />
+            <Polyline positions={line} pathOptions={{ color: '#e91e63', weight: 5 }} />
+            <Marker position={[origin.lat, origin.lng]} icon={cityPin('#e91e63', origin.name)} />
+            <Marker position={[target.lat, target.lng]} icon={cityPin('#1c1c28', target.name)} />
+          </>
+        ) : null}
+      </MapContainer>
+
+      <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-extrabold shadow-sm">
+        <span className="h-2 w-2 rounded-full bg-brand" />
+        {origin?.name || from}
+        <span className="text-muted">→</span>
+        <span className="h-2 w-2 rounded-full bg-ink" />
+        {target?.name || to}
       </div>
-      <div className="absolute bottom-3 right-3 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white shadow-sm">
-        {to}
-      </div>
+      {km ? (
+        <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-ink px-3 py-1 text-xs font-extrabold text-white shadow-sm">
+          ≈ {km} km
+        </div>
+      ) : null}
     </div>
   )
 }

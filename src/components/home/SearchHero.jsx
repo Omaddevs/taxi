@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowDownUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowDownUp, Flag, MapPin } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { Button } from '../ui/Button'
@@ -12,10 +12,25 @@ import {
   TimePicker,
 } from '../ui/SearchPickers'
 
+// Bir vaqtda faqat bitta variant render bo‘lishi kerak, aks holda ikkita picker oynasi ochiladi.
+function useMobileLayout() {
+  const [mobile, setMobile] = useState(() =>
+    typeof window === 'undefined' ? true : window.matchMedia('(max-width: 767px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const onChange = () => setMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return mobile
+}
+
 export function SearchHero() {
   const { search, setSearch } = useApp()
   const navigate = useNavigate()
   const [open, setOpen] = useState(null)
+  const mobile = useMobileLayout()
 
   const update = (patch) => setSearch((s) => ({ ...s, ...patch }))
   const swap = () =>
@@ -54,7 +69,44 @@ export function SearchHero() {
       </div>
 
       <div className="mt-4 grid items-end gap-0 lg:mt-5 lg:grid-cols-[1fr_auto] lg:gap-4">
-        <div className="relative">
+        {mobile ? (
+          // Ikki qator teng balandlikda — shuning uchun tugma ajratuvchi chiziqning aynan markazida turadi.
+          <div className="relative rounded-[22px] bg-white">
+            <RegionPicker
+              variant="row"
+              icon={MapPin}
+              label="Qayerdan"
+              region={search.fromRegion}
+              place={search.fromPlace}
+              onChange={({ region, place, label }) =>
+                update({ fromRegion: region, fromPlace: place, from: label })
+              }
+              open={open === 'from'}
+              onToggle={() => toggle('from')}
+              onClose={close}
+            />
+            <div className="mx-3.5 h-px bg-line" />
+            <RegionPicker
+              variant="row"
+              icon={Flag}
+              label="Qayerga"
+              region={search.toRegion}
+              place={search.toPlace}
+              onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
+              open={open === 'to'}
+              onToggle={() => toggle('to')}
+              onClose={close}
+            />
+            <button
+              type="button"
+              onClick={swap}
+              className="absolute left-1/2 top-1/2 z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-brand text-white shadow-md"
+              aria-label="Almashtirish"
+            >
+              <ArrowDownUp className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
           <div className="grid gap-3 md:grid-cols-[1fr_44px_1fr] md:items-end">
             <RegionPicker
               label="Qayerdan"
@@ -67,7 +119,7 @@ export function SearchHero() {
               onToggle={() => toggle('from')}
               onClose={close}
             />
-            <div className="hidden md:flex md:h-12 md:items-center md:justify-center">
+            <div className="flex h-12 items-center justify-center">
               <button
                 type="button"
                 onClick={swap}
@@ -87,15 +139,7 @@ export function SearchHero() {
               onClose={close}
             />
           </div>
-          <button
-            type="button"
-            onClick={swap}
-            className="absolute left-1/2 top-1/2 z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-brand shadow-md md:hidden"
-            aria-label="Almashtirish"
-          >
-            <ArrowDownUp className="h-4 w-4" />
-          </button>
-        </div>
+        )}
         <div className="hidden 2xl:block">
           <CarArt />
         </div>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { BrandMark } from '../ui/Logo'
+import { LanguageRow } from '../ui/LanguagePicker'
 import { useApp } from '../../context/AppContext'
 
 const items = [
@@ -83,10 +84,7 @@ export function Sidebar({ embedded = false }) {
         </NavLink>
       </div>
 
-      <div className="mt-4 rounded-xl border border-line px-3 py-2.5 text-sm">
-        <p className="font-medium">O‘zbekcha</p>
-        <p className="text-xs text-muted">Tilni o‘zgartirish</p>
-      </div>
+      <LanguageRow className="mt-4" />
       <a href="tel:+998712000000" className="mt-3 flex items-center gap-2 px-1 text-xs text-muted">
         <Headset className="h-4 w-4 text-brand" />
         24/7 Yordam · +998 71 200 00 00
