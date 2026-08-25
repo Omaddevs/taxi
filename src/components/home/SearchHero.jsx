@@ -10,6 +10,8 @@ import {
   LuggagePicker,
   PassengerPicker,
   RegionPicker,
+  SeatPicker,
+  CarPicker,
   TimePicker,
 } from '../ui/SearchPickers'
 
@@ -166,7 +168,12 @@ export function SearchHero() {
           />
           <PassengerPicker
             value={search.passengers}
-            onChange={(passengers) => update({ passengers })}
+            onChange={(passengers) =>
+              update({
+                passengers,
+                gender: passengers < 2 && search.gender === 'juft' ? '' : search.gender,
+              })
+            }
             open={open === 'passengers'}
             onToggle={() => toggle('passengers')}
             onClose={close}
@@ -180,7 +187,31 @@ export function SearchHero() {
             onClose={close}
             triggerVariant="row"
           />
-          <GenderPicker value={search.gender} onChange={(gender) => update({ gender })} />
+          <GenderPicker
+            value={search.gender}
+            passengers={search.passengers}
+            onChange={(gender) => update({ gender })}
+            open={open === 'gender'}
+            onToggle={() => toggle('gender')}
+            onClose={close}
+            triggerVariant="row"
+          />
+          <SeatPicker
+            value={search.seat}
+            onChange={(seat) => update({ seat })}
+            open={open === 'seat'}
+            onToggle={() => toggle('seat')}
+            onClose={close}
+            triggerVariant="row"
+          />
+          <CarPicker
+            value={search.car}
+            onChange={(car) => update({ car })}
+            open={open === 'car'}
+            onToggle={() => toggle('car')}
+            onClose={close}
+            triggerVariant="row"
+          />
         </div>
         <Button className="mb-2.5 mt-1 h-12 w-full rounded-2xl text-[15px] font-extrabold" onClick={() => navigate('/results')}>
           Safar topish

@@ -473,37 +473,56 @@ function BagIcon({ className }) {
 }
 
 const GENDERS = [
-  { id: 'erkak', title: 'Erkak' },
-  { id: 'ayol', title: 'Ayol' },
+  { id: 'erkak', title: 'Erkak', desc: 'Erkak yo‘lovchi' },
+  { id: 'ayol', title: 'Ayol', desc: 'Ayol yo‘lovchi' },
+  { id: 'juft', title: 'Juft', desc: 'Er-xotin' },
 ]
 
-export function GenderPicker({ value, onChange }) {
+export function GenderPicker({ value, onChange, passengers = 1, open, onToggle, onClose, triggerVariant = 'card' }) {
+  const options = passengers > 1 ? GENDERS : GENDERS.filter((item) => item.id !== 'juft')
+  const current = options.find((x) => x.id === value)
+
   return (
-    <div className="flex w-full items-center gap-3 px-1 py-2.5 lg:col-span-2">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
-        <GenderIcon className="h-[18px] w-[18px]" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">Jins</span>
-        <div className="mt-1.5 grid grid-cols-2 gap-2">
-          {GENDERS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onChange(item.id)}
-              className={cn(
-                'rounded-2xl py-2.5 text-sm font-extrabold transition',
-                value === item.id
-                  ? 'bg-brand text-white shadow-sm shadow-brand/30'
-                  : 'bg-canvas text-ink hover:bg-brand-soft hover:text-brand',
-              )}
-            >
-              {item.title}
-            </button>
-          ))}
-        </div>
-      </span>
-    </div>
+    <PickerShell
+      open={open}
+      onClose={onClose}
+      title="Jins"
+      align="right"
+      trigger={
+        <PickerTrigger
+          icon={GenderIcon}
+          label="Jins"
+          value={current?.title || 'Tanlang'}
+          open={open}
+          onClick={onToggle}
+          variant={triggerVariant}
+        />
+      }
+      panelClass="w-[280px]"
+    >
+      <div className="space-y-2">
+        {options.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              onChange(item.id)
+              onClose()
+            }}
+            className={cn(
+              'flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left',
+              item.id === value ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas',
+            )}
+          >
+            <span>
+              <span className="block text-sm font-bold">{item.title}</span>
+              <span className="text-xs text-muted">{item.desc}</span>
+            </span>
+            {item.id === value ? <Check className="h-5 w-5 text-brand" /> : null}
+          </button>
+        ))}
+      </div>
+    </PickerShell>
   )
 }
 
@@ -512,6 +531,140 @@ function GenderIcon({ className }) {
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="8" r="3.2" />
       <path d="M6.5 19c0-3.4 2.4-5.5 5.5-5.5s5.5 2.1 5.5 5.5" />
+    </svg>
+  )
+}
+
+const SEATS = [
+  { id: 'old', title: 'Old o‘rindiq', desc: 'Haydovchi yonida' },
+  { id: 'orqa-ong', title: 'Orqa o‘ng', desc: 'Orqa qator, o‘ng tomon' },
+  { id: 'orqa-chap', title: 'Orqa chap', desc: 'Orqa qator, chap tomon' },
+  { id: 'orqa-orta', title: 'Orqa o‘rta', desc: 'Orqa qator, o‘rtada' },
+  { id: 'farqi-yoq', title: 'Farqi yo‘q', desc: 'Istalgan joy' },
+]
+
+export function SeatPicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
+  const current = SEATS.find((x) => x.id === value)
+
+  return (
+    <PickerShell
+      open={open}
+      onClose={onClose}
+      title="O‘rindiq tanlash"
+      align="right"
+      trigger={
+        <PickerTrigger
+          icon={SeatIcon}
+          label="O‘rindiq"
+          value={current?.title || 'Tanlang'}
+          open={open}
+          onClick={onToggle}
+          variant={triggerVariant}
+        />
+      }
+      panelClass="w-[280px]"
+    >
+      <div className="space-y-2">
+        {SEATS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              onChange(item.id)
+              onClose()
+            }}
+            className={cn(
+              'flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left',
+              item.id === value ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas',
+            )}
+          >
+            <span>
+              <span className="block text-sm font-bold">{item.title}</span>
+              <span className="text-xs text-muted">{item.desc}</span>
+            </span>
+            {item.id === value ? <Check className="h-5 w-5 text-brand" /> : null}
+          </button>
+        ))}
+      </div>
+    </PickerShell>
+  )
+}
+
+function SeatIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 14V8.5A2.5 2.5 0 0 1 8.5 6h3A2.5 2.5 0 0 1 14 8.5V14" />
+      <path d="M5 14h14v2.5a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 16.5V14z" />
+      <path d="M8 18v1.5M16 18v1.5" />
+    </svg>
+  )
+}
+
+const CARS = [
+  { id: 'cobalt', title: 'Chevrolet Cobalt', photo: '/cars/models/cobalt.png?v=2' },
+  { id: 'gentra', title: 'Chevrolet Gentra', photo: '/cars/models/gentra.png?v=2' },
+  { id: 'lacetti', title: 'Chevrolet Lacetti', photo: '/cars/models/lacetti.png?v=2' },
+  { id: 'spark', title: 'Chevrolet Spark', photo: '/cars/models/spark.png?v=2' },
+  { id: 'captiva', title: 'Chevrolet Captiva', photo: '/cars/models/captiva.png?v=2' },
+  { id: 'malibu-xl', title: 'Chevrolet Malibu XL', photo: '/cars/models/malibu-xl.png?v=2' },
+  { id: 'nexia', title: 'Daewoo Nexia', photo: '/cars/models/nexia.png?v=2' },
+  { id: 'nexia-r3', title: 'Nexia R3', photo: '/cars/models/nexia-r3.png?v=2' },
+]
+
+export function CarPicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
+  const current = CARS.find((x) => x.id === value)
+
+  return (
+    <PickerShell
+      open={open}
+      onClose={onClose}
+      title="Avtomobil tanlash"
+      align="right"
+      trigger={
+        <PickerTrigger
+          icon={CarPickIcon}
+          label="Avtomobil"
+          value={current?.title || 'Tanlang'}
+          open={open}
+          onClick={onToggle}
+          variant={triggerVariant}
+        />
+      }
+      panelClass="w-[min(340px,calc(100vw-2rem))]"
+    >
+      <div className="space-y-2">
+        {CARS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              onChange(item.id)
+              onClose()
+            }}
+            className={cn(
+              'flex w-full items-center gap-3.5 rounded-2xl border px-3.5 py-3.5 text-left',
+              item.id === value ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas',
+            )}
+          >
+            <span className="flex h-[96px] w-[168px] shrink-0 items-center justify-center">
+              <img src={item.photo} alt="" className="max-h-[96px] w-full object-contain" />
+            </span>
+            <span className="min-w-0 flex-1 text-[15px] font-bold leading-5">{item.title}</span>
+            {item.id === value ? <Check className="h-5 w-5 shrink-0 text-brand" /> : null}
+          </button>
+        ))}
+      </div>
+    </PickerShell>
+  )
+}
+
+function CarPickIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 15.5h16l-1.4-5.2A2 2 0 0 0 16.7 9H7.3a2 2 0 0 0-1.9 1.3L4 15.5z" />
+      <circle cx="7.5" cy="16.8" r="1.4" />
+      <circle cx="16.5" cy="16.8" r="1.4" />
+      <path d="M8 9.2V7.6A1.6 1.6 0 0 1 9.6 6h4.8A1.6 1.6 0 0 1 16 7.6v1.6" />
     </svg>
   )
 }

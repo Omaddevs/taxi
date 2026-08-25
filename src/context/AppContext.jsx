@@ -56,6 +56,8 @@ export function AppProvider({ children }) {
     passengers: 1,
     luggage: "O'rta",
     gender: '',
+    seat: '',
+    car: '',
     service: 'all',
   })
   const [favorites, setFavorites] = useState(['t1'])
