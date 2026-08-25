@@ -2,6 +2,8 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Ilovaning asosiy blok radiusi — kartalar, inputlar va panellar shu tokenni ishlatadi. */
+  --radius-2xl: 20px;
   --color-brand: #e91e63;
   --color-brand-dark: #c2185b;
   --color-brand-soft: #fce4ec;

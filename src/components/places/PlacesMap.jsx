@@ -211,7 +211,7 @@ export function PlacesMap({
         ? createPortal(
             <div className="fixed inset-0 z-[10000]">
               <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={() => setSelected(null)} />
-              <div className="absolute inset-x-0 bottom-0 z-10 max-h-[82vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.28)]">
+              <div className="absolute inset-x-0 bottom-0 z-10 max-h-[82vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.28)]">
                 <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
                 {renderDetail(selected, {
                   onClose: () => setSelected(null),

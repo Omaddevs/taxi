@@ -42,7 +42,7 @@ function BottomSheet({ open, title, onClose, children }) {
   return createPortal(
     <div className="fixed inset-0 z-[120] lg:hidden">
       <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
-      <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)]">
+      <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)]">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-extrabold text-ink">{title}</h3>
@@ -472,6 +472,50 @@ function BagIcon({ className }) {
   )
 }
 
+const GENDERS = [
+  { id: 'erkak', title: 'Erkak' },
+  { id: 'ayol', title: 'Ayol' },
+]
+
+export function GenderPicker({ value, onChange }) {
+  return (
+    <div className="flex w-full items-center gap-3 px-1 py-2.5 lg:col-span-2">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+        <GenderIcon className="h-[18px] w-[18px]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">Jins</span>
+        <div className="mt-1.5 grid grid-cols-2 gap-2">
+          {GENDERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onChange(item.id)}
+              className={cn(
+                'rounded-2xl py-2.5 text-sm font-extrabold transition',
+                value === item.id
+                  ? 'bg-brand text-white shadow-sm shadow-brand/30'
+                  : 'bg-canvas text-ink hover:bg-brand-soft hover:text-brand',
+              )}
+            >
+              {item.title}
+            </button>
+          ))}
+        </div>
+      </span>
+    </div>
+  )
+}
+
+function GenderIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M6.5 19c0-3.4 2.4-5.5 5.5-5.5s5.5 2.1 5.5 5.5" />
+    </svg>
+  )
+}
+
 export function RegionPicker({ label, region, place, onChange, open, onToggle, onClose, variant = 'stacked', icon: RowIcon }) {
   const [step, setStep] = useState('region')
   const [picked, setPicked] = useState(region)
@@ -549,33 +593,33 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
       </div>
 
       {searchHits.length > 0 ? (
-        <div className="no-scrollbar max-h-[50vh] space-y-1 overflow-y-auto lg:max-h-72">
+        <div className="no-scrollbar max-h-[50vh] space-y-1.5 overflow-y-auto lg:max-h-72">
           {searchHits.map((hit) => (
             <button
               key={`${hit.region}-${hit.place}`}
               type="button"
               onClick={() => (hit.type === 'region' ? pickRegion(hit.region) : pickPlace(hit.region, hit.place))}
-              className="flex w-full flex-col rounded-xl px-3 py-2.5 text-left hover:bg-canvas"
+              className="flex h-11 w-full flex-col justify-center rounded-2xl bg-canvas px-4 text-left"
             >
-              <span className="text-sm font-bold">{hit.place || hit.region}</span>
-              {hit.place ? <span className="text-xs text-muted">{hit.region}</span> : <span className="text-xs text-muted">Viloyat · tumanlarni ochish</span>}
+              <span className="text-[13px] font-semibold">{hit.place || hit.region}</span>
+              {hit.place ? <span className="text-[11px] text-muted">{hit.region}</span> : <span className="text-[11px] text-muted">Viloyat · tumanlarni ochish</span>}
             </button>
           ))}
         </div>
       ) : step === 'region' ? (
-        <div className="no-scrollbar max-h-[50vh] space-y-1 overflow-y-auto lg:max-h-72">
+        <div className="no-scrollbar max-h-[50vh] space-y-1.5 overflow-y-auto lg:max-h-72">
           {REGIONS.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => pickRegion(item.name)}
               className={cn(
-                'flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold',
-                item.name === region ? 'bg-brand-soft text-brand' : 'hover:bg-canvas',
+                'flex h-11 w-full items-center justify-between rounded-2xl px-4 text-[13px] font-semibold transition',
+                item.name === region ? 'bg-brand-soft text-brand' : 'bg-canvas text-ink',
               )}
             >
               {item.name}
-              <ChevronRight className="h-4 w-4 text-slate-300" />
+              <ChevronRight className={cn('h-4 w-4', item.name === region ? 'text-brand' : 'text-slate-300')} />
             </button>
           ))}
         </div>
@@ -589,15 +633,15 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
             <ChevronLeft className="h-4 w-4" />
             {picked}
           </button>
-          <div className="no-scrollbar max-h-[46vh] space-y-1 overflow-y-auto lg:max-h-64">
+          <div className="no-scrollbar max-h-[46vh] space-y-1.5 overflow-y-auto lg:max-h-64">
             {districts.map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => pickPlace(picked, item)}
                 className={cn(
-                  'flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold',
-                  picked === region && item === place ? 'bg-brand-soft text-brand' : 'hover:bg-canvas',
+                  'flex h-11 w-full items-center justify-between rounded-2xl px-4 text-[13px] font-semibold transition',
+                  picked === region && item === place ? 'bg-brand-soft text-brand' : 'bg-canvas text-ink',
                 )}
               >
                 {item}

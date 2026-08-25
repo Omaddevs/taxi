@@ -7,7 +7,7 @@ export default function RideSearch() {
   return (
     <div>
       <ScreenHeader title="Taxi chaqirish" subtitle="Qayerdan — qayerga" />
-      <div className="px-4 pt-3 lg:px-0 lg:pt-0">
+      <div className="lg:pt-0">
         <PageTitle title="Taxi chaqirish" subtitle="Shahar ichida va viloyatlararo" />
         <SearchHero />
         <div className="mt-5">

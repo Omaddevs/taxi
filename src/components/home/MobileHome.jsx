@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext'
 import { ecosystem } from '../../data/ecosystem'
 import { EcosystemIcon } from '../icons/EcosystemIcon'
 import { PromoCarousel } from './PromoCarousel'
-import { Wordmark } from '../ui/Logo'
+import { LogoPin, Wordmark } from '../ui/Logo'
 
 const ECO_STRIP = ecosystem.filter((s) => !['taxi', 'delivery', 'roadside', 'fuel'].includes(s.id))
 const ECO_PAGES = 3
@@ -134,14 +134,17 @@ export function MobileHome() {
         <button
           type="button"
           onClick={openLocationPicker}
-          className="min-w-0 text-center"
+          className="flex min-w-0 items-start gap-1.5"
           aria-label="Manzilni o‘zgartirish"
         >
-          <Wordmark className="text-[19px]" />
-          <p className="flex items-center justify-center gap-0.5 text-xs text-muted">
-            <span className="max-w-[150px] truncate">{location.label}</span>
-            <ChevronRight className="h-3 w-3 shrink-0" />
-          </p>
+          <LogoPin size={28} className="mt-px" />
+          <span className="min-w-0 text-left">
+            <Wordmark className="text-[19px]" />
+            <p className="mt-0.5 flex items-center gap-0.5 text-xs text-muted">
+              <span className="max-w-[140px] truncate">{location.label}</span>
+              <ChevronRight className="h-3 w-3 shrink-0" />
+            </p>
+          </span>
         </button>
         <Link
           to="/plus"
@@ -162,7 +165,7 @@ export function MobileHome() {
             onClick={() => {
               if (card.to === '/fuel') requestUserLocation()
             }}
-            className={`relative min-h-[148px] overflow-hidden rounded-[22px] ${card.bg} px-4 pb-3 pt-4`}
+            className={`relative min-h-[148px] overflow-hidden rounded-2xl ${card.bg} px-4 pb-3 pt-4`}
           >
             {card.badge ? (
               <span className="absolute right-3 top-3 z-10 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -253,13 +256,13 @@ export function MobileHome() {
       <div className="no-scrollbar mt-2 flex gap-3 overflow-x-auto px-4 pb-2">
         <Link
           to="/women"
-          className="min-w-[220px] overflow-hidden rounded-[22px] bg-gradient-to-br from-brand to-brand-dark p-4 text-white"
+          className="min-w-[220px] overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark p-4 text-white"
         >
           <p className="text-[10px] font-bold uppercase tracking-wide text-white/70">Xavfsizlik</p>
           <p className="mt-1 text-lg font-extrabold leading-tight">Ayollar uchun taxi</p>
           <p className="mt-1 text-xs text-white/80">Ayol haydovchi · SOS · GPS</p>
         </Link>
-        <Link to="/ai" className="min-w-[220px] overflow-hidden rounded-[22px] bg-[#111827] p-4 text-white">
+        <Link to="/ai" className="min-w-[220px] overflow-hidden rounded-2xl bg-[#111827] p-4 text-white">
           <p className="text-[10px] font-bold uppercase tracking-wide text-white/70">TaxiLine AI</p>
           <p className="mt-1 text-lg font-extrabold leading-tight">Mashina nima bo‘ldi?</p>
           <p className="mt-1 text-xs text-white/80">Taxminiy yo‘nalish, aniq tashxis emas</p>

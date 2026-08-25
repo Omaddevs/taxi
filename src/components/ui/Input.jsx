@@ -16,7 +16,7 @@ export function Input({ className, icon, ...props }) {
   return (
     <input
       className={cn(
-        'h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/15',
+        'h-11 w-full appearance-none rounded-2xl border border-line bg-white px-3 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/15',
         icon && 'pl-10',
         className,
       )}
@@ -29,7 +29,7 @@ export function Select({ className, children, ...props }) {
   return (
     <select
       className={cn(
-        'h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15',
+        'h-11 w-full appearance-none rounded-2xl border border-line bg-white px-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15',
         className,
       )}
       {...props}

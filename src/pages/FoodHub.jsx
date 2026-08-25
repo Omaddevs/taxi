@@ -77,7 +77,7 @@ export default function FoodHub() {
             key={p.id}
             type="button"
             onClick={() => setPicked(p)}
-            className="w-full overflow-hidden rounded-[24px] bg-canvas text-left shadow-[0_8px_24px_rgba(28,28,40,0.06)]"
+            className="w-full overflow-hidden rounded-2xl bg-canvas text-left shadow-[0_8px_24px_rgba(28,28,40,0.06)]"
           >
             <div className="relative h-44">
               <img src={p.cover} alt="" className="h-full w-full object-cover" />
@@ -113,7 +113,7 @@ export default function FoodHub() {
       {picked ? (
         <div className="fixed inset-0 z-[10000]">
           <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={() => setPicked(null)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[86vh] overflow-y-auto rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
+          <div className="absolute inset-x-0 bottom-0 max-h-[86vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
             <KitchenDetail
               place={picked}

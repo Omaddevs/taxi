@@ -20,7 +20,7 @@ export default function WomenTaxi() {
       <ScreenHeader title="Ayollar uchun taksi" />
       <PageTitle title="Ayollar uchun taksi" subtitle="Xavfsiz va qulay yo‘l" />
 
-      <div className="overflow-hidden rounded-[28px] bg-gradient-to-b from-brand to-brand-dark p-6 text-white">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-brand to-brand-dark p-6 text-white">
         <p className="text-sm font-semibold text-white/80">Taxiline Women</p>
         <h2 className="mt-2 max-w-sm text-3xl font-extrabold leading-tight">Faqat ayollar uchun xavfsiz safar</h2>
         <div className="mt-6 flex justify-end">

@@ -1,11 +1,13 @@
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-export function ScreenHeader({ title, subtitle, right, back = true }) {
+export function ScreenHeader({ title, subtitle, right, back = true, className = '' }) {
   const navigate = useNavigate()
 
   return (
-    <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-white px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] lg:hidden">
+    <header
+      className={`relative z-0 mb-3 mt-0 flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_6px_20px_rgba(28,28,40,0.05)] lg:hidden ${className}`}
+    >
       {back ? (
         <button
           type="button"

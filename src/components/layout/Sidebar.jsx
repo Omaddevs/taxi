@@ -85,9 +85,9 @@ export function Sidebar({ embedded = false }) {
       </div>
 
       <LanguageRow className="mt-4" />
-      <a href="tel:+998712000000" className="mt-3 flex items-center gap-2 px-1 text-xs text-muted">
+      <a href="tel:+998877353636" className="mt-3 flex items-center gap-2 px-1 text-xs text-muted">
         <Headset className="h-4 w-4 text-brand" />
-        24/7 Yordam · +998 71 200 00 00
+        24/7 Yordam · +998 87 735 36 36
       </a>
     </aside>
   )

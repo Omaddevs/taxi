@@ -70,7 +70,7 @@ export function GeoAskSheet({ open, status, onAllow, onSkip }) {
   return createPortal(
     <div className="fixed inset-0 z-[11000] flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-ink/50 backdrop-blur-[2px]" />
-      <div className="relative w-full max-w-md rounded-t-[28px] bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-4 shadow-[0_-16px_50px_rgba(28,28,40,0.22)] sm:mb-8 sm:rounded-[28px]">
+      <div className="relative w-full max-w-md rounded-t-2xl bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-4 shadow-[0_-16px_50px_rgba(28,28,40,0.22)] sm:mb-8 sm:rounded-2xl">
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden" />
 
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-brand">

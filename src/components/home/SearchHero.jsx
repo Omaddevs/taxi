@@ -6,6 +6,7 @@ import { Button } from '../ui/Button'
 import { CarArt } from '../trip/RouteMap'
 import {
   DatePicker,
+  GenderPicker,
   LuggagePicker,
   PassengerPicker,
   RegionPicker,
@@ -46,7 +47,7 @@ export function SearchHero() {
   const close = () => setOpen(null)
 
   return (
-    <section className="relative z-20 overflow-visible rounded-[32px] bg-gradient-to-br from-brand to-[#ff4d8d] p-4 text-white shadow-xl shadow-brand/20 lg:p-6">
+    <section className="relative overflow-visible rounded-2xl bg-gradient-to-br from-brand to-[#ff4d8d] p-4 text-white shadow-xl shadow-brand/20 lg:p-6">
       <div className="no-scrollbar flex gap-2 overflow-x-auto">
         {[
           { id: 'passenger', label: 'Yo‘lovchi' },
@@ -71,7 +72,7 @@ export function SearchHero() {
       <div className="mt-4 grid items-end gap-0 lg:mt-5 lg:grid-cols-[1fr_auto] lg:gap-4">
         {mobile ? (
           // Ikki qator teng balandlikda — shuning uchun tugma ajratuvchi chiziqning aynan markazida turadi.
-          <div className="relative rounded-[22px] bg-white">
+          <div className="relative rounded-2xl bg-white">
             <RegionPicker
               variant="row"
               icon={MapPin}
@@ -145,7 +146,7 @@ export function SearchHero() {
         </div>
       </div>
 
-      <div className="relative z-30 mt-4 rounded-[22px] bg-white px-3.5 py-1 text-ink lg:mt-5 lg:px-4 lg:py-2">
+      <div className="relative mt-4 rounded-2xl bg-white px-3.5 py-1 text-ink lg:mt-5 lg:px-4 lg:py-2">
         <div className="divide-y divide-line lg:grid lg:grid-cols-2 lg:gap-x-3 lg:divide-y-0">
           <DatePicker
             value={search.date}
@@ -179,6 +180,7 @@ export function SearchHero() {
             onClose={close}
             triggerVariant="row"
           />
+          <GenderPicker value={search.gender} onChange={(gender) => update({ gender })} />
         </div>
         <Button className="mb-2.5 mt-1 h-12 w-full rounded-2xl text-[15px] font-extrabold" onClick={() => navigate('/results')}>
           Safar topish

@@ -64,7 +64,7 @@ export default function Plus() {
                 setPicked(plan.id)
                 setDone(false)
               }}
-              className={`w-full rounded-[24px] border p-4 text-left transition ${
+              className={`w-full rounded-2xl border p-4 text-left transition ${
                 selected
                   ? featured
                     ? 'border-transparent bg-ink text-white shadow-xl shadow-black/15'

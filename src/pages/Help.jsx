@@ -33,7 +33,7 @@ export default function Help() {
         ))}
       </div>
 
-      <a href="tel:+998712000000">
+      <a href="tel:+998877353636">
         <Button size="lg" className="mt-5 w-full">
           <Headset className="h-4 w-4" /> Biz bilan bog‘lanish
         </Button>

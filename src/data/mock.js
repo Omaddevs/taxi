@@ -252,7 +252,7 @@ export const conversations = [
     id: 'c2',
     name: 'Taxiline Support',
     role: 'Yordam',
-    phone: '+998 71 200 00 00',
+    phone: '+998 87 735 36 36',
     avatar: '',
     last: 'Buyurtmangiz tasdiqlandi',
     time: 'Kecha',

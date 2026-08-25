@@ -192,7 +192,7 @@ export default function SOS() {
       {showContacts ? (
         <div className="fixed inset-0 z-[140]">
           <button type="button" className="absolute inset-0 bg-black/50" aria-label="Yopish" onClick={() => setShowContacts(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-[28px] bg-[#2a1218] px-4 pb-8 pt-3">
+          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-[#2a1218] px-4 pb-8 pt-3">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
             <p className="text-lg font-extrabold">Ishonchli kontaktlar</p>
             <div className="mt-3 space-y-2">

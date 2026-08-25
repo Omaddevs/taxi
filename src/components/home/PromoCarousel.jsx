@@ -107,7 +107,7 @@ export function PromoCarousel() {
             <Link
               key={slide.id}
               to={slide.to}
-              className={`relative h-[118px] w-[86%] shrink-0 snap-start overflow-hidden rounded-[22px] bg-gradient-to-br px-4 py-3.5 sm:w-[70%] lg:w-[46%] ${slide.theme}`}
+              className={`relative h-[118px] w-[86%] shrink-0 snap-start overflow-hidden rounded-2xl bg-gradient-to-br px-4 py-3.5 sm:w-[70%] lg:w-[46%] ${slide.theme}`}
             >
               {slide.photo ? (
                 // Chapdan o‘ngga mask rasmni karta foniga qo‘shib yuboradi.

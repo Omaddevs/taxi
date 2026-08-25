@@ -37,7 +37,7 @@ export function CoinCard() {
   const coins = new Intl.NumberFormat('uz-UZ').format(user.coins ?? 0).replace(/,/g, ' ')
 
   return (
-    <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_24px_rgba(28,28,40,0.06)]">
+    <div className="rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(28,28,40,0.06)]">
       <div className="flex items-center gap-3">
         <CoinIcon size={46} />
         <div className="min-w-0 flex-1">

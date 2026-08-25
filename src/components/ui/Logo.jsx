@@ -1,17 +1,29 @@
+import logo from '../../assets/logo.png'
+import logoPin from '../../assets/logo-pin.png'
+
 export function Logo({ size = 36 }) {
   return (
-    <div
-      className="flex items-center justify-center rounded-xl bg-brand text-white shadow-sm shadow-brand/30"
+    <img
+      src={logo}
+      alt="TaxiLine"
+      width={size}
+      height={size}
+      className="rounded-xl object-cover shadow-sm shadow-brand/30"
       style={{ width: size, height: size }}
-    >
-      <svg viewBox="0 0 32 32" width={size * 0.7} height={size * 0.7} fill="none">
-        <path d="M7 20.5h18l-1.6-6a2 2 0 0 0-1.9-1.5H10.5a2 2 0 0 0-1.9 1.5L7 20.5z" fill="currentColor" />
-        <circle cx="11.2" cy="22.2" r="1.7" fill="currentColor" />
-        <circle cx="20.8" cy="22.2" r="1.7" fill="currentColor" />
-        <rect x="12" y="10" width="8" height="3.2" rx="1" fill="currentColor" />
-        <path d="M8 16.2h16" stroke="#E91E63" strokeWidth="1.4" strokeDasharray="2 2" />
-      </svg>
-    </div>
+    />
+  )
+}
+
+export function LogoPin({ size = 28, className = '' }) {
+  return (
+    <img
+      src={logoPin}
+      alt=""
+      width={size}
+      height={size}
+      className={`shrink-0 object-contain ${className}`}
+      style={{ width: size, height: size }}
+    />
   )
 }
 

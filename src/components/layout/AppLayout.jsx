@@ -7,7 +7,7 @@ import { LocationPicker } from '../location/LocationPicker'
 
 const fullBleed = ['/driver', '/sos']
 const hideTopMobile = ['/', '/ride', '/plus', '/fuel', '/map', '/wallet']
-const flushMobile = ['/ride', '/plus', '/fuel', '/map', '/wallet']
+const flushMobile = ['/plus', '/fuel', '/map', '/wallet']
 const mapScreens = ['/fuel', '/map']
 
 function isHubMap(pathname) {

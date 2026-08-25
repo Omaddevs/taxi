@@ -105,7 +105,7 @@ export default function Wallet() {
         </div>
       </header>
 
-      <div className="-mt-4 rounded-t-[28px] bg-canvas px-4 pb-8 pt-5">
+      <div className="-mt-4 rounded-t-2xl bg-canvas px-4 pb-8 pt-5">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-extrabold">Ulangan kartalar</p>
           <button
@@ -124,7 +124,7 @@ export default function Wallet() {
           {cards.map((c) => (
             <article
               key={c.id}
-              className={`relative h-44 w-[260px] shrink-0 overflow-hidden rounded-[22px] p-4 text-white shadow-lg ${
+              className={`relative h-44 w-[260px] shrink-0 overflow-hidden rounded-2xl p-4 text-white shadow-lg ${
                 c.kind === 'humo'
                   ? 'bg-gradient-to-br from-[#6d28d9] to-[#4c1d95]'
                   : c.kind === 'uzcard'
@@ -156,7 +156,7 @@ export default function Wallet() {
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="flex h-44 w-[160px] shrink-0 flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-brand/40 bg-brand-soft text-brand"
+            className="flex h-44 w-[160px] shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft text-brand"
           >
             <Plus className="h-6 w-6" />
             <span className="text-xs font-extrabold">Yangi karta</span>
@@ -170,7 +170,7 @@ export default function Wallet() {
         ) : null}
 
         <p className="mb-2 mt-6 text-sm font-extrabold">So‘nggi tranzaksiyalar</p>
-        <div className="divide-y divide-line overflow-hidden rounded-[22px] bg-white">
+        <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white">
           {transactions.map((item) => (
             <div key={item.id} className="flex items-center justify-between px-4 py-3.5">
               <div>
@@ -193,12 +193,12 @@ export default function Wallet() {
           <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={() => setAdding(false)} />
           <form
             onSubmit={addCard}
-            className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3"
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3"
           >
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
             <p className="text-lg font-extrabold">Karta qo‘shish</p>
             <p className="text-xs text-muted">Humo yoki UzCard raqamini kiriting</p>
-            <div className={`mt-4 rounded-[22px] p-4 text-white ${preview.kind === 'humo' ? 'bg-[#6d28d9]' : preview.kind === 'uzcard' ? 'bg-[#1d4ed8]' : 'bg-brand'}`}>
+            <div className={`mt-4 rounded-2xl p-4 text-white ${preview.kind === 'humo' ? 'bg-[#6d28d9]' : preview.kind === 'uzcard' ? 'bg-[#1d4ed8]' : 'bg-brand'}`}>
               <p className="text-xs font-bold">{preview.brand}</p>
               <p className="mt-6 text-lg font-bold tracking-[0.12em]">{form.pan || '•••• •••• •••• ••••'}</p>
             </div>
