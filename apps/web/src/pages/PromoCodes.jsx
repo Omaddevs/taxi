@@ -1,11 +1,20 @@
+import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { promos } from '../data/mock'
-import { useApp } from '../context/AppContext'
+import { api } from '../lib/api'
 
 export default function PromoCodes() {
-  const { promoInput, setPromoInput, appliedPromo, setAppliedPromo } = useApp()
+  const [promoInput, setPromoInput] = useState('')
+  const [result, setResult] = useState(null)
+
+  const validate = useMutation({
+    mutationFn: (code) => api.post('/promo/validate', { code }),
+    onSuccess: (data, code) => setResult({ code, ...data }),
+    onError: () => setResult({ code: promoInput, valid: false, reason: 'Tekshirib bo‘lmadi' }),
+  })
 
   return (
     <div className="mx-auto max-w-xl">
@@ -19,19 +28,19 @@ export default function PromoCodes() {
           placeholder="PROMO KOD"
           className="uppercase"
         />
-        <Button
-          onClick={() => {
-            const found = promos.find((p) => p.code === promoInput)
-            setAppliedPromo(found ? found.code : promoInput ? 'invalid' : null)
-          }}
-        >
+        <Button disabled={!promoInput || validate.isPending} onClick={() => validate.mutate(promoInput)}>
           Tekshirish
         </Button>
       </Card>
-      {appliedPromo && appliedPromo !== 'invalid' ? (
-        <p className="mt-2 text-sm font-semibold text-success">{appliedPromo} qo‘llandi</p>
+      {result?.valid ? (
+        <p className="mt-2 text-sm font-semibold text-success">
+          {result.code} amal qiladi — {result.discountType === 'PERCENT' ? `${result.discountValue}%` : `${result.discountValue} so'm`} chegirma.
+          Safar band qilishda avtomatik qo‘llanadi.
+        </p>
       ) : null}
-      {appliedPromo === 'invalid' ? <p className="mt-2 text-sm font-semibold text-danger">Kod topilmadi</p> : null}
+      {result && !result.valid ? (
+        <p className="mt-2 text-sm font-semibold text-danger">{result.reason || 'Kod topilmadi'}</p>
+      ) : null}
 
       <p className="mb-2 mt-6 text-sm font-bold">Mening kodlarim</p>
       <div className="space-y-3">

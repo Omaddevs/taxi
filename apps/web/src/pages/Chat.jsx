@@ -1,26 +1,67 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Phone, Send } from 'lucide-react'
-import { chatMessages, conversations } from '../data/mock'
+import { api } from '../lib/api'
+import { useSocket } from '../lib/socket'
 
 export default function Chat() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const conv = conversations.find((c) => c.id === id) || conversations[0]
+  const queryClient = useQueryClient()
   const [text, setText] = useState('')
-  const [messages, setMessages] = useState(chatMessages[conv.id] || [])
   const endRef = useRef(null)
+
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: () => api.get('/conversations'),
+  })
+  const conv = conversations.find((c) => c.id === id)
+
+  const { data: rawMessages = [] } = useQuery({
+    queryKey: ['messages', id],
+    queryFn: () => api.get(`/conversations/${id}/messages`),
+  })
+  const messages = [...rawMessages].reverse()
+
+  const socket = useSocket({
+    'chat:message': (message) => {
+      if (message.conversationId !== id) return
+      queryClient.setQueryData(['messages', id], (prev = []) => [message, ...prev])
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    },
+  })
+
+  useEffect(() => {
+    socket.emit('conversation:join', id)
+  }, [socket, id])
+
+  useEffect(() => {
+    api.patch(`/conversations/${id}/read`).catch(() => {})
+  }, [id])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'end' })
-  }, [messages])
+  }, [messages.length])
 
-  const send = (e) => {
+  const sendMessage = useMutation({
+    mutationFn: (value) => api.post(`/conversations/${id}/messages`, { text: value }),
+    onSuccess: (message) => {
+      queryClient.setQueryData(['messages', id], (prev = []) => [message, ...prev])
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    },
+  })
+
+  function send(e) {
     e.preventDefault()
     const value = text.trim()
     if (!value) return
-    setMessages((prev) => [...prev, { id: Date.now(), from: 'me', text: value, time: 'hozir' }])
     setText('')
+    sendMessage.mutate(value)
+  }
+
+  if (!conv) {
+    return <p className="p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
   }
 
   return (
@@ -34,21 +75,18 @@ export default function Chat() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        {conv.avatar ? (
-          <img src={conv.avatar} alt="" className="h-10 w-10 shrink-0 rounded-2xl object-cover" />
+        {conv.otherParticipant?.avatarUrl ? (
+          <img src={conv.otherParticipant.avatarUrl} alt="" className="h-10 w-10 shrink-0 rounded-2xl object-cover" />
         ) : (
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-sm font-extrabold text-brand">
             TL
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-extrabold">{conv.name}</p>
-          <p className="truncate text-xs text-muted">
-            {conv.online ? 'Onlayn' : 'Oxirgi ko‘rilgan yaqinda'} · {conv.role}
-          </p>
+          <p className="truncate text-base font-extrabold">{conv.otherParticipant?.name || conv.otherParticipant?.phone}</p>
         </div>
         <a
-          href={`tel:${(conv.phone || '').replace(/\s/g, '')}`}
+          href={`tel:${(conv.otherParticipant?.phone || '').replace(/\s/g, '')}`}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-sm shadow-brand/30"
           aria-label="Qo‘ng‘iroq qilish"
         >
@@ -57,18 +95,23 @@ export default function Chat() {
       </header>
 
       <div className="flex-1 space-y-2.5 overflow-y-auto px-3 py-4">
-        {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-[0_2px_8px_rgba(28,28,40,0.05)] ${
-                m.from === 'me' ? 'bg-brand text-white' : 'bg-white'
-              }`}
-            >
-              <p className="whitespace-pre-wrap break-words">{m.text}</p>
-              <p className={`mt-1 text-[10px] ${m.from === 'me' ? 'text-white/70' : 'text-muted'}`}>{m.time}</p>
+        {messages.map((m) => {
+          const mine = m.senderId !== conv.otherParticipant?.id
+          return (
+            <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-[0_2px_8px_rgba(28,28,40,0.05)] ${
+                  mine ? 'bg-brand text-white' : 'bg-white'
+                }`}
+              >
+                <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                <p className={`mt-1 text-[10px] ${mine ? 'text-white/70' : 'text-muted'}`}>
+                  {new Date(m.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         <div ref={endRef} />
       </div>
 

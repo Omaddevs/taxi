@@ -1,5 +1,7 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
+import { useAuth } from './context/AuthContext'
+import Login from './pages/Login'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import TripDetails from './pages/TripDetails'
@@ -29,10 +31,26 @@ import TaxiLineAI from './pages/TaxiLineAI'
 import RideSearch from './pages/RideSearch'
 import Plus from './pages/Plus'
 
+function RequireAuth({ children }) {
+  const { status } = useAuth()
+  if (status === 'guest') return <Navigate to="/login" replace />
+  if (status === 'checking') {
+    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+  }
+  return children
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route path="/login" element={<Login />} />
+      <Route
+        element={
+          <RequireAuth>
+            <AppLayout />
+          </RequireAuth>
+        }
+      >
         <Route path="/" element={<Home />} />
         <Route path="/results" element={<SearchResults />} />
         <Route path="/trip/:id" element={<TripDetails />} />

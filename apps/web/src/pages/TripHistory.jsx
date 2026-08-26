@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Badge, Card } from '../components/ui/Button'
-import { history } from '../data/mock'
+import { useMyBookings } from '../lib/queries'
+import { bookingToHistoryItem, BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../lib/adapters'
 import { formatSom } from '../lib/utils'
 
 const tabs = [
   { id: 'all', label: 'Barchasi' },
-  { id: 'done', label: 'Yakunlangan' },
-  { id: 'cancelled', label: 'Bekor qilingan' },
+  { id: 'COMPLETED', label: 'Yakunlangan' },
+  { id: 'CANCELLED', label: 'Bekor qilingan' },
 ]
 
 export default function TripHistory() {
   const [tab, setTab] = useState('all')
-  const list = history.filter((h) => (tab === 'all' ? true : h.status === (tab === 'done' ? 'done' : 'cancelled')))
+  const { data: bookings = [], isLoading } = useMyBookings({ status: tab === 'all' ? undefined : tab })
+  const list = bookings.map(bookingToHistoryItem)
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -32,6 +34,11 @@ export default function TripHistory() {
         ))}
       </div>
 
+      {isLoading ? <p className="text-sm text-muted">Yuklanmoqda…</p> : null}
+      {!isLoading && list.length === 0 ? (
+        <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">Bu bo‘limda safarlar yo‘q.</p>
+      ) : null}
+
       <div className="space-y-3">
         {list.map((item) => (
           <Card key={item.id} className="p-4">
@@ -44,9 +51,7 @@ export default function TripHistory() {
                   {item.date} · {item.driver} · {item.plate}
                 </p>
               </div>
-              <Badge tone={item.status === 'done' ? 'green' : 'red'}>
-                {item.status === 'done' ? 'Yakunlangan' : 'Bekor qilingan'}
-              </Badge>
+              <Badge tone={BOOKING_STATUS_TONE[item.status]}>{BOOKING_STATUS_LABEL[item.status]}</Badge>
             </div>
             <p className="mt-3 text-sm font-extrabold text-brand">{formatSom(item.price)}</p>
           </Card>

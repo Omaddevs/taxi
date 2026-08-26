@@ -4,6 +4,7 @@ import { MobileDrawer } from './MobileDrawer'
 import { Sidebar } from './Sidebar'
 import { TopHeader } from './TopHeader'
 import { LocationPicker } from '../location/LocationPicker'
+import { useApp } from '../../context/AppContext'
 
 const fullBleed = ['/driver', '/sos']
 const hideTopMobile = ['/', '/ride', '/plus', '/fuel', '/map', '/wallet']
@@ -27,7 +28,12 @@ function isChat(pathname) {
 
 export function AppLayout() {
   const { pathname } = useLocation()
+  const { user } = useApp()
   const hideChrome = fullBleed.includes(pathname)
+
+  if (!user) {
+    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+  }
   const mobileHome = pathname === '/'
   const hideHeaderMobile = hideTopMobile.includes(pathname) || isHubMap(pathname) || isChat(pathname)
   const flush = flushMobile.includes(pathname) || isHubMap(pathname)

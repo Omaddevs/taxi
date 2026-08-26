@@ -5,6 +5,9 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { CoinCard } from '../components/ui/CoinCard'
 import { LanguageMenuRow } from '../components/ui/LanguagePicker'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { useMyBookings } from '../lib/queries'
+import { formatSom } from '../lib/utils'
 
 const menu = [
   { to: '/settings', icon: User, label: 'Shaxsiy ma’lumotlar' },
@@ -18,6 +21,8 @@ const menu = [
 
 export default function Profile() {
   const { user } = useApp()
+  const { logout } = useAuth()
+  const { data: completedBookings = [] } = useMyBookings({ status: 'COMPLETED' })
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -28,7 +33,7 @@ export default function Profile() {
           <div className="flex items-center gap-4">
             <img src={user.avatar} alt="" className="h-20 w-20 rounded-full border-4 border-white object-cover" />
             <div>
-              <p className="text-xl font-extrabold">{user.name}</p>
+              <p className="text-xl font-extrabold">{user.name || user.phone}</p>
               <p className="text-sm text-white/80">{user.phone}</p>
               {user.verified ? <Badge className="mt-2 bg-white text-brand">Tasdiqlangan</Badge> : null}
             </div>
@@ -36,12 +41,12 @@ export default function Profile() {
         </div>
         <div className="-mt-6 mx-5 mb-4 grid grid-cols-3 overflow-hidden rounded-2xl bg-white shadow">
           {[
-            [user.trips, 'Safar'],
-            [user.rating, 'Reyting'],
+            [completedBookings.length, 'Safar'],
             [user.points, 'Ball'],
+            [formatSom(user.balance), 'Balans'],
           ].map(([value, label]) => (
             <div key={label} className="py-4 text-center">
-              <p className="text-lg font-extrabold">{value}</p>
+              <p className="truncate px-1 text-lg font-extrabold">{value}</p>
               <p className="text-xs text-muted">{label}</p>
             </div>
           ))}
@@ -65,7 +70,7 @@ export default function Profile() {
         ))}
       </Card>
 
-      <Button variant="soft" className="mt-4 w-full" onClick={() => window.location.reload()}>
+      <Button variant="soft" className="mt-4 w-full" onClick={logout}>
         <LogOut className="h-4 w-4" /> Chiqish
       </Button>
     </div>

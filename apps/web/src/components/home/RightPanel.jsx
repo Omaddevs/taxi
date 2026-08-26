@@ -1,12 +1,16 @@
 import { Gift, Heart, History, Shield, Siren, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { history } from '../../data/mock'
 import { useApp } from '../../context/AppContext'
+import { useRecentTrips } from '../../lib/queries'
+import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../../lib/adapters'
 import { formatSom } from '../../lib/utils'
 import { Badge, Button, Card } from '../ui/Button'
 
 export function RightPanel() {
   const { user } = useApp()
+  const { data: recentTrips = [] } = useRecentTrips(3)
+
+  if (!user) return null
 
   return (
     <aside className="space-y-4">
@@ -56,7 +60,8 @@ export function RightPanel() {
       <Card className="p-5">
         <h3 className="font-bold">So‘nggi safarlar</h3>
         <div className="mt-2 divide-y divide-line">
-          {history.slice(0, 3).map((item) => (
+          {recentTrips.length === 0 ? <p className="py-3 text-sm text-muted">Hali safarlar yo‘q</p> : null}
+          {recentTrips.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-3">
               <div>
                 <p className="text-sm font-semibold">
@@ -66,9 +71,7 @@ export function RightPanel() {
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold">{formatSom(item.price)}</p>
-                <Badge tone={item.status === 'done' ? 'green' : 'red'}>
-                  {item.status === 'done' ? 'Bajarilgan' : 'Bekor'}
-                </Badge>
+                <Badge tone={BOOKING_STATUS_TONE[item.status]}>{BOOKING_STATUS_LABEL[item.status]}</Badge>
               </div>
             </div>
           ))}

@@ -4,25 +4,26 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { PageTitle } from '../components/ui/ScreenHeader'
 import { TripCard } from '../components/trip/TripCard'
 import { useApp } from '../context/AppContext'
+import { useOffersSearch } from '../lib/queries'
 import { services } from '../data/mock'
 
 const filters = [{ id: 'all', title: 'Barchasi' }, ...services.filter((s) => s.id !== 'cargo')]
 
 export default function SearchResults() {
-  const { search, trips } = useApp()
+  const { search } = useApp()
   const [filter, setFilter] = useState(search.service === 'cargo' ? 'all' : search.service || 'all')
 
+  const { data: trips = [], isLoading } = useOffersSearch({
+    serviceId: filter === 'all' ? undefined : filter,
+    date: search.date,
+  })
+
   const list = useMemo(
-    () =>
-      trips.filter((t) => {
-        const matchRoute = t.from === search.from && t.to === search.to
-        const matchService = filter === 'all' || t.service === filter
-        return matchService && (matchRoute || filter !== 'all' || true)
-      }),
-    [trips, search, filter],
+    () => trips.filter((t) => t.from === search.from && t.to === search.to),
+    [trips, search.from, search.to],
   )
 
-  const shown = list.length ? list : trips.filter((t) => filter === 'all' || t.service === filter)
+  const shown = list.length ? list : trips
 
   return (
     <div>
@@ -48,6 +49,11 @@ export default function SearchResults() {
           <SlidersHorizontal className="h-4 w-4" />
         </button>
       </div>
+
+      {isLoading ? <p className="text-sm text-muted">Yuklanmoqda…</p> : null}
+      {!isLoading && shown.length === 0 ? (
+        <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">Hech qanday reys topilmadi.</p>
+      ) : null}
 
       <div className="grid gap-3 lg:grid-cols-2">
         {shown.map((trip) => (

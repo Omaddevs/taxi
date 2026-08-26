@@ -138,10 +138,12 @@ function PickerShell({ open, onClose, title, align = 'left', trigger, children, 
 export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
   const selected = parseIso(value)
   const [view, setView] = useState({ year: selected.year, month: selected.month })
+  const [prevOpen, setPrevOpen] = useState(open)
 
-  useEffect(() => {
+  if (open !== prevOpen) {
+    setPrevOpen(open)
     if (open) setView({ year: selected.year, month: selected.month })
-  }, [open, selected.year, selected.month])
+  }
 
   const first = new Date(view.year, view.month, 1)
   const startPad = (first.getDay() + 6) % 7
@@ -673,13 +675,16 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
   const [step, setStep] = useState('region')
   const [picked, setPicked] = useState(region)
   const [query, setQuery] = useState('')
+  const [prevOpen, setPrevOpen] = useState(open)
 
-  useEffect(() => {
-    if (!open) return
-    setStep('region')
-    setPicked(region)
-    setQuery('')
-  }, [open, region])
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) {
+      setStep('region')
+      setPicked(region)
+      setQuery('')
+    }
+  }
 
   const districts = getRegion(picked)?.districts || []
   const searchHits = query.trim().length ? searchUzPlaces(query) : []

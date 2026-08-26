@@ -30,7 +30,7 @@ export function formatDateUz(iso) {
 export function formatDateShortUz(iso) {
   if (!iso) return ''
   const short = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
-  const [y, m, d] = iso.split('-').map(Number)
+  const [, m, d] = iso.split('-').map(Number)
   return `${d} ${short[m - 1]}`
 }
 

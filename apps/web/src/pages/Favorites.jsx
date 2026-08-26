@@ -1,10 +1,11 @@
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { TripCard } from '../components/trip/TripCard'
 import { useApp } from '../context/AppContext'
+import { offerToTrip } from '../lib/adapters'
 
 export default function Favorites() {
-  const { trips, favorites } = useApp()
-  const list = trips.filter((t) => favorites.includes(t.id))
+  const { favorites } = useApp()
+  const list = favorites.map(offerToTrip)
 
   return (
     <div className="mx-auto max-w-3xl">

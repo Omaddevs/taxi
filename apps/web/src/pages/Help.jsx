@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input'
 import { faqs } from '../data/mock'
 
 export default function Help() {
-  const [open, setOpen] = useState(0)
+  const [open, setOpen] = useState(faqs[0]?.q ?? null)
   const [q, setQ] = useState('')
   const list = faqs.filter((f) => f.q.toLowerCase().includes(q.toLowerCase()))
 
@@ -22,13 +22,13 @@ export default function Help() {
 
       <p className="mb-2 text-sm font-bold">Tezkor savollar</p>
       <div className="space-y-2">
-        {list.map((item, i) => (
+        {list.map((item) => (
           <Card key={item.q} className="overflow-hidden">
-            <button type="button" onClick={() => setOpen(open === i ? -1 : i)} className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold">
+            <button type="button" onClick={() => setOpen(open === item.q ? null : item.q)} className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold">
               {item.q}
-              <ChevronDown className={`h-4 w-4 transition ${open === i ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 transition ${open === item.q ? 'rotate-180' : ''}`} />
             </button>
-            {open === i ? <p className="px-4 pb-4 text-sm text-muted">{item.a}</p> : null}
+            {open === item.q ? <p className="px-4 pb-4 text-sm text-muted">{item.a}</p> : null}
           </Card>
         ))}
       </div>

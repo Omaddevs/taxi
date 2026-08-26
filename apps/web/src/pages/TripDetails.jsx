@@ -1,22 +1,54 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageCircle, Phone, Share2, Star, X } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { PageTitle } from '../components/ui/ScreenHeader'
 import { RouteMap } from '../components/trip/RouteMap'
 import { Badge, Button, Card } from '../components/ui/Button'
-import { trips } from '../data/mock'
+import { api } from '../lib/api'
+import { offerToTrip, BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../lib/adapters'
 import { formatSom } from '../lib/utils'
 import { useShare } from '../components/ui/ShareSheet'
 import { useApp } from '../context/AppContext'
 
 export default function TripDetails() {
   const { id } = useParams()
-  const trip = trips.find((t) => t.id === id) || trips[0]
-  const { bookTrip, paymentMethod } = useApp()
+  const { search, paymentMethod } = useApp()
   const navigate = useNavigate()
-  const [started, setStarted] = useState(false)
+  const queryClient = useQueryClient()
   const { share, sheet } = useShare()
+  const [booking, setBooking] = useState(null)
+
+  const { data: offer, isLoading } = useQuery({
+    queryKey: ['offer', id],
+    queryFn: () => api.get(`/offers/${id}`),
+  })
+
+  const createBooking = useMutation({
+    mutationFn: () =>
+      api.post('/bookings', { rideOfferId: id, seatsBooked: search.passengers || 1, luggage: 0 }),
+    onSuccess: (created) => {
+      setBooking(created)
+      queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      navigate('/payment', {
+        state: { bookingId: created.id, price: created.totalPrice, from: created.fromLabel, to: created.toLabel },
+      })
+    },
+  })
+
+  const cancelBooking = useMutation({
+    mutationFn: () => api.patch(`/bookings/${booking.id}/cancel`, { reason: 'Yo‘lovchi tomonidan bekor qilindi' }),
+    onSuccess: (updated) => setBooking(updated),
+  })
+
+  if (isLoading || !offer) {
+    return <p className="p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
+  }
+
+  const trip = offerToTrip(offer)
+  const seats = search.passengers || 1
+  const totalPrice = trip.price * seats
 
   const payLabel = { cash: 'Naqd to‘lov', uzcard: 'UzCard', humo: 'Humo', click: 'Click', payme: 'Payme', uzum: 'Uzum Bank' }
 
@@ -27,7 +59,7 @@ export default function TripDetails() {
         `${trip.from} → ${trip.to}`,
         `${trip.date}, ${trip.time} – ${trip.arrive}`,
         `${trip.driver.name} · ${trip.car} · ${trip.plate}`,
-        formatSom(trip.price),
+        formatSom(totalPrice),
         window.location.href,
       ].join('\n'),
       url: window.location.href,
@@ -72,13 +104,16 @@ export default function TripDetails() {
           <button
             key={item.label}
             type="button"
+            disabled={item.action === 'chat' && !booking?.conversationId}
             onClick={() => {
-              if (item.action === 'call') window.location.href = `tel:${trip.driver.phone.replace(/\s/g, '')}`
-              else if (item.action === 'chat') navigate('/messages/c1')
-              else if (item.action === 'cancel') navigate('/history')
-              else onShare()
+              if (item.action === 'call' && trip.driver.phone) window.location.href = `tel:${trip.driver.phone.replace(/\s/g, '')}`
+              else if (item.action === 'chat' && booking?.conversationId) navigate(`/messages/${booking.conversationId}`)
+              else if (item.action === 'cancel') {
+                if (booking && !['CANCELLED', 'COMPLETED'].includes(booking.status)) cancelBooking.mutate()
+                else navigate('/history')
+              } else if (item.action === 'share') onShare()
             }}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-white py-3 text-xs font-medium"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-white py-3 text-xs font-medium disabled:opacity-40"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft text-brand">
               <item.icon className="h-4 w-4" />
@@ -90,8 +125,8 @@ export default function TripDetails() {
 
       <Card className="mt-4 flex items-center justify-between p-4">
         <div>
-          <p className="text-xs text-muted">Jami to‘lov</p>
-          <p className="text-xl font-extrabold">{formatSom(trip.price)}</p>
+          <p className="text-xs text-muted">Jami to‘lov · {seats} joy</p>
+          <p className="text-xl font-extrabold">{formatSom(totalPrice)}</p>
         </div>
         <button type="button" onClick={() => navigate('/payment')} className="text-right">
           <p className="text-xs text-muted">To‘lov usuli</p>
@@ -99,21 +134,21 @@ export default function TripDetails() {
         </button>
       </Card>
 
-      <Button
-        size="lg"
-        className="mt-4 w-full"
-        onClick={() => {
-          bookTrip(trip)
-          if (!started) {
-            navigate('/payment')
-          } else {
-            navigate('/history')
-          }
-          setStarted(true)
-        }}
-      >
-        {started ? 'Safarni yakunlash' : 'Joy band qilish'}
-      </Button>
+      {booking ? (
+        <Card className="mt-4 flex items-center justify-between p-4">
+          <p className="text-sm font-semibold">Bron holati</p>
+          <Badge tone={BOOKING_STATUS_TONE[booking.status]}>{BOOKING_STATUS_LABEL[booking.status]}</Badge>
+        </Card>
+      ) : (
+        <Button
+          size="lg"
+          className="mt-4 w-full"
+          disabled={createBooking.isPending}
+          onClick={() => createBooking.mutate()}
+        >
+          {createBooking.isPending ? 'Yuborilmoqda…' : 'Joy band qilish'}
+        </Button>
+      )}
 
       {sheet}
     </div>

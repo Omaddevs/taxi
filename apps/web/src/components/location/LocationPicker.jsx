@@ -60,7 +60,6 @@ export function LocationPicker() {
   const {
     location,
     setLocation,
-    setSearch,
     locationPickerOpen,
     closeLocationPicker,
     gpsFix,
@@ -172,7 +171,6 @@ export function LocationPicker() {
 
   function confirm() {
     setLocation(draft)
-    setSearch((s) => ({ ...s, from: draft.city || s.from }))
     closeLocationPicker()
   }
 

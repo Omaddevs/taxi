@@ -1,29 +1,10 @@
 import { useMemo, useState } from 'react'
 import { ArrowLeft, Check, CreditCard, Plus, Trash2, WalletCards } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApp } from '../context/AppContext'
-import { transactions } from '../data/mock'
+import { api, ApiError } from '../lib/api'
 import { formatSom } from '../lib/utils'
-
-const CARDS_KEY = 'taxiline-cards'
-
-const DEFAULT_CARDS = [
-  { id: 'c1', brand: 'Humo', last4: '4412', holder: 'OTABEK ANVAROV', expiry: '09/28', kind: 'humo' },
-  { id: 'c2', brand: 'UzCard', last4: '8831', holder: 'OTABEK ANVAROV', expiry: '03/27', kind: 'uzcard' },
-]
-
-function loadCards() {
-  try {
-    const raw = localStorage.getItem(CARDS_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
-    }
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_CARDS
-}
 
 function formatPan(value) {
   return value
@@ -42,15 +23,39 @@ function brandFromPan(pan) {
 export default function Wallet() {
   const navigate = useNavigate()
   const { user } = useApp()
-  const [cards, setCards] = useState(loadCards)
+  const queryClient = useQueryClient()
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ pan: '', holder: user.name.toUpperCase(), expiry: '', cvv: '' })
+  const [toppingUp, setToppingUp] = useState(false)
+  const [topupAmount, setTopupAmount] = useState('')
+  const [form, setForm] = useState({ pan: '', holder: user?.name?.toUpperCase() || '', expiry: '', cvv: '' })
   const [note, setNote] = useState('')
 
-  const persist = (next) => {
-    setCards(next)
-    localStorage.setItem(CARDS_KEY, JSON.stringify(next))
-  }
+  const { data: wallet } = useQuery({ queryKey: ['wallet'], queryFn: () => api.get('/wallet') })
+  const { data: cards = [] } = useQuery({ queryKey: ['wallet-cards'], queryFn: () => api.get('/wallet/cards') })
+
+  const addCardMutation = useMutation({
+    mutationFn: (payload) => api.post('/wallet/cards', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet-cards'] })
+      setAdding(false)
+      setNote('Karta ulandi')
+    },
+    onError: (err) => setNote(err instanceof ApiError ? err.message : 'Kartani to‘liq kiriting'),
+  })
+
+  const deleteCardMutation = useMutation({
+    mutationFn: (id) => api.delete(`/wallet/cards/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet-cards'] }),
+  })
+
+  const topupMutation = useMutation({
+    mutationFn: (amount) => api.post('/wallet/topup', { amount, methodId: 'click' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      setToppingUp(false)
+      setTopupAmount('')
+    },
+  })
 
   const preview = useMemo(() => brandFromPan(form.pan), [form.pan])
 
@@ -62,21 +67,22 @@ export default function Wallet() {
       return
     }
     const meta = brandFromPan(form.pan)
-    persist([
-      ...cards,
-      {
-        id: `c${Date.now()}`,
-        brand: meta.brand,
-        kind: meta.kind,
-        last4: digits.slice(-4),
-        holder: form.holder || user.name.toUpperCase(),
-        expiry: form.expiry,
-      },
-    ])
-    setAdding(false)
-    setForm({ pan: '', holder: user.name.toUpperCase(), expiry: '', cvv: '' })
-    setNote('Karta ulandi')
+    addCardMutation.mutate({
+      providerToken: `demo_${digits.slice(-4)}_${Date.now()}`,
+      brand: meta.brand,
+      last4: digits.slice(-4),
+    })
+    setForm({ pan: '', holder: user?.name?.toUpperCase() || '', expiry: '', cvv: '' })
   }
+
+  function submitTopup(e) {
+    e.preventDefault()
+    const amount = Number(topupAmount)
+    if (!amount || amount < 1000) return
+    topupMutation.mutate(amount)
+  }
+
+  if (!user) return null
 
   return (
     <div className="min-h-[calc(100svh-5.5rem)] bg-canvas">
@@ -94,9 +100,13 @@ export default function Wallet() {
           <WalletCards className="h-5 w-5 text-white/80" />
         </div>
         <p className="mt-6 text-xs font-semibold text-white/70">Joriy balans</p>
-        <p className="mt-1 text-[32px] font-extrabold tracking-tight">{formatSom(user.balance)}</p>
+        <p className="mt-1 text-[32px] font-extrabold tracking-tight">{formatSom(wallet?.balance ?? user.balance)}</p>
         <div className="mt-5 flex gap-2">
-          <button type="button" className="h-10 flex-1 rounded-2xl bg-white text-sm font-extrabold text-brand">
+          <button
+            type="button"
+            onClick={() => setToppingUp(true)}
+            className="h-10 flex-1 rounded-2xl bg-white text-sm font-extrabold text-brand"
+          >
             To‘ldirish
           </button>
           <button type="button" className="h-10 flex-1 rounded-2xl bg-white/15 text-sm font-extrabold text-white">
@@ -121,38 +131,39 @@ export default function Wallet() {
         </div>
 
         <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-          {cards.map((c) => (
-            <article
-              key={c.id}
-              className={`relative h-44 w-[260px] shrink-0 overflow-hidden rounded-2xl p-4 text-white shadow-lg ${
-                c.kind === 'humo'
-                  ? 'bg-gradient-to-br from-[#6d28d9] to-[#4c1d95]'
-                  : c.kind === 'uzcard'
-                    ? 'bg-gradient-to-br from-[#1d4ed8] to-[#1e3a8a]'
-                    : 'bg-gradient-to-br from-brand to-brand-dark'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <p className="text-sm font-extrabold">{c.brand}</p>
-                <CreditCard className="h-5 w-5 opacity-80" />
-              </div>
-              <p className="mt-8 text-[17px] font-bold tracking-[0.18em]">•••• •••• •••• {c.last4}</p>
-              <div className="mt-6 flex items-end justify-between text-[11px] font-semibold uppercase tracking-wide text-white/80">
-                <span>{c.holder}</span>
-                <span>{c.expiry}</span>
-              </div>
-              {c.id !== 'c1' && c.id !== 'c2' ? (
+          {cards.map((c) => {
+            const kind = c.brand === 'Humo' ? 'humo' : c.brand === 'UzCard' ? 'uzcard' : 'other'
+            return (
+              <article
+                key={c.id}
+                className={`relative h-44 w-[260px] shrink-0 overflow-hidden rounded-2xl p-4 text-white shadow-lg ${
+                  kind === 'humo'
+                    ? 'bg-gradient-to-br from-[#6d28d9] to-[#4c1d95]'
+                    : kind === 'uzcard'
+                      ? 'bg-gradient-to-br from-[#1d4ed8] to-[#1e3a8a]'
+                      : 'bg-gradient-to-br from-brand to-brand-dark'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <p className="text-sm font-extrabold">{c.brand}</p>
+                  <CreditCard className="h-5 w-5 opacity-80" />
+                </div>
+                <p className="mt-8 text-[17px] font-bold tracking-[0.18em]">•••• •••• •••• {c.last4}</p>
+                <div className="mt-6 flex items-end justify-between text-[11px] font-semibold uppercase tracking-wide text-white/80">
+                  <span>{user.name?.toUpperCase() || user.phone}</span>
+                  <span>{c.isDefault ? 'Asosiy' : ''}</span>
+                </div>
                 <button
                   type="button"
                   aria-label="Kartani o‘chirish"
-                  onClick={() => persist(cards.filter((x) => x.id !== c.id))}
+                  onClick={() => deleteCardMutation.mutate(c.id)}
                   className="absolute right-3 top-12 rounded-full bg-black/20 p-1.5"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
-              ) : null}
-            </article>
-          ))}
+              </article>
+            )
+          })}
           <button
             type="button"
             onClick={() => setAdding(true)}
@@ -171,15 +182,18 @@ export default function Wallet() {
 
         <p className="mb-2 mt-6 text-sm font-extrabold">So‘nggi tranzaksiyalar</p>
         <div className="divide-y divide-line overflow-hidden rounded-2xl bg-white">
-          {transactions.map((item) => (
+          {(wallet?.recentTransactions ?? []).length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-muted">Hali tranzaksiyalar yo‘q</p>
+          ) : null}
+          {(wallet?.recentTransactions ?? []).map((item) => (
             <div key={item.id} className="flex items-center justify-between px-4 py-3.5">
               <div>
                 <p className="text-sm font-semibold">{item.title}</p>
                 <p className="text-xs text-muted">
-                  {item.route} · {item.date}
+                  {item.routeLabel || item.provider} · {new Date(item.createdAt).toLocaleDateString('uz-UZ')}
                 </p>
               </div>
-              <p className={`text-sm font-extrabold ${item.type === 'in' ? 'text-success' : 'text-ink'}`}>
+              <p className={`text-sm font-extrabold ${item.amount > 0 ? 'text-success' : 'text-ink'}`}>
                 {item.amount > 0 ? '+' : ''}
                 {formatSom(item.amount)}
               </p>
@@ -187,6 +201,34 @@ export default function Wallet() {
           ))}
         </div>
       </div>
+
+      {toppingUp ? (
+        <div className="fixed inset-0 z-[140]">
+          <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={() => setToppingUp(false)} />
+          <form
+            onSubmit={submitTopup}
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3"
+          >
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
+            <p className="text-lg font-extrabold">Hisobni to‘ldirish</p>
+            <p className="text-xs text-muted">Summani kiriting</p>
+            <input
+              value={topupAmount}
+              onChange={(e) => setTopupAmount(e.target.value.replace(/\D/g, ''))}
+              inputMode="numeric"
+              placeholder="100 000"
+              className="mt-4 h-12 w-full rounded-2xl bg-canvas px-4 text-sm font-semibold outline-none"
+            />
+            <button
+              type="submit"
+              disabled={topupMutation.isPending}
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
+            >
+              {topupMutation.isPending ? 'Yuklanmoqda…' : 'Toʻldirish'}
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       {adding ? (
         <div className="fixed inset-0 z-[140]">
@@ -240,8 +282,12 @@ export default function Wallet() {
                 />
               </div>
             </div>
-            <button type="submit" className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white">
-              Kartani ulash
+            <button
+              type="submit"
+              disabled={addCardMutation.isPending}
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
+            >
+              {addCardMutation.isPending ? 'Ulanmoqda…' : 'Kartani ulash'}
             </button>
           </form>
         </div>

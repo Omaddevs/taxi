@@ -6,7 +6,7 @@ import { Button } from '../ui/Button'
 import { Card } from '../ui/Button'
 
 export function PopularTrips({ trips }) {
-  const { favorites, toggleFavorite } = useApp()
+  const { favoriteIds, toggleFavorite } = useApp()
   const navigate = useNavigate()
 
   return (
@@ -53,7 +53,7 @@ export function PopularTrips({ trips }) {
                   onClick={() => toggleFavorite(trip.id)}
                   className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line"
                 >
-                  <Heart className={`h-5 w-5 ${favorites.includes(trip.id) ? 'fill-brand text-brand' : 'text-slate-400'}`} />
+                  <Heart className={`h-5 w-5 ${favoriteIds.has(trip.id) ? 'fill-brand text-brand' : 'text-slate-400'}`} />
                 </button>
               </div>
             </div>

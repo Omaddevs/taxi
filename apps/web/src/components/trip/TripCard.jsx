@@ -5,8 +5,8 @@ import { formatSom } from '../../lib/utils'
 import { useApp } from '../../context/AppContext'
 
 export function TripCard({ trip, compact = false }) {
-  const { favorites, toggleFavorite } = useApp()
-  const liked = favorites.includes(trip.id)
+  const { favoriteIds, toggleFavorite } = useApp()
+  const liked = favoriteIds.has(trip.id)
 
   if (compact) {
     return (

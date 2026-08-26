@@ -5,9 +5,11 @@ import { ServiceTypes } from '../components/home/ServiceTypes'
 import { PopularTrips } from '../components/home/PopularTrips'
 import { RightPanel } from '../components/home/RightPanel'
 import { MobileHome } from '../components/home/MobileHome'
-import { trips } from '../data/mock'
+import { useOffersSearch } from '../lib/queries'
 
 export default function Home() {
+  const { data: trips = [] } = useOffersSearch({})
+
   return (
     <>
       <div className="lg:hidden">

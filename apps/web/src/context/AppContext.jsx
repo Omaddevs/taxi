@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { history as historyData, trips as tripsData, user as userData } from '../data/mock'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { DEFAULT_LOCATION, polishLocationLabel } from '../lib/geocode'
+import { api } from '../lib/api'
+import { avatarOrFallback } from '../lib/adapters'
+import { useAuth } from './AuthContext'
 
 const AppContext = createContext(null)
 const LOCATION_KEY = 'taxiline-location'
@@ -42,7 +45,39 @@ function loadSavedLocation() {
 }
 
 export function AppProvider({ children }) {
-  const [user] = useState(userData)
+  const { status: authStatus } = useAuth()
+  const authed = authStatus === 'authed'
+  const queryClient = useQueryClient()
+
+  const { data: rawUser } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api.get('/users/me'),
+    enabled: authed,
+    staleTime: 30_000,
+  })
+
+  const { data: favoriteOffers = [] } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: () => api.get('/favorites'),
+    enabled: authed,
+    staleTime: 15_000,
+  })
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: ({ id, liked }) => (liked ? api.delete(`/favorites/${id}`) : api.post(`/favorites/${id}`)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+  })
+
+  const user = useMemo(() => {
+    if (!rawUser) return null
+    return {
+      ...rawUser,
+      avatar: avatarOrFallback(rawUser.avatarUrl, rawUser.name || rawUser.phone),
+    }
+  }, [rawUser])
+
+  const favoriteIds = useMemo(() => new Set(favoriteOffers.map((o) => o.id)), [favoriteOffers])
+
   const [search, setSearch] = useState({
     mode: 'passenger',
     from: 'Qashqadaryo, Qarshi shahri',
@@ -60,13 +95,8 @@ export function AppProvider({ children }) {
     car: '',
     service: 'all',
   })
-  const [favorites, setFavorites] = useState(['t1'])
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [booked, setBooked] = useState(null)
-  const [history] = useState(historyData)
-  const [promoInput, setPromoInput] = useState('')
-  const [appliedPromo, setAppliedPromo] = useState(null)
   const [location, setLocation] = useState(loadSavedLocation)
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [gpsFix, setGpsFix] = useState(null)
@@ -175,21 +205,13 @@ export function AppProvider({ children }) {
       user,
       search,
       setSearch,
-      favorites,
-      toggleFavorite: (id) =>
-        setFavorites((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+      favorites: favoriteOffers,
+      favoriteIds,
+      toggleFavorite: (id) => toggleFavoriteMutation.mutate({ id, liked: favoriteIds.has(id) }),
       paymentMethod,
       setPaymentMethod,
       drawerOpen,
       setDrawerOpen,
-      booked,
-      bookTrip: (trip) => setBooked(trip),
-      history,
-      trips: tripsData,
-      promoInput,
-      setPromoInput,
-      appliedPromo,
-      setAppliedPromo,
       location,
       setLocation,
       locationPickerOpen,
@@ -210,7 +232,25 @@ export function AppProvider({ children }) {
       language,
       setLanguage,
     }),
-    [user, search, favorites, paymentMethod, drawerOpen, booked, history, promoInput, appliedPromo, location, locationPickerOpen, gpsFix, gpsStatus, plusPlan, language, requestUserLocation, queryGeoPermission, watchUserLocation, stopWatchingLocation],
+    [
+      user,
+      search,
+      favoriteOffers,
+      favoriteIds,
+      toggleFavoriteMutation,
+      paymentMethod,
+      drawerOpen,
+      location,
+      locationPickerOpen,
+      gpsFix,
+      gpsStatus,
+      requestUserLocation,
+      queryGeoPermission,
+      watchUserLocation,
+      stopWatchingLocation,
+      plusPlan,
+      language,
+    ],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
