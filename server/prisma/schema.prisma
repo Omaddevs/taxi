@@ -1,0 +1,334 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+enum RideOfferStatus {
+  ACTIVE
+  FULL
+  CLOSED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING   // reservation created, awaiting driver response
+  ACCEPTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  TOPUP
+  RIDE_PAYMENT
+  REFUND
+  PROMO_BONUS
+  PAYOUT
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum NotificationType {
+  BOOKING
+  PROMO
+  SYSTEM
+  WALLET
+}
+
+enum DriverApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  name         String?
+  firstName    String?
+  email        String?
+  avatarUrl    String?
+  role         Role     @default(PASSENGER)
+  verified     Boolean  @default(false)
+  passwordHash String? // ADMIN only
+  balance      Int      @default(0) // som
+  points       Int      @default(0)
+  coins        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  driver            Driver?
+  bookings          Booking[]
+  transactions      Transaction[]
+  paymentCards      PaymentCard[]
+  favorites         Favorite[]
+  notifications     Notification[]
+  refreshTokens     RefreshToken[]
+  conversationsA    Conversation[] @relation("ParticipantA")
+  conversationsB    Conversation[] @relation("ParticipantB")
+  messagesSent      Message[]
+  driverApplication DriverApplication?
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  consumed  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+model Driver {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  carModel          String
+  plate             String
+  carImageUrl       String?
+  licenseNumber     String?
+  ratingAvg         Float     @default(5.0)
+  tripsCount        Int       @default(0)
+  online            Boolean   @default(false)
+  currentLat        Float?
+  currentLng        Float?
+  locationUpdatedAt DateTime?
+  approved          Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  offers RideOffer[]
+
+  @@index([online])
+}
+
+model DriverApplication {
+  id              String                   @id @default(cuid())
+  userId          String                   @unique
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName        String
+  phone           String
+  carModel        String
+  plate           String
+  status          DriverApplicationStatus  @default(PENDING)
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime                 @default(now())
+
+  @@index([status])
+}
+
+model Service {
+  id          String  @id
+  title       String
+  description String?
+  icon        String
+  basePrice   Int
+  active      Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  offers RideOffer[]
+}
+
+model RideOffer {
+  id        String @id @default(cuid())
+  driverId  String
+  driver    Driver @relation(fields: [driverId], references: [id])
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  fromLabel   String
+  toLabel     String
+  fromAddress String
+  toAddress   String
+  fromLat     Float?
+  fromLng     Float?
+  toLat       Float?
+  toLng       Float?
+
+  departAt        DateTime
+  arriveAt        DateTime?
+  seatsTotal      Int
+  seatsAvailable  Int
+  luggageCapacity Int    @default(0)
+  pricePerSeat    Int
+  genderPref      String?
+
+  status    RideOfferStatus @default(ACTIVE)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  bookings    Booking[]
+  favoritedBy Favorite[]
+
+  @@index([status, departAt])
+  @@index([fromLabel, toLabel])
+}
+
+model Booking {
+  id          String    @id @default(cuid())
+  riderId     String
+  rider       User      @relation(fields: [riderId], references: [id])
+  rideOfferId String
+  rideOffer   RideOffer @relation(fields: [rideOfferId], references: [id])
+
+  seatsBooked Int @default(1)
+  luggage     Int @default(0)
+  totalPrice  Int
+
+  // Snapshot fields copied from RideOffer at creation time, so a booking's historical
+  // record stays stable even if the offer is later edited/cancelled.
+  fromLabel   String
+  toLabel     String
+  fromAddress String
+  toAddress   String
+  departAt    DateTime
+
+  status         BookingStatus @default(PENDING)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  promoCodeId     String?
+  promoCode       PromoCode? @relation(fields: [promoCodeId], references: [id])
+  discountApplied Int?
+
+  cancelledBy  String?
+  cancelReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions Transaction[]
+
+  @@index([status])
+  @@index([riderId])
+  @@index([rideOfferId])
+  @@index([conversationId])
+}
+
+model Conversation {
+  id             String    @id @default(cuid())
+  participantAId String
+  participantA   User      @relation("ParticipantA", fields: [participantAId], references: [id])
+  participantBId String
+  participantB   User      @relation("ParticipantB", fields: [participantBId], references: [id])
+  lastMessageAt  DateTime?
+  createdAt      DateTime  @default(now())
+
+  bookings Booking[]
+  messages Message[]
+
+  @@unique([participantAId, participantBId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  text           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  bookingId   String?
+  booking     Booking?          @relation(fields: [bookingId], references: [id])
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  amount      Int // + credit / - debit, som
+  title       String
+  routeLabel  String?
+  provider    String? // 'mock' | 'click' | 'payme' | 'cash'
+  providerRef String?
+  createdAt   DateTime          @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model PaymentCard {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand         String // 'uzcard' | 'humo' | 'visa'
+  last4         String
+  providerToken String // opaque gateway token — never a raw PAN/CVV
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PromoCode {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  title         String
+  discountType  String // 'FIXED' | 'PERCENT'
+  discountValue Int
+  validFrom     DateTime
+  validUntil    DateTime
+  maxUses       Int?
+  usesCount     Int      @default(0)
+  active        Boolean  @default(true)
+
+  bookings Booking[]
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  text      String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+}
+
+model Favorite {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rideOfferId String
+  rideOffer   RideOffer @relation(fields: [rideOfferId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, rideOfferId])
+}
