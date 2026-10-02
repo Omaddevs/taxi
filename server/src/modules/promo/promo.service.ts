@@ -14,6 +14,25 @@ export async function validatePromo(code: string) {
   return { valid: true, discountType: promo.discountType, discountValue: promo.discountValue }
 }
 
+// Codes a rider can use right now — same rules as validatePromo, minus the internals.
+export async function listAvailablePromos() {
+  const now = new Date()
+  const promos = await prisma.promoCode.findMany({
+    where: { active: true, validFrom: { lte: now }, validUntil: { gte: now } },
+    orderBy: { validUntil: 'asc' },
+  })
+  return promos
+    .filter((p) => p.maxUses === null || p.usesCount < p.maxUses)
+    .map((p) => ({
+      id: p.id,
+      code: p.code,
+      title: p.title,
+      discountType: p.discountType,
+      discountValue: p.discountValue,
+      validUntil: p.validUntil,
+    }))
+}
+
 export async function applyPromo(userId: string, code: string, bookingId: string) {
   const result = await validatePromo(code)
   if (!result.valid) throw new ValidationError(result.reason)

@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApp } from '../context/AppContext'
 import { api, ApiError } from '../lib/api'
 import { formatSom } from '../lib/utils'
+import { ONLINE_PAYMENTS } from '../lib/features'
+import { SoonBadge } from '../components/ui/SoonBadge'
 
 function formatPan(value) {
   return value
@@ -139,10 +141,12 @@ export default function Wallet() {
         <div className="mt-5 flex gap-2">
           <button
             type="button"
+            disabled={!ONLINE_PAYMENTS}
             onClick={() => setToppingUp(true)}
-            className="h-10 flex-1 rounded-2xl bg-white text-sm font-extrabold text-brand"
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white text-sm font-extrabold text-brand disabled:opacity-80"
           >
             To‘ldirish
+            {ONLINE_PAYMENTS ? null : <SoonBadge />}
           </button>
           <button
             type="button"
@@ -156,26 +160,38 @@ export default function Wallet() {
               setPayingOut(true)
               setNote('')
             }}
-            className="h-10 flex-1 rounded-2xl bg-white/15 text-sm font-extrabold text-white"
+            disabled={!ONLINE_PAYMENTS}
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white/15 text-sm font-extrabold text-white disabled:opacity-80"
           >
             O‘tkazma
+            {ONLINE_PAYMENTS ? null : <SoonBadge />}
           </button>
         </div>
       </header>
 
       <div className="-mt-4 rounded-t-2xl bg-canvas px-4 pb-8 pt-5">
+        {ONLINE_PAYMENTS ? null : (
+          <p className="mb-4 rounded-2xl bg-amber-50 px-3 py-2.5 text-xs font-medium leading-snug text-amber-700">
+            Hisobni to‘ldirish, pul yechish va karta orqali to‘lov tez orada ishga tushadi. Hozircha safar uchun
+            haydovchiga naqd pul bilan to‘lang.
+          </p>
+        )}
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-extrabold">Ulangan kartalar</p>
-          <button
-            type="button"
-            onClick={() => {
-              setAdding(true)
-              setNote('')
-            }}
-            className="inline-flex items-center gap-1 text-xs font-extrabold text-brand"
-          >
-            <Plus className="h-3.5 w-3.5" /> Karta qo‘shish
-          </button>
+          {ONLINE_PAYMENTS ? (
+            <button
+              type="button"
+              onClick={() => {
+                setAdding(true)
+                setNote('')
+              }}
+              className="inline-flex items-center gap-1 text-xs font-extrabold text-brand"
+            >
+              <Plus className="h-3.5 w-3.5" /> Karta qo‘shish
+            </button>
+          ) : (
+            <SoonBadge />
+          )}
         </div>
 
         <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
@@ -214,11 +230,13 @@ export default function Wallet() {
           })}
           <button
             type="button"
+            disabled={!ONLINE_PAYMENTS}
             onClick={() => setAdding(true)}
-            className="flex h-44 w-[160px] shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft text-brand"
+            className="flex h-44 w-[160px] shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-brand-soft text-brand disabled:opacity-70"
           >
             <Plus className="h-6 w-6" />
             <span className="text-xs font-extrabold">Yangi karta</span>
+            {ONLINE_PAYMENTS ? null : <SoonBadge />}
           </button>
         </div>
 

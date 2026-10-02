@@ -99,6 +99,7 @@ export interface PersonRow {
   fromGroup: boolean
   lastSeenAt: string | null
   notes: string | null
+  loginPassword?: string | null
   ratingAvg: number
   ratingCount: number
   createdAt: string

@@ -17,11 +17,15 @@ const SUBSCRIPTION_PLANS = [
   { id: 'yearly', title: '1 yillik', durationDays: 365, price: 550000, sortOrder: 3 },
 ]
 
+// Production runs this on every container start: it only creates missing services/plans (never
+// overwrites prices an admin edited) and skips the demo users/offers below.
+const PRODUCTION = process.env.NODE_ENV === 'production'
+
 async function main() {
   for (const service of SERVICES) {
     await prisma.service.upsert({
       where: { id: service.id },
-      update: service,
+      update: PRODUCTION ? {} : service,
       create: service,
     })
   }
@@ -29,9 +33,14 @@ async function main() {
   for (const plan of SUBSCRIPTION_PLANS) {
     await prisma.subscriptionPlan.upsert({
       where: { id: plan.id },
-      update: plan,
+      update: PRODUCTION ? {} : plan,
       create: plan,
     })
+  }
+
+  if (PRODUCTION) {
+    console.log('Seed (production): services and subscription plans ensured')
+    return
   }
 
   const driverUser = await prisma.user.upsert({

@@ -79,3 +79,7 @@ export async function archiveDriver(req: Request, res: Response) {
 export async function restoreDriver(req: Request, res: Response) {
   res.json(await driversService.restoreDriver(req.params.id, req.user!.id))
 }
+
+export async function listTopDrivers(_req: Request, res: Response) {
+  res.json(await driversService.listTopDrivers())
+}

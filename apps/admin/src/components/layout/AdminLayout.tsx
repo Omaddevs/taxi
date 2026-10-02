@@ -27,6 +27,7 @@ import {
   Radio,
   MessagesSquare,
   type LucideIcon,
+  CarFront,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
@@ -87,6 +88,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: 'Kontent',
     items: [
       { to: '/services', label: 'Xizmatlar', icon: Layers, roles: ['ADMIN'] },
+      { to: '/cars', label: 'Mashinalar', icon: CarFront, roles: ['ADMIN'] },
       { to: '/groups', label: 'Guruhlar', icon: MessagesSquare, roles: ['ADMIN'] },
       { to: '/broadcast', label: 'Xabar yuborish', icon: Megaphone, roles: ['ADMIN'] },
       { to: '/integrations', label: 'Integratsiyalar', icon: Link2, roles: ['ADMIN'] },

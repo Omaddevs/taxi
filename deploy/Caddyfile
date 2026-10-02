@@ -1,0 +1,19 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$WEB_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:80
+}
+
+{$ADMIN_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy admin:80
+}
+
+# REST API + Socket.IO (Caddy proxies WebSocket upgrades automatically).
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy server:4000
+}

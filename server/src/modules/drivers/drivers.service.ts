@@ -384,3 +384,23 @@ export async function reviewApplication(
     return updated
   })
 }
+
+// Public-facing driver directory: approved, not archived, best rated first. No phone or plate.
+export async function listTopDrivers() {
+  const drivers = await prisma.driver.findMany({
+    where: { approved: true, archivedAt: null },
+    orderBy: [{ ratingAvg: 'desc' }, { tripsCount: 'desc' }],
+    take: 30,
+    include: { user: { select: { name: true, avatarUrl: true } } },
+  })
+  return drivers.map((d) => ({
+    id: d.id,
+    name: d.user.name,
+    avatarUrl: d.user.avatarUrl,
+    carModel: d.carModel,
+    carImageUrl: d.carImageUrl,
+    ratingAvg: d.ratingAvg,
+    ratingCount: d.ratingCount,
+    tripsCount: d.tripsCount,
+  }))
+}

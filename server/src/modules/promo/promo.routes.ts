@@ -13,6 +13,7 @@ import {
 
 export const promoRouter = Router()
 
+promoRouter.get('/available', requireAuth, asyncRoute(promoController.listAvailablePromos))
 promoRouter.post('/validate', requireAuth, validate({ body: validatePromoSchema }), asyncRoute(promoController.validatePromo))
 promoRouter.post('/apply', requireAuth, validate({ body: applyPromoSchema }), asyncRoute(promoController.applyPromo))
 

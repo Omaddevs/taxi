@@ -1,6 +1,7 @@
 // Resizes/compresses a picked image file client-side and returns it as a data: URI, so it can be
 // stored directly in a plain string column (e.g. Car.imageUrl) without needing a file-upload
 // backend. Downscaling keeps the resulting payload reasonable for a text column.
+// WebP keeps transparency (car cut-outs would get a black background as JPEG).
 export function fileToImageDataUrl(file: File, maxSize = 480, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -19,7 +20,7 @@ export function fileToImageDataUrl(file: File, maxSize = 480, quality = 0.82): P
           return
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', quality))
+        resolve(canvas.toDataURL('image/webp', quality))
       }
       img.src = reader.result as string
     }

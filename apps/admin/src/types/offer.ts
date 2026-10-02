@@ -7,7 +7,6 @@ export interface CarRow {
   fuelType: CarFuelType
   imageUrl: string | null
   selectionCount: number
-  active: boolean
   createdAt: string
 }
 

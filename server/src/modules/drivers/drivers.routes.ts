@@ -26,6 +26,7 @@ driversRouter.post(
   asyncRoute(driversController.submitApplication),
 )
 driversRouter.get('/applications/me', requireAuth, asyncRoute(driversController.getMyApplication))
+driversRouter.get('/top', requireAuth, asyncRoute(driversController.listTopDrivers))
 driversRouter.patch(
   '/me/status',
   requireAuth,

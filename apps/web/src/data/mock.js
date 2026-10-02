@@ -288,21 +288,6 @@ export const chatMessages = {
   ],
 }
 
-export const promos = [
-  { id: 'p1', code: 'QARSHI50', title: 'Qarshi yo‘nalishi', discount: '50 000 so‘m', until: '31 May' },
-  { id: 'p2', code: 'YANGI20', title: 'Yangi foydalanuvchi', discount: '20%', until: '15 Iyun' },
-  { id: 'p3', code: 'OILA10', title: 'Oilaviy taksi', discount: '10%', until: '30 Iyun' },
-]
-
-export const payments = [
-  { id: 'cash', title: 'Naqd pul', subtitle: 'Haydovchiga to‘lov' },
-  { id: 'uzcard', title: 'UzCard', subtitle: '**** 4412' },
-  { id: 'humo', title: 'Humo', subtitle: '**** 8890' },
-  { id: 'click', title: 'Click', subtitle: 'Mobil to‘lov' },
-  { id: 'payme', title: 'Payme', subtitle: 'Mobil to‘lov' },
-  { id: 'uzum', title: 'Uzum Bank', subtitle: 'Kartadan to‘lov' },
-]
-
 export const transactions = [
   { id: 1, title: 'Hisob to‘ldirish', route: 'Click', date: '20 May, 12:10', amount: 200000, type: 'in' },
   { id: 2, title: 'Safar to‘lovi', route: 'Qarshi → Toshkent', date: '18 May, 18:00', amount: -350000, type: 'out' },
@@ -323,13 +308,6 @@ export const notifications = [
   { id: 2, title: 'Promo kodi faol', text: 'QARSHI50 — 50 000 so‘m chegirma', time: '1 soat oldin', unread: true },
   { id: 3, title: 'Safar yakunlandi', text: 'Toshkent → Samarqand muvaffaqiyatli yakunlandi', time: 'Kecha', unread: true },
   { id: 4, title: 'Hisob to‘ldirildi', text: '+200 000 so‘m Click orqali', time: '3 kun oldin', unread: false },
-]
-
-export const drivers = [
-  { id: 'd1', name: 'Azizbek Karimov', rating: 4.9, car: 'Chevrolet Cobalt', city: 'Qarshi', trips: 1240, avatar: 'https://i.pravatar.cc/120?img=11' },
-  { id: 'd2', name: 'Madina Yusupova', rating: 5.0, car: 'Chevrolet Onix', city: 'Toshkent', trips: 860, avatar: 'https://i.pravatar.cc/120?img=32' },
-  { id: 'd3', name: 'Javohir Nazarov', rating: 4.8, car: 'Hyundai Staria', city: 'Samarqand', trips: 540, avatar: 'https://i.pravatar.cc/120?img=15' },
-  { id: 'd4', name: 'Akmal Toshpo‘latov', rating: 4.95, car: 'Toyota Camry', city: 'Toshkent', trips: 2100, avatar: 'https://i.pravatar.cc/120?img=14' },
 ]
 
 // ids must stay in sync with server/src/modules/cargo/cargo.schema.ts's cargoTypeSchema.

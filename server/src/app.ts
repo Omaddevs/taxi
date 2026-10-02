@@ -31,6 +31,7 @@ import { adminBotOrdersRouter } from './modules/botOrders/adminBotOrders.routes.
 import { adminBotGroupsRouter } from './modules/botGroups/adminBotGroups.routes.js'
 import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter } from './modules/instagram/instagram.routes.js'
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
+import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -46,9 +47,12 @@ declare global {
 export function createApp() {
   const app = express()
 
+  if (env.TRUST_PROXY) app.set('trust proxy', 1)
   app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }))
   app.use(
     express.json({
+      // Admin image uploads (car catalog) travel as data: URIs — the 100kb default rejects them.
+      limit: '2mb',
       verify: (req, _res, buf) => {
         ;(req as express.Request).rawBody = buf
       },
@@ -83,6 +87,8 @@ export function createApp() {
   app.use('/admin/promo', adminPromoRouter)
   app.use('/services', servicesRouter)
   app.use('/admin/services', adminServicesRouter)
+  app.use('/cars', carsRouter)
+  app.use('/admin/cars', adminCarsRouter)
   app.use('/admin/subscription-plans', adminSubscriptionPlansRouter)
   app.use('/admin/driver-subscriptions', adminDriverSubscriptionsRouter)
   app.use('/admin/analytics', adminAnalyticsRouter)

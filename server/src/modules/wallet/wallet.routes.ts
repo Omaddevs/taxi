@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
+import { requireOnlinePayments } from '../../middleware/onlinePayments.js'
 import * as walletController from './wallet.controller.js'
 import {
   addCardSchema,
@@ -22,10 +23,10 @@ walletRouter.get(
   validate({ query: listTransactionsQuerySchema }),
   asyncRoute(walletController.listTransactions),
 )
-walletRouter.post('/topup', requireAuth, validate({ body: topupSchema }), asyncRoute(walletController.topup))
-walletRouter.post('/payout', requireAuth, validate({ body: payoutSchema }), asyncRoute(walletController.payout))
+walletRouter.post('/topup', requireAuth, requireOnlinePayments, validate({ body: topupSchema }), asyncRoute(walletController.topup))
+walletRouter.post('/payout', requireAuth, requireOnlinePayments, validate({ body: payoutSchema }), asyncRoute(walletController.payout))
 walletRouter.get('/cards', requireAuth, asyncRoute(walletController.listCards))
-walletRouter.post('/cards', requireAuth, validate({ body: addCardSchema }), asyncRoute(walletController.addCard))
+walletRouter.post('/cards', requireAuth, requireOnlinePayments, validate({ body: addCardSchema }), asyncRoute(walletController.addCard))
 walletRouter.delete(
   '/cards/:id',
   requireAuth,

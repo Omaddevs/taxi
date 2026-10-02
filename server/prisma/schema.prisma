@@ -171,6 +171,11 @@ enum SubscriptionStatus {
   CANCELLED
 }
 
+enum CarFuelType {
+  BENZIN
+  ELECTRO_HYBRID
+}
+
 model User {
   id               String        @id @default(cuid())
   phone            String        @unique
@@ -340,6 +345,19 @@ model DriverApplication {
   createdAt       DateTime                @default(now())
 
   @@index([status])
+}
+
+// Admin-managed car catalog shown to drivers when they register (admin panel → Mashinalar).
+model Car {
+  id        String      @id @default(cuid())
+  brand     String
+  model     String
+  fuelType  CarFuelType @default(BENZIN)
+  imageUrl  String? // data: URI from the admin uploader, or a plain https URL
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([brand, model])
 }
 
 model Service {

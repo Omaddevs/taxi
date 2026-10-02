@@ -1,14 +1,18 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { promos } from '../data/mock'
 import { api } from '../lib/api'
+import { formatDateUz, formatSom } from '../lib/utils'
 
 export default function PromoCodes() {
   const [promoInput, setPromoInput] = useState('')
   const [result, setResult] = useState(null)
+  const { data: promos = [], isLoading } = useQuery({
+    queryKey: ['promo-available'],
+    queryFn: () => api.get('/promo/available'),
+  })
 
   const validate = useMutation({
     mutationFn: (code) => api.post('/promo/validate', { code }),
@@ -42,21 +46,27 @@ export default function PromoCodes() {
         <p className="mt-2 text-sm font-semibold text-danger">{result.reason || 'Kod topilmadi'}</p>
       ) : null}
 
-      <p className="mb-2 mt-6 text-sm font-bold">Mening kodlarim</p>
-      <div className="space-y-3">
-        {promos.map((p) => (
-          <Card key={p.id} className="flex items-center justify-between p-4">
-            <div>
-              <p className="font-extrabold tracking-wide text-brand">{p.code}</p>
-              <p className="text-sm font-semibold">{p.title}</p>
-              <p className="text-xs text-muted">{p.until} gacha</p>
-            </div>
-            <Button size="sm" variant="soft" onClick={() => setPromoInput(p.code)}>
-              {p.discount}
-            </Button>
-          </Card>
-        ))}
-      </div>
+      <p className="mb-2 mt-6 text-sm font-bold">Amaldagi kodlar</p>
+      {isLoading ? (
+        <p className="text-sm text-muted">Yuklanmoqda…</p>
+      ) : !promos.length ? (
+        <p className="text-sm text-muted">Hozircha amaldagi promo kodlar yo‘q</p>
+      ) : (
+        <div className="space-y-3">
+          {promos.map((p) => (
+            <Card key={p.id} className="flex items-center justify-between p-4">
+              <div>
+                <p className="font-extrabold tracking-wide text-brand">{p.code}</p>
+                <p className="text-sm font-semibold">{p.title}</p>
+                <p className="text-xs text-muted">{formatDateUz(String(p.validUntil).slice(0, 10))} gacha</p>
+              </div>
+              <Button size="sm" variant="soft" onClick={() => setPromoInput(p.code)}>
+                {p.discountType === 'PERCENT' ? `${p.discountValue}%` : formatSom(p.discountValue)}
+              </Button>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

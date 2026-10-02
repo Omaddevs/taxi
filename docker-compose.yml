@@ -1,30 +1,19 @@
+# Production stack. Fill in .env (copy .env.production.example), point the three domains' DNS
+# A-records at this server, then:  docker compose up -d --build
+# Caddy obtains and renews Let's Encrypt certificates automatically.
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: taxiline
-      POSTGRES_PASSWORD: taxiline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: taxiline
     volumes:
-      - taxiline-postgres-data:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U taxiline']
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - taxiline-redis-data:/data
-    ports:
-      - '6379:6379'
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -37,41 +26,75 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-    env_file:
-      - server/.env
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://taxiline:taxiline@postgres:5432/taxiline?schema=public
-      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
       PORT: 4000
-    ports:
-      - '4000:4000'
+      DATABASE_URL: postgresql://taxiline:${POSTGRES_PASSWORD}@postgres:5432/taxiline?schema=public
+      CORS_ORIGINS: https://${WEB_DOMAIN},https://${ADMIN_DOMAIN}
+      ADMIN_PANEL_URL: https://${ADMIN_DOMAIN}
+      BOT_HTTP_URL: http://bot:8081
+      TRUST_PROXY: 'true'
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: http://localhost:4000
+        VITE_API_URL: https://${API_DOMAIN}
+        VITE_TELEGRAM_BOT: ${TELEGRAM_BOT_USERNAME}
+        VITE_ONLINE_PAYMENTS: ${ONLINE_PAYMENTS_ENABLED:-false}
     restart: unless-stopped
-    depends_on:
-      - server
-    ports:
-      - '5173:80'
 
   admin:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
       args:
-        VITE_API_URL: http://localhost:4000
+        VITE_API_URL: https://${API_DOMAIN}
+    restart: unless-stopped
+
+  bot:
+    build: ./taxiline-bot
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      server:
+        condition: service_started
+    env_file: .env
+    environment:
+      BOT_DATABASE_URL: postgresql+asyncpg://taxiline:${POSTGRES_PASSWORD}@postgres:5432/taxiline_bot
+      SERVER_API_URL: http://server:4000
+      WEBAPP_URL: https://${WEB_DOMAIN}
+      TTS_CACHE_DIR: /app/tts_cache
+      BOT_HTTP_PORT: 8081
+    volumes:
+      - bot-tts-cache:/app/tts_cache
+
+  caddy:
+    image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
       - server
+      - web
+      - admin
     ports:
-      - '5174:80'
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      WEB_DOMAIN: ${WEB_DOMAIN:?set WEB_DOMAIN in .env}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?set ADMIN_DOMAIN in .env}
+      API_DOMAIN: ${API_DOMAIN:?set API_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
-  taxiline-postgres-data:
-  taxiline-redis-data:
+  postgres-data:
+  bot-tts-cache:
+  caddy-data:
+  caddy-config:

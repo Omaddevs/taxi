@@ -24,6 +24,8 @@ import { avatarOrFallback } from '../../lib/adapters'
 import { driverCode, formatPhoneUz, formatSom } from '../../lib/utils'
 import { Toggle, RouteStops, remainingSeconds, formatMmSs } from './ui'
 import { mergeDriverOrders, isActiveStatus, latestPendingOrder, filterByWorkRegions } from './orders'
+import { ONLINE_PAYMENTS } from '../../lib/features'
+import { SoonBadge } from '../../components/ui/SoonBadge'
 
 export default function DriverHome() {
   const { user, gpsFix, watchUserLocation, stopWatchingLocation, autoAccept, workRegions, notifsEnabled } = useApp()
@@ -237,7 +239,11 @@ export default function DriverHome() {
                 <Wallet className="h-4 w-4" />
               </span>
             </div>
-            <span className="mt-2 inline-flex items-center text-[11px] font-bold text-brand">To‘ldirish +</span>
+            {ONLINE_PAYMENTS ? (
+              <span className="mt-2 inline-flex items-center text-[11px] font-bold text-brand">To‘ldirish +</span>
+            ) : (
+              <SoonBadge className="mt-2 inline-block" />
+            )}
           </Link>
         </div>
 

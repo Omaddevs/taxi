@@ -25,3 +25,7 @@ export async function updatePromo(req: Request, res: Response) {
   const promo = await promoService.updatePromo(req.params.id, req.body)
   res.json(promo)
 }
+
+export async function listAvailablePromos(_req: Request, res: Response) {
+  res.json(await promoService.listAvailablePromos())
+}

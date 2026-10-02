@@ -5,6 +5,7 @@ import { useRecentTrips } from '../../lib/queries'
 import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../../lib/adapters'
 import { formatSom } from '../../lib/utils'
 import { Badge, Button, Card } from '../ui/Button'
+import { ONLINE_PAYMENTS } from '../../lib/features'
 
 export function RightPanel() {
   const { user } = useApp()
@@ -24,9 +25,15 @@ export function RightPanel() {
             <Wallet className="h-5 w-5" />
           </div>
         </div>
-        <Link to="/wallet">
-          <Button className="mt-4 w-full">To‘ldirish</Button>
-        </Link>
+        {ONLINE_PAYMENTS ? (
+          <Link to="/wallet">
+            <Button className="mt-4 w-full">To‘ldirish</Button>
+          </Link>
+        ) : (
+          <Button className="mt-4 w-full" disabled>
+            To‘ldirish · Tez orada
+          </Button>
+        )}
         <div className="mt-4 grid grid-cols-4 gap-2 text-center">
           {[
             { to: '/wallet', icon: Wallet, label: 'To‘lov' },
