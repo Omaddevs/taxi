@@ -1,0 +1,24 @@
+{
+  "header": { "title": "Статистика", "today": "Сегодня" },
+  "tabs": { "all": "Все", "income": "Доход", "orders": "Заказы", "routes": "Маршруты" },
+  "totalIncome": { "label": "Общий доход", "comparedToYesterday": "по сравнению со вчера" },
+  "kpi": {
+    "totalIncome": "Общий доход",
+    "orders": "Заказы",
+    "ordersValue": "{{count}}",
+    "onlineTime": "Время онлайн",
+    "distance": "Расстояние"
+  },
+  "sections": {
+    "incomeStats": "Статистика дохода",
+    "last7Days": "Последние 7 дней",
+    "incomeSources": "Источники дохода",
+    "activityTime": "Время активности",
+    "topOrders": "Лучшие заказы",
+    "viewAll": "Показать все"
+  },
+  "empty": { "noCompletedOrders": "Нет завершённых заказов" },
+  "online": { "offline": "Офлайн", "online": "Онлайн" },
+  "distance": { "zero": "0 км", "km": "{{km}} км" },
+  "donut": { "noData": "Нет данных", "currency": "сум" }
+}

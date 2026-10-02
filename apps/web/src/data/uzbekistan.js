@@ -308,14 +308,67 @@ export function searchUzPlaces(query) {
   if (q.length < 1) return []
   const hits = []
   for (const region of REGIONS) {
+    const active = ACTIVE_REGION_IDS.has(region.id)
     if (region.name.toLowerCase().includes(q)) {
-      hits.push({ type: 'region', region: region.name, place: '' })
+      hits.push({ type: 'region', region: region.name, place: '', active })
     }
     for (const place of region.districts) {
       if (place.toLowerCase().includes(q)) {
-        hits.push({ type: 'district', region: region.name, place })
+        hits.push({ type: 'district', region: region.name, place, active })
       }
     }
   }
-  return hits.slice(0, 24)
+  return hits.sort((x, y) => Number(y.active) - Number(x.active)).slice(0, 24)
+}
+
+// Viloyatlar bosqichma-bosqich ochiladi: hozircha faqat shu hududlarda xizmat ishlaydi,
+// qolganlari ro‘yxatda "Tez orada" bo‘lib turadi.
+export const ACTIVE_REGION_IDS = new Set(['toshkent-sh', 'toshkent-vil', 'andijon', 'samarqand'])
+
+export function isRegionActive(name) {
+  const region = getRegion(name)
+  return Boolean(region && ACTIVE_REGION_IDS.has(region.id))
+}
+
+// Faol hududlar tepada, qolganlari alifbo tartibida.
+export const REGIONS_BY_AVAILABILITY = [
+  ...['toshkent-sh', 'toshkent-vil', 'andijon', 'samarqand'].map((id) => REGIONS.find((r) => r.id === id)),
+  ...REGIONS.filter((r) => !ACTIVE_REGION_IDS.has(r.id)).sort((a, b) => a.name.localeCompare(b.name, 'uz')),
+]
+
+// Nominatim viloyat/shahar nomini uz, en yoki ru tilida qaytarishi mumkin.
+const REGION_STEMS = {
+  andijon: ['andijon', 'andijan', 'андижан'],
+  samarqand: ['samarqand', 'samarkand', 'самарканд'],
+  buxoro: ['buxoro', 'bukhara', 'бухар'],
+  jizzax: ['jizzax', 'jizzakh', 'джизак'],
+  qashqadaryo: ['qashqadaryo', 'kashkadarya', 'qarshi', 'кашкадар'],
+  navoiy: ['navoiy', 'navoi', 'навои'],
+  namangan: ['namangan', 'наманган'],
+  sirdaryo: ['sirdaryo', 'syrdarya', 'guliston', 'сырдар'],
+  surxondaryo: ['surxondaryo', 'surkhandarya', 'termiz', 'сурхандар'],
+  fargona: ['fargona', 'fergana', 'ферган'],
+  xorazm: ['xorazm', 'khorezm', 'urganch', 'хорезм'],
+  qoraqalpoq: ['qoraqalpog', 'karakalpak', 'nukus', 'каракалпак'],
+}
+
+function normalizeName(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[‘’ʻʼ'`]/g, '')
+}
+
+// Geokodlangan manzil matnlaridan (state, city, label — aniqrog‘i birinchi) REGIONS nomini topadi.
+export function matchRegion(...texts) {
+  for (const raw of texts) {
+    const t = normalizeName(raw)
+    if (!t) continue
+    if (/toshkent|tashkent|ташкент/.test(t)) {
+      return /viloyat|region|област/.test(t) ? 'Toshkent viloyati' : 'Toshkent shahri'
+    }
+    for (const [id, stems] of Object.entries(REGION_STEMS)) {
+      if (stems.some((s) => t.includes(s))) return REGIONS.find((r) => r.id === id).name
+    }
+  }
+  return null
 }

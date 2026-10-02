@@ -16,6 +16,12 @@ export const updateLocationSchema = z.object({
   lng: z.number().min(-180).max(180),
 })
 
+export const updateDriverMeSchema = z.object({
+  carModel: z.string().min(1).max(80).optional(),
+  plate: z.string().min(1).max(20).optional(),
+  licenseNumber: z.string().min(1).max(40).optional(),
+})
+
 export const reviewApplicationSchema = z
   .object({
     status: z.enum(['APPROVED', 'REJECTED']),
@@ -43,4 +49,20 @@ export const listDriversQuerySchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform((v) => (v === undefined ? undefined : v === 'true')),
+  archived: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === 'true')),
+})
+
+export const driverIdParamSchema = z.object({
+  id: z.string().min(1),
+})
+
+export const setApprovedSchema = z.object({
+  approved: z.boolean(),
+})
+
+export const archiveDriverSchema = z.object({
+  reason: z.string().max(300).optional(),
 })

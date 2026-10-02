@@ -1,0 +1,49 @@
+{
+  "back": "Orqaga",
+  "title": "Hamyon",
+  "currentBalance": "Joriy balans",
+  "topUp": "To'ldirish",
+  "payout": "O'tkazma",
+  "linkedCards": "Ulangan kartalar",
+  "addCard": "Karta qo'shish",
+  "primary": "Asosiy",
+  "deleteCard": "Kartani o'chirish",
+  "newCard": "Yangi karta",
+  "close": "Yopish",
+  "recentTransactions": "So'nggi tranzaksiyalar",
+  "noTransactions": "Hali tranzaksiyalar yo'q",
+  "amountPlaceholder": "100 000",
+  "notes": {
+    "cardAdded": "Karta ulandi",
+    "fillCardCompletely": "Kartani to'liq kiriting",
+    "topupSuccess": "Hisob to'ldirildi",
+    "topupFailed": "To'ldirishda xatolik",
+    "payoutSuccess": "Mablag' kartaga o'tkazildi",
+    "payoutFailed": "O'tkazmada xatolik",
+    "addCardFirst": "Avval karta qo'shing",
+    "minAmount": "Minimal summa 1 000 so'm"
+  },
+  "topupModal": {
+    "title": "Hisobni to'ldirish",
+    "subtitle": "Summani kiriting",
+    "submitting": "Yuklanmoqda…",
+    "submit": "To'ldirish"
+  },
+  "payoutModal": {
+    "title": "Kartaga yechish",
+    "subtitle": "Daromadni ulangan kartaga o'tkazing",
+    "submitting": "Yuborilmoqda…",
+    "submit": "O'tkazish"
+  },
+  "addCardModal": {
+    "title": "Karta qo'shish",
+    "subtitle": "Humo yoki UzCard raqamini kiriting",
+    "cardNumberLabel": "Karta raqami",
+    "cardNumberPlaceholder": "8600 12•• •••• 4412",
+    "holderLabel": "Egasi",
+    "expiryLabel": "Amal muddati",
+    "cvvLabel": "CVV",
+    "submitting": "Ulanmoqda…",
+    "submit": "Kartani ulash"
+  }
+}

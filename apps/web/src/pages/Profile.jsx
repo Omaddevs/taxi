@@ -1,6 +1,6 @@
 import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, Settings, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Badge, Button, Card } from '../components/ui/Button'
+import { Button, Card } from '../components/ui/Button'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { CoinCard } from '../components/ui/CoinCard'
 import { LanguageMenuRow } from '../components/ui/LanguagePicker'
@@ -35,7 +35,12 @@ export default function Profile() {
             <div>
               <p className="text-xl font-extrabold">{user.name || user.phone}</p>
               <p className="text-sm text-white/80">{user.phone}</p>
-              {user.verified ? <Badge className="mt-2 bg-white text-brand">Tasdiqlangan</Badge> : null}
+              {user.verified ? (
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-xs font-bold text-brand">
+                  <img src="/badges/verified.webp" alt="" aria-hidden className="h-5 w-5 object-contain" />
+                  Tasdiqlangan
+                </span>
+              ) : null}
             </div>
           </div>
         </div>

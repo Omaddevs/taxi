@@ -1,0 +1,935 @@
+"""Small inbound HTTP surface so server/ can talk to taxiline-bot — the reverse direction of
+services/backend_client.py. Two things live here:
+
+1. An instant Telegram DM push for webapp bookings (/webapp/booking-created) — no DB writes,
+   no claim logic, since a webapp Booking's driver is already fixed.
+2. A read/act bridge (/webapp/driver-orders*, /webapp/passenger-orders) so the webapp's
+   existing driver page and trip history can show and act on bot orders for users who are
+   registered in both systems (linked via User.telegramId). The claim/enroute/complete
+   handlers call the exact same services.trips.perform_* functions the Telegram buttons call,
+   so the two surfaces can never drift apart.
+"""
+
+import logging
+import re
+from datetime import datetime
+
+from aiogram import Bot
+from aiogram.exceptions import TelegramAPIError
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiohttp import web
+from sqlalchemy import delete, func, select
+
+from app.config import settings
+from app.data.regions import REGION_NAMES
+from app.db.base import session_scope
+from app.db.models import BotUser, DriverProfile, Group, Order, OrderDispatch
+from app.i18n.translations import t
+from app.services import drivers as drivers_service
+from app.services import groups as groups_service
+from app.services import trips as trips_service
+from app.services import users as users_service
+from app.services.backend_client import backend_client
+
+logger = logging.getLogger(__name__)
+
+routes = web.RouteTableDef()
+
+_KIND_TO_KEY = {
+    "new": "webapp_booking_new",
+    "pending_timeout": "webapp_booking_pending_reminder",
+    "start_timeout": "webapp_booking_start_reminder",
+}
+
+
+def _authorized(request: web.Request) -> bool:
+    return request.headers.get("X-Bot-Secret") == settings.bot_api_secret
+
+
+@routes.post("/webapp/booking-created")
+async def booking_created(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    telegram_id = payload.get("telegramId")
+    if not telegram_id:
+        return web.json_response({"error": "telegramId required"}, status=400)
+
+    lang = payload.get("language") or "uz"
+    key = _KIND_TO_KEY.get(payload.get("kind", "new"), "webapp_booking_new")
+    text = t(
+        key,
+        lang,
+        rider_name=payload.get("riderName", ""),
+        rider_phone=payload.get("riderPhone", ""),
+        from_label=payload.get("fromLabel", ""),
+        to_label=payload.get("toLabel", ""),
+        depart_at=payload.get("departAt", ""),
+        seats_summary=payload.get("seatsSummary", ""),
+    )
+
+    bot: Bot = request.app["bot"]
+    try:
+        await bot.send_message(int(telegram_id), text)
+    except Exception:
+        # Best-effort: server/ already recorded the in-app Notification, so a DM failure
+        # (driver blocked the bot, bad telegramId, transient API error) must not surface as
+        # an error to the caller — it would have no useful way to react to it anyway.
+        logger.warning("Failed to DM driver %s about booking %s", telegram_id, payload.get("bookingId"))
+
+    return web.json_response({"ok": True})
+
+
+@routes.post("/webapp/offer-posted")
+async def offer_posted(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    async with session_scope() as session:
+        # A ROUTE group (one topic per direction, e.g. the Toshkent<->Andijon corridor) takes
+        # priority over the generic per-region CLOSED group when this exact direction has a
+        # topic registered for it.
+        route_match = await groups_service.get_route_group_fuzzy(
+            session, payload.get("fromRegion"), payload.get("toRegion")
+        )
+        if route_match is not None:
+            group, route = route_match
+            message_thread_id = route.get("message_thread_id")
+        else:
+            group = await groups_service.resolve_closed_dispatch_group(
+                session, payload.get("fromRegion"), payload.get("toRegion")
+            )
+            message_thread_id = None
+
+    if group is None:
+        # No CLOSED driver group registered yet (not even a catch-all) — nothing to post to.
+        return web.json_response({"ok": True, "posted": False})
+
+    lang = group.language or "uz"
+    text = t(
+        "webapp_offer_posted",
+        lang,
+        driver_name=payload.get("driverName", ""),
+        driver_phone=payload.get("driverPhone", ""),
+        car_model=payload.get("carModel", ""),
+        plate=payload.get("plate", ""),
+        from_label=payload.get("fromLabel", ""),
+        to_label=payload.get("toLabel", ""),
+        depart_at=payload.get("departAt", ""),
+        seats_total=payload.get("seatsTotal", ""),
+        price=payload.get("pricePerSeat", ""),
+    )
+
+    bot: Bot = request.app["bot"]
+    try:
+        await bot.send_message(group.chat_id, text, message_thread_id=message_thread_id)
+    except Exception:
+        logger.warning("Failed to post offer %s to group %s", payload.get("offerId"), group.chat_id)
+        return web.json_response({"ok": True, "posted": False})
+
+    return web.json_response({"ok": True, "posted": True})
+
+
+@routes.post("/webapp/cargo-posted")
+async def cargo_posted(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    async with session_scope() as session:
+        # Same group-resolution priority as offer_posted: a ROUTE group for this exact
+        # direction wins over the generic per-region CLOSED group.
+        route_match = await groups_service.get_route_group_fuzzy(
+            session, payload.get("fromRegion"), payload.get("toRegion")
+        )
+        if route_match is not None:
+            group, route = route_match
+            message_thread_id = route.get("message_thread_id")
+        else:
+            group = await groups_service.resolve_closed_dispatch_group(
+                session, payload.get("fromRegion"), payload.get("toRegion")
+            )
+            message_thread_id = None
+
+    if group is None:
+        # No CLOSED driver group registered yet (not even a catch-all) — nothing to post to.
+        return web.json_response({"ok": True, "posted": False})
+
+    lang = group.language or "uz"
+    text = t(
+        "webapp_cargo_posted",
+        lang,
+        cargo_type=payload.get("cargoType", ""),
+        weight_label=payload.get("weightLabel", ""),
+        from_label=payload.get("fromLabel", ""),
+        to_label=payload.get("toLabel", ""),
+        recipient_name=payload.get("recipientName", ""),
+        recipient_phone=payload.get("recipientPhone", ""),
+        price=payload.get("price", ""),
+    )
+
+    bot: Bot = request.app["bot"]
+    try:
+        await bot.send_message(group.chat_id, text, message_thread_id=message_thread_id)
+    except Exception:
+        logger.warning("Failed to post cargo order %s to group %s", payload.get("cargoOrderId"), group.chat_id)
+        return web.json_response({"ok": True, "posted": False})
+
+    return web.json_response({"ok": True, "posted": True})
+
+
+@routes.post("/webapp/otp-code")
+async def otp_code(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    telegram_id = payload.get("telegramId")
+    phone = payload.get("phone")
+    code = payload.get("code")
+    if not telegram_id or not phone or not code:
+        return web.json_response({"error": "telegramId, phone and code are required"}, status=400)
+
+    lang = payload.get("language") or "uz"
+    text = t("otp_code_message", lang, code=code)
+
+    builder = InlineKeyboardBuilder()
+    builder.button(text=t("otp_confirm_btn", lang), callback_data=f"otpconfirm:{phone}:{code}")
+
+    bot: Bot = request.app["bot"]
+    try:
+        await bot.send_message(int(telegram_id), text, reply_markup=builder.as_markup())
+    except Exception:
+        # Best-effort: the SMS with the same code already went out, so a DM failure here just
+        # means the user won't see the Telegram fast-path this one time.
+        logger.warning("Failed to DM OTP code to telegram_id=%s", telegram_id)
+
+    return web.json_response({"ok": True})
+
+
+def _serialize_order(order: Order) -> dict:
+    return {
+        "id": order.id,
+        "passengerName": order.passenger_name,
+        "passengerPhone": order.passenger_phone,
+        "fromRegion": order.from_region,
+        "fromDistrict": order.from_district,
+        "toRegion": order.to_region,
+        "toDistrict": order.to_district,
+        "carBrand": order.car_brand,
+        "seat": order.seat,
+        "passengers": order.passengers,
+        "luggageSize": order.luggage_size,
+        "whenText": order.when_text,
+        "status": order.status,
+        "source": order.source,
+        "createdAt": order.created_at.isoformat() + "Z",
+        "pickupLat": order.pickup_lat,
+        "pickupLng": order.pickup_lng,
+        "pickupText": order.pickup_text,
+        "confirmed": order.confirmed_at is not None,
+    }
+
+
+async def _resolve_active_driver(session, telegram_id: str) -> DriverProfile | None:
+    bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+    if bot_user is None:
+        return None
+    driver = await drivers_service.get_by_bot_user(session, bot_user.id)
+    if driver is None or driver.status != "APPROVED" or driver.blocked:
+        return None
+    return driver
+
+
+@routes.get("/webapp/driver-orders")
+async def driver_orders(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    telegram_id = request.query.get("telegramId")
+    if not telegram_id:
+        return web.json_response({"error": "telegramId required"}, status=400)
+
+    async with session_scope() as session:
+        driver = await _resolve_active_driver(session, telegram_id)
+        if driver is None:
+            return web.json_response({"registered": False})
+
+        open_result = await session.execute(
+            select(Order)
+            .where(Order.status == "OPEN", Order.from_region == driver.region)
+            .order_by(Order.created_at.desc())
+        )
+        open_orders = [_serialize_order(o) for o in open_result.scalars()]
+
+        claimed_result = await session.execute(
+            select(Order).where(Order.assigned_driver_id == driver.id, Order.status == "CLAIMED")
+        )
+        claimed_order = claimed_result.scalar_one_or_none()
+
+        return web.json_response(
+            {
+                "registered": True,
+                "region": driver.region,
+                "openOrders": open_orders,
+                "claimedOrder": _serialize_order(claimed_order) if claimed_order else None,
+            }
+        )
+
+
+async def _driver_order_action(request: web.Request, perform) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    telegram_id = payload.get("telegramId")
+    if not telegram_id:
+        return web.json_response({"error": "telegramId required"}, status=400)
+
+    bot: Bot = request.app["bot"]
+
+    async with session_scope() as session:
+        driver = await _resolve_active_driver(session, telegram_id)
+        if driver is None:
+            return web.json_response({"error": "not_a_driver"}, status=403)
+
+        return await perform(bot, session, order_id, driver)
+
+
+@routes.post("/webapp/driver-orders/{order_id}/claim")
+async def driver_order_claim(request: web.Request) -> web.Response:
+    async def perform(bot, session, order_id, driver):
+        order = await trips_service.perform_claim(bot, session, order_id, driver)
+        if order is None:
+            return web.json_response({"error": "already_claimed"}, status=409)
+        return web.json_response({"order": _serialize_order(order)})
+
+    return await _driver_order_action(request, perform)
+
+
+@routes.post("/webapp/driver-orders/{order_id}/enroute")
+async def driver_order_enroute(request: web.Request) -> web.Response:
+    async def perform(bot, session, order_id, driver):
+        ok = await trips_service.perform_enroute(bot, session, order_id, driver)
+        if not ok:
+            return web.json_response({"error": "invalid_state"}, status=409)
+        return web.json_response({"ok": True})
+
+    return await _driver_order_action(request, perform)
+
+
+@routes.post("/webapp/driver-orders/{order_id}/complete")
+async def driver_order_complete(request: web.Request) -> web.Response:
+    async def perform(bot, session, order_id, driver):
+        ok = await trips_service.perform_complete(bot, session, order_id, driver)
+        if not ok:
+            return web.json_response({"error": "invalid_state"}, status=409)
+        return web.json_response({"ok": True})
+
+    return await _driver_order_action(request, perform)
+
+
+@routes.post("/webapp/driver-orders/{order_id}/cancel")
+async def driver_order_cancel(request: web.Request) -> web.Response:
+    async def perform(bot, session, order_id, driver):
+        order = await trips_service.perform_cancel_claim(bot, session, order_id, driver)
+        if order is None:
+            return web.json_response({"error": "invalid_state"}, status=409)
+        return web.json_response({"ok": True})
+
+    return await _driver_order_action(request, perform)
+
+
+@routes.post("/webapp/passenger-orders/{order_id}/rate")
+async def passenger_order_rate(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    telegram_id = payload.get("telegramId")
+    stars = payload.get("stars")
+    if not telegram_id or not isinstance(stars, int) or not 1 <= stars <= 5:
+        return web.json_response({"error": "telegramId and stars(1-5) required"}, status=400)
+
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        if bot_user is None:
+            return web.json_response({"error": "not_found"}, status=404)
+
+        order = await session.get(Order, order_id)
+        if order is None or order.bot_user_id != bot_user.id or order.status != "COMPLETED":
+            return web.json_response({"error": "invalid_state"}, status=409)
+
+        driver = await session.get(DriverProfile, order.assigned_driver_id) if order.assigned_driver_id else None
+        driver_bot_user = await session.get(BotUser, driver.bot_user_id) if driver else None
+        if driver_bot_user is None:
+            return web.json_response({"error": "invalid_state"}, status=409)
+
+        ok = await backend_client.submit_rating(
+            rater_telegram_id=bot_user.telegram_id,
+            ratee_telegram_id=driver_bot_user.telegram_id,
+            trip_ref=f"bot:{order_id}",
+            direction="PASSENGER_RATES_DRIVER",
+            stars=stars,
+            tags=payload.get("tags"),
+            comment=payload.get("comment"),
+        )
+        if not ok:
+            return web.json_response({"error": "rating_failed"}, status=502)
+        return web.json_response({"ok": True})
+
+
+@routes.get("/webapp/passenger-orders")
+async def passenger_orders(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    telegram_id = request.query.get("telegramId")
+    if not telegram_id:
+        return web.json_response({"error": "telegramId required"}, status=400)
+
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        if bot_user is None:
+            return web.json_response({"orders": []})
+        orders = await trips_service.list_my_trips(session, bot_user, limit=20)
+        return web.json_response({"orders": [_serialize_order(o) for o in orders]})
+
+
+def _serialize_admin_order(order: Order, driver: DriverProfile | None, dispatch_count: int) -> dict:
+    data = _serialize_order(order)
+    data["assignedDriver"] = {"name": driver.full_name, "phone": driver.phone} if driver else None
+    data["dispatchCount"] = dispatch_count
+    return data
+
+
+async def _load_admin_order(session, order_id: int) -> tuple[Order, DriverProfile | None, int] | None:
+    order = await session.get(Order, order_id)
+    if order is None:
+        return None
+    driver = await session.get(DriverProfile, order.assigned_driver_id) if order.assigned_driver_id else None
+    dispatch_count = (
+        await session.scalar(select(func.count()).select_from(OrderDispatch).where(OrderDispatch.order_id == order_id))
+        or 0
+    )
+    return order, driver, dispatch_count
+
+
+@routes.get("/webapp/admin/orders")
+async def admin_list_orders(request: web.Request) -> web.Response:
+    """Everything a passenger has ever posted through the bot, for the web admin panel's
+    "Elonlar" page — the counterpart to the RideOffer list Node already serves for driver-
+    posted listings. Not scoped to any one telegramId, unlike every other handler here."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    status = request.query.get("status")
+    q = request.query.get("q")
+
+    async with session_scope() as session:
+        stmt = select(Order).order_by(Order.created_at.desc()).limit(200)
+        if status:
+            stmt = stmt.where(Order.status == status)
+        if q:
+            like = f"%{q}%"
+            stmt = stmt.where(
+                (Order.passenger_name.ilike(like))
+                | (Order.passenger_phone.ilike(like))
+                | (Order.from_region.ilike(like))
+                | (Order.to_region.ilike(like))
+            )
+        result = await session.execute(stmt)
+        orders = list(result.scalars())
+        if not orders:
+            return web.json_response({"orders": []})
+
+        driver_ids = {o.assigned_driver_id for o in orders if o.assigned_driver_id}
+        drivers: dict[int, DriverProfile] = {}
+        if driver_ids:
+            driver_result = await session.execute(select(DriverProfile).where(DriverProfile.id.in_(driver_ids)))
+            drivers = {d.id: d for d in driver_result.scalars()}
+
+        dispatch_result = await session.execute(
+            select(OrderDispatch.order_id, func.count())
+            .where(OrderDispatch.order_id.in_([o.id for o in orders]))
+            .group_by(OrderDispatch.order_id)
+        )
+        dispatch_counts = dict(dispatch_result.all())
+
+        return web.json_response(
+            {
+                "orders": [
+                    _serialize_admin_order(
+                        o,
+                        drivers.get(o.assigned_driver_id) if o.assigned_driver_id else None,
+                        dispatch_counts.get(o.id, 0),
+                    )
+                    for o in orders
+                ]
+            }
+        )
+
+
+@routes.get("/webapp/admin/orders/{order_id}")
+async def admin_get_order(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    async with session_scope() as session:
+        loaded = await _load_admin_order(session, order_id)
+        if loaded is None:
+            return web.json_response({"error": "not_found"}, status=404)
+        order, driver, dispatch_count = loaded
+        return web.json_response({"order": _serialize_admin_order(order, driver, dispatch_count)})
+
+
+_ADMIN_ORDER_FIELD_MAP = {
+    "passengerName": "passenger_name",
+    "passengerPhone": "passenger_phone",
+    "fromRegion": "from_region",
+    "fromDistrict": "from_district",
+    "toRegion": "to_region",
+    "toDistrict": "to_district",
+    "carBrand": "car_brand",
+    "seat": "seat",
+    "passengers": "passengers",
+    "luggageSize": "luggage_size",
+    "whenText": "when_text",
+    "pickupLat": "pickup_lat",
+    "pickupLng": "pickup_lng",
+    "pickupText": "pickup_text",
+}
+
+
+@routes.patch("/webapp/admin/orders/{order_id}")
+async def admin_update_order(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    bot: Bot = request.app["bot"]
+
+    async with session_scope() as session:
+        order = await session.get(Order, order_id)
+        if order is None:
+            return web.json_response({"error": "not_found"}, status=404)
+        # Once claimed, the driver's own dispatch copy carries a distinct "you claimed this"
+        # view that rerender_dispatches below doesn't know how to reproduce — same restriction
+        # as the Node side's RideOffer admin edit, which blocks once any seat is taken.
+        if order.status != "OPEN":
+            return web.json_response({"error": "invalid_state"}, status=409)
+
+        for key, column in _ADMIN_ORDER_FIELD_MAP.items():
+            if key in payload:
+                setattr(order, column, payload[key])
+        await session.commit()
+
+        # Push the edit out to every group/DM this order was already posted to, so the admin
+        # panel's "edit" doesn't silently drift from what drivers are looking at in Telegram.
+        await trips_service.rerender_dispatches(bot, session, order)
+
+        loaded = await _load_admin_order(session, order_id)
+        order, driver, dispatch_count = loaded
+        return web.json_response({"order": _serialize_admin_order(order, driver, dispatch_count)})
+
+
+@routes.patch("/webapp/admin/orders/{order_id}/status")
+async def admin_set_order_status(request: web.Request) -> web.Response:
+    """Publish (OPEN) / unpublish (CLOSED) / soft-cancel (CANCELLED) an order. Distinct from
+    DELETE below: this keeps the Order row and its dispatched messages, just edits the
+    messages to a closed/cancelled label with no claim button — DELETE removes it entirely."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    status = payload.get("status")
+    if status not in ("OPEN", "CLOSED", "CANCELLED"):
+        return web.json_response({"error": "invalid status"}, status=400)
+
+    bot: Bot = request.app["bot"]
+
+    async with session_scope() as session:
+        order = await session.get(Order, order_id)
+        if order is None:
+            return web.json_response({"error": "not_found"}, status=404)
+        if order.status in ("CLAIMED", "COMPLETED"):
+            return web.json_response({"error": "invalid_state"}, status=409)
+
+        order.status = status
+        # Reopening clears it; closing/cancelling stamps when it left the pipeline.
+        order.finished_at = None if status == "OPEN" else datetime.utcnow()
+        await session.commit()
+
+        closed_label_key = "order_cancelled_by_admin_label" if status == "CANCELLED" else "order_closed_by_admin_label"
+        await trips_service.rerender_dispatches(bot, session, order, closed_label_key=closed_label_key)
+
+        loaded = await _load_admin_order(session, order_id)
+        order, driver, dispatch_count = loaded
+        return web.json_response({"order": _serialize_admin_order(order, driver, dispatch_count)})
+
+
+@routes.delete("/webapp/admin/orders/{order_id}")
+async def admin_delete_order(request: web.Request) -> web.Response:
+    """Hard delete: removes every Telegram message this order was dispatched as, then the
+    Order row itself (cascades OrderDispatch too) — the order vanishes everywhere it was ever
+    shown, not just from the admin panel."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+
+    bot: Bot = request.app["bot"]
+
+    async with session_scope() as session:
+        order = await session.get(Order, order_id)
+        if order is None:
+            return web.json_response({"ok": True})
+
+        try:
+            await trips_service.delete_all_dispatches(bot, session, order)
+        except Exception:
+            logger.exception("Failed to delete Telegram dispatches for order %s", order_id)
+
+        session.expunge_all()
+        try:
+            await session.execute(delete(OrderDispatch).where(OrderDispatch.order_id == order_id))
+            await session.execute(delete(Order).where(Order.id == order_id))
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            logger.exception("Failed to delete order %s", order_id)
+            return web.json_response({"error": "delete_failed"}, status=500)
+
+        return web.json_response({"ok": True})
+
+
+_CHAT_RESOLVE_HINT = (
+    "Bu chat topilmadi. Botni guruh yoki kanalga admin qilib qo‘shing, keyin ID, @username yoki t.me havolasini qayta yuboring."
+)
+
+
+async def _resolve_chat(bot: Bot, raw: str) -> dict:
+    try:
+        parsed = groups_service.parse_telegram_ref(raw)
+    except ValueError:
+        raise ValueError("ID, @username yoki t.me havolasini kiriting") from None
+
+    try:
+        if "chat_id" in parsed:
+            chat = await bot.get_chat(parsed["chat_id"])
+        elif "username" in parsed:
+            chat = await bot.get_chat(parsed["username"])
+        else:
+            chat = await bot.get_chat(parsed["invite"])
+    except TelegramAPIError as exc:
+        raise ValueError(_CHAT_RESOLVE_HINT) from exc
+
+    title = getattr(chat, "title", None) or getattr(chat, "full_name", None)
+    username = f"@{chat.username}" if getattr(chat, "username", None) else None
+    invite = getattr(chat, "invite_link", None)
+    return {
+        "chat_id": chat.id,
+        "title": title,
+        "username": username,
+        "invite_link": invite,
+        "thread_id": parsed.get("thread_id"),
+    }
+
+
+def _topic_from_payload(item: dict) -> dict:
+    from_region = item.get("fromRegion") or item.get("from_region")
+    to_region = item.get("toRegion") or item.get("to_region")
+    thread_id = item.get("threadId") if "threadId" in item else item.get("message_thread_id")
+    label = item.get("label")
+    return {
+        "from_region": from_region,
+        "to_region": to_region,
+        "message_thread_id": thread_id,
+        "label": label,
+    }
+
+
+async def _resolve_topics(bot: Bot, parent_chat_id: int, topics: list | None) -> list[dict]:
+    routes: list[dict] = []
+    for item in topics or []:
+        route = _topic_from_payload(item)
+        if not route["from_region"] or not route["to_region"]:
+            raise ValueError("Har bir ichki chat uchun qayerdan va qayerga viloyatni tanlang")
+        ref = item.get("ref")
+        if ref:
+            text = str(ref).strip()
+            if re.fullmatch(r"\d+", text):
+                route["message_thread_id"] = int(text)
+            else:
+                resolved = await _resolve_chat(bot, text)
+                if resolved["chat_id"] != parent_chat_id and resolved["thread_id"] is None:
+                    raise ValueError("Ichki chat havolasi shu forum-guruhning topic’iga tegishli bo‘lishi kerak")
+                route["message_thread_id"] = resolved["thread_id"]
+                if not route.get("label"):
+                    route["label"] = resolved["title"]
+        elif route["message_thread_id"] is not None:
+            try:
+                route["message_thread_id"] = int(route["message_thread_id"])
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Topic ID raqam bo‘lishi kerak") from exc
+        routes.append(route)
+    return routes
+
+
+@routes.get("/webapp/admin/groups")
+async def admin_list_groups(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    kind = request.query.get("kind")
+    async with session_scope() as session:
+        groups = await groups_service.list_groups(session, kind)
+        return web.json_response(
+            {
+                "groups": [groups_service.serialize_group(g) for g in groups],
+                "regions": REGION_NAMES,
+            }
+        )
+
+
+@routes.post("/webapp/admin/groups")
+async def admin_create_group(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    kind = payload.get("kind")
+    ref = (payload.get("ref") or "").strip()
+    if kind not in ("CLOSED", "ROUTE", "CHANNEL"):
+        return web.json_response({"error": "kind CLOSED, ROUTE yoki CHANNEL bo‘lishi kerak"}, status=400)
+    if not ref:
+        return web.json_response({"error": "Guruh yoki kanal ID / havolasini kiriting"}, status=400)
+
+    bot: Bot = request.app["bot"]
+    try:
+        resolved = await _resolve_chat(bot, ref)
+    except ValueError as exc:
+        return web.json_response({"error": str(exc)}, status=400)
+
+    title = (payload.get("title") or "").strip() or resolved["title"]
+    from_region = payload.get("fromRegion") or payload.get("from_region")
+    to_region = payload.get("toRegion") or payload.get("to_region")
+    include_reverse = payload.get("includeReverse", True)
+    extra_settings = {}
+    if resolved["username"]:
+        extra_settings["username"] = resolved["username"]
+    if resolved["invite_link"]:
+        extra_settings["invite_link"] = resolved["invite_link"]
+
+    routes = None
+    region = None
+
+    if kind == "CLOSED":
+        if not from_region or not to_region:
+            return web.json_response({"error": "Yopiq guruh uchun qayerdan va qayerga viloyatni tanlang"}, status=400)
+        title = title or groups_service.corridor_title(from_region, to_region)
+        region = from_region
+        routes = groups_service.build_closed_routes(from_region, to_region, bool(include_reverse))
+    elif kind == "ROUTE":
+        if from_region and to_region and not title:
+            title = groups_service.corridor_title(from_region, to_region)
+        try:
+            routes = await _resolve_topics(bot, resolved["chat_id"], payload.get("topics"))
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        if from_region:
+            region = from_region
+    else:
+        if not (payload.get("title") or "").strip():
+            return web.json_response({"error": "Kanalga nom qo‘ying — keyin adashib ketmaslik uchun"}, status=400)
+        title = payload["title"].strip()
+
+    async with session_scope() as session:
+        group = await groups_service.register_group(
+            session,
+            chat_id=resolved["chat_id"],
+            title=title,
+            kind=kind,
+            region=region,
+            added_by_telegram_id=0,
+            routes=routes,
+            extra_settings=extra_settings or None,
+        )
+        return web.json_response({"group": groups_service.serialize_group(group)})
+
+
+@routes.patch("/webapp/admin/groups/{group_id}")
+async def admin_update_group(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        group_id = int(request.match_info["group_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid group id"}, status=400)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    bot: Bot = request.app["bot"]
+    extra_settings = None
+    chat_id = None
+    resolved = None
+    ref = (payload.get("ref") or "").strip()
+    if ref:
+        try:
+            resolved = await _resolve_chat(bot, ref)
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        chat_id = resolved["chat_id"]
+        extra_settings = {}
+        if resolved["username"]:
+            extra_settings["username"] = resolved["username"]
+        if resolved["invite_link"]:
+            extra_settings["invite_link"] = resolved["invite_link"]
+
+    async with session_scope() as session:
+        group = await session.get(Group, group_id)
+        if group is None:
+            return web.json_response({"error": "not_found"}, status=404)
+
+        kind = payload.get("kind") or group.kind
+        title = payload["title"].strip() if isinstance(payload.get("title"), str) else None
+        from_region = payload.get("fromRegion") or payload.get("from_region")
+        to_region = payload.get("toRegion") or payload.get("to_region")
+        include_reverse = payload.get("includeReverse")
+        routes = None
+        region = None
+
+        parent_chat_id = chat_id if chat_id is not None else group.chat_id
+
+        if kind == "CLOSED" and from_region and to_region:
+            region = from_region
+            routes = groups_service.build_closed_routes(
+                from_region,
+                to_region,
+                True if include_reverse is None else bool(include_reverse),
+            )
+            if title is None and not group.title:
+                title = groups_service.corridor_title(from_region, to_region)
+        elif kind == "ROUTE" and "topics" in payload:
+            try:
+                routes = await _resolve_topics(bot, parent_chat_id, payload.get("topics"))
+            except ValueError as exc:
+                return web.json_response({"error": str(exc)}, status=400)
+            if from_region:
+                region = from_region
+        elif kind == "CHANNEL" and title is not None and len(title) < 1:
+            return web.json_response({"error": "Kanalga nom qo‘ying"}, status=400)
+
+        if chat_id is not None and chat_id != group.chat_id:
+            clash = await groups_service.get_by_chat_id(session, chat_id)
+            if clash is not None and clash.id != group.id:
+                return web.json_response({"error": "Bu chat allaqachon boshqa yozuvga biriktirilgan"}, status=409)
+
+        group = await groups_service.update_group(
+            session,
+            group,
+            title=title,
+            kind=kind if payload.get("kind") else None,
+            region=region,
+            chat_id=chat_id,
+            routes=routes,
+            extra_settings=extra_settings,
+        )
+        return web.json_response({"group": groups_service.serialize_group(group)})
+
+
+@routes.delete("/webapp/admin/groups/{group_id}")
+async def admin_delete_group(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        group_id = int(request.match_info["group_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid group id"}, status=400)
+
+    async with session_scope() as session:
+        group = await session.get(Group, group_id)
+        if group is None:
+            return web.json_response({"ok": True})
+        await groups_service.remove_group(session, group)
+        return web.json_response({"ok": True})
+
+
+def build_app(bot: Bot) -> web.Application:
+    app = web.Application()
+    app["bot"] = bot
+    app.add_routes(routes)
+    return app
+
+
+async def run_webserver(bot: Bot, port: int) -> web.AppRunner:
+    app = build_app(bot)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logger.info("taxiline-bot webhook server listening on :%s", port)
+    return runner

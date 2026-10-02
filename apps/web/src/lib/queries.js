@@ -10,6 +10,10 @@ export function useOffersSearch(params, options = {}) {
       const offers = await api.get(`/offers/search?${query.toString()}`)
       return offers.map(offerToTrip)
     },
+    // So a listing an admin deletes/unpublishes disappears from search on its own, the same
+    // way driver order queues already poll (DriverHome.jsx/DriverOrders.jsx) rather than
+    // relying on a socket push that doesn't exist for offers.
+    refetchInterval: 15_000,
     ...options,
   })
 }

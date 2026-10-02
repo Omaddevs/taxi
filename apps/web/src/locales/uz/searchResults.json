@@ -1,0 +1,8 @@
+{
+  "allFilter": "Barchasi",
+  "title": "Safar natijalari",
+  "resultsCount_one": "{{count}} ta safar topildi",
+  "resultsCount_other": "{{count}} ta safar topildi",
+  "loading": "Yuklanmoqda…",
+  "empty": "Hech qanday reys topilmadi."
+}

@@ -1,0 +1,9 @@
+{
+  "completed": "Завершена",
+  "newDriver": "Новый",
+  "seatsCount_one": "{{count}} место",
+  "seatsCount_other": "{{count}} мест",
+  "luggageCount_one": "{{count}} сумка",
+  "luggageCount_other": "{{count}} сумок",
+  "bookSeat": "Забронировать место"
+}

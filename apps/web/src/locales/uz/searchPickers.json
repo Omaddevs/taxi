@@ -1,0 +1,72 @@
+{
+  "common": {
+    "close": "Yopish",
+    "choose": "Tanlang"
+  },
+  "datePicker": {
+    "title": "Sanani tanlang",
+    "label": "Sana",
+    "weekdays": {
+      "mo": "Du",
+      "tu": "Se",
+      "we": "Ch",
+      "th": "Pa",
+      "fr": "Ju",
+      "sa": "Sh",
+      "su": "Ya"
+    }
+  },
+  "timePicker": {
+    "title": "Vaqtni tanlang",
+    "label": "Vaqt",
+    "presetNow": "Hozir",
+    "preset15": "+15 daq",
+    "preset30": "+30 daq",
+    "chooseHour": "Soatni tanlang (24 soatlik, 0–23)",
+    "hourAriaLabel": "{{hour}} soat",
+    "chooseMinute": "Daqiqani tanlang",
+    "minuteAriaLabel": "{{min}} daqiqa",
+    "backToHour": "Soat: {{hour}}"
+  },
+  "passengerPicker": {
+    "title": "Yo‘lovchilar",
+    "count_one": "{{count}} kishi",
+    "count_other": "{{count}} kishi",
+    "howMany": "Nechta yo‘lovchi?"
+  },
+  "luggagePicker": {
+    "title": "Bagaj hajmi",
+    "items": {
+      "small": { "title": "Kichik", "desc": "Qo‘l yuki, sumka" },
+      "medium": { "title": "O‘rta", "desc": "1–2 chamadon" },
+      "large": { "title": "Katta", "desc": "3+ chamadon" }
+    }
+  },
+  "genderPicker": {
+    "title": "Jins",
+    "items": {
+      "male": { "title": "Erkak", "desc": "Erkak yo‘lovchi" },
+      "female": { "title": "Ayol", "desc": "Ayol yo‘lovchi" },
+      "couple": { "title": "Juft", "desc": "Er-xotin" }
+    }
+  },
+  "seatPicker": {
+    "title": "O‘rindiq tanlash",
+    "label": "O‘rindiq",
+    "items": {
+      "front": { "title": "Old o‘rindiq", "desc": "Haydovchi yonida" },
+      "backRight": { "title": "Orqa o‘ng", "desc": "Orqa qator, o‘ng tomon" },
+      "backLeft": { "title": "Orqa chap", "desc": "Orqa qator, chap tomon" },
+      "backMiddle": { "title": "Orqa o‘rta", "desc": "Orqa qator, o‘rtada" },
+      "any": { "title": "Farqi yo‘q", "desc": "Istalgan joy" }
+    }
+  },
+  "carPicker": {
+    "title": "Avtomobil tanlash",
+    "label": "Avtomobil"
+  },
+  "regionPicker": {
+    "searchPlaceholder": "Viloyat yoki tuman qidiring",
+    "openDistricts": "Viloyat · tumanlarni ochish"
+  }
+}

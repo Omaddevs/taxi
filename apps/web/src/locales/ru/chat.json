@@ -1,0 +1,13 @@
+{
+  "today": "Сегодня",
+  "yesterday": "Вчера",
+  "loading": "Загрузка…",
+  "fallbackName": "Чат",
+  "back": "Назад",
+  "subtitle": "Чат TaxiLine",
+  "call": "Позвонить",
+  "sendMyLocation": "Отправить моё местоположение",
+  "attachLocation": "Локация",
+  "inputPlaceholder": "Напишите сообщение",
+  "send": "Отправить"
+}

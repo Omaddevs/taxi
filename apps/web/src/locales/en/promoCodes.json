@@ -1,0 +1,13 @@
+{
+  "screenTitle": "Promo codes",
+  "pageTitle": "Promo codes",
+  "pageSubtitle": "Enter a discount code or use one of your own",
+  "inputPlaceholder": "PROMO CODE",
+  "checkButton": "Check",
+  "checkFailed": "Couldn't check the code",
+  "validResult": "{{code}} is valid — {{discount}} discount. Applied automatically when you book a trip.",
+  "sumSuffix": "{{value}} UZS",
+  "notFound": "Code not found",
+  "myCodes": "My codes",
+  "until": "until {{date}}"
+}

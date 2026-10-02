@@ -2,9 +2,13 @@ export interface AdminUser {
   id: string
   phone: string
   name: string | null
-  role: 'PASSENGER' | 'DRIVER' | 'ADMIN'
+  role: PanelRole
+  staffKind?: StaffKind | null
   verified: boolean
 }
+
+export type PanelRole = 'ADMIN' | 'SALES_OPERATOR' | 'SUPPORT_OPERATOR'
+export type StaffKind = 'ADMIN' | 'SALES' | 'SUPPORT'
 
 const ACCESS_KEY = 'taxiline-admin-access'
 const REFRESH_KEY = 'taxiline-admin-refresh'
@@ -36,6 +40,11 @@ export function setSession(accessToken: string, refreshToken: string, user: Admi
 
 export function setAccessToken(accessToken: string) {
   localStorage.setItem(ACCESS_KEY, accessToken)
+}
+
+export function setTokens(accessToken: string, refreshToken?: string) {
+  localStorage.setItem(ACCESS_KEY, accessToken)
+  if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken)
 }
 
 export function clearSession() {

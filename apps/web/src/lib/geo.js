@@ -22,11 +22,62 @@ export function around(origin, items, nearKm = NEAR_KM) {
 }
 
 export function googleMapsUrl(lat, lng) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
+}
+
+export function osmTilePreview(lat, lng, zoom = 15) {
+  const n = 2 ** zoom
+  const x = Math.floor(((lng + 180) / 360) * n)
+  const latRad = (lat * Math.PI) / 180
+  const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n)
+  return `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`
+}
+
+/** Yo‘nalish: haydovchi GPS → manzil. Koordinata bo‘lmasa matn qidiruvi. */
+export function googleMapsDirUrl({ from, to, query }) {
+  if (typeof to?.lat === 'number' && typeof to?.lng === 'number') {
+    const dest = `${to.lat},${to.lng}`
+    const origin =
+      typeof from?.lat === 'number' && typeof from?.lng === 'number' ? `&origin=${from.lat},${from.lng}` : ''
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}${origin}&travelmode=driving`
+  }
+  const q = encodeURIComponent(query || '')
+  const origin =
+    typeof from?.lat === 'number' && typeof from?.lng === 'number' ? `&origin=${from.lat},${from.lng}` : ''
+  return `https://www.google.com/maps/dir/?api=1&destination=${q}${origin}&travelmode=driving`
+}
+
+/** Road geometry between two points (OSRM public router, no API key). */
+export async function fetchDrivingRoute(from, to) {
+  if (!from || !to) return null
+  const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`
+  const res = await fetch(url)
+  if (!res.ok) return null
+  const data = await res.json()
+  const route = data.routes?.[0]
+  if (!route?.geometry?.coordinates?.length) return null
+  return {
+    points: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+    km: route.distance / 1000,
+    seconds: route.duration,
+  }
 }
 
 export function yandexMapsUrl(lat, lng) {
   return `https://yandex.uz/maps/?rtext=~${lat},${lng}&rtt=auto`
+}
+
+export function yandexMapsDirUrl({ from, to, query }) {
+  if (typeof to?.lat === 'number' && typeof to?.lng === 'number') {
+    const start =
+      typeof from?.lat === 'number' && typeof from?.lng === 'number' ? `${from.lat},${from.lng}` : ''
+    return `https://yandex.uz/maps/?rtext=${start}~${to.lat},${to.lng}&rtt=auto`
+  }
+  const q = encodeURIComponent(query || '')
+  if (typeof from?.lat === 'number' && typeof from?.lng === 'number') {
+    return `https://yandex.uz/maps/?rtext=${from.lat},${from.lng}~${q}&rtt=auto`
+  }
+  return `https://yandex.uz/maps/?text=${q}`
 }
 
 export async function sharePlace({ title, text, url }) {

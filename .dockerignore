@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+dist
+**/dist
+dist-ssr
+.git
+.env
+.env.*
+!.env.example
+*.log
+.vscode
+.idea
+taxiline-bot/.venv
+taxiline-bot/tts_cache

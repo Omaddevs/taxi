@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
+import { isDriverUser } from '../lib/role'
 
 const points = [
   'Faqat tasdiqlangan ayol haydovchilar',
@@ -14,6 +16,8 @@ const points = [
 export default function WomenTaxi() {
   const navigate = useNavigate()
   const { setSearch } = useApp()
+  const { authUser } = useAuth()
+  const isDriver = isDriverUser(authUser)
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -52,11 +56,15 @@ export default function WomenTaxi() {
         size="lg"
         className="mt-5 w-full"
         onClick={() => {
+          if (isDriver) {
+            navigate(-1)
+            return
+          }
           setSearch((s) => ({ ...s, service: 'women' }))
           navigate('/results')
         }}
       >
-        Davom etish
+        {isDriver ? 'Tushunarli' : 'Davom etish'}
       </Button>
     </div>
   )

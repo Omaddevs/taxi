@@ -21,10 +21,17 @@ enum RideOfferStatus {
 }
 
 enum BookingStatus {
-  PENDING   // reservation created, awaiting driver response
+  PENDING // reservation created, awaiting driver response
   ACCEPTED
   ONGOING
   COMPLETED
+  CANCELLED
+}
+
+enum CargoOrderStatus {
+  NEW // posted by rider, awaiting a driver to claim it
+  CLAIMED
+  DELIVERED
   CANCELLED
 }
 
@@ -47,6 +54,35 @@ enum NotificationType {
   PROMO
   SYSTEM
   WALLET
+  TICKET_SATISFACTION
+}
+
+enum MessageType {
+  TEXT
+  LOCATION
+}
+
+enum SeatPosition {
+  FRONT
+  REAR_LEFT
+  REAR_MIDDLE
+  REAR_RIGHT
+}
+
+enum SeatStatus {
+  AVAILABLE
+  RESERVED // held by a PENDING booking
+  BOOKED // held by an ACCEPTED booking, or manually pre-marked by the driver
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum RatingDirection {
+  PASSENGER_RATES_DRIVER
+  DRIVER_RATES_PASSENGER
 }
 
 enum DriverApplicationStatus {
@@ -55,33 +91,181 @@ enum DriverApplicationStatus {
   REJECTED
 }
 
-model User {
-  id           String   @id @default(cuid())
-  phone        String   @unique
-  name         String?
-  firstName    String?
-  email        String?
-  avatarUrl    String?
-  role         Role     @default(PASSENGER)
-  verified     Boolean  @default(false)
-  passwordHash String? // ADMIN only
-  balance      Int      @default(0) // som
-  points       Int      @default(0)
-  coins        Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum StaffKind {
+  ADMIN
+  SALES
+  SUPPORT
+}
 
-  driver            Driver?
-  bookings          Booking[]
-  transactions      Transaction[]
-  paymentCards      PaymentCard[]
-  favorites         Favorite[]
-  notifications     Notification[]
-  refreshTokens     RefreshToken[]
-  conversationsA    Conversation[] @relation("ParticipantA")
-  conversationsB    Conversation[] @relation("ParticipantB")
-  messagesSent      Message[]
-  driverApplication DriverApplication?
+enum KpiPeriod {
+  DAY
+  WEEK
+  MONTH
+}
+
+enum ActivityKind {
+  NEW_USER
+  NEW_DRIVER
+  BOOKING
+  REVENUE
+  CALL
+  NOTE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  TECHNICAL
+  PAYMENT
+  BOOKING
+  ACCOUNT
+  OTHER
+}
+
+enum ChannelSource {
+  WEBAPP
+  BOT
+  GROUP
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum LeadType {
+  PASSENGER
+  DRIVER
+}
+
+enum LeadChannel {
+  MANUAL
+  INSTAGRAM_DM
+  INSTAGRAM_LEAD_AD
+}
+
+enum LeadMessageDirection {
+  IN
+  OUT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id               String        @id @default(cuid())
+  phone            String        @unique
+  name             String?
+  firstName        String?
+  email            String?
+  avatarUrl        String?
+  role             Role          @default(PASSENGER)
+  verified         Boolean       @default(false)
+  passwordHash     String? // panel login (admin / operators)
+  loginPassword    String? // last set password, shown only in admin/support panels
+  staffKind        StaffKind?
+  staffActive      Boolean       @default(true)
+  busy             Boolean       @default(false) // manual "band" toggle shown to teammates in the Operators list
+  balance          Int           @default(0) // som
+  points           Int           @default(0)
+  coins            Int           @default(0)
+  telegramId       String?       @unique // linked from taxiline-bot on phone match/registration
+  telegramUsername String?
+  language         String? // 'uz' | 'ru' | 'en', set by taxiline-bot
+  signupSource     ChannelSource @default(WEBAPP)
+  fromWebapp       Boolean       @default(false)
+  fromBot          Boolean       @default(false)
+  fromGroup        Boolean       @default(false)
+  lastSeenAt       DateTime?
+  notes            String?
+  // as a PASSENGER — how drivers have rated this user. 0/0 means "no real ratings yet", never
+  // shown as a number on its own — display code must check ratingCount before rendering ratingAvg.
+  ratingAvg        Float         @default(0)
+  ratingCount      Int           @default(0)
+  gender           Gender?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  driver              Driver?
+  bookings            Booking[]
+  cargoOrders         CargoOrder[]
+  transactions        Transaction[]
+  paymentCards        PaymentCard[]
+  favorites           Favorite[]
+  notifications       Notification[]
+  refreshTokens       RefreshToken[]
+  conversationsA      Conversation[]         @relation("ParticipantA")
+  conversationsB      Conversation[]         @relation("ParticipantB")
+  messagesSent        Message[]
+  driverApplication   DriverApplication?
+  telegramLoginTokens TelegramLoginToken[]
+  ratingsGiven        Rating[]               @relation("RatingsGiven")
+  ratingsReceived     Rating[]               @relation("RatingsReceived")
+  kpiTargets          OperatorKpiTarget[]    @relation("KpiOperator")
+  activities          OperatorActivity[]     @relation("ActivityOperator")
+  assignedTickets     SupportTicket[]        @relation("TicketAssignee")
+  createdTickets      SupportTicket[]        @relation("TicketCreator")
+  ticketMessages      SupportTicketMessage[]
+  auditLogs           AuditLog[]             @relation("AuditActor")
+  leads               Lead[]                 @relation("LeadOwner")
+  cannedResponses     CannedResponse[]       @relation("CannedResponseAuthor")
+  instagramAccounts   InstagramAccount[]     @relation("InstagramConnectedBy")
+}
+
+// One row per (trip, rater) — a passenger rating their driver, or a driver rating their
+// passenger, for one completed trip. `tripRef` identifies the trip generically as
+// "booking:<id>" or "bot:<taxiline-bot order id>" since bot orders live in taxiline-bot's own
+// database and can't be a real foreign key here — the unique constraint on (tripRef,
+// raterUserId) is what makes submitting twice idempotent (upsert) instead of double-counting.
+model Rating {
+  id          String          @id @default(cuid())
+  tripRef     String
+  direction   RatingDirection
+  raterUserId String
+  rater       User            @relation("RatingsGiven", fields: [raterUserId], references: [id], onDelete: Cascade)
+  rateeUserId String
+  ratee       User            @relation("RatingsReceived", fields: [rateeUserId], references: [id], onDelete: Cascade)
+  stars       Int
+  tags        String[]        @default([])
+  comment     String?
+  createdAt   DateTime        @default(now())
+
+  @@unique([tripRef, raterUserId])
+  @@index([rateeUserId, direction])
+}
+
+// One-time code minted by taxiline-bot (POST /bot/telegram-login-token) and embedded in the
+// bot's WebApp button URL, so the webapp can silently log in as the same user
+// (POST /auth/telegram-exchange) without asking for OTP again.
+model TelegramLoginToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code       String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model RefreshToken {
@@ -90,6 +274,8 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash String
   revoked   Boolean  @default(false)
+  ip        String?
+  userAgent String?
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -116,34 +302,42 @@ model Driver {
   plate             String
   carImageUrl       String?
   licenseNumber     String?
-  ratingAvg         Float     @default(5.0)
+  // 0/0 means "no real ratings yet" — never render ratingAvg without checking ratingCount first.
+  ratingAvg         Float     @default(0)
+  ratingCount       Int       @default(0)
   tripsCount        Int       @default(0)
   online            Boolean   @default(false)
   currentLat        Float?
   currentLng        Float?
   locationUpdatedAt DateTime?
   approved          Boolean   @default(false)
+  archivedAt        DateTime?
+  archivedReason    String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  offers RideOffer[]
+  offers       RideOffer[]
+  tickets      SupportTicket[]
+  subscription DriverSubscription?
+  cargoOrders  CargoOrder[]
 
   @@index([online])
+  @@index([archivedAt])
 }
 
 model DriverApplication {
-  id              String                   @id @default(cuid())
-  userId          String                   @unique
-  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String                  @id @default(cuid())
+  userId          String                  @unique
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName        String
   phone           String
   carModel        String
   plate           String
-  status          DriverApplicationStatus  @default(PENDING)
+  status          DriverApplicationStatus @default(PENDING)
   reviewedBy      String?
   reviewedAt      DateTime?
   rejectionReason String?
-  createdAt       DateTime                 @default(now())
+  createdAt       DateTime                @default(now())
 
   @@index([status])
 }
@@ -160,10 +354,54 @@ model Service {
   offers RideOffer[]
 }
 
+model SubscriptionPlan {
+  id           String  @id // 'monthly' | 'quarterly' | 'yearly'
+  title        String
+  durationDays Int
+  price        Int
+  active       Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  subscriptions DriverSubscription[]
+}
+
+model DriverSubscription {
+  id           String             @id @default(cuid())
+  driverId     String             @unique
+  driver       Driver             @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  planId       String
+  plan         SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status       SubscriptionStatus @default(ACTIVE)
+  startedAt    DateTime           @default(now())
+  expiresAt    DateTime
+  cancelledAt  DateTime?
+  cancelReason String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  payments SubscriptionPayment[]
+
+  @@index([status, expiresAt])
+}
+
+model SubscriptionPayment {
+  id                   String             @id @default(cuid())
+  driverSubscriptionId String
+  driverSubscription   DriverSubscription @relation(fields: [driverSubscriptionId], references: [id], onDelete: Cascade)
+  planTitle            String // snapshot — narx keyin o'zgarsa ham tarix o'zgarmaydi
+  amount               Int
+  method               String // 'cash' | 'transfer' | 'other'
+  note                 String?
+  recordedBy           String // admin/operator user id
+  createdAt            DateTime           @default(now())
+
+  @@index([driverSubscriptionId, createdAt])
+}
+
 model RideOffer {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   driverId  String
-  driver    Driver @relation(fields: [driverId], references: [id])
+  driver    Driver  @relation(fields: [driverId], references: [id])
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id])
 
@@ -180,19 +418,40 @@ model RideOffer {
   arriveAt        DateTime?
   seatsTotal      Int
   seatsAvailable  Int
-  luggageCapacity Int    @default(0)
+  luggageCapacity Int       @default(0)
   pricePerSeat    Int
   genderPref      String?
+  notes           String?
+  contactPhones   String[]  @default([])
 
   status    RideOfferStatus @default(ACTIVE)
+  deletedAt DateTime?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
   bookings    Booking[]
   favoritedBy Favorite[]
+  seats       OfferSeat[]
 
   @@index([status, departAt])
   @@index([fromLabel, toLabel])
+  @@index([deletedAt])
+}
+
+// One row per physical seat position on a RideOffer's car (always 4: front + 3 rear),
+// provisioned when the offer is created. Carries booked/reserved state + gender directly so
+// the seat map can be rendered from a single query without joining through Booking.
+model OfferSeat {
+  id          String       @id @default(cuid())
+  rideOfferId String
+  rideOffer   RideOffer    @relation(fields: [rideOfferId], references: [id], onDelete: Cascade)
+  position    SeatPosition
+  status      SeatStatus   @default(AVAILABLE)
+  gender      Gender?
+
+  bookingSeat BookingSeat?
+
+  @@unique([rideOfferId, position])
 }
 
 model Booking {
@@ -227,12 +486,73 @@ model Booking {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Dedup flags for the booking timeout sweep (bookings.scheduler.ts) — each is set once so
+  // the rider gets exactly one "driver hasn't responded" nudge per phase, not one every tick.
+  pendingWarnedAt DateTime?
+  startWarnedAt   DateTime?
+
   transactions Transaction[]
+  tickets      SupportTicket[]
+  seats        BookingSeat[]
 
   @@index([status])
   @@index([riderId])
   @@index([rideOfferId])
   @@index([conversationId])
+}
+
+// Which OfferSeat(s) a Booking claims, and the gender the rider assigned to each one at
+// booking time (not necessarily the rider's own profile gender — e.g. booking a seat for a
+// companion). offerSeatId is unique: a seat can be claimed by at most one active booking.
+model BookingSeat {
+  id          String    @id @default(cuid())
+  bookingId   String
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  offerSeatId String    @unique
+  offerSeat   OfferSeat @relation(fields: [offerSeatId], references: [id])
+  gender      Gender
+
+  @@index([bookingId])
+}
+
+// A rider-posted parcel/delivery job ("Yuk jo'natish"). Unlike RideOffer (driver posts
+// capacity, riders book seats), this is the reverse: rider posts the job once and any
+// approved driver claims it first-come-first-served — mirrors how bot-orders work, just
+// backed by this DB instead of taxiline-bot's.
+model CargoOrder {
+  id       String  @id @default(cuid())
+  riderId  String
+  rider    User    @relation(fields: [riderId], references: [id])
+  driverId String?
+  driver   Driver? @relation(fields: [driverId], references: [id])
+
+  fromLabel  String
+  toLabel    String
+  fromRegion String?
+  toRegion   String?
+  fromLat    Float?
+  fromLng    Float?
+  toLat      Float?
+  toLng      Float?
+
+  cargoType      String // parcel | shopping | docs | flowers | tech | clothes | food | other
+  vehicleType    String? // moto | car | van
+  weightLabel    String // "1 kg" | "5 kg" | "10 kg" | "20 kg+"
+  recipientName  String
+  recipientPhone String
+  note           String?
+  price          Int
+
+  status       CargoOrderStatus @default(NEW)
+  claimedAt    DateTime?
+  deliveredAt  DateTime?
+  cancelReason String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([status, createdAt])
+  @@index([riderId])
+  @@index([driverId])
 }
 
 model Conversation {
@@ -256,7 +576,11 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id])
+  type           MessageType  @default(TEXT)
   text           String
+  lat            Float?
+  lng            Float?
+  locationLabel  String?
   readAt         DateTime?
   createdAt      DateTime     @default(now())
 
@@ -316,6 +640,7 @@ model Notification {
   type      NotificationType
   title     String
   text      String
+  refId     String? // e.g. a SupportTicket id for TICKET_SATISFACTION notifications
   readAt    DateTime?
   createdAt DateTime         @default(now())
 
@@ -331,4 +656,182 @@ model Favorite {
   createdAt   DateTime  @default(now())
 
   @@unique([userId, rideOfferId])
+}
+
+model OperatorKpiTarget {
+  id          String    @id @default(cuid())
+  operatorId  String
+  operator    User      @relation("KpiOperator", fields: [operatorId], references: [id], onDelete: Cascade)
+  period      KpiPeriod
+  periodStart DateTime
+  newUsers    Int       @default(0)
+  newDrivers  Int       @default(0)
+  bookings    Int       @default(0)
+  revenue     Int       @default(0)
+  calls       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([operatorId, period, periodStart])
+  @@index([period, periodStart])
+}
+
+model OperatorActivity {
+  id         String       @id @default(cuid())
+  operatorId String
+  operator   User         @relation("ActivityOperator", fields: [operatorId], references: [id], onDelete: Cascade)
+  kind       ActivityKind
+  title      String
+  note       String?
+  amount     Int          @default(0)
+  refId      String?
+  createdAt  DateTime     @default(now())
+
+  @@index([operatorId, createdAt])
+  @@index([kind, createdAt])
+}
+
+model SupportTicket {
+  id                      String                 @id @default(cuid())
+  ticketNo                Int                    @unique @default(autoincrement())
+  category                TicketCategory
+  priority                TicketPriority         @default(MEDIUM)
+  status                  TicketStatus           @default(OPEN)
+  subject                 String
+  description             String
+  requesterPhone          String?
+  requesterName           String?
+  userId                  String?
+  assigneeId              String?
+  assignee                User?                  @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdById             String?
+  createdBy               User?                  @relation("TicketCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  bookingId               String?
+  booking                 Booking?               @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  driverId                String?
+  driver                  Driver?                @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  satisfactionRating      Int?
+  satisfactionComment     String?
+  satisfactionRequestedAt DateTime?
+  resolvedAt              DateTime?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  messages                SupportTicketMessage[]
+
+  @@index([status, createdAt])
+  @@index([assigneeId, status])
+  @@index([bookingId])
+  @@index([driverId])
+}
+
+model SupportTicketMessage {
+  id        String        @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body      String
+  internal  Boolean       @default(false)
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+// Free-text trail of sensitive staff-account changes (password/phone/kind/active flips) so an
+// admin can answer "who changed this and when" — this is what would have caught the staffKind
+// login bug sooner.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  targetType String
+  targetId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+// Lightweight CRM pipeline for sales operators — a prospect phone number worked through
+// NEW -> CONTACTED -> QUALIFIED -> CONVERTED/LOST, independent of whether they've registered
+// as a real User yet.
+model Lead {
+  id         String     @id @default(cuid())
+  name       String?
+  // Nullable because an Instagram DM lead exists before a phone number is ever exchanged —
+  // manual/call leads still require one via the create-lead API schema.
+  phone      String?
+  source     String?
+  status     LeadStatus @default(NEW)
+  note       String?
+  followUpAt DateTime?
+  ownerId    String
+  owner      User       @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Instagram integration — leadType/channel classify where the lead came from and what it's
+  // for (driver vs passenger recruitment); igUserId/externalId are the two dedup keys used by
+  // the webhook (DM sender id for messaging events, Meta leadgen_id for Lead Ads submissions).
+  leadType   LeadType    @default(PASSENGER)
+  channel    LeadChannel @default(MANUAL)
+  igUserId   String?     @unique
+  igUsername String?
+  externalId String?     @unique
+  adName     String?
+  formName   String?
+
+  messages LeadMessage[]
+
+  @@index([ownerId, status])
+  @@index([followUpAt])
+  @@index([channel])
+}
+
+// DM thread for an Instagram-sourced lead, shown as a mini chat in the CRM so a sales operator
+// can reply without leaving the admin panel.
+model LeadMessage {
+  id          String               @id @default(cuid())
+  leadId      String
+  lead        Lead                 @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  direction   LeadMessageDirection
+  body        String
+  igMessageId String?              @unique
+  createdAt   DateTime             @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+// Single connected Instagram Professional account (via its linked Facebook Page). One active
+// row for MVP — pageAccessTokenEnc is AES-256-GCM encrypted at rest (see lib/crypto.ts).
+model InstagramAccount {
+  id                 String    @id @default(cuid())
+  igBusinessId       String    @unique
+  igUsername         String
+  pageId             String
+  pageAccessTokenEnc String
+  tokenExpiresAt     DateTime?
+  status             String    @default("CONNECTED")
+  lastError          String?
+  connectedById      String?
+  connectedBy        User?     @relation("InstagramConnectedBy", fields: [connectedById], references: [id], onDelete: SetNull)
+  connectedAt        DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+// Shared reply templates for support tickets ("to'lov", "bron" macros etc.) so agents don't
+// retype the same answer for every customer.
+model CannedResponse {
+  id          String          @id @default(cuid())
+  category    TicketCategory?
+  title       String
+  body        String
+  createdById String?
+  createdBy   User?           @relation("CannedResponseAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([category])
 }

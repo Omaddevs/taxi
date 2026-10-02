@@ -1,0 +1,15 @@
+{
+  "errors": {
+    "noGps": "GPS mavjud emas",
+    "permissionDenied": "Joylashuv ruxsati berilmadi"
+  },
+  "back": "Orqaga",
+  "pickFromMap": "Xaritadan tanlang",
+  "moveMap": "Xaritani siljiting",
+  "send": "Yuborish",
+  "close": "Yopish",
+  "sendLocation": "Lokatsiya yuborish",
+  "myLocation": "Mening joylashuvim",
+  "sendViaGps": "GPS orqali yuborish",
+  "markAndSend": "Belgilab yuborish"
+}

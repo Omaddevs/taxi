@@ -19,7 +19,19 @@ export function PopularTrips({ trips }) {
       </div>
       <div className="space-y-3">
         {trips.map((trip) => (
-          <Card key={trip.id} className="p-4">
+          <Card
+            key={trip.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate(`/trip/${trip.id}`)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                navigate(`/trip/${trip.id}`)
+              }
+            }}
+            className="cursor-pointer p-4 transition-colors hover:border-brand/40"
+          >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
               <div className="min-w-0 flex-1">
                 <p className="text-base font-bold">
@@ -41,16 +53,19 @@ export function PopularTrips({ trips }) {
                   <p className="text-sm font-semibold">{trip.driver.name}</p>
                   <p className="flex items-center gap-1 text-xs text-muted">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    {trip.driver.rating}
+                    {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'}
                   </p>
                 </div>
               </div>
               <p className="text-lg font-extrabold text-brand lg:w-40 lg:text-right">{formatSom(trip.price)}</p>
               <div className="flex items-center gap-2">
-                <Button onClick={() => navigate(`/trip/${trip.id}`)}>Joy band qilish</Button>
+                <Button onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`) }}>Joy band qilish</Button>
                 <button
                   type="button"
-                  onClick={() => toggleFavorite(trip.id)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleFavorite(trip.id)
+                  }}
                   className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line"
                 >
                   <Heart className={`h-5 w-5 ${favoriteIds.has(trip.id) ? 'fill-brand text-brand' : 'text-slate-400'}`} />

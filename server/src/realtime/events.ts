@@ -18,3 +18,7 @@ export function bookingRoom(bookingId: string) {
 export function conversationRoom(conversationId: string) {
   return `conversation:${conversationId}`
 }
+
+export function userRoom(userId: string) {
+  return `user:${userId}`
+}

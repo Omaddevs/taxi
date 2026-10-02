@@ -1,0 +1,9 @@
+{
+  "completed": "Bajarilgan",
+  "newDriver": "Yangi",
+  "seatsCount_one": "{{count}} joy",
+  "seatsCount_other": "{{count}} joy",
+  "luggageCount_one": "{{count}} bagaj",
+  "luggageCount_other": "{{count}} bagaj",
+  "bookSeat": "Joy band qilish"
+}

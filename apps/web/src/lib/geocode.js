@@ -89,3 +89,20 @@ export async function searchPlaces(query) {
   if (!res.ok) throw new Error('Qidiruv ishlamadi')
   return res.json()
 }
+
+const geocodeCache = new Map()
+
+export async function geocodeUz(query) {
+  const key = String(query || '').trim().toLowerCase()
+  if (key.length < 2) return null
+  if (geocodeCache.has(key)) return geocodeCache.get(key)
+  try {
+    const results = await searchPlaces(key)
+    const hit = results[0] ? { lat: Number(results[0].lat), lng: Number(results[0].lon) } : null
+    geocodeCache.set(key, hit)
+    return hit
+  } catch {
+    geocodeCache.set(key, null)
+    return null
+  }
+}

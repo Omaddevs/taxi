@@ -1,0 +1,12 @@
+{
+  "title": "Xizmat turlari",
+  "fromPrice": "{{price}} dan",
+  "items": {
+    "standart": { "title": "Standart Taxi", "desc": "Qulay kundalik safarlar" },
+    "women": { "title": "Ayollar uchun", "desc": "Faqat ayol haydovchilar" },
+    "family": { "title": "Oilaviy Taxi", "desc": "Katta oila uchun joy" },
+    "minivan": { "title": "Minivan", "desc": "6–8 yo‘lovchi sig‘imi" },
+    "cargo": { "title": "Yuk jo‘natish", "desc": "Tez va xavfsiz yetkazish" },
+    "premium": { "title": "Premium", "desc": "Biznes klass avtomobillar" }
+  }
+}

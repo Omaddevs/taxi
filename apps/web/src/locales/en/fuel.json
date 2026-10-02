@@ -1,0 +1,45 @@
+{
+  "back": "Back",
+  "title": "Fuel stations",
+  "legend": "Nearest in green · farther in pink",
+  "myLocation": "My location",
+  "locating": "Locating…",
+  "geoDisabled": "Geolocation is off. Tap to find nearby stations — permission will be requested.",
+  "near": "Nearby",
+  "farther": "Farther",
+  "close": "Close",
+  "open": "Open",
+  "closed": "Closed",
+  "prices": "Prices",
+  "share": "Share",
+  "getDirections": "Get directions",
+  "genericFuel": "Fuel",
+  "currency": "UZS",
+  "types": {
+    "all": "All",
+    "benzin": "Petrol",
+    "metan": "Methane",
+    "propan": "Propane",
+    "dizel": "Diesel",
+    "salarka": "Salarka",
+    "ev": "Electric"
+  },
+  "priceLabels": {
+    "AI-80": "AI-80",
+    "AI-92": "AI-92",
+    "AI-95": "AI-95",
+    "metan": "Methane",
+    "propan": "Propane",
+    "dizel": "Diesel",
+    "salarka": "Salarka",
+    "kwh": "kWh"
+  },
+  "typeLabel": {
+    "benzin": "Petrol",
+    "metan": "Methane gas",
+    "propan": "Propane",
+    "dizel": "Diesel",
+    "salarka": "Salarka",
+    "ev": "EV"
+  }
+}

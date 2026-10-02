@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import * as driversService from './drivers.service.js'
+import * as ratingsService from '../ratings/ratings.service.js'
 import type { listApplicationsQuerySchema, listDriversQuerySchema } from './drivers.schema.js'
 import type { z } from 'zod'
 
@@ -23,9 +24,18 @@ export async function updateLocation(req: Request, res: Response) {
   res.json(driver)
 }
 
+export async function updateMe(req: Request, res: Response) {
+  const driver = await driversService.updateMe(req.user!.id, req.body)
+  res.json(driver)
+}
+
 export async function getStats(req: Request, res: Response) {
   const stats = await driversService.getStats(req.user!.id)
   res.json(stats)
+}
+
+export async function getMyRatings(req: Request, res: Response) {
+  res.json(await ratingsService.getDriverRatingDetail(req.user!.id))
 }
 
 export async function listApplications(req: Request, res: Response) {
@@ -48,4 +58,24 @@ export async function reviewApplication(req: Request, res: Response) {
     req.body.rejectionReason,
   )
   res.json(application)
+}
+
+export async function listLiveDrivers(_req: Request, res: Response) {
+  res.json(await driversService.listLiveDrivers())
+}
+
+export async function getDriverById(req: Request, res: Response) {
+  res.json(await driversService.getDriverById(req.params.id))
+}
+
+export async function setApproved(req: Request, res: Response) {
+  res.json(await driversService.setApproved(req.params.id, req.body.approved))
+}
+
+export async function archiveDriver(req: Request, res: Response) {
+  res.json(await driversService.archiveDriver(req.params.id, req.user!.id, req.body.reason))
+}
+
+export async function restoreDriver(req: Request, res: Response) {
+  res.json(await driversService.restoreDriver(req.params.id, req.user!.id))
 }

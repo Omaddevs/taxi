@@ -1,0 +1,13 @@
+{
+  "screenTitle": "Промокоды",
+  "pageTitle": "Промокоды",
+  "pageSubtitle": "Введите промокод или воспользуйтесь одним из своих",
+  "inputPlaceholder": "ПРОМОКОД",
+  "checkButton": "Проверить",
+  "checkFailed": "Не удалось проверить",
+  "validResult": "{{code}} действителен — скидка {{discount}}. Применится автоматически при бронировании поездки.",
+  "sumSuffix": "{{value}} сум",
+  "notFound": "Код не найден",
+  "myCodes": "Мои коды",
+  "until": "до {{date}}"
+}

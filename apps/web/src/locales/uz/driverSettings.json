@@ -1,0 +1,86 @@
+{
+  "header": { "title": "Sozlamalar" },
+  "profile": { "driverId": "Haydovchi ID: {{code}}", "copied": "nusxalandi" },
+  "usefulServices": {
+    "title": "Foydali xizmatlar",
+    "roadside": { "title": "Yo'lda yordam", "sub": "Usta · evakuator" },
+    "fuel": { "title": "Yoqilg'i", "sub": "Yoqilg'i shahobchasi" }
+  },
+  "services": {
+    "map": "Smart xarita",
+    "service": "Avtoservis",
+    "wash": "Moyka",
+    "parking": "Parking",
+    "ev": "EV zaryad",
+    "women": "Ayollar"
+  },
+  "menu": {
+    "profile": { "title": "Profil ma'lumotlari", "sub": "Shaxsiy ma'lumotlarni tahrirlash" },
+    "car": { "title": "Avtomobil ma'lumotlari", "sub": "{{carModel}} · {{plate}}" },
+    "docs": { "title": "Hujjatlar va sertifikatlar", "subFallback": "Guvohnoma, texpassport va boshqalar" },
+    "cargo": { "title": "Yuklar", "sub": "Yetkazib berish uchun ochiq yuklar" },
+    "wallet": { "title": "To'lov usullari", "sub": "Daromad yechish va karta boshqaruvi" }
+  },
+  "notifications": { "title": "Bildirishnomalar" },
+  "regionsRow": {
+    "title": "Navbat va hududlar",
+    "subSelected": "{{count}} ta hudud tanlangan",
+    "subEmpty": "Qaysi hududlardan buyurtma olish"
+  },
+  "workModeRow": {
+    "title": "Ish rejimi",
+    "online": "Onlayn",
+    "offline": "Oflayn",
+    "autoAcceptSuffix": " · avto-qabul"
+  },
+  "nightTheme": { "title": "Tungi mavzu" },
+  "security": { "title": "Xavfsizlik", "sub": "Telefon, ID va maxfiylik" },
+  "help": { "title": "Yordam va qo'llab-quvvatlash", "sub": "Yordam markazi va tez aloqa" },
+  "logout": { "title": "Onlayn rejimdan chiqish", "sub": "Ilovadan chiqish va onlayn rejimni o'chirish" },
+  "footer": { "appName": "TaxiLine Haydovchi ilovasi", "version": "Versiya {{version}}" },
+  "save": { "saving": "Saqlanmoqda…", "saved": "Saqlandi ✓", "save": "Saqlash" },
+  "sheets": {
+    "profile": {
+      "title": "Profil ma'lumotlari",
+      "nameLabel": "Ism familiya",
+      "phoneLabel": "Telefon",
+      "emailLabel": "Email",
+      "emailPlaceholder": "email@mail.uz"
+    },
+    "car": {
+      "title": "Avtomobil ma'lumotlari",
+      "modelLabel": "Model",
+      "modelPlaceholder": "Avtomobilni tanlang",
+      "plateLabel": "Davlat raqami",
+      "platePlaceholder": "E091GB"
+    },
+    "docs": {
+      "title": "Hujjatlar",
+      "statusApproved": "Haydovchi tasdiqlangan",
+      "statusPending": "Ko'rib chiqilmoqda",
+      "statusLabel": "Holat: {{status}}",
+      "licenseLabel": "Haydovchilik guvohnomasi raqami",
+      "licensePlaceholder": "AA1234567"
+    },
+    "regions": {
+      "title": "Navbat va hududlar",
+      "hint": "Tanlangan hududlardan yangi buyurtmalar keladi. Bo'sh qoldirsangiz — barchasi."
+    },
+    "work": {
+      "title": "Ish rejimi",
+      "online": "Onlayn",
+      "offline": "Oflayn",
+      "onlineHint": "Buyurtmalar qabul qilinyapti",
+      "offlineHint": "Buyurtmalar kelmaydi",
+      "autoAccept": "Avtomatik qabul",
+      "autoAcceptHint": "Yangi buyurtma kelishi bilan qabul qilinadi"
+    },
+    "security": {
+      "title": "Xavfsizlik",
+      "phoneLabel": "Telefon",
+      "driverIdLabel": "Haydovchi ID",
+      "hint": "Kirish SMS yoki Telegram tasdiqlash kodi orqali. Alohida parol yo'q.",
+      "logout": "Hisobdan chiqish"
+    }
+  }
+}

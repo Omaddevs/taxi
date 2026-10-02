@@ -49,7 +49,7 @@ export function SearchHero() {
   const close = () => setOpen(null)
 
   return (
-    <section className="relative overflow-visible rounded-2xl bg-gradient-to-br from-brand to-[#ff4d8d] p-4 text-white shadow-xl shadow-brand/20 lg:p-6">
+    <section className="relative overflow-visible rounded-2xl bg-gradient-to-br from-[#16b8a5] via-brand to-brand-dark p-4 text-white shadow-xl shadow-brand/25 lg:p-6">
       <div className="no-scrollbar flex gap-2 overflow-x-auto">
         {[
           { id: 'passenger', label: 'Yo‘lovchi' },
@@ -71,7 +71,7 @@ export function SearchHero() {
         ))}
       </div>
 
-      <div className="mt-4 grid items-end gap-0 lg:mt-5 lg:grid-cols-[1fr_auto] lg:gap-4">
+      <div className="mt-4 grid grid-cols-1 items-end gap-0 lg:mt-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-4">
         {mobile ? (
           // Ikki qator teng balandlikda — shuning uchun tugma ajratuvchi chiziqning aynan markazida turadi.
           <div className="relative rounded-2xl bg-white">
@@ -81,9 +81,10 @@ export function SearchHero() {
               label="Qayerdan"
               region={search.fromRegion}
               place={search.fromPlace}
-              onChange={({ region, place, label }) =>
+              onChange={({ region, place, label }) => {
                 update({ fromRegion: region, fromPlace: place, from: label })
-              }
+                setOpen('to')
+              }}
               open={open === 'from'}
               onToggle={() => toggle('from')}
               onClose={close}
@@ -96,6 +97,8 @@ export function SearchHero() {
               region={search.toRegion}
               place={search.toPlace}
               onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
+              origin={{ region: search.fromRegion, place: search.fromPlace }}
+              onEditOrigin={() => setOpen('from')}
               open={open === 'to'}
               onToggle={() => toggle('to')}
               onClose={close}
@@ -110,14 +113,15 @@ export function SearchHero() {
             </button>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-[1fr_44px_1fr] md:items-end">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] md:items-end">
             <RegionPicker
               label="Qayerdan"
               region={search.fromRegion}
               place={search.fromPlace}
-              onChange={({ region, place, label }) =>
+              onChange={({ region, place, label }) => {
                 update({ fromRegion: region, fromPlace: place, from: label })
-              }
+                setOpen('to')
+              }}
               open={open === 'from'}
               onToggle={() => toggle('from')}
               onClose={close}
@@ -137,6 +141,8 @@ export function SearchHero() {
               region={search.toRegion}
               place={search.toPlace}
               onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
+              origin={{ region: search.fromRegion, place: search.fromPlace }}
+              onEditOrigin={() => setOpen('from')}
               open={open === 'to'}
               onToggle={() => toggle('to')}
               onClose={close}

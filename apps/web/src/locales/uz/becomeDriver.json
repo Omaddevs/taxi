@@ -1,0 +1,11 @@
+{
+  "header": { "title": "Haydovchi bo'lish", "subtitle": "Ariza qoldiring va daromad qiling" },
+  "errors": { "submitFailed": "Ariza yuborilmadi" },
+  "fields": {
+    "fullName": { "label": "Ism familiya", "placeholder": "To'liq ism" },
+    "phone": { "label": "Telefon" },
+    "car": { "label": "Avtomobil", "placeholder": "Avtomobilni tanlang" },
+    "plate": { "label": "Davlat raqami" }
+  },
+  "submitButton": { "pending": "Yuborilmoqda…", "default": "Ariza yuborish" }
+}

@@ -1,0 +1,23 @@
+{
+  "screenTitle": "Settings",
+  "pageTitle": "Settings",
+  "pageSubtitle": "Profile and app preferences",
+  "fields": {
+    "name": "Full name",
+    "phone": "Phone",
+    "email": "Email"
+  },
+  "gender": {
+    "label": "Gender",
+    "hint": "We use this to automatically match you with the right seat when booking.",
+    "male": "Male",
+    "female": "Female"
+  },
+  "notifications": "Notifications",
+  "shareLocation": "Share location",
+  "save": {
+    "saving": "Saving…",
+    "saved": "Saved ✓",
+    "button": "Save"
+  }
+}

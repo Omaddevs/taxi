@@ -5,6 +5,7 @@ import { MessageCircle, Phone, Share2, Star, X } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { PageTitle } from '../components/ui/ScreenHeader'
 import { RouteMap } from '../components/trip/RouteMap'
+import { CarSeatMap } from '../components/trip/CarSeatMap'
 import { Badge, Button, Card } from '../components/ui/Button'
 import { api } from '../lib/api'
 import { offerToTrip, BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../lib/adapters'
@@ -14,20 +15,24 @@ import { useApp } from '../context/AppContext'
 
 export default function TripDetails() {
   const { id } = useParams()
-  const { search, paymentMethod } = useApp()
+  const { paymentMethod, user } = useApp()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { share, sheet } = useShare()
   const [booking, setBooking] = useState(null)
+  const [selectedSeats, setSelectedSeats] = useState([])
+  const myGender = user?.gender || 'MALE'
 
   const { data: offer, isLoading } = useQuery({
     queryKey: ['offer', id],
     queryFn: () => api.get(`/offers/${id}`),
+    // So a price/seat/status change an admin makes while a rider is looking at this exact
+    // offer shows up without a manual reload.
+    refetchInterval: 15_000,
   })
 
   const createBooking = useMutation({
-    mutationFn: () =>
-      api.post('/bookings', { rideOfferId: id, seatsBooked: search.passengers || 1, luggage: 0 }),
+    mutationFn: () => api.post('/bookings', { rideOfferId: id, seats: selectedSeats, luggage: 0 }),
     onSuccess: (created) => {
       setBooking(created)
       queryClient.invalidateQueries({ queryKey: ['favorites'] })
@@ -47,7 +52,7 @@ export default function TripDetails() {
   }
 
   const trip = offerToTrip(offer)
-  const seats = search.passengers || 1
+  const seats = selectedSeats.length
   const totalPrice = trip.price * seats
 
   const payLabel = { cash: 'Naqd to‘lov', uzcard: 'UzCard', humo: 'Humo', click: 'Click', payme: 'Payme', uzum: 'Uzum Bank' }
@@ -88,11 +93,20 @@ export default function TripDetails() {
           <p className="font-bold">{trip.driver.name}</p>
           <p className="flex items-center gap-1 text-xs text-muted">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {trip.driver.rating} · {trip.car} · {trip.plate}
+            {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'} · {trip.car} · {trip.plate}
           </p>
+          {trip.driver.phone ? <p className="mt-0.5 text-xs text-muted">{trip.driver.phone}</p> : null}
         </div>
         <Badge>{trip.serviceTitle}</Badge>
       </Card>
+
+      {!booking ? (
+        <Card className="mt-4 p-4">
+          <p className="mb-1 text-sm font-extrabold">O‘rindiq tanlang</p>
+          <p className="mb-3 text-xs text-muted">O‘zingiz uchun va hamrohingiz uchun alohida o‘rindiq va jins tanlashingiz mumkin.</p>
+          <CarSeatMap mode="book" seats={trip.seatMap} selected={selectedSeats} defaultGender={myGender} onChange={setSelectedSeats} />
+        </Card>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-4 gap-2">
         {[
@@ -143,10 +157,14 @@ export default function TripDetails() {
         <Button
           size="lg"
           className="mt-4 w-full"
-          disabled={createBooking.isPending}
+          disabled={createBooking.isPending || selectedSeats.length === 0}
           onClick={() => createBooking.mutate()}
         >
-          {createBooking.isPending ? 'Yuborilmoqda…' : 'Joy band qilish'}
+          {createBooking.isPending
+            ? 'Yuborilmoqda…'
+            : selectedSeats.length === 0
+              ? 'Avval o‘rindiq tanlang'
+              : 'Bog‘lanish'}
         </Button>
       )}
 

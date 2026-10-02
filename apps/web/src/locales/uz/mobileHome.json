@@ -1,0 +1,52 @@
+{
+  "changeLocationAria": "Manzilni o‘zgartirish",
+  "plusLabel": "Plus",
+  "eco": {
+    "women": "Ayollar",
+    "map": "Smart xarita",
+    "service": "Avtoservis",
+    "wash": "Moyka",
+    "parking": "Parking",
+    "ev": "EV zaryad",
+    "food": "Oshxona",
+    "wallet": "Hamyon",
+    "sos": "SOS"
+  },
+  "featured": {
+    "taxi": {
+      "title": "Taxi",
+      "hint": "Tajribali va ishonchli taxilar"
+    },
+    "delivery": {
+      "title": "Yetkazish",
+      "hint": "Hujjat, posilka, gul"
+    },
+    "roadside": {
+      "title": "Yo‘lda yordam",
+      "hint": "Usta · evakuator"
+    },
+    "fuel": {
+      "title": "Yoqilg‘i",
+      "hint": "Yoqilg‘i shahobchasi"
+    }
+  },
+  "destinations": {
+    "tashkent": {
+      "title": "Toshkent, Amir Temur 45",
+      "sub": "Qarshi → Toshkent",
+      "duration": "5 soat"
+    },
+    "qarshiStation": {
+      "title": "Qarshi avtovokzal",
+      "sub": "Nasaf tumani, Qarshi",
+      "duration": "12 daq"
+    },
+    "samarkand": {
+      "title": "Samarqand, Registon",
+      "sub": "Samarqand viloyati",
+      "duration": "4 soat"
+    }
+  },
+  "searchPlaceholder": "Qayerga ketamiz?",
+  "pageAria": "{{n}}-sahifa"
+}

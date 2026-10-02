@@ -10,11 +10,11 @@ import { api } from '../lib/api'
 export default function Settings() {
   const { user } = useApp()
   const queryClient = useQueryClient()
-  const [form, setForm] = useState({ name: user.name || '', email: user.email || '' })
+  const [form, setForm] = useState({ name: user.name || '', email: user.email || '', gender: user.gender || '' })
   const [saved, setSaved] = useState(false)
 
   const save = useMutation({
-    mutationFn: () => api.patch('/users/me', form),
+    mutationFn: () => api.patch('/users/me', { ...form, gender: form.gender || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] })
       setSaved(true)
@@ -36,6 +36,27 @@ export default function Settings() {
         <Field label="Email">
           <Input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
         </Field>
+        <div>
+          <p className="mb-1.5 text-xs font-medium text-muted">Jins</p>
+          <p className="mb-2 text-[11px] text-muted">O‘rindiq tanlashda o‘zingizga mos jins avtomatik belgilanadi.</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'MALE', label: 'Erkak' },
+              { id: 'FEMALE', label: 'Ayol' },
+            ].map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, gender: g.id }))}
+                className={`h-11 rounded-2xl border text-sm font-bold ${
+                  form.gender === g.id ? 'border-brand bg-brand-soft text-brand' : 'border-line bg-white text-ink'
+                }`}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <LanguageRow />
         <label className="flex items-center justify-between rounded-xl bg-canvas px-3 py-3 text-sm font-medium">
           Bildirishnomalar

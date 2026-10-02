@@ -19,7 +19,7 @@ export async function listUsers(req: Request, res: Response) {
 }
 
 export async function getUserById(req: Request, res: Response) {
-  res.json(await usersService.getUserById(req.params.id))
+  res.json(await usersService.getAdminUserDetail(req.params.id))
 }
 
 export async function setVerified(req: Request, res: Response) {

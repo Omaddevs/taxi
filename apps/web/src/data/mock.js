@@ -332,12 +332,23 @@ export const drivers = [
   { id: 'd4', name: 'Akmal Toshpo‘latov', rating: 4.95, car: 'Toyota Camry', city: 'Toshkent', trips: 2100, avatar: 'https://i.pravatar.cc/120?img=14' },
 ]
 
+// ids must stay in sync with server/src/modules/cargo/cargo.schema.ts's cargoTypeSchema.
 export const cargoTypes = [
-  { id: 'docs', title: 'Hujjat', icon: 'file' },
-  { id: 'clothes', title: 'Kiyim', icon: 'shirt' },
-  { id: 'food', title: 'Oziq-ovqat', icon: 'utensils' },
-  { id: 'tech', title: 'Texnika', icon: 'smartphone' },
-  { id: 'other', title: 'Boshqa', icon: 'box' },
+  { id: 'parcel', title: 'Buyum', hint: 'Kichik yuklar', emoji: '📦', image: '/cargo/parcel.webp', icon: 'box' },
+  { id: 'shopping', title: 'Xarid', hint: 'Do‘kon, market', emoji: '🛍️', image: '/cargo/shopping.webp', icon: 'bag' },
+  { id: 'docs', title: 'Hujjat', hint: 'Tezkor yetkazish', emoji: '📄', image: '/cargo/docs.webp', icon: 'file' },
+  { id: 'flowers', title: 'Gul', hint: 'Sovg‘alar', emoji: '💐', image: '/cargo/flowers.png', icon: 'flower' },
+  { id: 'tech', title: 'Texnika', hint: 'Telefon, noutbuk', emoji: '💻', image: '/cargo/tech.webp', icon: 'smartphone' },
+  { id: 'food', title: 'Oziq-ovqat', hint: 'Taom, mahsulot', emoji: '🍱', image: '/cargo/food.webp', icon: 'utensils' },
+  { id: 'clothes', title: 'Kiyim', hint: 'Kiyim-kechak', emoji: '👕', image: '/cargo/clothes.webp', icon: 'shirt' },
+  { id: 'other', title: 'Boshqa', hint: 'Har qanday yuk', emoji: '🧳', image: '/cargo/other.png', icon: 'box' },
+]
+
+// ids must stay in sync with server/src/modules/cargo/cargo.schema.ts's cargoVehicleSchema.
+export const cargoVehicles = [
+  { id: 'moto', title: 'Moto', hint: 'Tez va arzon', emoji: '🛵', image: '/cargo/moto.webp' },
+  { id: 'car', title: 'Avto', hint: 'Katta va og‘ir yuklar', emoji: '🚗', image: '/cargo/car.webp' },
+  { id: 'van', title: 'Kichik yuk mashinasi', hint: 'Hajmli yuklar', emoji: '🚐', image: '/cargo/van.webp' },
 ]
 
 export const quickRoutes = [

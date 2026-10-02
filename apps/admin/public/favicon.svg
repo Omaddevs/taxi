@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#E91E63"/>
+  <g transform="translate(10 14)">
+    <path fill="#000" fill-rule="evenodd" d="M256 52c-84 0-152 68-152 152 0 108 152 288 152 288s152-180 152-288c0-84-68-152-152-152zm0 92a60 60 0 1 1 0 120 60 60 0 1 1 0-120z"/>
+  </g>
+  <path fill="#fff" fill-rule="evenodd" d="M256 38c-84 0-152 68-152 152 0 108 152 288 152 288s152-180 152-288c0-84-68-152-152-152zm0 92a60 60 0 1 1 0 120 60 60 0 1 1 0-120z"/>
+  <g fill="#000">
+    <rect x="237" y="176" width="22" height="18" rx="2"/>
+    <rect x="267" y="176" width="22" height="18" rx="2"/>
+    <rect x="222" y="202" width="22" height="18" rx="2"/>
+    <rect x="252" y="202" width="22" height="18" rx="2"/>
+    <rect x="282" y="202" width="22" height="18" rx="2"/>
+  </g>
+  <g fill="#fff">
+    <rect x="232" y="174" width="22" height="18" rx="2"/>
+    <rect x="262" y="174" width="22" height="18" rx="2"/>
+    <rect x="217" y="200" width="22" height="18" rx="2"/>
+    <rect x="247" y="200" width="22" height="18" rx="2"/>
+    <rect x="277" y="200" width="22" height="18" rx="2"/>
+  </g>
+</svg>

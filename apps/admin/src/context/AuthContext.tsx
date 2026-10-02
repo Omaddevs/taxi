@@ -21,8 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(phone: string, password: string) {
     const data = await api.post<LoginResponse>('/admin/auth/login', { phone, password })
-    if (data.user.role !== 'ADMIN') {
-      throw new Error('Faqat administratorlar kira oladi')
+    if (!['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'].includes(data.user.role)) {
+      throw new Error('Bu hisob operator paneliga kira olmaydi')
     }
     setSession(data.accessToken, data.refreshToken, data.user)
     setUser(data.user)

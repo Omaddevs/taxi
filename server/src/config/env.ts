@@ -14,6 +14,16 @@ const schema = z.object({
   SMS_API_KEY: z.string().optional().default(''),
   PAYMENT_PROVIDER: z.enum(['mock', 'click', 'payme']).default('mock'),
   ADMIN_BOOTSTRAP_SECRET: z.string().min(1, 'ADMIN_BOOTSTRAP_SECRET is required'),
+  BOT_API_SECRET: z.string().min(1, 'BOT_API_SECRET is required'),
+  BOT_HTTP_URL: z.string().default('http://localhost:8081'),
+  INSTAGRAM_APP_ID: z.string().optional().default(''),
+  INSTAGRAM_APP_SECRET: z.string().optional().default(''),
+  INSTAGRAM_VERIFY_TOKEN: z.string().optional().default(''),
+  INSTAGRAM_REDIRECT_URI: z.string().optional().default(''),
+  INSTAGRAM_TOKEN_ENC_KEY: z.string().optional().default(''),
+  // Origin of the admin SPA — where the Instagram OAuth callback redirects the browser back to
+  // after connecting. Falls back to the first CORS_ORIGINS entry when unset.
+  ADMIN_PANEL_URL: z.string().optional().default(''),
 })
 
 const parsed = schema.safeParse(process.env)

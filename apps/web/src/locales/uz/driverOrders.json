@@ -1,0 +1,32 @@
+{
+  "header": {
+    "title": "Buyurtmalar",
+    "today": "Bugun",
+    "all": "Barchasi"
+  },
+  "tabs": {
+    "all": "Barchasi",
+    "active": "Faol",
+    "done": "Bajarilgan",
+    "cancel": "Bekor qilingan"
+  },
+  "search": {
+    "placeholder": "Buyurtma raqami yoki manzil"
+  },
+  "filter": {
+    "label": "Filtr",
+    "allDays": "Barcha kunlar",
+    "todayOnly": "Faqat bugun"
+  },
+  "empty": "Buyurtmalar yo‘q.",
+  "cancelled": {
+    "byDriver": "Haydovchi tomonidan bekor qilingan",
+    "generic": "Bekor qilingan"
+  },
+  "passengerCount": "{{count}} yo‘lovchi",
+  "reject": "Bekor qilish",
+  "common": {
+    "details": "Batafsil",
+    "accept": "Qabul qilish"
+  }
+}

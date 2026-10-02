@@ -2,7 +2,7 @@ import type { Server as HttpServer } from 'node:http'
 import { Server as SocketIOServer } from 'socket.io'
 import { verifyAccessToken } from './jwt.js'
 import { env } from '../config/env.js'
-import { driverRoom, conversationRoom } from '../realtime/events.js'
+import { driverRoom, conversationRoom, userRoom } from '../realtime/events.js'
 
 let io: SocketIOServer | undefined
 
@@ -25,6 +25,8 @@ export function initSocket(httpServer: HttpServer) {
   })
 
   io.on('connection', (socket) => {
+    if (socket.data.userId) socket.join(userRoom(socket.data.userId))
+
     socket.on('driver:join', (driverId: string) => {
       if (socket.data.userId) socket.join(driverRoom(driverId))
     })

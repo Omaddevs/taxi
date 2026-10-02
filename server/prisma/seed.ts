@@ -11,12 +11,26 @@ const SERVICES = [
   // 'cargo' intentionally excluded — deferred out of v1 scope per the approved plan.
 ]
 
+const SUBSCRIPTION_PLANS = [
+  { id: 'monthly', title: '1 oylik', durationDays: 30, price: 60000, sortOrder: 1 },
+  { id: 'quarterly', title: '3 oylik', durationDays: 90, price: 160000, sortOrder: 2 },
+  { id: 'yearly', title: '1 yillik', durationDays: 365, price: 550000, sortOrder: 3 },
+]
+
 async function main() {
   for (const service of SERVICES) {
     await prisma.service.upsert({
       where: { id: service.id },
       update: service,
       create: service,
+    })
+  }
+
+  for (const plan of SUBSCRIPTION_PLANS) {
+    await prisma.subscriptionPlan.upsert({
+      where: { id: plan.id },
+      update: plan,
+      create: plan,
     })
   }
 

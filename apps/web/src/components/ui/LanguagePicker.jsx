@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronRight, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Globe, X } from 'lucide-react'
 import { LANGUAGES, findLanguage } from '../../data/languages'
 import { useApp } from '../../context/AppContext'
+import { api } from '../../lib/api'
+import { getAccessToken } from '../../lib/tokens'
 import { FlagGb, FlagRu, FlagUz } from './Flags'
 
 const FLAGS = { uz: FlagUz, ru: FlagRu, en: FlagGb }
@@ -42,6 +44,9 @@ function LanguageSheet({ onClose }) {
                 type="button"
                 onClick={() => {
                   setLanguage(lang.code)
+                  if (getAccessToken()) {
+                    api.patch('/users/me', { language: lang.code }).catch(() => {})
+                  }
                   onClose()
                 }}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${
@@ -76,6 +81,27 @@ function useLanguageSheet() {
     openSheet: () => setOpen(true),
     sheet: open ? <LanguageSheet onClose={() => setOpen(false)} /> : null,
   }
+}
+
+export function LanguageChip({ className = '' }) {
+  const { language } = useApp()
+  const { openSheet, sheet } = useLanguageSheet()
+  const active = findLanguage(language)
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openSheet}
+        className={`inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5 text-xs font-bold shadow-sm ${className}`}
+      >
+        <Globe className="h-3.5 w-3.5 text-brand" />
+        {active.name}
+        <ChevronDown className="h-3 w-3 text-muted" />
+      </button>
+      {sheet}
+    </>
+  )
 }
 
 // Sidebar/drawer ostidagi ramkali qator.

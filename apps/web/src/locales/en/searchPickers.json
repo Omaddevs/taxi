@@ -1,0 +1,72 @@
+{
+  "common": {
+    "close": "Close",
+    "choose": "Choose"
+  },
+  "datePicker": {
+    "title": "Choose a date",
+    "label": "Date",
+    "weekdays": {
+      "mo": "Mo",
+      "tu": "Tu",
+      "we": "We",
+      "th": "Th",
+      "fr": "Fr",
+      "sa": "Sa",
+      "su": "Su"
+    }
+  },
+  "timePicker": {
+    "title": "Choose a time",
+    "label": "Time",
+    "presetNow": "Now",
+    "preset15": "+15 min",
+    "preset30": "+30 min",
+    "chooseHour": "Choose an hour (24-hour, 0–23)",
+    "hourAriaLabel": "{{hour}} hour",
+    "chooseMinute": "Choose a minute",
+    "minuteAriaLabel": "{{min}} minute",
+    "backToHour": "Hour: {{hour}}"
+  },
+  "passengerPicker": {
+    "title": "Passengers",
+    "count_one": "{{count}} person",
+    "count_other": "{{count}} people",
+    "howMany": "How many passengers?"
+  },
+  "luggagePicker": {
+    "title": "Luggage size",
+    "items": {
+      "small": { "title": "Small", "desc": "Hand luggage, bag" },
+      "medium": { "title": "Medium", "desc": "1–2 suitcases" },
+      "large": { "title": "Large", "desc": "3+ suitcases" }
+    }
+  },
+  "genderPicker": {
+    "title": "Gender",
+    "items": {
+      "male": { "title": "Male", "desc": "Male passenger" },
+      "female": { "title": "Female", "desc": "Female passenger" },
+      "couple": { "title": "Couple", "desc": "Husband and wife" }
+    }
+  },
+  "seatPicker": {
+    "title": "Choose a seat",
+    "label": "Seat",
+    "items": {
+      "front": { "title": "Front seat", "desc": "Next to the driver" },
+      "backRight": { "title": "Back right", "desc": "Back row, right side" },
+      "backLeft": { "title": "Back left", "desc": "Back row, left side" },
+      "backMiddle": { "title": "Back middle", "desc": "Back row, middle" },
+      "any": { "title": "No preference", "desc": "Any seat" }
+    }
+  },
+  "carPicker": {
+    "title": "Choose a car",
+    "label": "Car"
+  },
+  "regionPicker": {
+    "searchPlaceholder": "Search for a region or district",
+    "openDistricts": "Region · open districts"
+  }
+}

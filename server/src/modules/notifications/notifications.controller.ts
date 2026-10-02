@@ -15,3 +15,7 @@ export async function markAllRead(req: Request, res: Response) {
   await notificationsService.markAllRead(req.user!.id)
   res.status(204).end()
 }
+
+export async function broadcast(req: Request, res: Response) {
+  res.json(await notificationsService.broadcast(req.body))
+}

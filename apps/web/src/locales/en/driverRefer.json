@@ -1,0 +1,47 @@
+{
+  "header": { "title": "Invite a friend" },
+  "hero": {
+    "title": "Invite your friends and earn bonuses!",
+    "subtitle": "When your friend signs up on TaxiLine and completes their first order, you both get a bonus."
+  },
+  "bonus": {
+    "title": "Bonus for you and your friend",
+    "you": "For you",
+    "friend": "For your friend"
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "step1": "Send your friend your link",
+    "step2": "Your friend signs up",
+    "step3": "Your friend completes their first order",
+    "step4": "You both get a bonus!"
+  },
+  "copy": { "button": "Copy" },
+  "shareText": "Become a driver on TaxiLine using my link: {{url}}",
+  "shareMethods": {
+    "title": "Share methods",
+    "instagram": "Instagram",
+    "telegram": "Telegram",
+    "link": "Share link",
+    "more": "More"
+  },
+  "telegramSheet": {
+    "title": "Telegram",
+    "question": "Where would you like to go?",
+    "bot": "Telegram Bot",
+    "channel": "Telegram Channel"
+  },
+  "banner": "Invite more friends, earn more bonuses! Invite unlimited friends and boost your income.",
+  "stats": {
+    "title": "Statistics",
+    "viewAll": "Details",
+    "invited": "Invited",
+    "registered": "Signed up",
+    "completedOrders": "Completed an order",
+    "totalBonus": "Total bonus"
+  },
+  "note": {
+    "title": "Note",
+    "text": "Bonuses are added to your balance within 24 hours after your friend completes their first order."
+  }
+}

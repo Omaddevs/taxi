@@ -1,0 +1,15 @@
+{
+  "title": "Profile",
+  "verified": "Verified",
+  "stats": { "trips": "Trips", "points": "Points", "balance": "Balance" },
+  "menu": {
+    "personalInfo": "Personal info",
+    "paymentMethods": "Payment methods",
+    "addressBook": "Address book",
+    "tripHistory": "Trip history",
+    "promoCodes": "Promo codes",
+    "notifications": "Notifications",
+    "help": "Help"
+  },
+  "logout": "Log out"
+}

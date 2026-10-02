@@ -1,0 +1,36 @@
+{
+  "header": { "title": "Reyting detallari" },
+  "quality": {
+    "excellent": "Ajoyib",
+    "veryGood": "Juda yaxshi",
+    "good": "Yaxshi",
+    "average": "O'rtacha",
+    "needsImprovement": "Yaxshilash kerak"
+  },
+  "timeAgo": {
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "daysAgo": "{{days}} kun oldin",
+    "monthsAgo": "{{months}} oy oldin"
+  },
+  "summary": {
+    "new": "Yangi",
+    "ratingsCount": "{{count}} ta baho",
+    "noRatingsYet": "Hali baho yo'q"
+  },
+  "distribution": {
+    "title": "Reyting taqsimoti",
+    "overall": "Umumiy reyting",
+    "count": "{{count}} baho"
+  },
+  "recent": {
+    "title": "Oxirgi baholar",
+    "loading": "Yuklanmoqda…",
+    "empty": "Hali yo'lovchi izohlari yo'q. Baholar safar yakunlangach paydo bo'ladi.",
+    "defaultRiderName": "Yo'lovchi"
+  },
+  "banner": {
+    "title": "Yaxshi reyting — ko'proq buyurtma!",
+    "subtitle": "Yuqori baho ko'proq buyurtma va bonus olib keladi."
+  }
+}

@@ -5,9 +5,29 @@ import { disconnectSocket } from '../lib/socket'
 
 const AuthContext = createContext(null)
 
+// The taxiline-bot WebApp button opens this app with `?tgc=<one-time-code>` so the same
+// Telegram user is logged in here without asking for OTP again.
+function getTelegramLoginCode() {
+  if (typeof window === 'undefined') return null
+  const fromQuery = new URLSearchParams(window.location.search).get('tgc')
+  if (fromQuery) return fromQuery
+  return window.Telegram?.WebApp?.initDataUnsafe?.start_param || null
+}
+
+function stripTelegramLoginCode() {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has('tgc')) return
+  url.searchParams.delete('tgc')
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+}
+
 export function AuthProvider({ children }) {
   const [authUser, setAuthUser] = useState(null)
-  const [status, setStatus] = useState(getAccessToken() ? 'checking' : 'guest')
+  const [status, setStatus] = useState(() => {
+    if (getTelegramLoginCode()) return 'checking-telegram'
+    return getAccessToken() ? 'checking' : 'guest'
+  })
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
@@ -16,6 +36,22 @@ export function AuthProvider({ children }) {
       disconnectSocket()
     })
   }, [])
+
+  useEffect(() => {
+    if (status !== 'checking-telegram') return
+    const code = getTelegramLoginCode()
+    api
+      .post('/auth/telegram-exchange', { code })
+      .then((data) => {
+        setTokens(data.accessToken, data.refreshToken)
+        setAuthUser(data.user)
+        setStatus('authed')
+      })
+      .catch(() => {
+        setStatus(getAccessToken() ? 'checking' : 'guest')
+      })
+      .finally(stripTelegramLoginCode)
+  }, [status])
 
   useEffect(() => {
     if (status !== 'checking') return
@@ -31,15 +67,32 @@ export function AuthProvider({ children }) {
       })
   }, [status])
 
-  async function requestOtp(phone) {
-    await api.post('/auth/otp/request', { phone })
+  async function requestOtp(phone, extras = {}) {
+    // Returns { phone, otpRequestId } — the id lets the Telegram-tap fast path (see Login.jsx)
+    // poll for completion without ever exposing the phone number itself as the lookup key.
+    return api.post('/auth/otp/request', { phone, ...extras })
   }
 
-  async function verifyOtp(phone, code) {
-    const data = await api.post('/auth/otp/verify', { phone, code })
+  async function verifyOtp(phone, code, extras = {}) {
+    const data = await api.post('/auth/otp/verify', { phone, code, ...extras })
     setTokens(data.accessToken, data.refreshToken)
     setAuthUser(data.user)
     setStatus('authed')
+    return data.user
+  }
+
+  // While pending, returns { pending: true, code } — `code` autofills the input the moment
+  // Telegram (or SMS) has actually delivered it, no typing required to at least see it. Once
+  // the code has been confirmed — either typed into this same form (verifyOtp) or tapped in
+  // Telegram (bot -> /bot/otp-confirm) — returns { pending: false } and logs in exactly like
+  // verifyOtp does. Meant to be called on an interval while the code screen is up.
+  async function pollOtp(otpRequestId) {
+    const data = await api.get(`/auth/otp/poll?otpRequestId=${encodeURIComponent(otpRequestId)}`)
+    if (data.pending) return { pending: true, code: data.code || null }
+    setTokens(data.accessToken, data.refreshToken)
+    setAuthUser(data.user)
+    setStatus('authed')
+    return { pending: false, user: data.user }
   }
 
   function logout() {
@@ -50,7 +103,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ authUser, status, requestOtp, verifyOtp, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ authUser, status, requestOtp, verifyOtp, pollOtp, logout }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 

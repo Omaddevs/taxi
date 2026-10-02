@@ -35,9 +35,9 @@ export default function FoodHub() {
         filters={FOOD_FILTERS}
         items={foodAround}
         filterMatch={(p, f) => p.types?.includes(f)}
-        pinColor={() => '#e91e63'}
+        pinColor={() => '#f97316'}
         mapLabel={(_p) => 'Oshxona'}
-        legend={[{ color: '#e91e63', label: 'Oshxona' }]}
+        legend={[{ color: '#f97316', label: 'Oshxona' }]}
         hideList
         renderDetail={(p, h) => <KitchenDetail place={p} {...h} />}
         onBack={() => setMode('feed')}

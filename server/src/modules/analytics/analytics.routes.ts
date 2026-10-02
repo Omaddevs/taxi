@@ -14,3 +14,10 @@ adminAnalyticsRouter.get(
   validate({ query: analyticsSummaryQuerySchema }),
   asyncRoute(analyticsController.getSummary),
 )
+
+adminAnalyticsRouter.get(
+  '/cancellations',
+  requireAuth,
+  requireRole('ADMIN'),
+  asyncRoute(analyticsController.getCancellationStats),
+)

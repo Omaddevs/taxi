@@ -1,0 +1,30 @@
+{
+  "open": "Ochiq",
+  "closed": "Yopiq",
+  "servicesAndPrices": "Xizmatlar va narxlar",
+  "selfWash": "Samo-moyka",
+  "handWash": "Yuvib berish",
+  "prices": "Narxlar",
+  "spotsFree": "{{free}} / {{spots}} joy bo'sh",
+  "kwhPrice": "1 kWh narxi",
+  "menu": "Menyu",
+  "near": "Yaqin",
+  "farther": "Uzoqroq",
+  "autoService": { "title": "Avtoservis", "hint": "Yaqini yashil · uzoqrog'i qizil" },
+  "wash": { "title": "Moyka", "hint": "Moviy — samo-moyka · binafsha — yuvib berish" },
+  "parking": {
+    "title": "Parking",
+    "hint": "Yashil — mumkin · qizil — mumkin emas · sariq — to'xtash taqiqlanadi",
+    "allowed": "Mumkin",
+    "notAllowed": "Mumkin emas",
+    "noStopping": "To'xtash taqiqlanadi"
+  },
+  "ev": { "title": "EV zaryad", "hint": "Brend nomi va 1 kWh narxi xaritada" },
+  "smart": {
+    "title": "Smart xarita",
+    "hint": "Barcha xizmatlar · belgini bosing",
+    "nearOrAllowed": "Yaqin / mumkin",
+    "foodOrFuel": "Oshxona / yoqilg'i",
+    "forbidden": "Taqiqlangan"
+  }
+}

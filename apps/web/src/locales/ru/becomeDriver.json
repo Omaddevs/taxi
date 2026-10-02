@@ -1,0 +1,11 @@
+{
+  "header": { "title": "Стать водителем", "subtitle": "Оставьте заявку и зарабатывайте" },
+  "errors": { "submitFailed": "Не удалось отправить заявку" },
+  "fields": {
+    "fullName": { "label": "Имя и фамилия", "placeholder": "Полное имя" },
+    "phone": { "label": "Телефон" },
+    "car": { "label": "Автомобиль", "placeholder": "Выберите автомобиль" },
+    "plate": { "label": "Гос. номер" }
+  },
+  "submitButton": { "pending": "Отправка…", "default": "Отправить заявку" }
+}

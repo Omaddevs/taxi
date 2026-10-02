@@ -1,0 +1,11 @@
+{
+  "driverTags": ["Xushmuomala haydovchi", "Toza salon", "Vaqtida yetib keldi", "Xavfsiz haydash", "Qulay yo'nalish"],
+  "tabs": { "all": "Barchasi", "completed": "Yakunlangan", "cancelled": "Bekor qilingan" },
+  "header": { "title": "Safar tarixi", "subtitle": "Yakunlangan va bekor qilingan buyurtmalar" },
+  "rateSheet": { "title": "Safarni baholang" },
+  "loading": "Yuklanmoqda…",
+  "emptyState": "Bu bo'limda safarlar yo'q.",
+  "botBadge": "Bot orqali",
+  "rated": "Baholandi",
+  "rateButton": "Baholash"
+}

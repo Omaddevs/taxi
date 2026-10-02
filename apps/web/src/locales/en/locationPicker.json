@@ -1,0 +1,21 @@
+{
+  "back": "Back",
+  "searchPlaceholder": "Search for an address, street, or place",
+  "searching": "Searching…",
+  "hint": {
+    "denied": "Location access was denied. Set the point on the map yourself.",
+    "unsupported": "Your browser doesn't support geolocation. Choose a point on the map.",
+    "error": "Couldn't get your location. Pick a point on the map or try again."
+  },
+  "selectedPoint": "Selected point",
+  "allowLocation": {
+    "title": "Allow location access",
+    "desc": "Confirm the browser prompt — the pin will drop on your current spot."
+  },
+  "myLocation": "My location",
+  "retryRequest": "Ask again",
+  "currentAddress": "Current address",
+  "marking": "Marking…",
+  "mapHint": "Move the map — the pin marks the pickup point.",
+  "confirmHere": "Confirm this location"
+}

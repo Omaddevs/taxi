@@ -1,0 +1,49 @@
+{
+  "back": "Back",
+  "title": "Wallet",
+  "currentBalance": "Current balance",
+  "topUp": "Top up",
+  "payout": "Transfer",
+  "linkedCards": "Linked cards",
+  "addCard": "Add card",
+  "primary": "Primary",
+  "deleteCard": "Delete card",
+  "newCard": "New card",
+  "close": "Close",
+  "recentTransactions": "Recent transactions",
+  "noTransactions": "No transactions yet",
+  "amountPlaceholder": "100,000",
+  "notes": {
+    "cardAdded": "Card linked",
+    "fillCardCompletely": "Fill in the card details completely",
+    "topupSuccess": "Balance topped up",
+    "topupFailed": "Top-up failed",
+    "payoutSuccess": "Funds transferred to your card",
+    "payoutFailed": "Transfer failed",
+    "addCardFirst": "Add a card first",
+    "minAmount": "Minimum amount is 1,000 UZS"
+  },
+  "topupModal": {
+    "title": "Top up balance",
+    "subtitle": "Enter the amount",
+    "submitting": "Loading…",
+    "submit": "Top up"
+  },
+  "payoutModal": {
+    "title": "Withdraw to card",
+    "subtitle": "Transfer your earnings to a linked card",
+    "submitting": "Sending…",
+    "submit": "Transfer"
+  },
+  "addCardModal": {
+    "title": "Add card",
+    "subtitle": "Enter your Humo or UzCard number",
+    "cardNumberLabel": "Card number",
+    "cardNumberPlaceholder": "8600 12•• •••• 4412",
+    "holderLabel": "Cardholder",
+    "expiryLabel": "Expiry date",
+    "cvvLabel": "CVV",
+    "submitting": "Connecting…",
+    "submit": "Link card"
+  }
+}

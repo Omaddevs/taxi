@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Circle, CircleMarker, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { Circle, CircleMarker, MapContainer, useMap, useMapEvents } from 'react-leaflet'
 import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, Search, X } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode, searchPlaces } from '../../lib/geocode'
+import { BaseTiles } from '../map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from './GeoAskSheet'
 import 'leaflet/dist/leaflet.css'
 
@@ -45,12 +46,12 @@ function GpsLayer({ gps }) {
       <Circle
         center={[gps.lat, gps.lng]}
         radius={radius}
-        pathOptions={{ color: '#E91E63', fillColor: '#E91E63', fillOpacity: 0.14, weight: 1 }}
+        pathOptions={{ color: '#12a594', fillColor: '#12a594', fillOpacity: 0.14, weight: 1 }}
       />
       <CircleMarker
         center={[gps.lat, gps.lng]}
         radius={7}
-        pathOptions={{ color: '#fff', weight: 3, fillColor: '#E91E63', fillOpacity: 1 }}
+        pathOptions={{ color: '#fff', weight: 3, fillColor: '#12a594', fillOpacity: 1 }}
       />
     </>
   )
@@ -61,6 +62,7 @@ export function LocationPicker() {
     location,
     setLocation,
     locationPickerOpen,
+    locationPickerRequest,
     closeLocationPicker,
     gpsFix,
     gpsStatus,
@@ -81,11 +83,12 @@ export function LocationPicker() {
 
   useEffect(() => {
     if (!locationPickerOpen) return
-    setDraft(location)
+    const start = locationPickerRequest?.initial || location
+    setDraft(start)
     setQuery('')
     setResults([])
     setHint('')
-    setFocus({ lat: location.lat, lng: location.lng, key: Date.now() })
+    setFocus({ lat: start.lat, lng: start.lng, key: Date.now() })
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
@@ -145,6 +148,7 @@ export function LocationPicker() {
           lat,
           lng,
           city: extractCity(data),
+          state: data?.address?.state,
         })
         setHint((prev) => (gpsStatus === 'denied' ? prev : ''))
       } catch {
@@ -166,11 +170,13 @@ export function LocationPicker() {
       lat,
       lng,
       city: extractCity(item),
+      state: item?.address?.state,
     })
   }
 
   function confirm() {
-    setLocation(draft)
+    if (locationPickerRequest) locationPickerRequest.onPick(draft)
+    else setLocation(draft)
     closeLocationPicker()
   }
 
@@ -242,10 +248,7 @@ export function LocationPicker() {
           zoomControl={false}
           attributionControl={false}
         >
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution="&copy; OpenStreetMap &copy; CARTO"
-          />
+          <BaseTiles />
           <GpsLayer gps={gpsOk ? gpsFix : null} />
           <MapController focus={focus} onDragging={setDragging} onIdle={lookup} />
         </MapContainer>
@@ -283,7 +286,7 @@ export function LocationPicker() {
         </button>
 
         <p className="pointer-events-none absolute bottom-3 left-3 z-[410] rounded-md bg-white/80 px-2 py-0.5 text-[10px] text-muted">
-          OpenStreetMap · CARTO
+          OpenStreetMap
         </p>
       </div>
 
@@ -298,7 +301,9 @@ export function LocationPicker() {
             ) : null}
           </div>
         ) : null}
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Joriy manzil</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          {locationPickerRequest?.title || 'Joriy manzil'}
+        </p>
         <p className="mt-1 flex items-center gap-2 text-[17px] font-extrabold leading-snug">
           {geocoding || dragging ? (
             <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-brand" />

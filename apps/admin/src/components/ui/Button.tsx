@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils'
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'soft' | 'outline' | 'ghost' | 'danger' | 'dark'
@@ -16,7 +16,7 @@ export function Button({ children, className, variant = 'primary', size = 'md', 
     dark: 'bg-ink text-white hover:bg-black',
   }
   const sizes = {
-    sm: 'h-9 px-3 text-sm rounded-xl',
+    sm: 'h-9 px-3 text-sm rounded-xl font-semibold',
     md: 'h-11 px-4 text-sm font-semibold rounded-2xl',
     lg: 'h-12 px-5 text-[15px] font-semibold rounded-2xl',
   }
@@ -37,7 +37,7 @@ export function Button({ children, className, variant = 'primary', size = 'md', 
   )
 }
 
-export function Card({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function Card({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn('rounded-2xl border border-line bg-white shadow-[0_8px_30px_rgba(28,28,40,0.04)]', className)}
@@ -53,7 +53,7 @@ export function Badge({
   tone = 'pink',
   className,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   tone?: 'pink' | 'green' | 'red' | 'gray' | 'amber'
   className?: string
 }) {

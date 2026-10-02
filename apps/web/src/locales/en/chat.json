@@ -1,0 +1,13 @@
+{
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "loading": "Loading…",
+  "fallbackName": "Chat",
+  "back": "Back",
+  "subtitle": "TaxiLine chat",
+  "call": "Call",
+  "sendMyLocation": "Send my location",
+  "attachLocation": "Location",
+  "inputPlaceholder": "Write a message",
+  "send": "Send"
+}

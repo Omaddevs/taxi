@@ -7,3 +7,7 @@ export async function getSummary(req: Request, res: Response) {
   const query = req.query as unknown as z.infer<typeof analyticsSummaryQuerySchema>
   res.json(await analyticsService.getSummary(query))
 }
+
+export async function getCancellationStats(_req: Request, res: Response) {
+  res.json(await analyticsService.getCancellationStats())
+}

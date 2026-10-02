@@ -1,0 +1,8 @@
+{
+  "title": "Водители",
+  "subtitle": "База проверенных водителей",
+  "tripsCount_one": "{{count}} поездка",
+  "tripsCount_few": "{{count}} поездки",
+  "tripsCount_many": "{{count}} поездок",
+  "tripsCount_other": "{{count}} поездок"
+}

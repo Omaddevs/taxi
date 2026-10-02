@@ -4,8 +4,10 @@ import { AppError } from '../errors/AppError.js'
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ZodError) {
+    const first = err.issues[0]
+    const message = first?.message && first.message !== 'Required' ? first.message : 'Ma’lumotlar noto‘g‘ri kiritilgan'
     res.status(400).json({
-      error: { code: 'VALIDATION_ERROR', message: 'Invalid request', details: err.flatten() },
+      error: { code: 'VALIDATION_ERROR', message, details: err.flatten() },
     })
     return
   }

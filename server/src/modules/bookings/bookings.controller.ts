@@ -21,7 +21,12 @@ export async function listBookings(req: Request, res: Response) {
 
 export async function listAllBookingsAdmin(req: Request, res: Response) {
   const query = req.query as unknown as z.infer<typeof listBookingsAdminQuerySchema>
-  res.json(await bookingsService.listAllBookingsAdmin(query.status))
+  res.json(await bookingsService.listAllBookingsAdmin(query))
+}
+
+export async function adminCancelBooking(req: Request, res: Response) {
+  const booking = await bookingsService.adminCancelBooking(req.params.id, req.user!.id, req.body.reason)
+  res.json(booking)
 }
 
 export async function acceptBooking(req: Request, res: Response) {
@@ -47,4 +52,13 @@ export async function completeBooking(req: Request, res: Response) {
 export async function cancelBooking(req: Request, res: Response) {
   const booking = await bookingsService.cancelBooking(req.params.id, req.user!.id, req.body.reason)
   res.json(booking)
+}
+
+export async function getBookingRatingStatus(req: Request, res: Response) {
+  res.json(await bookingsService.getBookingRatingStatus(req.params.id, req.user!.id))
+}
+
+export async function rateBooking(req: Request, res: Response) {
+  await bookingsService.rateBooking(req.params.id, req.user!.id, req.body)
+  res.json({ ok: true })
 }

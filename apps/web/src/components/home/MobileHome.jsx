@@ -1,273 +1,195 @@
-import { useRef, useState } from 'react'
-import { ChevronRight, Crown, MapPin, Menu, ScanLine, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Coins, Home, Loader2, LocateFixed, Map as MapIcon, Menu, Navigation, Wallet } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { useApp } from '../../context/AppContext'
-import { ecosystem } from '../../data/ecosystem'
-import { EcosystemIcon } from '../icons/EcosystemIcon'
-import { PromoCarousel } from './PromoCarousel'
-import { LogoPin, Wordmark } from '../ui/Logo'
+import { api } from '../../lib/api'
+import { BaseTiles } from '../map/BaseTiles'
 
-const ECO_STRIP = ecosystem.filter((s) => !['taxi', 'delivery', 'roadside', 'fuel'].includes(s.id))
-const ECO_PAGES = 3
+const userPulseIcon = L.divIcon({
+  className: 'user-pulse',
+  iconSize: [120, 120],
+  iconAnchor: [60, 60],
+  html: '<span class="user-pulse-ring"></span><span class="user-pulse-halo"></span><span class="user-pulse-dot"></span>',
+})
 
-function pageScrollLeft(el, page) {
-  const max = el.scrollWidth - el.clientWidth
-  if (max <= 0) return 0
-  return (max * page) / (ECO_PAGES - 1)
+function formatAmount(value) {
+  return new Intl.NumberFormat('uz-UZ').format(value || 0).replace(/[, ]/g, ' ')
 }
 
-const featured = [
-  {
-    to: '/ride',
-    title: 'Taxi',
-    hint: 'Tajribali va ishonchli taxilar',
-    bg: 'bg-[#f4f5f7]',
-    art: 'taxi',
-  },
-  {
-    to: '/cargo',
-    title: 'Yetkazish',
-    hint: 'Hujjat, posilka, gul',
-    bg: 'bg-[#fff6e8]',
-    art: 'delivery',
-  },
-  {
-    to: '/roadside',
-    title: 'Yo‘lda yordam',
-    hint: 'Usta · evakuator',
-    bg: 'bg-[#ffecec]',
-    art: 'tow',
-    badge: 'SOS',
-  },
-  {
-    to: '/fuel',
-    title: 'Yoqilg‘i',
-    hint: 'Yoqilg‘i shahobchasi',
-    bg: 'bg-[#eef8f0]',
-    art: 'fuel',
-    badge: '-3%',
-  },
-]
-
-const destinations = [
-  { title: 'Toshkent, Amir Temur 45', sub: 'Qarshi → Toshkent', min: '5 soat' },
-  { title: 'Qarshi avtovokzal', sub: 'Nasaf tumani, Qarshi', min: '12 daq' },
-  { title: 'Samarqand, Registon', sub: 'Samarqand viloyati', min: '4 soat' },
-]
-
-function Art({ type }) {
-  if (type === 'taxi') {
-    return (
-      <img
-        src="/cars/cobalt.png"
-        alt=""
-        className="pointer-events-none absolute bottom-2 right-2 h-[72px] w-auto max-w-[75%] object-contain"
-      />
-    )
-  }
-  if (type === 'delivery') {
-    return (
-      <img
-        src="/cars/delivery.png"
-        alt=""
-        className="pointer-events-none absolute bottom-0 right-0 h-[88px] w-auto max-w-[92%] object-contain"
-      />
-    )
-  }
-  if (type === 'tow') {
-    return (
-      <img
-        src="/cars/tow.png"
-        alt=""
-        className="pointer-events-none absolute bottom-0 right-0 h-[88px] w-auto max-w-[92%] object-contain"
-      />
-    )
-  }
-  if (type === 'fuel') {
-    return (
-      <img
-        src="/cars/fuel.png"
-        alt=""
-        className="pointer-events-none absolute bottom-0 right-0 h-[92px] w-auto max-w-[90%] object-contain"
-      />
-    )
-  }
+// Markaz o‘zgarsa (GPS aniqlandi yoki manzil tanlandi) xaritani silliq suramiz.
+// `recenter` — "joriy joylashuv" bosilganda koordinata o‘zgarmagan bo‘lsa ham qaytib kelish uchun.
+function FollowCenter({ center, recenter }) {
+  const map = useMap()
+  useEffect(() => {
+    map.flyTo(center, Math.max(map.getZoom(), recenter ? 17 : 16), { duration: 0.8 })
+  }, [map, center, recenter])
   return null
 }
 
+function HomeMap({ center, recenter }) {
+  return (
+    <MapContainer
+      center={center}
+      zoom={16}
+      zoomControl={false}
+      attributionControl={false}
+      className="home-map h-full w-full"
+    >
+      <BaseTiles />
+      <Marker position={center} icon={userPulseIcon} interactive={false} />
+      <FollowCenter center={center} recenter={recenter} />
+    </MapContainer>
+  )
+}
+
 export function MobileHome() {
-  const { setDrawerOpen, location, openLocationPicker, plusPlan, requestUserLocation } = useApp()
+  const { user, setDrawerOpen, location, gpsFix, openLocationPicker, requestUserLocation } = useApp()
   const navigate = useNavigate()
-  const stripRef = useRef(null)
-  const [ecoPage, setEcoPage] = useState(0)
+  const { data: wallet } = useQuery({ queryKey: ['wallet'], queryFn: () => api.get('/wallet') })
 
-  const goEcoPage = (page) => {
-    const el = stripRef.current
-    if (!el) return
-    el.scrollTo({ left: pageScrollLeft(el, page), behavior: 'smooth' })
-    setEcoPage(page)
+  const hasGps = gpsFix && !gpsFix.error && Number.isFinite(gpsFix.lat)
+  const lat = hasGps ? gpsFix.lat : location.lat
+  const lng = hasGps ? gpsFix.lng : location.lng
+  const center = useMemo(() => [lat, lng], [lat, lng])
+  const [recenter, setRecenter] = useState(0)
+  const [locating, setLocating] = useState(false)
+  const [locError, setLocError] = useState('')
+
+  useEffect(() => {
+    if (!locError) return
+    const t = setTimeout(() => setLocError(''), 4000)
+    return () => clearTimeout(t)
+  }, [locError])
+
+  const showMyLocation = async () => {
+    if (locating) return
+    setLocError('')
+    setLocating(true)
+    const result = await requestUserLocation()
+    setLocating(false)
+    if (result.ok) {
+      setRecenter((n) => n + 1)
+      return
+    }
+    setLocError(
+      result.status === 'denied'
+        ? 'Joylashuvga ruxsat berilmagan. Brauzer sozlamalaridan ruxsat bering.'
+        : result.status === 'unsupported'
+          ? 'Qurilmangiz joylashuvni aniqlay olmaydi.'
+          : 'Joylashuvni aniqlab bo‘lmadi. GPS yoqilganini tekshiring.',
+    )
   }
 
-  const onStripScroll = () => {
-    const el = stripRef.current
-    if (!el) return
-    const max = el.scrollWidth - el.clientWidth
-    if (max <= 0) return
-    const page = Math.round((el.scrollLeft / max) * (ECO_PAGES - 1))
-    setEcoPage(Math.min(ECO_PAGES - 1, Math.max(0, page)))
-  }
+  const balance = wallet?.balance ?? user?.balance ?? 0
 
   return (
-    <div className="bg-white pb-4">
-      {/* 1fr auto 1fr — chap va o‘ng qanotlar teng bo‘lgani uchun logo aynan markazda turadi. */}
-      <header className="sticky top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-center gap-2 bg-white px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
-        <button
-          type="button"
-          onClick={() => setDrawerOpen(true)}
-          className="relative flex h-10 w-10 items-center justify-center justify-self-start"
-        >
-          <Menu className="h-6 w-6" />
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-            3
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={openLocationPicker}
-          className="flex min-w-0 items-start gap-1.5"
-          aria-label="Manzilni o‘zgartirish"
-        >
-          <LogoPin size={28} className="mt-px" />
-          <span className="min-w-0 text-left">
-            <Wordmark className="text-[19px]" />
-            <p className="mt-0.5 flex items-center gap-0.5 text-xs text-muted">
-              <span className="max-w-[140px] truncate">{location.label}</span>
-              <ChevronRight className="h-3 w-3 shrink-0" />
-            </p>
-          </span>
-        </button>
-        <Link
-          to="/plus"
-          className={`flex h-8 shrink-0 items-center gap-1.5 justify-self-end rounded-full bg-brand px-3.5 text-[13px] font-extrabold text-white shadow-md shadow-brand/30 ${
-            plusPlan && plusPlan !== 'start' ? 'ring-2 ring-brand/25' : ''
-          }`}
-        >
-          <Crown className="h-3.5 w-3.5 fill-white" strokeWidth={0} />
-          Plus
-        </Link>
-      </header>
+    <div className="relative flex min-h-svh flex-col bg-white">
+      <section className="relative min-h-[300px] flex-1">
+        <div className="absolute inset-0">
+          <HomeMap center={center} recenter={recenter} />
+        </div>
 
-      <div className="grid grid-cols-2 gap-3 px-4">
-        {featured.map((card) => (
-          <Link
-            key={card.title}
-            to={card.to}
-            onClick={() => {
-              if (card.to === '/fuel') requestUserLocation()
-            }}
-            className={`relative min-h-[148px] overflow-hidden rounded-2xl ${card.bg} px-4 pb-3 pt-4`}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-[max(14px,env(safe-area-inset-top))]">
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
+            aria-label="Menyu"
           >
-            {card.badge ? (
-              <span className="absolute right-3 top-3 z-10 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {card.badge}
-              </span>
-            ) : null}
-            <p className="relative z-10 text-[17px] font-extrabold">{card.title}</p>
-            <p className="relative z-10 mt-0.5 max-w-[72%] text-xs leading-snug text-muted">{card.hint}</p>
-            {['taxi', 'delivery', 'tow', 'fuel'].includes(card.art) ? (
-              <Art type={card.art} />
-            ) : (
-              <div className="mt-3 flex justify-end">
-                <Art type={card.art} />
-              </div>
-            )}
+            <Menu className="h-6 w-6" strokeWidth={2.4} />
+          </button>
+
+          <Link
+            to="/wallet"
+            className="pointer-events-auto absolute left-1/2 flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-brand pl-1.5 pr-4 text-white shadow-[0_8px_22px_rgba(18,165,148,0.35)]"
+            aria-label="Hamyon"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <Wallet className="h-4 w-4" />
+            </span>
+            <span className="text-[17px] font-extrabold tracking-tight">{formatAmount(balance)}</span>
+            <Coins className="h-4 w-4 opacity-90" />
           </Link>
-        ))}
-      </div>
 
-      <div className="mt-4 px-4">
-        <div
-          ref={stripRef}
-          onScroll={onStripScroll}
-          className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-1"
-        >
-          {ECO_STRIP.map((item) => (
-            <Link key={item.id} to={item.to} className="flex w-[72px] shrink-0 flex-col items-center text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f4f5f7] text-slate-700">
-                <EcosystemIcon id={item.id} className={`h-6 w-6 ${item.id === 'sos' ? 'text-red-500' : ''}`} />
-              </span>
-              <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-tight">{item.title}</span>
-            </Link>
-          ))}
+          <span className="h-12 w-12" />
         </div>
-        <div className="mt-1 flex justify-center">
-          {Array.from({ length: ECO_PAGES }, (_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`${i + 1}-sahifa`}
-              aria-current={ecoPage === i ? 'true' : undefined}
-              onClick={() => goEcoPage(i)}
-              className="flex h-7 items-center px-1"
-            >
-              <span
-                className={`block h-1.5 rounded-full transition-all ${
-                  ecoPage === i ? 'w-4 bg-ink' : 'w-1.5 bg-slate-300'
-                }`}
-              />
+
+        {locError ? (
+          <div
+            role="alert"
+            className="absolute inset-x-4 top-[calc(max(14px,env(safe-area-inset-top))+60px)] z-20 rounded-2xl bg-ink/90 px-4 py-3 text-center text-[13px] font-medium text-white shadow-lg"
+          >
+            {locError}
+          </div>
+        ) : null}
+
+        <div className="absolute bottom-10 right-4 z-10 flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={showMyLocation}
+            disabled={locating}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
+            aria-label="Joriy joylashuv"
+          >
+            {locating ? (
+              <Loader2 className="h-5 w-5 animate-spin" strokeWidth={2.4} />
+            ) : (
+              <LocateFixed className="h-5 w-5" strokeWidth={2.4} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/map')}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
+            aria-label="Xarita"
+          >
+            <Navigation className="h-5 w-5 fill-brand" strokeWidth={2} />
+          </button>
+        </div>
+      </section>
+
+      <section className="relative z-20 -mt-6 rounded-t-[28px] bg-white px-4 pb-28 pt-2.5 shadow-[0_-10px_30px_rgba(16,42,67,0.08)]">
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
+
+        <div className="relative space-y-2">
+          <span className="pointer-events-none absolute bottom-[34px] left-[21px] top-[34px] w-0.5 rounded-full bg-slate-300" />
+
+          <div className="flex items-center gap-3 rounded-2xl bg-[#f5f7f9] py-3 pl-4 pr-3">
+            <span className="relative z-10 h-3.5 w-3.5 shrink-0 rounded-full bg-brand ring-4 ring-brand/15" />
+            <button type="button" onClick={() => navigate('/ride')} className="min-w-0 flex-1 text-left">
+              <span className="block text-[15px] font-bold text-ink">Qayerga boramiz?</span>
+              <span className="block truncate text-[13px] text-muted">Manzilni kiriting</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      <PromoCarousel />
-
-      <div className="mt-4 px-4">
-        <Link
-          to="/ride"
-          className="flex h-12 items-center gap-3 rounded-2xl bg-[#f4f5f7] px-4 text-sm text-muted"
-        >
-          <Search className="h-5 w-5 text-ink" />
-          <span className="flex-1 text-left font-medium">Qayerga ketamiz?</span>
-          <ScanLine className="h-5 w-5" />
-        </Link>
-
-        <div className="mt-1 divide-y divide-line">
-          {destinations.map((d) => (
             <button
-              key={d.title}
               type="button"
               onClick={() => navigate('/ride')}
-              className="flex w-full items-center gap-3 py-3.5 text-left"
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[13px] font-semibold text-brand shadow-sm"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
-                <MapPin className="h-4 w-4 text-slate-500" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold">{d.title}</span>
-                <span className="block truncate text-xs text-muted">{d.sub}</span>
-              </span>
-              <span className="text-xs text-muted">{d.min}</span>
+              <MapIcon className="h-4 w-4" /> Xarita
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div className="no-scrollbar mt-2 flex gap-3 overflow-x-auto px-4 pb-2">
-        <Link
-          to="/women"
-          className="min-w-[220px] overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-dark p-4 text-white"
-        >
-          <p className="text-[10px] font-bold uppercase tracking-wide text-white/70">Xavfsizlik</p>
-          <p className="mt-1 text-lg font-extrabold leading-tight">Ayollar uchun taxi</p>
-          <p className="mt-1 text-xs text-white/80">Ayol haydovchi · SOS · GPS</p>
-        </Link>
-        <Link to="/ai" className="min-w-[220px] overflow-hidden rounded-2xl bg-[#111827] p-4 text-white">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-white/70">TaxiLine AI</p>
-          <p className="mt-1 text-lg font-extrabold leading-tight">Mashina nima bo‘ldi?</p>
-          <p className="mt-1 text-xs text-white/80">Taxminiy yo‘nalish, aniq tashxis emas</p>
-        </Link>
-      </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-[#f5f7f9] py-3 pl-4 pr-3">
+            <span className="relative z-10 h-3.5 w-3.5 shrink-0 rounded-full bg-slate-400 ring-4 ring-slate-300/40" />
+            <button type="button" onClick={openLocationPicker} className="min-w-0 flex-1 text-left">
+              <span className="block text-[15px] font-bold text-ink">Qayerdan olamiz?</span>
+              <span className="block truncate text-[13px] text-muted">{location.label || 'Joriy manzil'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={openLocationPicker}
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-[13px] font-semibold text-brand shadow-sm"
+            >
+              <Home className="h-4 w-4 fill-brand" /> Uy
+            </button>
+          </div>
+        </div>
+
+      </section>
     </div>
   )
 }

@@ -9,6 +9,12 @@ export const chatRouter = Router()
 
 chatRouter.get('/', requireAuth, asyncRoute(chatController.listConversations))
 chatRouter.get(
+  '/:id',
+  requireAuth,
+  validate({ params: conversationIdParamSchema }),
+  asyncRoute(chatController.getConversation),
+)
+chatRouter.get(
   '/:id/messages',
   requireAuth,
   validate({ params: conversationIdParamSchema, query: listMessagesQuerySchema }),

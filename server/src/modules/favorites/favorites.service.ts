@@ -11,12 +11,12 @@ export async function listFavorites(userId: string) {
       },
     },
   })
-  return favorites.map((f) => f.rideOffer)
+  return favorites.map((f) => f.rideOffer).filter((o) => !o.deletedAt)
 }
 
 export async function addFavorite(userId: string, rideOfferId: string) {
   const offer = await prisma.rideOffer.findUnique({ where: { id: rideOfferId } })
-  if (!offer) throw new NotFoundError('Reys topilmadi')
+  if (!offer || offer.deletedAt) throw new NotFoundError('Reys topilmadi')
 
   return prisma.favorite.upsert({
     where: { userId_rideOfferId: { userId, rideOfferId } },

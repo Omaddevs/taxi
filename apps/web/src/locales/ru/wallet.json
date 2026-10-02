@@ -1,0 +1,49 @@
+{
+  "back": "Назад",
+  "title": "Кошелёк",
+  "currentBalance": "Текущий баланс",
+  "topUp": "Пополнить",
+  "payout": "Перевод",
+  "linkedCards": "Привязанные карты",
+  "addCard": "Добавить карту",
+  "primary": "Основная",
+  "deleteCard": "Удалить карту",
+  "newCard": "Новая карта",
+  "close": "Закрыть",
+  "recentTransactions": "Последние транзакции",
+  "noTransactions": "Транзакций пока нет",
+  "amountPlaceholder": "100 000",
+  "notes": {
+    "cardAdded": "Карта привязана",
+    "fillCardCompletely": "Заполните данные карты полностью",
+    "topupSuccess": "Баланс пополнен",
+    "topupFailed": "Ошибка при пополнении",
+    "payoutSuccess": "Средства переведены на карту",
+    "payoutFailed": "Ошибка при переводе",
+    "addCardFirst": "Сначала добавьте карту",
+    "minAmount": "Минимальная сумма 1 000 сум"
+  },
+  "topupModal": {
+    "title": "Пополнение баланса",
+    "subtitle": "Введите сумму",
+    "submitting": "Загрузка…",
+    "submit": "Пополнить"
+  },
+  "payoutModal": {
+    "title": "Вывод на карту",
+    "subtitle": "Переведите доход на привязанную карту",
+    "submitting": "Отправка…",
+    "submit": "Перевести"
+  },
+  "addCardModal": {
+    "title": "Добавить карту",
+    "subtitle": "Введите номер карты Humo или UzCard",
+    "cardNumberLabel": "Номер карты",
+    "cardNumberPlaceholder": "8600 12•• •••• 4412",
+    "holderLabel": "Владелец",
+    "expiryLabel": "Срок действия",
+    "cvvLabel": "CVV",
+    "submitting": "Подключение…",
+    "submit": "Привязать карту"
+  }
+}

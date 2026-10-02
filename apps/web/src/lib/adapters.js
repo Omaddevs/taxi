@@ -33,6 +33,7 @@ export function offerToTrip(offer) {
     arrive: formatTime(offer.arriveAt),
     departAt: offer.departAt,
     seats: offer.seatsAvailable,
+    seatMap: offer.seats || [],
     luggage: offer.luggageCapacity,
     price: offer.pricePerSeat,
     service: offer.service?.id,
@@ -42,7 +43,10 @@ export function offerToTrip(offer) {
     carImage: offer.driver?.carImageUrl || FALLBACK_CAR_IMAGE,
     driver: {
       name: offer.driver?.user?.name || offer.driver?.user?.phone || 'Haydovchi',
-      rating: offer.driver?.ratingAvg ?? 5,
+      // 0 alongside ratingCount 0 means "no real ratings yet" — never a fabricated default;
+      // consuming UI must check ratingCount before rendering rating as a number.
+      rating: offer.driver?.ratingAvg ?? 0,
+      ratingCount: offer.driver?.ratingCount ?? 0,
       trips: offer.driver?.tripsCount ?? 0,
       avatar: avatarOrFallback(offer.driver?.user?.avatarUrl, offer.driver?.user?.name),
       phone: offer.driver?.user?.phone,
@@ -60,10 +64,41 @@ export function bookingToHistoryItem(booking) {
     from: booking.fromLabel,
     to: booking.toLabel,
     date: dateLabel,
+    sortKey: booking.departAt,
     price: booking.totalPrice,
     status: booking.status,
     driver: booking.rideOffer?.driver?.user?.name || booking.rideOffer?.driver?.user?.phone || '—',
     plate: booking.rideOffer?.driver?.plate || '—',
+    source: 'webapp',
+  }
+}
+
+// Bot orders (taxiline-bot) use their own OPEN/CLAIMED/COMPLETED/CANCELLED status names —
+// mapped onto the same labels/tones Booking statuses already use so a mixed list stays
+// legible without a second set of badges.
+const BOT_ORDER_STATUS_TO_BOOKING_STATUS = {
+  OPEN: 'PENDING',
+  CLAIMED: 'ACCEPTED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+}
+
+// Adapts a taxiline-bot Order (GET /bot-orders/mine) into the same flat shape as
+// bookingToHistoryItem, so TripHistory can render both in one merged, sorted list.
+export function botOrderToHistoryItem(order) {
+  const d = new Date(order.createdAt)
+  const dateLabel = `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}, ${formatTime(order.createdAt)}`
+  return {
+    id: `bot-${order.id}`,
+    from: `${order.fromRegion}, ${order.fromDistrict}`,
+    to: `${order.toRegion}, ${order.toDistrict}`,
+    date: dateLabel,
+    sortKey: order.createdAt,
+    price: null,
+    status: BOT_ORDER_STATUS_TO_BOOKING_STATUS[order.status] || order.status,
+    driver: '—',
+    plate: '—',
+    source: 'bot',
   }
 }
 

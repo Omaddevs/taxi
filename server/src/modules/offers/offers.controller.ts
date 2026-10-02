@@ -19,7 +19,8 @@ export async function updateOffer(req: Request, res: Response) {
 }
 
 export async function getOffer(req: Request, res: Response) {
-  const offer = await offersService.getOffer(req.params.id)
+  const includeDeleted = req.baseUrl.startsWith('/admin')
+  const offer = await offersService.getOffer(req.params.id, { includeDeleted })
   res.json(offer)
 }
 
@@ -31,5 +32,21 @@ export async function searchOffers(req: Request, res: Response) {
 
 export async function listAllOffersAdmin(req: Request, res: Response) {
   const query = req.query as unknown as z.infer<typeof listOffersAdminQuerySchema>
-  res.json(await offersService.listAllOffersAdmin(query.status))
+  res.json(await offersService.listAllOffersAdmin(query))
+}
+
+export async function adminCancelOffer(req: Request, res: Response) {
+  res.json(await offersService.adminCancelOffer(req.params.id))
+}
+
+export async function adminUpdateOffer(req: Request, res: Response) {
+  res.json(await offersService.adminUpdateOffer(req.user!.id, req.params.id, req.body))
+}
+
+export async function adminSetOfferStatus(req: Request, res: Response) {
+  res.json(await offersService.adminSetOfferStatus(req.user!.id, req.params.id, req.body.status))
+}
+
+export async function adminDeleteOffer(req: Request, res: Response) {
+  res.json(await offersService.adminDeleteOffer(req.user!.id, req.params.id))
 }

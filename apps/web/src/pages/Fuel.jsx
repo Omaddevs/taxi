@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import {
   ArrowLeft,
@@ -18,6 +18,7 @@ import { useApp } from '../context/AppContext'
 import { DEFAULT_LOCATION } from '../lib/geocode'
 import { formatSom } from '../lib/utils'
 import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
+import { BaseTiles } from '../components/map/BaseTiles'
 import { useShare } from '../components/ui/ShareSheet'
 import {
   FUEL_TYPES,
@@ -30,7 +31,7 @@ import {
 import 'leaflet/dist/leaflet.css'
 
 function pinIcon(near, selected) {
-  const color = near ? '#16a34a' : '#e91e63'
+  const color = near ? '#16a34a' : '#f97316'
   const size = selected ? 36 : 28
   return L.divIcon({
     className: 'fuel-marker',
@@ -145,7 +146,7 @@ export default function Fuel() {
 
       <div className="relative min-h-[320px] flex-1">
         <MapContainer center={[origin.lat, origin.lng]} zoom={14} className="h-full min-h-[320px] w-full" zoomControl={false} attributionControl={false}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+          <BaseTiles />
           <MapReady center={center} selected={selected} />
           <Marker
             position={[origin.lat, origin.lng]}
@@ -166,7 +167,7 @@ export default function Fuel() {
           ))}
         </MapContainer>
         <p className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-white/85 px-2 py-0.5 text-[10px] text-muted">
-          OpenStreetMap · CARTO
+          OpenStreetMap
         </p>
         <div className="absolute right-3 top-3 rounded-2xl bg-white/95 px-2.5 py-2 text-[10px] font-bold shadow-md">
           <p className="flex items-center gap-1.5">

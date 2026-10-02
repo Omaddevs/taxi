@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ClipboardCheck } from 'lucide-react'
 import { api } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Badge, Button, Card } from '../components/ui/Button'
+import { FilterPills } from '../components/ui/Filters'
+import { EmptyState, SkeletonTable } from '../components/ui/EmptyState'
+import { formatDateTime } from '../lib/utils'
+import { APP_STATUS_LABEL } from '../lib/labels'
 import type { DriverApplicationRow } from '../types'
 
 const STATUS_TONE = { PENDING: 'amber', APPROVED: 'green', REJECTED: 'red' } as const
@@ -20,10 +25,14 @@ export default function DriverApplications() {
 
   const review = useMutation({
     mutationFn: (input: { id: string; status: 'APPROVED' | 'REJECTED'; rejectionReason?: string }) =>
-      api.patch(`/admin/drivers/applications/${input.id}`, { status: input.status, rejectionReason: input.rejectionReason }),
+      api.patch(`/admin/drivers/applications/${input.id}`, {
+        status: input.status,
+        rejectionReason: input.rejectionReason,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-driver-applications'] })
       queryClient.invalidateQueries({ queryKey: ['admin-drivers'] })
+      queryClient.invalidateQueries({ queryKey: ['analytics-summary'] })
       setRejectingId(null)
       setReason('')
     },
@@ -32,33 +41,38 @@ export default function DriverApplications() {
   return (
     <div>
       <PageHeader title="Haydovchi arizalari" subtitle={data ? `${data.length} ta ariza` : undefined} />
-      <div className="mb-4 flex gap-2">
-        {['PENDING', 'APPROVED', 'REJECTED', ''].map((s) => (
-          <button
-            key={s || 'all'}
-            onClick={() => setStatus(s)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${status === s ? 'bg-brand text-white' : 'bg-white text-ink border border-line'}`}
-          >
-            {s || 'Barchasi'}
-          </button>
-        ))}
+      <div className="mb-4">
+        <FilterPills
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: 'PENDING', label: 'Kutilmoqda' },
+            { value: 'APPROVED', label: 'Tasdiqlangan' },
+            { value: 'REJECTED', label: 'Rad etilgan' },
+            { value: '', label: 'Barchasi' },
+          ]}
+        />
       </div>
 
       {isLoading ? (
-        <p className="text-muted">Yuklanmoqda…</p>
+        <SkeletonTable />
+      ) : !data?.length ? (
+        <EmptyState icon={ClipboardCheck} title="Arizalar topilmadi" text="Hozircha ko‘rib chiqiladigan ariza yo‘q." />
       ) : (
         <div className="space-y-3">
-          {(data ?? []).length === 0 ? <p className="text-muted">Arizalar topilmadi</p> : null}
-          {(data ?? []).map((app) => (
+          {data.map((app) => (
             <Card key={app.id} className="p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-ink">{app.fullName}</p>
-                    <Badge tone={STATUS_TONE[app.status]}>{app.status}</Badge>
+                    <Badge tone={STATUS_TONE[app.status]}>{APP_STATUS_LABEL[app.status]}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-muted">{app.phone}</p>
-                  <p className="mt-1 text-sm text-ink">{app.carModel} · {app.plate}</p>
+                  <p className="mt-1 text-sm text-ink">
+                    {app.carModel} · {app.plate}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">{formatDateTime(app.createdAt)}</p>
                   {app.rejectionReason ? <p className="mt-1 text-sm text-red-500">Sabab: {app.rejectionReason}</p> : null}
                 </div>
                 {app.status === 'PENDING' ? (

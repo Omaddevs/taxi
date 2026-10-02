@@ -1,0 +1,13 @@
+{
+  "screenTitle": "Promo kodlar",
+  "pageTitle": "Promo kodlar",
+  "pageSubtitle": "Chegirma kodini kiriting yoki mavjudlaridan foydalaning",
+  "inputPlaceholder": "PROMO KOD",
+  "checkButton": "Tekshirish",
+  "checkFailed": "Tekshirib bo'lmadi",
+  "validResult": "{{code}} amal qiladi — {{discount}} chegirma. Safar band qilishda avtomatik qo'llanadi.",
+  "sumSuffix": "{{value}} so'm",
+  "notFound": "Kod topilmadi",
+  "myCodes": "Mening kodlarim",
+  "until": "{{date}} gacha"
+}

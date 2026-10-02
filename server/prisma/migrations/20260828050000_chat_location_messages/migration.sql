@@ -1,0 +1,8 @@
+-- CreateEnum
+CREATE TYPE "MessageType" AS ENUM ('TEXT', 'LOCATION');
+
+-- AlterTable
+ALTER TABLE "Message" ADD COLUMN "type" "MessageType" NOT NULL DEFAULT 'TEXT';
+ALTER TABLE "Message" ADD COLUMN "lat" DOUBLE PRECISION;
+ALTER TABLE "Message" ADD COLUMN "lng" DOUBLE PRECISION;
+ALTER TABLE "Message" ADD COLUMN "locationLabel" TEXT;

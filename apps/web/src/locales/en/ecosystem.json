@@ -1,0 +1,152 @@
+{
+  "hubs": {
+    "auto-service": {
+      "title": "Auto service",
+      "subtitle": "Engine, oil, diagnostics and A/C",
+      "items": [
+        { "title": "Engine repair", "desc": "Nearby workshops" },
+        { "title": "Suspension", "desc": "Suspension and brakes" },
+        { "title": "Electrician", "desc": "Alternator, starter" },
+        { "title": "Diagnostics", "desc": "Computer scan" },
+        { "title": "Oil change", "desc": "Original oils" },
+        { "title": "Air conditioning", "desc": "Refill and repair" }
+      ]
+    },
+    "tires": {
+      "title": "Tire service",
+      "subtitle": "Tire fitting, vulcanizing, balancing",
+      "items": [
+        { "title": "Tire fitting", "desc": "In 30 minutes" },
+        { "title": "Vulcanizing", "desc": "Cracks and punctures" },
+        { "title": "Mobile tire service", "desc": "Comes to you" },
+        { "title": "Rim repair", "desc": "Straightening, painting" },
+        { "title": "Balancing", "desc": "Fixes vibration" }
+      ]
+    },
+    "wash": {
+      "title": "Wash and detailing",
+      "subtitle": "From a quick wash to PPF",
+      "items": [
+        { "title": "Car wash", "desc": "Quick wash" },
+        { "title": "Detailing", "desc": "Full package" },
+        { "title": "Polishing", "desc": "Glossy finish" },
+        { "title": "Ceramic coating", "desc": "Protective coating" },
+        { "title": "PPF", "desc": "Protective film" },
+        { "title": "Window tinting", "desc": "Legal-grade film" }
+      ]
+    },
+    "market": {
+      "title": "Auto marketplace",
+      "subtitle": "Parts, tires, oil — nearby shops",
+      "items": [
+        { "title": "Spare parts", "desc": "Cobalt, Onix, Tracker" },
+        { "title": "Tires", "desc": "Summer and winter" },
+        { "title": "Battery", "desc": "With delivery" },
+        { "title": "Oil", "desc": "5W-30, 10W-40" },
+        { "title": "Bulbs", "desc": "LED and halogen" },
+        { "title": "Car care products", "desc": "Interior and body" }
+      ]
+    },
+    "parking": {
+      "title": "Parking",
+      "subtitle": "Availability, price and hours",
+      "items": [
+        { "title": "Covered parking", "desc": "Secure, camera-monitored" },
+        { "title": "Open parking", "desc": "Close to the center" },
+        { "title": "Reserve ahead", "desc": "Save your spot" },
+        { "title": "Airport parking", "desc": "Daily rate" }
+      ]
+    },
+    "ev": {
+      "title": "EV charging",
+      "subtitle": "Charging stations and booking",
+      "items": [
+        { "title": "Fast charging", "desc": "CCS / GB/T" },
+        { "title": "Standard charging", "desc": "Type 2" },
+        { "title": "Reserve a slot", "desc": "Skip the queue" }
+      ]
+    },
+    "business": {
+      "title": "Corporate",
+      "subtitle": "Employee rides, delivery, and invoicing",
+      "items": [
+        { "title": "Company dashboard", "desc": "All trips" },
+        { "title": "Employee rides", "desc": "Limits and approval" },
+        { "title": "Delivery", "desc": "Office shipments" },
+        { "title": "Monthly invoice", "desc": "One payment" }
+      ]
+    },
+    "food": {
+      "title": "Food and grocery",
+      "subtitle": "Restaurants, supermarkets — one courier network",
+      "items": [
+        { "title": "Restaurant", "desc": "Lunch and dinner" },
+        { "title": "Fast food", "desc": "25–40 minutes" },
+        { "title": "Supermarket", "desc": "Grocery basket" },
+        { "title": "Water and drinks", "desc": "Delivered home" }
+      ]
+    },
+    "travel": {
+      "title": "Travel",
+      "subtitle": "Taxi + hotel + restaurant + tourist spots",
+      "items": [
+        { "title": "Hotel", "desc": "Samarkand, Bukhara" },
+        { "title": "Transfer", "desc": "Airport and station" },
+        { "title": "Restaurant", "desc": "Local cuisine" },
+        { "title": "Tour package", "desc": "Weekend package" }
+      ]
+    },
+    "home": {
+      "title": "Home services",
+      "subtitle": "Nearby pros — from plumbers to electricians",
+      "items": [
+        { "title": "Plumber", "desc": "Pipes and faucets" },
+        { "title": "Electrician", "desc": "Outlets, wiring" },
+        { "title": "Cleaning", "desc": "Apartment cleaning" },
+        { "title": "Air conditioning", "desc": "Install and clean" },
+        { "title": "Locksmith", "desc": "Door unlocking" },
+        { "title": "Moving", "desc": "Furniture and cargo" }
+      ]
+    },
+    "health": {
+      "title": "Health",
+      "subtitle": "Clinic, pharmacy, and transfer",
+      "items": [
+        { "title": "24/7 pharmacy", "desc": "Nearest on the map" },
+        { "title": "Clinic", "desc": "Book an appointment" },
+        { "title": "Lab tests", "desc": "Take a sample" },
+        { "title": "Medical transfer", "desc": "Patient transport" }
+      ]
+    },
+    "family": {
+      "title": "Family account",
+      "subtitle": "A ride for mom — paid from your balance",
+      "items": [
+        { "title": "Add family", "desc": "Mom, kids, parents" },
+        { "title": "Rides for others", "desc": "You pay" },
+        { "title": "Share location", "desc": "Safety" },
+        { "title": "Kids ride", "desc": "School run (coming soon)" }
+      ]
+    },
+    "insurance": {
+      "title": "Insurance",
+      "subtitle": "OSAGO, KASKO and travel via a partner",
+      "items": [
+        { "title": "OSAGO", "desc": "Mandatory insurance" },
+        { "title": "KASKO", "desc": "Broad coverage" },
+        { "title": "Travel", "desc": "Trip insurance" },
+        { "title": "Cargo", "desc": "Cargo insurance" }
+      ]
+    }
+  },
+  "roadside": {
+    "usta": { "title": "Mechanic", "desc": "Breakdown on the road" },
+    "tow": { "title": "Tow truck", "desc": "15–30 minutes" },
+    "battery": { "title": "Battery", "desc": "Jump start / replacement" },
+    "tire": { "title": "Tire", "desc": "Mobile tire fitting" },
+    "fuel": { "title": "Fuel", "desc": "Delivered to you" },
+    "key": { "title": "Keys", "desc": "Door unlocking" },
+    "crash": { "title": "Accident assistance", "desc": "Paperwork and towing" },
+    "diag": { "title": "Diagnostics", "desc": "Error codes" }
+  }
+}

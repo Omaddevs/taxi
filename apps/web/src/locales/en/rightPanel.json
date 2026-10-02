@@ -1,0 +1,9 @@
+{
+  "balanceLabel": "Your balance",
+  "topUp": "Top up",
+  "quickLinks": { "wallet": "Payment", "favorites": "Favorites", "promo": "Promo", "history": "History" },
+  "invite": { "title": "Invite a friend", "desc": "Get 20,000 UZS for every referral", "cta": "Invite" },
+  "recentTrips": { "title": "Recent trips", "empty": "No trips yet" },
+  "sos": { "label": "Emergency", "desc": "Call for help in a dangerous situation. Your GPS location and trusted contacts will be sent." },
+  "perks": { "safety": "Safety guarantee", "payment": "Convenient payment" }
+}

@@ -1,0 +1,10 @@
+{
+  "loading": "Loading…",
+  "nav": {
+    "home": "Home",
+    "trip": "Trip",
+    "messages": "Messages",
+    "profile": "Profile",
+    "orderAria": "Order"
+  }
+}

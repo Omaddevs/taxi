@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Tag } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Badge, Button, Card } from '../components/ui/Button'
+import { Field, inputClass } from '../components/ui/Chart'
+import { EmptyState, SkeletonGrid } from '../components/ui/EmptyState'
+import { formatDate } from '../lib/utils'
 import type { PromoRow } from '../types'
 
 export default function Promo() {
@@ -55,16 +59,30 @@ export default function Promo() {
       {showForm ? (
         <Card className="mb-6 p-5">
           <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-            <input name="code" placeholder="Kod (masalan SAFAR20)" required className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand" />
-            <input name="title" placeholder="Nomi" required className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand" />
-            <select name="discountType" className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand">
-              <option value="PERCENT">Foizda</option>
-              <option value="FIXED">Aniq summa</option>
-            </select>
-            <input name="discountValue" type="number" placeholder="Chegirma qiymati" required className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand" />
-            <input name="validFrom" type="date" required className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand" />
-            <input name="validUntil" type="date" required className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand" />
-            <input name="maxUses" type="number" placeholder="Maksimal ishlatish soni (ixtiyoriy)" className="h-10 rounded-xl border border-line px-3 text-sm outline-none focus:border-brand sm:col-span-2" />
+            <Field label="Kod">
+              <input name="code" placeholder="SAFAR20" required className={inputClass} />
+            </Field>
+            <Field label="Nomi">
+              <input name="title" placeholder="Bahorgi aksiya" required className={inputClass} />
+            </Field>
+            <Field label="Chegirma turi">
+              <select name="discountType" className={inputClass}>
+                <option value="PERCENT">Foizda</option>
+                <option value="FIXED">Aniq summa</option>
+              </select>
+            </Field>
+            <Field label="Qiymat">
+              <input name="discountValue" type="number" required className={inputClass} />
+            </Field>
+            <Field label="Boshlanish">
+              <input name="validFrom" type="date" required className={inputClass} />
+            </Field>
+            <Field label="Tugash">
+              <input name="validUntil" type="date" required className={inputClass} />
+            </Field>
+            <Field label="Maksimal ishlatish (ixtiyoriy)">
+              <input name="maxUses" type="number" className={`${inputClass} sm:col-span-2`} />
+            </Field>
             {error ? <p className="text-sm font-semibold text-red-500 sm:col-span-2">{error}</p> : null}
             <Button type="submit" disabled={create.isPending} className="sm:col-span-2">
               Yaratish
@@ -74,10 +92,12 @@ export default function Promo() {
       ) : null}
 
       {isLoading ? (
-        <p className="text-muted">Yuklanmoqda…</p>
+        <SkeletonGrid count={3} />
+      ) : !data?.length ? (
+        <EmptyState icon={Tag} title="Promo kodlar yo‘q" text="Yangi kod yaratib, yo‘lovchilarga chegirma bering." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(data ?? []).map((promo) => (
+          {data.map((promo) => (
             <Card key={promo.id} className="p-5">
               <div className="mb-2 flex items-center justify-between">
                 <p className="font-mono text-sm font-extrabold text-brand">{promo.code}</p>
@@ -88,7 +108,11 @@ export default function Promo() {
                 {promo.discountType === 'PERCENT' ? `${promo.discountValue}%` : `${promo.discountValue} so'm`} chegirma
               </p>
               <p className="mt-1 text-xs text-muted">
-                Ishlatilgan: {promo.usesCount}{promo.maxUses ? ` / ${promo.maxUses}` : ''}
+                {formatDate(promo.validFrom)} — {formatDate(promo.validUntil)}
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                Ishlatilgan: {promo.usesCount}
+                {promo.maxUses ? ` / ${promo.maxUses}` : ''}
               </p>
               <button
                 onClick={() => toggleActive.mutate({ id: promo.id, active: !promo.active })}

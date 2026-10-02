@@ -1,0 +1,19 @@
+{
+  "title": "TaxiLine ecosystem",
+  "subtitle": "Rides, cars and everyday services — all in one place",
+  "mapLink": "Map",
+  "items": {
+    "women": "Women",
+    "delivery": "Delivery",
+    "roadside": "Roadside help",
+    "map": "Smart map",
+    "fuel": "Fuel",
+    "service": "Auto service",
+    "wash": "Car wash",
+    "parking": "Parking",
+    "ev": "EV charging",
+    "food": "Food",
+    "wallet": "Wallet",
+    "sos": "SOS"
+  }
+}

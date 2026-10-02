@@ -1,0 +1,24 @@
+{
+  "header": { "title": "Statistics", "today": "Today" },
+  "tabs": { "all": "All", "income": "Income", "orders": "Orders", "routes": "Routes" },
+  "totalIncome": { "label": "Total income", "comparedToYesterday": "compared to yesterday" },
+  "kpi": {
+    "totalIncome": "Total income",
+    "orders": "Orders",
+    "ordersValue": "{{count}}",
+    "onlineTime": "Online time",
+    "distance": "Distance"
+  },
+  "sections": {
+    "incomeStats": "Income statistics",
+    "last7Days": "Last 7 days",
+    "incomeSources": "Income sources",
+    "activityTime": "Activity time",
+    "topOrders": "Top orders",
+    "viewAll": "View all"
+  },
+  "empty": { "noCompletedOrders": "No completed orders" },
+  "online": { "offline": "Offline", "online": "Online" },
+  "distance": { "zero": "0 km", "km": "{{km}} km" },
+  "donut": { "noData": "No data", "currency": "UZS" }
+}

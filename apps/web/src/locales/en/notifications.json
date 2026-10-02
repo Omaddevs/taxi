@@ -1,0 +1,16 @@
+{
+  "title": "Notifications",
+  "subtitle": "Updates on orders, promos, and payments",
+  "empty": "No notifications yet.",
+  "rating": {
+    "error": "Something went wrong, please try again later",
+    "thanks": "Thanks! Your rating has been recorded.",
+    "starLabel": "{{count}} star"
+  },
+  "timeAgo": {
+    "now": "just now",
+    "minutes": "{{count}} min ago",
+    "hours": "{{count}} h ago",
+    "days": "{{count}} d ago"
+  }
+}

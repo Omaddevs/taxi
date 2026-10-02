@@ -1,0 +1,29 @@
+{
+  "loading": "Loading…",
+  "errors": {
+    "invalidPhone": "Enter your full phone number",
+    "codeNotSent": "Couldn't send the code",
+    "invalidCode": "Incorrect code"
+  },
+  "welcome": {
+    "title": "Welcome",
+    "subtitle": "Enter your phone number",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "90 123 45 67",
+    "submitting": "Sending…",
+    "submit": "Get code",
+    "or": "or",
+    "telegram": "Continue with Telegram",
+    "google": "Continue with Google",
+    "googleComingSoon": "Sign in with Google is coming soon",
+    "noAccount": "Don't have an account?",
+    "register": "Sign up"
+  },
+  "code": {
+    "title": "Verification code",
+    "subtitle": "Enter the 6-digit code sent via SMS",
+    "register": "Sign up",
+    "submitting": "Verifying…",
+    "submit": "Confirm"
+  }
+}

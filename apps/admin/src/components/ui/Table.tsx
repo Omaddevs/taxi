@@ -1,9 +1,12 @@
 import { cn } from '../../lib/utils'
 
 export interface Column<T> {
+  id?: string
   header: string
   cell: (row: T) => React.ReactNode
   className?: string
+  /** Stops the row click so action buttons (edit/delete) can run. */
+  interactive?: boolean
 }
 
 export function Table<T extends { id: string }>({
@@ -11,11 +14,13 @@ export function Table<T extends { id: string }>({
   rows,
   onRowClick,
   emptyLabel = 'Ma’lumot topilmadi',
+  getRowId,
 }: {
   columns: Column<T>[]
   rows: T[]
   onRowClick?: (row: T) => void
   emptyLabel?: string
+  getRowId?: (row: T) => string
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-line bg-white">
@@ -23,7 +28,7 @@ export function Table<T extends { id: string }>({
         <thead>
           <tr className="border-b border-line bg-canvas/60">
             {columns.map((col) => (
-              <th key={col.header} className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-muted">
+              <th key={col.id ?? col.header} className="px-4 py-3 text-xs font-bold uppercase tracking-wide text-muted">
                 {col.header}
               </th>
             ))}
@@ -39,12 +44,16 @@ export function Table<T extends { id: string }>({
           ) : (
             rows.map((row) => (
               <tr
-                key={row.id}
+                key={getRowId?.(row) ?? row.id}
                 onClick={() => onRowClick?.(row)}
                 className={cn('border-b border-line last:border-0', onRowClick && 'cursor-pointer hover:bg-canvas/60')}
               >
                 {columns.map((col) => (
-                  <td key={col.header} className={cn('px-4 py-3 align-middle', col.className)}>
+                  <td
+                    key={col.id ?? col.header}
+                    className={cn('px-4 py-3 align-middle', col.className)}
+                    onClick={col.interactive ? (e) => e.stopPropagation() : undefined}
+                  >
                     {col.cell(row)}
                   </td>
                 ))}

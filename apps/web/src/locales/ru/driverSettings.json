@@ -1,0 +1,86 @@
+{
+  "header": { "title": "Настройки" },
+  "profile": { "driverId": "ID водителя: {{code}}", "copied": "скопировано" },
+  "usefulServices": {
+    "title": "Полезные сервисы",
+    "roadside": { "title": "Помощь на дороге", "sub": "Мастер · эвакуатор" },
+    "fuel": { "title": "Топливо", "sub": "Заправочная станция" }
+  },
+  "services": {
+    "map": "Умная карта",
+    "service": "Автосервис",
+    "wash": "Автомойка",
+    "parking": "Парковка",
+    "ev": "Зарядка EV",
+    "women": "Для женщин"
+  },
+  "menu": {
+    "profile": { "title": "Данные профиля", "sub": "Редактировать личные данные" },
+    "car": { "title": "Данные автомобиля", "sub": "{{carModel}} · {{plate}}" },
+    "docs": { "title": "Документы и сертификаты", "subFallback": "Права, техпаспорт и другое" },
+    "cargo": { "title": "Грузы", "sub": "Открытые грузы для доставки" },
+    "wallet": { "title": "Способы оплаты", "sub": "Вывод дохода и управление картой" }
+  },
+  "notifications": { "title": "Уведомления" },
+  "regionsRow": {
+    "title": "Очередь и регионы",
+    "subSelected": "Выбрано регионов: {{count}}",
+    "subEmpty": "Из каких регионов принимать заказы"
+  },
+  "workModeRow": {
+    "title": "Режим работы",
+    "online": "Онлайн",
+    "offline": "Оффлайн",
+    "autoAcceptSuffix": " · автоприём"
+  },
+  "nightTheme": { "title": "Ночная тема" },
+  "security": { "title": "Безопасность", "sub": "Телефон, ID и конфиденциальность" },
+  "help": { "title": "Помощь и поддержка", "sub": "Центр помощи и быстрая связь" },
+  "logout": { "title": "Выйти из онлайн-режима", "sub": "Выйти из приложения и отключить онлайн-режим" },
+  "footer": { "appName": "Приложение водителя TaxiLine", "version": "Версия {{version}}" },
+  "save": { "saving": "Сохранение…", "saved": "Сохранено ✓", "save": "Сохранить" },
+  "sheets": {
+    "profile": {
+      "title": "Данные профиля",
+      "nameLabel": "Имя и фамилия",
+      "phoneLabel": "Телефон",
+      "emailLabel": "Email",
+      "emailPlaceholder": "email@mail.uz"
+    },
+    "car": {
+      "title": "Данные автомобиля",
+      "modelLabel": "Модель",
+      "modelPlaceholder": "Выберите автомобиль",
+      "plateLabel": "Госномер",
+      "platePlaceholder": "E091GB"
+    },
+    "docs": {
+      "title": "Документы",
+      "statusApproved": "Водитель подтверждён",
+      "statusPending": "На рассмотрении",
+      "statusLabel": "Статус: {{status}}",
+      "licenseLabel": "Номер водительского удостоверения",
+      "licensePlaceholder": "AA1234567"
+    },
+    "regions": {
+      "title": "Очередь и регионы",
+      "hint": "Новые заказы будут приходить из выбранных регионов. Если оставить пустым — из всех."
+    },
+    "work": {
+      "title": "Режим работы",
+      "online": "Онлайн",
+      "offline": "Оффлайн",
+      "onlineHint": "Заказы принимаются",
+      "offlineHint": "Заказы не поступают",
+      "autoAccept": "Автоматический приём",
+      "autoAcceptHint": "Новый заказ будет приниматься автоматически"
+    },
+    "security": {
+      "title": "Безопасность",
+      "phoneLabel": "Телефон",
+      "driverIdLabel": "ID водителя",
+      "hint": "Вход через SMS или код подтверждения Telegram. Отдельного пароля нет.",
+      "logout": "Выйти из аккаунта"
+    }
+  }
+}

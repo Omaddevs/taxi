@@ -1,4 +1,4 @@
-import { clearSession, getAccessToken, getRefreshToken, setAccessToken } from './tokens'
+import { clearSession, getAccessToken, getRefreshToken, setTokens } from './tokens'
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
@@ -27,7 +27,7 @@ async function tryRefresh(): Promise<boolean> {
       .then(async (res) => {
         if (!res.ok) return false
         const data = await res.json()
-        setAccessToken(data.accessToken)
+        setTokens(data.accessToken, data.refreshToken)
         return true
       })
       .catch(() => false)
@@ -75,4 +75,23 @@ export const api = {
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  download: async (path: string, filename: string) => {
+    const token = getAccessToken()
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new ApiError(res.status, body?.error?.message ?? 'Yuklab olishda xatolik')
+    }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  },
 }

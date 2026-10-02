@@ -9,6 +9,7 @@ import {
   createBookingSchema,
   listBookingsAdminQuerySchema,
   listBookingsQuerySchema,
+  rateBookingSchema,
 } from './bookings.schema.js'
 
 export const bookingsRouter = Router()
@@ -31,6 +32,18 @@ bookingsRouter.patch(
   validate({ params: bookingIdParamSchema, body: cancelBookingSchema }),
   asyncRoute(bookingsController.cancelBooking),
 )
+bookingsRouter.get(
+  '/:id/rating',
+  requireAuth,
+  validate({ params: bookingIdParamSchema }),
+  asyncRoute(bookingsController.getBookingRatingStatus),
+)
+bookingsRouter.post(
+  '/:id/rating',
+  requireAuth,
+  validate({ params: bookingIdParamSchema, body: rateBookingSchema }),
+  asyncRoute(bookingsController.rateBooking),
+)
 
 export const adminBookingsRouter = Router()
 adminBookingsRouter.get(
@@ -46,4 +59,11 @@ adminBookingsRouter.get(
   requireRole('ADMIN'),
   validate({ params: bookingIdParamSchema }),
   asyncRoute(bookingsController.getBooking),
+)
+adminBookingsRouter.patch(
+  '/:id/cancel',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ params: bookingIdParamSchema, body: cancelBookingSchema }),
+  asyncRoute(bookingsController.adminCancelBooking),
 )

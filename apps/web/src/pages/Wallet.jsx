@@ -26,7 +26,10 @@ export default function Wallet() {
   const queryClient = useQueryClient()
   const [adding, setAdding] = useState(false)
   const [toppingUp, setToppingUp] = useState(false)
+  const [payingOut, setPayingOut] = useState(false)
   const [topupAmount, setTopupAmount] = useState('')
+  const [payoutAmount, setPayoutAmount] = useState('')
+  const [payoutCardId, setPayoutCardId] = useState('')
   const [form, setForm] = useState({ pan: '', holder: user?.name?.toUpperCase() || '', expiry: '', cvv: '' })
   const [note, setNote] = useState('')
 
@@ -52,9 +55,24 @@ export default function Wallet() {
     mutationFn: (amount) => api.post('/wallet/topup', { amount, methodId: 'click' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      queryClient.invalidateQueries({ queryKey: ['me'] })
       setToppingUp(false)
       setTopupAmount('')
+      setNote('Hisob to‘ldirildi')
     },
+    onError: (err) => setNote(err instanceof ApiError ? err.message : 'To‘ldirishda xatolik'),
+  })
+
+  const payoutMutation = useMutation({
+    mutationFn: ({ amount, cardId }) => api.post('/wallet/payout', { amount, cardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      queryClient.invalidateQueries({ queryKey: ['me'] })
+      setPayingOut(false)
+      setPayoutAmount('')
+      setNote('Mablag‘ kartaga o‘tkazildi')
+    },
+    onError: (err) => setNote(err instanceof ApiError ? err.message : 'O‘tkazmada xatolik'),
   })
 
   const preview = useMemo(() => brandFromPan(form.pan), [form.pan])
@@ -73,6 +91,23 @@ export default function Wallet() {
       last4: digits.slice(-4),
     })
     setForm({ pan: '', holder: user?.name?.toUpperCase() || '', expiry: '', cvv: '' })
+  }
+
+  function submitPayout(e) {
+    e.preventDefault()
+    const amount = Number(payoutAmount)
+    const cardId = payoutCardId || cards[0]?.id
+    if (!cardId) {
+      setNote('Avval karta qo‘shing')
+      setPayingOut(false)
+      setAdding(true)
+      return
+    }
+    if (!amount || amount < 1000) {
+      setNote('Minimal summa 1 000 so‘m')
+      return
+    }
+    payoutMutation.mutate({ amount, cardId })
   }
 
   function submitTopup(e) {
@@ -109,7 +144,20 @@ export default function Wallet() {
           >
             To‘ldirish
           </button>
-          <button type="button" className="h-10 flex-1 rounded-2xl bg-white/15 text-sm font-extrabold text-white">
+          <button
+            type="button"
+            onClick={() => {
+              if (!cards.length) {
+                setNote('Avval karta qo‘shing')
+                setAdding(true)
+                return
+              }
+              setPayoutCardId(cards.find((c) => c.isDefault)?.id || cards[0].id)
+              setPayingOut(true)
+              setNote('')
+            }}
+            className="h-10 flex-1 rounded-2xl bg-white/15 text-sm font-extrabold text-white"
+          >
             O‘tkazma
           </button>
         </div>
@@ -225,6 +273,51 @@ export default function Wallet() {
               className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
             >
               {topupMutation.isPending ? 'Yuklanmoqda…' : 'Toʻldirish'}
+            </button>
+          </form>
+        </div>
+      ) : null}
+
+      {payingOut ? (
+        <div className="fixed inset-0 z-[140]">
+          <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={() => setPayingOut(false)} />
+          <form
+            onSubmit={submitPayout}
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3"
+          >
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
+            <p className="text-lg font-extrabold">Kartaga yechish</p>
+            <p className="text-xs text-muted">Daromadni ulangan kartaga o‘tkazing</p>
+            <div className="mt-3 space-y-1.5">
+              {cards.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setPayoutCardId(c.id)}
+                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold ${
+                    payoutCardId === c.id ? 'bg-brand-soft text-brand ring-1 ring-brand/30' : 'bg-canvas'
+                  }`}
+                >
+                  <span>
+                    {c.brand} •••• {c.last4}
+                  </span>
+                  {c.isDefault ? <span className="text-[11px] font-semibold text-muted">Asosiy</span> : null}
+                </button>
+              ))}
+            </div>
+            <input
+              value={payoutAmount}
+              onChange={(e) => setPayoutAmount(e.target.value.replace(/\D/g, ''))}
+              inputMode="numeric"
+              placeholder="100 000"
+              className="mt-4 h-12 w-full rounded-2xl bg-canvas px-4 text-sm font-semibold outline-none"
+            />
+            <button
+              type="submit"
+              disabled={payoutMutation.isPending}
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
+            >
+              {payoutMutation.isPending ? 'Yuborilmoqda…' : 'O‘tkazish'}
             </button>
           </form>
         </div>

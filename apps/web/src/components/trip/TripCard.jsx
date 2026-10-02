@@ -1,11 +1,12 @@
 import { ArrowRight, Clock, Heart, MapPin, Star, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Button'
 import { formatSom } from '../../lib/utils'
 import { useApp } from '../../context/AppContext'
 
 export function TripCard({ trip, compact = false }) {
   const { favoriteIds, toggleFavorite } = useApp()
+  const navigate = useNavigate()
   const liked = favoriteIds.has(trip.id)
 
   if (compact) {
@@ -28,7 +29,18 @@ export function TripCard({ trip, compact = false }) {
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-line bg-white p-4 shadow-[0_8px_24px_rgba(28,28,40,0.04)]">
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/trip/${trip.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          navigate(`/trip/${trip.id}`)
+        }
+      }}
+      className="cursor-pointer overflow-hidden rounded-2xl border border-line bg-white p-4 shadow-[0_8px_24px_rgba(28,28,40,0.04)] transition-colors hover:border-brand/40"
+    >
       <div className="flex gap-4">
         <img src={trip.carImage} alt={trip.car} className="h-20 w-28 rounded-xl object-cover" />
         <div className="min-w-0 flex-1">
@@ -37,10 +49,17 @@ export function TripCard({ trip, compact = false }) {
               <p className="text-sm font-bold">{trip.serviceTitle}</p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                {trip.driver.rating} · {trip.car}
+                {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'} · {trip.car}
               </p>
             </div>
-            <button type="button" onClick={() => toggleFavorite(trip.id)} className="text-slate-300">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleFavorite(trip.id)
+              }}
+              className="text-slate-300"
+            >
               <Heart className={`h-5 w-5 ${liked ? 'fill-brand text-brand' : ''}`} />
             </button>
           </div>

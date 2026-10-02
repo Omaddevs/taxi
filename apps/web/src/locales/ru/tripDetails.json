@@ -1,0 +1,21 @@
+{
+  "title": "Детали поездки",
+  "loading": "Загрузка…",
+  "payCash": "Наличными",
+  "newDriver": "Новый",
+  "selectSeatTitle": "Выберите место",
+  "selectSeatDesc": "Вы можете выбрать отдельное место и пол для себя и своего попутчика.",
+  "actionCall": "Позвонить",
+  "actionChat": "Сообщение",
+  "actionShare": "Поделиться",
+  "actionCancel": "Отмена",
+  "totalPayment_one": "Итого · {{count}} место",
+  "totalPayment_few": "Итого · {{count}} места",
+  "totalPayment_many": "Итого · {{count}} мест",
+  "totalPayment_other": "Итого · {{count}} мест",
+  "paymentMethod": "Способ оплаты",
+  "bookingStatus": "Статус брони",
+  "sending": "Отправка…",
+  "selectSeatFirst": "Сначала выберите место",
+  "connect": "Связаться"
+}

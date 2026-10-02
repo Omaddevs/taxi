@@ -1,0 +1,9 @@
+{
+  "balanceLabel": "Hisobingiz",
+  "topUp": "To‘ldirish",
+  "quickLinks": { "wallet": "To‘lov", "favorites": "Sevimli", "promo": "Promo", "history": "Tarix" },
+  "invite": { "title": "Do‘stingizni taklif qiling", "desc": "Har bir taklif uchun 20 000 so‘m", "cta": "Taklif qilish" },
+  "recentTrips": { "title": "So‘nggi safarlar", "empty": "Hali safarlar yo‘q" },
+  "sos": { "label": "Favqulodda", "desc": "Xavfli vaziyatda yordam chaqiring. GPS va ishonchli kontaktlar yuboriladi." },
+  "perks": { "safety": "Xavfsizlik kafolati", "payment": "Qulay to‘lov" }
+}

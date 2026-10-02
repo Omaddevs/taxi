@@ -1,25 +1,65 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '../components/ui/Button'
-import { BrandMark } from '../components/ui/Logo'
+import { useEffect, useRef, useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { AuthChrome, GoogleMark, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
+import { FlagUz } from '../components/ui/Flags'
 import { useAuth } from '../context/AuthContext'
+import { homePathForRole } from '../lib/role'
+import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
+
+const POLL_INTERVAL_MS = 2000
 
 export default function Login() {
-  const { requestOtp, verifyOtp } = useAuth()
+  const { requestOtp, verifyOtp, pollOtp, status, authUser } = useAuth()
   const navigate = useNavigate()
+  const phoneInputRef = useRef(null)
   const [step, setStep] = useState('phone')
-  const [phone, setPhone] = useState('+998')
+  const [phone, setPhone] = useState(maskPhoneUz('+998'))
+  const phoneReady = isCompletePhoneUz(phone)
   const [code, setCode] = useState('')
+  const [otpRequestId, setOtpRequestId] = useState(null)
   const [error, setError] = useState('')
+  const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const pollOtpRef = useRef(pollOtp)
+  useEffect(() => {
+    pollOtpRef.current = pollOtp
+  }, [pollOtp])
+  useEffect(() => {
+    if (step !== 'code' || !otpRequestId) return undefined
+    const interval = setInterval(async () => {
+      try {
+        const result = await pollOtpRef.current(otpRequestId)
+        if (!result.pending) {
+          navigate(homePathForRole(result.user), { replace: true })
+          return
+        }
+        if (result.code) {
+          setCode((prev) => prev || result.code)
+        }
+      } catch {
+        /* retry next tick */
+      }
+    }, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [step, otpRequestId, navigate])
+
+  function onPhoneChange(e) {
+    setPhone(maskPhoneUz(e.target.value))
+  }
 
   async function onRequestOtp(e) {
     e.preventDefault()
+    if (!isCompletePhoneUz(phone)) {
+      setError('Raqam +998 XX XXX XX XX formatida, 9 xonali bo‘lishi kerak')
+      return
+    }
     setError('')
     setLoading(true)
     try {
-      await requestOtp(phone)
+      const data = await requestOtp(toE164Uz(phone), { intent: 'login' })
+      setOtpRequestId(data.otpRequestId)
       setStep('code')
     } catch (err) {
       setError(err.message || 'Kod yuborilmadi')
@@ -33,8 +73,8 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await verifyOtp(phone, code)
-      navigate('/', { replace: true })
+      const user = await verifyOtp(toE164Uz(phone), code, { intent: 'login' })
+      navigate(homePathForRole(user), { replace: true })
     } catch (err) {
       setError(err.message || 'Kod noto‘g‘ri')
     } finally {
@@ -42,54 +82,139 @@ export default function Login() {
     }
   }
 
-  return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex justify-center">
-          <BrandMark />
-        </div>
+  if (status === 'checking' || status === 'checking-telegram') {
+    return (
+      <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+    )
+  }
 
-        {step === 'phone' ? (
-          <form onSubmit={onRequestOtp} className="rounded-2xl bg-white p-6 shadow-[0_8px_30px_rgba(28,28,40,0.06)]">
-            <h1 className="text-lg font-extrabold">Xush kelibsiz</h1>
-            <p className="mt-1 text-sm text-muted">Telefon raqamingizni kiriting</p>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+998901234567"
-              inputMode="tel"
-              className="mt-4 h-12 w-full rounded-2xl border border-line bg-canvas px-4 text-sm font-semibold outline-none focus:border-brand"
-            />
-            {error ? <p className="mt-2 text-sm font-semibold text-red-500">{error}</p> : null}
-            <Button type="submit" size="lg" disabled={loading} className="mt-4 w-full">
-              {loading ? 'Yuborilmoqda…' : 'Kod olish'}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={onVerify} className="rounded-2xl bg-white p-6 shadow-[0_8px_30px_rgba(28,28,40,0.06)]">
-            <button
-              type="button"
-              onClick={() => setStep('phone')}
-              className="mb-3 flex items-center gap-1 text-sm font-semibold text-muted"
+  if (status === 'authed' && authUser) {
+    return <Navigate to={homePathForRole(authUser)} replace />
+  }
+
+  const notRegistered = /ro‘yxatdan o‘tmagan|royxatdan otmagan/i.test(error || '')
+
+  return (
+    <AuthChrome>
+      {step === 'phone' ? (
+        <form onSubmit={onRequestOtp} className="flex flex-1 flex-col">
+          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Xush kelibsiz!</h1>
+          <p className="mt-1 text-[13px] leading-5 text-muted">Telefon raqamingizni kiriting</p>
+
+          <label className="relative mt-5 block">
+            <span className="absolute -top-2 left-3 z-10 bg-white px-1 text-[11px] font-bold text-brand">Telefon raqam</span>
+            <div
+              className={`flex h-14 items-center gap-2 rounded-[16px] border-[1.5px] bg-white px-3 ${
+                phoneReady ? 'border-brand' : 'border-brand/50'
+              }`}
             >
-              <ArrowLeft className="h-4 w-4" /> {phone}
-            </button>
-            <h1 className="text-lg font-extrabold">Tasdiqlash kodi</h1>
-            <p className="mt-1 text-sm text-muted">SMS orqali yuborilgan 6 xonali kodni kiriting</p>
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="000000"
-              inputMode="numeric"
-              className="mt-4 h-12 w-full rounded-2xl border border-line bg-canvas px-4 text-center text-lg font-extrabold tracking-[0.3em] outline-none focus:border-brand"
-            />
-            {error ? <p className="mt-2 text-sm font-semibold text-red-500">{error}</p> : null}
-            <Button type="submit" size="lg" disabled={loading || code.length !== 6} className="mt-4 w-full">
-              {loading ? 'Tekshirilmoqda…' : 'Tasdiqlash'}
-            </Button>
-          </form>
-        )}
-      </div>
-    </div>
+              <FlagUz className="h-4 w-[22px]" />
+              <span className="text-[15px] font-extrabold">+998</span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              <input
+                ref={phoneInputRef}
+                value={maskLocalPhoneUz(phone)}
+                onChange={onPhoneChange}
+                placeholder="87 735 36 36"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={12}
+                className="min-w-0 flex-1 bg-transparent text-[15px] font-extrabold tracking-wide outline-none placeholder:font-semibold placeholder:text-slate-300"
+              />
+              {phoneReady ? (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </span>
+              ) : null}
+            </div>
+          </label>
+
+          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{error}</p> : null}
+          {notRegistered ? (
+            <Link
+              to="/register"
+              state={{ phone }}
+              className="mt-2 text-center text-[13px] font-extrabold text-brand"
+            >
+              Ro‘yxatdan o‘tish
+            </Link>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={loading || !phoneReady}
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+          >
+            {loading ? 'Yuborilmoqda…' : 'Kod olish'}
+            <ArrowRight className="absolute right-5 h-5 w-5" />
+          </button>
+
+          <div className="my-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-line" />
+            <span className="text-[11px] font-semibold text-muted">Yoki davom eting</span>
+            <span className="h-px flex-1 bg-line" />
+          </div>
+
+          <a
+            href={`https://t.me/${TELEGRAM_BOT}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3"
+          >
+            <TelegramMark />
+            <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali kirish</span>
+            <ChevronRight className="h-4 w-4 text-slate-300" />
+          </a>
+          <button
+            type="button"
+            onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon yoki Telegram ishlating.')}
+            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3"
+          >
+            <GoogleMark />
+            <span className="min-w-0 flex-1 text-left text-[14px] font-bold">Google orqali kirish</span>
+            <ChevronRight className="h-4 w-4 text-slate-300" />
+          </button>
+          {note ? <p className="mt-2 text-center text-[11px] font-semibold text-muted">{note}</p> : null}
+
+          <p className="mt-auto pt-5 text-center text-[13px] text-muted">
+            Hisobingiz yo‘qmi?{' '}
+            <Link to="/register" state={{ phone }} className="font-extrabold text-brand">
+              Ro‘yxatdan o‘tish
+            </Link>
+          </p>
+        </form>
+      ) : (
+        <form onSubmit={onVerify} className="flex flex-1 flex-col">
+          <button
+            type="button"
+            onClick={() => setStep('phone')}
+            className="mb-3 flex h-11 items-center gap-1 text-[13px] font-semibold text-muted"
+          >
+            <ArrowLeft className="h-4 w-4" /> {phone}
+          </button>
+          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
+          <p className="mt-1 text-[13px] leading-5 text-muted">
+            SMS yoki Telegram orqali kelgan 6 xonali kodni kiriting. Telegramdagi “Tasdiqlash va kirish” ham ishlaydi.
+          </p>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="000000"
+            inputMode="numeric"
+            className="mt-5 h-14 w-full rounded-[16px] border-[1.5px] border-brand/50 bg-white px-4 text-center text-[18px] font-extrabold tracking-[0.35em] outline-none focus:border-brand"
+          />
+          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{error}</p> : null}
+          <button
+            type="submit"
+            disabled={loading || code.length !== 6}
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+          >
+            {loading ? 'Tekshirilmoqda…' : 'Tasdiqlash'}
+            <ArrowRight className="absolute right-5 h-5 w-5" />
+          </button>
+        </form>
+      )}
+    </AuthChrome>
   )
 }

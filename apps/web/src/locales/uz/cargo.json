@@ -1,0 +1,30 @@
+{
+  "pageTitle": "Yuk jo‘natish",
+  "pageSubtitle": "Qabul qiluvchi ma’lumotlari va og‘irlikni kiriting",
+  "fromLabel": "Qayerdan",
+  "toLabel": "Qayerga",
+  "swap": "Almashtirish",
+  "cargoTypeLabel": "Yuk turi",
+  "types": {
+    "docs": "Hujjat",
+    "clothes": "Kiyim",
+    "food": "Oziq-ovqat",
+    "tech": "Texnika",
+    "other": "Boshqa"
+  },
+  "weightLabel": "Og‘irlik",
+  "recipientNameLabel": "Qabul qiluvchi ismi",
+  "recipientNamePlaceholder": "Ism familiya",
+  "phoneLabel": "Telefon",
+  "noteLabel": "Izoh",
+  "notePlaceholder": "Yuk haqida qisqacha",
+  "yourPrice": "Sizning narxingiz",
+  "priceAriaLabel": "Jo‘natish narxi",
+  "som": "so‘m",
+  "priceHint": "Istalgan summani yozing — haydovchi shu narxni ko‘radi.",
+  "suggested": "Taklif {{amount}}",
+  "sending": "Yuborilmoqda…",
+  "confirm": "{{amount}} · tasdiqlash",
+  "success": "Buyurtma qabul qilindi · {{amount}}",
+  "errorDefault": "Xatolik yuz berdi, qaytadan urinib ko‘ring"
+}

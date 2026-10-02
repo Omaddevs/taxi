@@ -1,0 +1,64 @@
+{
+  "header": {
+    "menuAria": "Меню",
+    "subtitle": "Панель водителя"
+  },
+  "approvalBanner": "Ваша заявка на рассмотрении. После подтверждения станут доступны заказы.",
+  "earningsCard": {
+    "title": "Доход за сегодня",
+    "orders": "{{count}} заказ(ов)",
+    "stats": "Статистика"
+  },
+  "status": {
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "acceptingOrders": "Заказы принимаются",
+    "notAcceptingOrders": "Заказы не поступают"
+  },
+  "postAd": {
+    "title": "Разместить новое объявление",
+    "subtitle": "Укажите маршрут, места и цену"
+  },
+  "rating": {
+    "label": "Рейтинг",
+    "new": "Новый",
+    "count": "{{count}} оценок"
+  },
+  "balance": {
+    "label": "Баланс",
+    "accountNumber": "Номер счёта",
+    "topUp": "Пополнить +"
+  },
+  "quickLinks": {
+    "orders": "Заказы",
+    "history": "История",
+    "payments": "Платежи",
+    "settings": "Настройки"
+  },
+  "referral": {
+    "title": "Пригласите друга",
+    "subtitle": "Получайте бонус за каждого подтверждённого друга"
+  },
+  "goOffline": "Выйти из онлайн-режима",
+  "menu": {
+    "orders": "Заказы",
+    "cargo": "Грузы",
+    "stats": "Статистика",
+    "rating": "Рейтинг",
+    "referFriend": "Пригласить друга",
+    "notifications": "Уведомления",
+    "settings": "Настройки"
+  },
+  "nearby": {
+    "title": "Ближайший заказ",
+    "newBadge": "Новый",
+    "distanceHint": "Расстояние по маршруту",
+    "newOrder": "Новый заказ",
+    "extraCount": " · ещё {{count}} новых"
+  },
+  "common": {
+    "details": "Подробнее",
+    "close": "Закрыть",
+    "accept": "Принять"
+  }
+}

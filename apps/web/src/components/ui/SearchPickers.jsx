@@ -1,8 +1,31 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Minus, Plus, Search, X } from 'lucide-react'
+import {
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  LoaderCircle,
+  MapPin,
+  Minus,
+  Navigation,
+  PersonStanding,
+  Plus,
+  X,
+} from 'lucide-react'
 import { MONTHS, cn, formatDateShortUz } from '../../lib/utils'
-import { REGIONS, formatPlace, getRegion, searchUzPlaces } from '../../data/uzbekistan'
+import {
+  ACTIVE_REGION_IDS,
+  REGIONS_BY_AVAILABILITY,
+  formatPlace,
+  getRegion,
+  isRegionActive,
+  matchRegion,
+  searchUzPlaces,
+} from '../../data/uzbekistan'
+import { useApp } from '../../context/AppContext'
+import { extractCity, formatAddress, reverseGeocode } from '../../lib/geocode'
 
 const WEEKDAYS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 
@@ -28,7 +51,7 @@ function useDesktop() {
   return desktop
 }
 
-function BottomSheet({ open, title, onClose, children }) {
+function BottomSheet({ open, title, onClose, children, bare = false }) {
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -40,16 +63,23 @@ function BottomSheet({ open, title, onClose, children }) {
 
   if (!open) return null
   return createPortal(
-    <div className="fixed inset-0 z-[120] lg:hidden">
+    <div className="fixed inset-0 z-[120]">
       <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
-      <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)]">
-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-ink">{title}</h3>
-          <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      <div
+        className={cn(
+          'absolute inset-x-0 bottom-0 max-h-[85vh] touch-pan-y overflow-y-auto overscroll-contain rounded-t-2xl px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)] [-webkit-overflow-scrolling:touch]',
+          bare ? 'bg-[#eef3f6]' : 'bg-white',
+        )}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300" />
+        {bare ? null : (
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-extrabold text-ink">{title}</h3>
+            <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
         {children}
       </div>
     </div>,
@@ -101,9 +131,24 @@ export function PickerTrigger({ icon: Icon, label, value, open, onClick, variant
   )
 }
 
-function PickerShell({ open, onClose, title, align = 'left', trigger, children, panelClass }) {
+// `forceSheet` skips the desktop absolute-popover branch entirely and always uses the
+// (portal-based, viewport-contained) BottomSheet — for callers whose trigger lives in a
+// layout that's narrow/mobile-styled regardless of the actual browser window width (e.g. the
+// driver app's shell), where the popover's `left-0`/`right-0` anchoring against the trigger
+// can overflow past the visible card even though `useDesktop()` says "desktop".
+function PickerShell({
+  open,
+  onClose,
+  title,
+  align = 'left',
+  trigger,
+  children,
+  panelClass,
+  forceSheet = false,
+  bare = false,
+}) {
   const ref = useRef(null)
-  const desktop = useDesktop()
+  const desktop = useDesktop() && !forceSheet
 
   useEffect(() => {
     if (!open || !desktop) return
@@ -128,14 +173,14 @@ function PickerShell({ open, onClose, title, align = 'left', trigger, children, 
           {children}
         </div>
       ) : null}
-      <BottomSheet open={open && !desktop} title={title} onClose={onClose}>
+      <BottomSheet open={open && !desktop} title={title} onClose={onClose} bare={bare}>
         {children}
       </BottomSheet>
     </div>
   )
 }
 
-export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
+export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card', forceSheet = false }) {
   const selected = parseIso(value)
   const [view, setView] = useState({ year: selected.year, month: selected.month })
   const [prevOpen, setPrevOpen] = useState(open)
@@ -161,6 +206,7 @@ export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVa
       open={open}
       onClose={onClose}
       title="Sanani tanlang"
+      forceSheet={forceSheet}
       trigger={
         <PickerTrigger
           icon={CalendarIcon}
@@ -242,11 +288,32 @@ function nowTime() {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
+// Sequential 24-hour picker: pick an hour (0–23, no AM/PM), it auto-advances to the minute
+// grid (00–59); picking a minute confirms and closes. A back-link on the minute step lets the
+// user revisit the hour without re-opening the picker.
+export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card', forceSheet = false }) {
   const { h, m } = splitTime(value)
+  const [step, setStep] = useState('hour')
+  const [prevOpen, setPrevOpen] = useState(open)
 
-  function setPart(part, next) {
-    onChange(part === 'h' ? `${next}:${m}` : `${h}:${next}`)
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) setStep('hour')
+  }
+
+  function pickHour(hour) {
+    onChange(`${hour}:${m}`)
+    setStep('minute')
+  }
+
+  function pickMinute(min) {
+    onChange(`${h}:${min}`)
+    onClose()
+  }
+
+  function pickPreset(next) {
+    onChange(next)
+    onClose()
   }
 
   return (
@@ -254,6 +321,7 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
       open={open}
       onClose={onClose}
       title="Vaqtni tanlang"
+      forceSheet={forceSheet}
       trigger={
         <PickerTrigger icon={ClockIcon} label="Vaqt" value={value} open={open} onClick={onToggle} variant={triggerVariant} />
       }
@@ -268,12 +336,12 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
             key={label}
             type="button"
             onClick={() => {
-              if (label === 'Hozir') onChange(nowTime())
+              if (label === 'Hozir') pickPreset(nowTime())
               else {
                 const add = label.startsWith('+15') ? 15 : 30
                 const d = new Date()
                 d.setMinutes(d.getMinutes() + add)
-                onChange(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+                pickPreset(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
               }
             }}
             className="flex-1 rounded-xl bg-canvas py-2 text-xs font-bold text-ink hover:bg-brand-soft hover:text-brand"
@@ -282,18 +350,21 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="min-w-0">
-          <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">Soat</p>
-          <div className="no-scrollbar grid h-40 grid-cols-4 content-start gap-1.5 overflow-y-auto pr-0.5">
+
+      {step === 'hour' ? (
+        <>
+          <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">
+            Soatni tanlang (24 soatlik, 0–23)
+          </p>
+          <div className="no-scrollbar grid h-48 touch-pan-y grid-cols-6 content-start gap-1.5 overflow-y-auto overscroll-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
             {HOURS.map((hour) => (
               <button
                 key={`h-${hour}`}
                 type="button"
                 aria-label={`${hour} soat`}
-                onClick={() => setPart('h', hour)}
+                onClick={() => pickHour(hour)}
                 className={cn(
-                  'h-9 rounded-xl text-sm font-bold',
+                  'h-10 rounded-xl text-sm font-bold',
                   hour === h ? 'bg-brand text-white shadow-sm shadow-brand/30' : 'bg-canvas text-ink hover:bg-brand-soft',
                 )}
               >
@@ -301,18 +372,24 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
               </button>
             ))}
           </div>
-        </div>
-        <div className="min-w-0">
-          <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">Daqiqa</p>
-          <div className="no-scrollbar grid h-40 grid-cols-4 content-start gap-1.5 overflow-y-auto pr-0.5">
+        </>
+      ) : (
+        <>
+          <div className="mb-2 flex items-center justify-between">
+            <button type="button" onClick={() => setStep('hour')} className="flex items-center gap-0.5 text-xs font-bold text-brand">
+              <ChevronLeft className="h-3.5 w-3.5" /> Soat: {h}
+            </button>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Daqiqani tanlang</p>
+          </div>
+          <div className="no-scrollbar grid h-48 touch-pan-y grid-cols-6 content-start gap-1.5 overflow-y-auto overscroll-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
             {MINUTES.map((min) => (
               <button
                 key={`m-${min}`}
                 type="button"
                 aria-label={`${min} daqiqa`}
-                onClick={() => setPart('m', min)}
+                onClick={() => pickMinute(min)}
                 className={cn(
-                  'h-9 rounded-xl text-sm font-bold',
+                  'h-10 rounded-xl text-sm font-bold',
                   min === m ? 'bg-brand text-white shadow-sm shadow-brand/30' : 'bg-canvas text-ink hover:bg-brand-soft',
                 )}
               >
@@ -320,15 +397,8 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
               </button>
             ))}
           </div>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="mt-3 flex h-11 w-full shrink-0 items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white"
-      >
-        Shu vaqtni tanlash
-      </button>
+        </>
+      )}
     </PickerShell>
   )
 }
@@ -671,23 +741,88 @@ function CarPickIcon({ className }) {
   )
 }
 
-export function RegionPicker({ label, region, place, onChange, open, onToggle, onClose, variant = 'stacked', icon: RowIcon }) {
+function PlaceRow({ title, subtitle, soon, selected, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={soon}
+      className="group flex w-full items-center gap-3 pl-4 text-left transition enabled:active:bg-canvas disabled:cursor-not-allowed"
+    >
+      <MapPin className={cn('h-5 w-5 shrink-0', selected ? 'text-brand' : 'text-slate-400')} />
+      <span className="flex min-w-0 flex-1 items-center gap-2 border-b border-line py-3.5 pr-4 group-last:border-b-0">
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              'block truncate text-[15px] font-medium',
+              soon ? 'text-slate-400' : 'text-ink',
+              selected && 'font-bold text-brand',
+            )}
+          >
+            {title}
+          </span>
+          {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
+        </span>
+        {soon ? (
+          <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+            Tez orada
+          </span>
+        ) : selected ? (
+          <Check className="h-4 w-4 shrink-0 text-brand" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+        )}
+      </span>
+    </button>
+  )
+}
+
+// `kind` "from" shows the GPS shortcut; "to" can show the already-picked origin above the input
+// (pass `origin` + `onEditOrigin`). `variant="headless"` renders no trigger — the parent drives `open`.
+export function RegionPicker({
+  label,
+  region,
+  place,
+  onChange,
+  open,
+  onToggle,
+  onClose,
+  variant = 'stacked',
+  icon: RowIcon,
+  forceSheet = false,
+  kind,
+  origin,
+  onEditOrigin,
+}) {
+  const { openLocationPicker } = useApp()
+  const side = kind || (origin || label === 'Qayerga' ? 'to' : 'from')
   const [step, setStep] = useState('region')
   const [picked, setPicked] = useState(region)
   const [query, setQuery] = useState('')
+  const [notice, setNotice] = useState('')
+  const [locating, setLocating] = useState(false)
   const [prevOpen, setPrevOpen] = useState(open)
 
   if (open !== prevOpen) {
     setPrevOpen(open)
     if (open) {
-      setStep('region')
+      // Faol viloyatning tumani tanlangan bo‘lsa — darhol shu viloyat tumanlarini ochamiz.
+      setStep(region && place && isRegionActive(region) ? 'district' : 'region')
       setPicked(region)
       setQuery('')
+      setNotice('')
     }
   }
 
   const districts = getRegion(picked)?.districts || []
-  const searchHits = query.trim().length ? searchUzPlaces(query) : []
+  const q = query.trim().toLowerCase()
+  const searchHits = !q
+    ? []
+    : step === 'district'
+      ? districts
+          .filter((d) => d.toLowerCase().includes(q))
+          .map((d) => ({ type: 'district', region: picked, place: d, active: true }))
+      : searchUzPlaces(query)
   const display = formatPlace(region, place) || 'Tanlang'
 
   function pickRegion(name) {
@@ -696,9 +831,96 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
     setStep('district')
   }
 
-  function pickPlace(nextRegion, nextPlace) {
-    onChange({ region: nextRegion, place: nextPlace, label: formatPlace(nextRegion, nextPlace) })
+  function pickPlace(nextRegion, nextPlace, coords) {
+    // Close first so a parent that chains to the next picker inside onChange wins the open state.
     onClose()
+    onChange({ region: nextRegion, place: nextPlace, label: formatPlace(nextRegion, nextPlace), ...coords })
+  }
+
+  function pickGeocoded(loc) {
+    const name = matchRegion(loc.state, loc.city, loc.label)
+    if (!name) {
+      setNotice('Bu manzil hududini aniqlab bo‘lmadi. Ro‘yxatdan tanlang.')
+      return
+    }
+    if (!isRegionActive(name)) {
+      setNotice(`${name} — tez orada ishga tushadi. Hozircha Toshkent, Andijon va Samarqand.`)
+      return
+    }
+    pickPlace(name, loc.label, { lat: loc.lat, lng: loc.lng })
+  }
+
+  function openMap() {
+    setNotice('')
+    openLocationPicker({ title: side === 'to' ? 'Qayerga' : 'Qayerdan', onPick: pickGeocoded })
+  }
+
+  function pickCurrentLocation() {
+    if (!navigator.geolocation) {
+      setNotice('Brauzer geolokatsiyani qo‘llab-quvvatlamaydi.')
+      return
+    }
+    setNotice('')
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const data = await reverseGeocode(coords.latitude, coords.longitude)
+          pickGeocoded({
+            label: formatAddress(data),
+            city: extractCity(data),
+            state: data?.address?.state,
+            lat: coords.latitude,
+            lng: coords.longitude,
+          })
+        } catch {
+          setNotice('Manzil aniqlanmadi. Xaritadan tanlang.')
+        } finally {
+          setLocating(false)
+        }
+      },
+      () => {
+        setLocating(false)
+        setNotice('Joylashuvga ruxsat berilmadi. Ro‘yxat yoki xaritadan tanlang.')
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }
+
+  const InputIcon = side === 'to' ? Flag : PersonStanding
+  const placeholder =
+    step === 'district' ? `${picked}: tuman qidiring` : side === 'to' ? 'Qayerga?' : 'Viloyat yoki manzil'
+
+  let trigger = null
+  if (variant === 'row') {
+    trigger = (
+      <button type="button" onClick={onToggle} className="flex h-[68px] w-full items-center gap-3 px-3.5 text-left">
+        {RowIcon ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+            <RowIcon className="h-[18px] w-[18px]" />
+          </span>
+        ) : null}
+        <span className="min-w-0 flex-1 overflow-hidden pr-9">
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
+          <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{display}</span>
+        </span>
+        <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
+      </button>
+    )
+  } else if (variant === 'stacked') {
+    trigger = (
+      <div>
+        <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{label}</span>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex h-12 w-full items-center justify-between rounded-2xl bg-white px-3.5 text-left text-[15px] font-semibold text-ink"
+        >
+          <span className="min-w-0 truncate">{display}</span>
+          <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -706,109 +928,127 @@ export function RegionPicker({ label, region, place, onChange, open, onToggle, o
       open={open}
       onClose={onClose}
       title={label}
-      panelClass="w-[min(360px,calc(100vw-2rem))]"
-      trigger={
-        variant === 'row' ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            className="flex h-[68px] w-full items-center gap-3 px-3.5 text-left"
-          >
-            {RowIcon ? (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
-                <RowIcon className="h-[18px] w-[18px]" />
-              </span>
-            ) : null}
-            <span className="min-w-0 flex-1 overflow-hidden pr-9">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
-              <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{display}</span>
-            </span>
-            <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
-          </button>
-        ) : (
-          <div>
-            <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{label}</span>
-            <button
-              type="button"
-              onClick={onToggle}
-              className="flex h-12 w-full items-center justify-between rounded-2xl bg-white px-3.5 text-left text-[15px] font-semibold text-ink"
-            >
-              <span className="min-w-0 truncate">{display}</span>
-              <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
-            </button>
-          </div>
-        )
-      }
+      forceSheet={forceSheet}
+      bare
+      panelClass="w-[min(380px,calc(100vw-2rem))] bg-[#eef3f6]!"
+      trigger={trigger}
     >
-      <div className="relative mb-3">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Viloyat yoki tuman qidiring"
-          className="h-11 w-full rounded-2xl bg-canvas pl-9 pr-3 text-sm font-medium outline-none ring-brand/20 focus:bg-white focus:ring-2"
-        />
-      </div>
-
-      {searchHits.length > 0 ? (
-        <div className="no-scrollbar max-h-[50vh] space-y-1.5 overflow-y-auto lg:max-h-72">
-          {searchHits.map((hit) => (
-            <button
-              key={`${hit.region}-${hit.place}`}
-              type="button"
-              onClick={() => (hit.type === 'region' ? pickRegion(hit.region) : pickPlace(hit.region, hit.place))}
-              className="flex h-11 w-full flex-col justify-center rounded-2xl bg-canvas px-4 text-left"
-            >
-              <span className="text-[13px] font-semibold">{hit.place || hit.region}</span>
-              {hit.place ? <span className="text-[11px] text-muted">{hit.region}</span> : <span className="text-[11px] text-muted">Viloyat · tumanlarni ochish</span>}
-            </button>
-          ))}
-        </div>
-      ) : step === 'region' ? (
-        <div className="no-scrollbar max-h-[50vh] space-y-1.5 overflow-y-auto lg:max-h-72">
-          {REGIONS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => pickRegion(item.name)}
-              className={cn(
-                'flex h-11 w-full items-center justify-between rounded-2xl px-4 text-[13px] font-semibold transition',
-                item.name === region ? 'bg-brand-soft text-brand' : 'bg-canvas text-ink',
-              )}
-            >
-              {item.name}
-              <ChevronRight className={cn('h-4 w-4', item.name === region ? 'text-brand' : 'text-slate-300')} />
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div>
-          <button
-            type="button"
-            onClick={() => setStep('region')}
-            className="mb-2 flex items-center gap-1 text-sm font-bold text-brand"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            {picked}
-          </button>
-          <div className="no-scrollbar max-h-[46vh] space-y-1.5 overflow-y-auto lg:max-h-64">
-            {districts.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => pickPlace(picked, item)}
-                className={cn(
-                  'flex h-11 w-full items-center justify-between rounded-2xl px-4 text-[13px] font-semibold transition',
-                  picked === region && item === place ? 'bg-brand-soft text-brand' : 'bg-canvas text-ink',
-                )}
-              >
-                {item}
-                {picked === region && item === place ? <Check className="h-4 w-4" /> : null}
+      <div className="space-y-3 text-ink">
+        <div className="rounded-2xl bg-white shadow-[0_6px_20px_rgba(28,28,40,0.06)]">
+          {side === 'to' && origin?.region ? (
+            <div className="flex items-start gap-3 border-b border-line py-3 pl-4 pr-2">
+              <PersonStanding className="mt-1.5 h-5 w-5 shrink-0" />
+              <button type="button" onClick={onEditOrigin} className="min-w-0 flex-1 text-left">
+                <span className="inline-flex max-w-full rounded-full bg-canvas px-3 py-1 text-[13px] font-semibold">
+                  <span className="truncate">{origin.region}</span>
+                </span>
+                <span className="mt-1.5 block truncate text-[15px]">{origin.place || origin.region}</span>
               </button>
-            ))}
+              {onEditOrigin ? (
+                <button
+                  type="button"
+                  onClick={onEditOrigin}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  aria-label="Qayerdan manzilini o‘zgartirish"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="flex items-center gap-3 py-2 pl-4 pr-2">
+            <InputIcon className="h-5 w-5 shrink-0" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={placeholder}
+              className="h-11 min-w-0 flex-1 bg-transparent text-[16px] caret-brand outline-none placeholder:text-slate-400"
+            />
+            {query ? (
+              <button type="button" onClick={() => setQuery('')} className="p-1 text-muted" aria-label="Tozalash">
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+            <button type="button" onClick={openMap} className="h-10 shrink-0 rounded-full bg-canvas px-4 text-sm font-bold">
+              Xarita
+            </button>
           </div>
+
+          {side === 'from' && !q && step === 'region' ? (
+            <button
+              type="button"
+              onClick={pickCurrentLocation}
+              disabled={locating}
+              className="flex w-full items-center gap-3 border-t border-line px-4 py-3 text-left"
+            >
+              {locating ? (
+                <LoaderCircle className="h-5 w-5 shrink-0 animate-spin text-brand" />
+              ) : (
+                <Navigation className="h-5 w-5 shrink-0 fill-sky-500 text-sky-500" />
+              )}
+              <span className="min-w-0">
+                <span className="block text-[15px] font-bold">Joriy joylashuv</span>
+                <span className="block text-xs text-muted">{locating ? 'Aniqlanmoqda…' : 'GPS orqali aniqlanadi'}</span>
+              </span>
+            </button>
+          ) : null}
         </div>
-      )}
+
+        {notice ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">{notice}</p> : null}
+
+        <div className="no-scrollbar max-h-[50vh] touch-pan-y overflow-y-auto overscroll-contain rounded-2xl bg-white lg:max-h-80 [-webkit-overflow-scrolling:touch]">
+          {step === 'district' && !q ? (
+            <div className="flex items-center gap-2 border-b border-line px-2 py-2">
+              <button
+                type="button"
+                onClick={() => setStep('region')}
+                className="flex h-9 items-center gap-1 rounded-full px-2 text-sm font-bold text-brand"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Viloyatlar
+              </button>
+              <span className="min-w-0 flex-1 truncate pr-2 text-right text-sm font-bold">{picked}</span>
+            </div>
+          ) : null}
+
+          {q ? (
+            searchHits.length ? (
+              searchHits.map((hit) => (
+                <PlaceRow
+                  key={`${hit.region}-${hit.place}`}
+                  title={hit.place || hit.region}
+                  subtitle={hit.place ? hit.region : 'Viloyat · tumanlarni ochish'}
+                  soon={!hit.active}
+                  selected={hit.region === region && hit.place === place}
+                  onClick={() => (hit.type === 'region' ? pickRegion(hit.region) : pickPlace(hit.region, hit.place))}
+                />
+              ))
+            ) : (
+              <p className="px-4 py-6 text-center text-sm text-muted">Hech narsa topilmadi — “Xarita” orqali belgilang.</p>
+            )
+          ) : step === 'region' ? (
+            REGIONS_BY_AVAILABILITY.map((item) => (
+              <PlaceRow
+                key={item.id}
+                title={item.name}
+                soon={!ACTIVE_REGION_IDS.has(item.id)}
+                selected={item.name === region}
+                onClick={() => pickRegion(item.name)}
+              />
+            ))
+          ) : (
+            districts.map((item) => (
+              <PlaceRow
+                key={item}
+                title={item}
+                selected={picked === region && item === place}
+                onClick={() => pickPlace(picked, item)}
+              />
+            ))
+          )}
+        </div>
+      </div>
     </PickerShell>
   )
 }

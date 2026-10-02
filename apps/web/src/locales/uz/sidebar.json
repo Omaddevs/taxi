@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "home": "Bosh sahifa",
+    "history": "Safarlarim",
+    "cargo": "Yetkazish",
+    "roadside": "Yo‘lda yordam",
+    "map": "Smart xarita",
+    "fuel": "Yoqilg‘i",
+    "autoService": "Avtoservis",
+    "drivers": "Haydovchilar",
+    "favorites": "Sevimlilar",
+    "wallet": "To‘lovlar",
+    "notifications": "Xabarnomalar",
+    "promo": "Promo kodlar",
+    "help": "Yordam",
+    "settings": "Sozlamalar"
+  },
+  "becomeDriver": {
+    "title": "Haydovchi bo‘lish",
+    "subtitle": "Daromadingizni oshiring",
+    "cta": "Boshlash"
+  },
+  "support": "24/7 Yordam · {{phone}}"
+}

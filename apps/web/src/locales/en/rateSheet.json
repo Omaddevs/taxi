@@ -1,0 +1,8 @@
+{
+  "close": "Close",
+  "error": "Something went wrong. Please try again.",
+  "starAriaLabel": "{{count}} stars",
+  "commentPlaceholder": "Leave a comment (optional)",
+  "submitting": "Submitting…",
+  "submit": "Submit"
+}

@@ -1,0 +1,10 @@
+{
+  "allFilter": "Все",
+  "title": "Результаты поиска",
+  "resultsCount_one": "Найдена {{count}} поездка",
+  "resultsCount_few": "Найдено {{count}} поездки",
+  "resultsCount_many": "Найдено {{count}} поездок",
+  "resultsCount_other": "Найдено {{count}} поездок",
+  "loading": "Загрузка…",
+  "empty": "Рейсы не найдены."
+}

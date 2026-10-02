@@ -1,4 +1,4 @@
-import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from './tokens'
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokens'
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
@@ -30,7 +30,7 @@ async function tryRefresh() {
       .then(async (res) => {
         if (!res.ok) return false
         const data = await res.json()
-        setAccessToken(data.accessToken)
+        setTokens(data.accessToken, data.refreshToken)
         return true
       })
       .catch(() => false)

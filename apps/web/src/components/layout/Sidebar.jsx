@@ -78,7 +78,7 @@ export function Sidebar({ embedded = false }) {
         <NavLink
           to="/become-driver"
           onClick={() => setDrawerOpen(false)}
-          className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-brand hover:bg-pink-50"
+          className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-brand hover:bg-brand-soft"
         >
           Boshlash
         </NavLink>

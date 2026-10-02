@@ -1,0 +1,74 @@
+{
+  "common": {
+    "close": "Закрыть",
+    "choose": "Выберите"
+  },
+  "datePicker": {
+    "title": "Выберите дату",
+    "label": "Дата",
+    "weekdays": {
+      "mo": "Пн",
+      "tu": "Вт",
+      "we": "Ср",
+      "th": "Чт",
+      "fr": "Пт",
+      "sa": "Сб",
+      "su": "Вс"
+    }
+  },
+  "timePicker": {
+    "title": "Выберите время",
+    "label": "Время",
+    "presetNow": "Сейчас",
+    "preset15": "+15 мин",
+    "preset30": "+30 мин",
+    "chooseHour": "Выберите час (24-часовой формат, 0–23)",
+    "hourAriaLabel": "{{hour}} час",
+    "chooseMinute": "Выберите минуту",
+    "minuteAriaLabel": "{{min}} минута",
+    "backToHour": "Час: {{hour}}"
+  },
+  "passengerPicker": {
+    "title": "Пассажиры",
+    "count_one": "{{count}} человек",
+    "count_few": "{{count}} человека",
+    "count_many": "{{count}} человек",
+    "count_other": "{{count}} человека",
+    "howMany": "Сколько пассажиров?"
+  },
+  "luggagePicker": {
+    "title": "Объём багажа",
+    "items": {
+      "small": { "title": "Маленький", "desc": "Ручная кладь, сумка" },
+      "medium": { "title": "Средний", "desc": "1–2 чемодана" },
+      "large": { "title": "Большой", "desc": "3+ чемодана" }
+    }
+  },
+  "genderPicker": {
+    "title": "Пол",
+    "items": {
+      "male": { "title": "Мужчина", "desc": "Пассажир мужчина" },
+      "female": { "title": "Женщина", "desc": "Пассажир женщина" },
+      "couple": { "title": "Пара", "desc": "Супружеская пара" }
+    }
+  },
+  "seatPicker": {
+    "title": "Выбор места",
+    "label": "Место",
+    "items": {
+      "front": { "title": "Переднее сиденье", "desc": "Рядом с водителем" },
+      "backRight": { "title": "Заднее правое", "desc": "Задний ряд, справа" },
+      "backLeft": { "title": "Заднее левое", "desc": "Задний ряд, слева" },
+      "backMiddle": { "title": "Заднее среднее", "desc": "Задний ряд, посередине" },
+      "any": { "title": "Не важно", "desc": "Любое место" }
+    }
+  },
+  "carPicker": {
+    "title": "Выбор автомобиля",
+    "label": "Автомобиль"
+  },
+  "regionPicker": {
+    "searchPlaceholder": "Найдите область или район",
+    "openDistricts": "Область · открыть районы"
+  }
+}

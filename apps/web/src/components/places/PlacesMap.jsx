@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { ArrowLeft, LoaderCircle, LocateFixed } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { DEFAULT_LOCATION } from '../../lib/geocode'
 import { googleMapsUrl } from '../../lib/geo'
+import { BaseTiles } from '../map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from '../location/GeoAskSheet'
 import { useShare } from '../ui/ShareSheet'
 import 'leaflet/dist/leaflet.css'
@@ -154,7 +155,7 @@ export function PlacesMap({
           zoomControl={false}
           attributionControl={false}
         >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+          <BaseTiles />
           <MapReady origin={origin} selected={selected} />
           <Marker
             position={[origin.lat, origin.lng]}

@@ -46,3 +46,9 @@ export class TooManyRequestsError extends AppError {
     super(429, 'TOO_MANY_REQUESTS', message, details)
   }
 }
+
+export class ServiceUnavailableError extends AppError {
+  constructor(message = 'Service unavailable', details?: unknown) {
+    super(503, 'SERVICE_UNAVAILABLE', message, details)
+  }
+}

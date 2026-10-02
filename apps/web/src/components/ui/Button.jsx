@@ -10,7 +10,7 @@ export function Button({
 }) {
   const variants = {
     primary: 'bg-brand text-white hover:bg-brand-dark shadow-sm shadow-brand/20',
-    soft: 'bg-brand-soft text-brand hover:bg-pink-100',
+    soft: 'bg-brand-soft text-brand hover:bg-brand/15',
     outline: 'border border-line bg-white text-ink hover:bg-canvas',
     ghost: 'text-ink hover:bg-canvas',
     danger: 'bg-red-500 text-white hover:bg-red-600',

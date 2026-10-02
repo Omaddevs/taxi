@@ -1,0 +1,30 @@
+{
+  "pageTitle": "Send a parcel",
+  "pageSubtitle": "Enter the recipient's details and the weight",
+  "fromLabel": "From",
+  "toLabel": "To",
+  "swap": "Swap",
+  "cargoTypeLabel": "Parcel type",
+  "types": {
+    "docs": "Documents",
+    "clothes": "Clothing",
+    "food": "Food",
+    "tech": "Electronics",
+    "other": "Other"
+  },
+  "weightLabel": "Weight",
+  "recipientNameLabel": "Recipient's name",
+  "recipientNamePlaceholder": "Full name",
+  "phoneLabel": "Phone",
+  "noteLabel": "Note",
+  "notePlaceholder": "A short note about the parcel",
+  "yourPrice": "Your price",
+  "priceAriaLabel": "Delivery price",
+  "som": "UZS",
+  "priceHint": "Enter any amount — the driver will see this exact price.",
+  "suggested": "Suggested {{amount}}",
+  "sending": "Sending…",
+  "confirm": "{{amount}} · confirm",
+  "success": "Order accepted · {{amount}}",
+  "errorDefault": "Something went wrong, please try again"
+}

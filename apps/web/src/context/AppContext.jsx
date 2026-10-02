@@ -9,6 +9,10 @@ const AppContext = createContext(null)
 const LOCATION_KEY = 'taxiline-location'
 const PLUS_KEY = 'taxiline-plus'
 const LANG_KEY = 'taxiline-lang'
+const THEME_KEY = 'taxiline-theme'
+const NOTIFS_KEY = 'taxiline-notifs'
+const AUTO_ACCEPT_KEY = 'taxiline-auto-accept'
+const REGIONS_KEY = 'taxiline-work-regions'
 
 function loadLanguage() {
   try {
@@ -18,6 +22,34 @@ function loadLanguage() {
     /* ignore */
   }
   return 'uz'
+}
+
+function loadBool(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw === '1') return true
+    if (raw === '0') return false
+  } catch {
+    /* ignore */
+  }
+  return fallback
+}
+
+function loadTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
+function loadWorkRegions() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(REGIONS_KEY) || '[]')
+    return Array.isArray(raw) ? raw.filter((x) => typeof x === 'string') : []
+  } catch {
+    return []
+  }
 }
 
 function loadPlusPlan() {
@@ -63,9 +95,30 @@ export function AppProvider({ children }) {
     staleTime: 15_000,
   })
 
+  const [pendingFavorites, setPendingFavorites] = useState({})
+
   const toggleFavoriteMutation = useMutation({
     mutationFn: ({ id, liked }) => (liked ? api.delete(`/favorites/${id}`) : api.post(`/favorites/${id}`)),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['favorites'] }),
+    onMutate: ({ id, liked }) => {
+      setPendingFavorites((prev) => ({ ...prev, [id]: !liked }))
+    },
+    onError: (_err, { id }) => {
+      setPendingFavorites((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+    },
+    onSettled: (_data, _err, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] }).then(() => {
+        setPendingFavorites((prev) => {
+          if (!(id in prev)) return prev
+          const next = { ...prev }
+          delete next[id]
+          return next
+        })
+      })
+    },
   })
 
   const user = useMemo(() => {
@@ -76,13 +129,20 @@ export function AppProvider({ children }) {
     }
   }, [rawUser])
 
-  const favoriteIds = useMemo(() => new Set(favoriteOffers.map((o) => o.id)), [favoriteOffers])
+  const favoriteIds = useMemo(() => {
+    const set = new Set(favoriteOffers.map((o) => o.id))
+    for (const [id, liked] of Object.entries(pendingFavorites)) {
+      if (liked) set.add(id)
+      else set.delete(id)
+    }
+    return set
+  }, [favoriteOffers, pendingFavorites])
 
   const [search, setSearch] = useState({
     mode: 'passenger',
-    from: 'Qashqadaryo, Qarshi shahri',
-    fromRegion: 'Qashqadaryo',
-    fromPlace: 'Qarshi shahri',
+    from: 'Samarqand, Samarqand shahri',
+    fromRegion: 'Samarqand',
+    fromPlace: 'Samarqand shahri',
     to: 'Toshkent shahri, Yunusobod',
     toRegion: 'Toshkent shahri',
     toPlace: 'Yunusobod',
@@ -99,16 +159,46 @@ export function AppProvider({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [location, setLocation] = useState(loadSavedLocation)
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
+  // Set when a screen (e.g. Cargo) opens the picker to choose an arbitrary address instead of
+  // the user's own location — confirm then hands the pick to onPick and leaves `location` alone.
+  const [locationPickerRequest, setLocationPickerRequest] = useState(null)
   const [gpsFix, setGpsFix] = useState(null)
   const [gpsStatus, setGpsStatus] = useState('idle')
   const [plusPlan, setPlusPlan] = useState(loadPlusPlan)
   const [language, setLanguage] = useState(loadLanguage)
+  const [theme, setTheme] = useState(loadTheme)
+  const [notifsEnabled, setNotifsEnabled] = useState(() => loadBool(NOTIFS_KEY, true))
+  const [autoAccept, setAutoAccept] = useState(() => loadBool(AUTO_ACCEPT_KEY, false))
+  const [workRegions, setWorkRegions] = useState(loadWorkRegions)
   const watchIdRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem(LANG_KEY, language)
     document.documentElement.lang = language
   }, [language])
+
+  useEffect(() => {
+    if (rawUser?.language && ['uz', 'ru', 'en'].includes(rawUser.language)) {
+      setLanguage(rawUser.language)
+    }
+  }, [rawUser?.id, rawUser?.language])
+
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, theme)
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
+
+  useEffect(() => {
+    localStorage.setItem(NOTIFS_KEY, notifsEnabled ? '1' : '0')
+  }, [notifsEnabled])
+
+  useEffect(() => {
+    localStorage.setItem(AUTO_ACCEPT_KEY, autoAccept ? '1' : '0')
+  }, [autoAccept])
+
+  useEffect(() => {
+    localStorage.setItem(REGIONS_KEY, JSON.stringify(workRegions))
+  }, [workRegions])
 
   useEffect(() => {
     localStorage.setItem(LOCATION_KEY, JSON.stringify(location))
@@ -215,13 +305,16 @@ export function AppProvider({ children }) {
       location,
       setLocation,
       locationPickerOpen,
+      locationPickerRequest,
       gpsFix,
       gpsStatus,
       requestUserLocation,
       queryGeoPermission,
       watchUserLocation,
       stopWatchingLocation,
-      openLocationPicker: () => {
+      openLocationPicker: (request) => {
+        // Also wired straight to onClick, so ignore anything that isn't a real request object.
+        setLocationPickerRequest(request && typeof request.onPick === 'function' ? request : null)
         setLocationPickerOpen(true)
         if (gpsStatus === 'granted') return
         requestUserLocation()
@@ -231,6 +324,14 @@ export function AppProvider({ children }) {
       setPlusPlan,
       language,
       setLanguage,
+      theme,
+      setTheme,
+      notifsEnabled,
+      setNotifsEnabled,
+      autoAccept,
+      setAutoAccept,
+      workRegions,
+      setWorkRegions,
     }),
     [
       user,
@@ -242,6 +343,7 @@ export function AppProvider({ children }) {
       drawerOpen,
       location,
       locationPickerOpen,
+      locationPickerRequest,
       gpsFix,
       gpsStatus,
       requestUserLocation,
@@ -250,6 +352,10 @@ export function AppProvider({ children }) {
       stopWatchingLocation,
       plusPlan,
       language,
+      theme,
+      notifsEnabled,
+      autoAccept,
+      workRegions,
     ],
   )
 

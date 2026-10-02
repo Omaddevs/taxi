@@ -7,7 +7,7 @@ import { LocationPicker } from '../location/LocationPicker'
 import { useApp } from '../../context/AppContext'
 
 const fullBleed = ['/driver', '/sos']
-const hideTopMobile = ['/', '/ride', '/plus', '/fuel', '/map', '/wallet']
+const hideTopMobile = ['/', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet']
 const flushMobile = ['/plus', '/fuel', '/map', '/wallet']
 const mapScreens = ['/fuel', '/map']
 
@@ -40,7 +40,7 @@ export function AppLayout() {
   const mapScreen = mapScreens.includes(pathname) || isHubMap(pathname) || isChat(pathname)
 
   return (
-    <div className={`min-h-svh ${mobileHome ? 'bg-white lg:bg-canvas' : 'bg-canvas'}`}>
+    <div className={`min-h-svh overflow-x-clip ${mobileHome ? 'bg-white lg:bg-canvas' : 'bg-canvas'}`}>
       <div className="mx-auto flex min-h-svh max-w-[1440px]">
         {!hideChrome ? (
           <div className="sticky top-0 hidden h-svh lg:block">
@@ -58,20 +58,22 @@ export function AppLayout() {
             className={`flex-1 ${
               hideChrome
                 ? ''
-                : mapScreen
-                  ? 'lg:px-8 lg:pb-8 lg:pt-6'
-                  : mobileHome
-                    ? 'pb-24 lg:px-8 lg:pb-8 lg:pt-6'
-                    : flush
-                      ? 'pb-24 lg:px-8 lg:pb-8 lg:pt-6'
-                      : 'px-4 pb-24 pt-4 lg:px-8 lg:pb-8 lg:pt-6'
+                : isChat(pathname)
+                  ? ''
+                  : mapScreen
+                    ? 'lg:px-8 lg:pb-8 lg:pt-6'
+                    : mobileHome
+                      ? 'lg:px-8 lg:pb-8 lg:pt-6'
+                      : flush
+                        ? 'pb-24 lg:px-8 lg:pb-8 lg:pt-6'
+                        : 'px-4 pb-24 pt-4 lg:px-8 lg:pb-8 lg:pt-6'
             }`}
           >
             <Outlet />
           </main>
         </div>
       </div>
-      {!hideChrome ? <BottomNav /> : null}
+      {!hideChrome && !isChat(pathname) ? <BottomNav /> : null}
       <MobileDrawer />
       <LocationPicker />
     </div>

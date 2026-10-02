@@ -1,0 +1,47 @@
+{
+  "header": { "title": "Do'stingizni taklif qiling" },
+  "hero": {
+    "title": "Do'stlaringizni taklif qiling va bonuslar oling!",
+    "subtitle": "Do'stingiz TaxiLine'da ro'yxatdan o'tib, birinchi buyurtmasini bajarsa, siz va do'stingiz bonus olasiz."
+  },
+  "bonus": {
+    "title": "Siz va do'stingiz uchun bonus",
+    "you": "Sizga",
+    "friend": "Do'stingizga"
+  },
+  "howItWorks": {
+    "title": "Qanday ishlaydi?",
+    "step1": "Do'stingizga havolangizni yuboring",
+    "step2": "Do'stingiz ro'yxatdan o'tadi",
+    "step3": "Do'stingiz birinchi buyurtmani bajaradi",
+    "step4": "Siz va do'stingiz bonus olasiz!"
+  },
+  "copy": { "button": "Nusxa olish" },
+  "shareText": "TaxiLine'da haydovchi bo'ling — mening havolam orqali: {{url}}",
+  "shareMethods": {
+    "title": "Ulashish usullari",
+    "instagram": "Instagram",
+    "telegram": "Telegram",
+    "link": "Havolani ulashish",
+    "more": "Boshqalar"
+  },
+  "telegramSheet": {
+    "title": "Telegram",
+    "question": "Qayerga o'tmoqchisiz?",
+    "bot": "Telegram Bot",
+    "channel": "Telegram Kanal"
+  },
+  "banner": "Ko'proq do'st taklif qiling, ko'proq bonus oling! Cheksiz do'st taklif qiling va daromadingizni oshiring.",
+  "stats": {
+    "title": "Statistika",
+    "viewAll": "Batafsil",
+    "invited": "Taklif qilingan",
+    "registered": "Ro'yxatdan o'tgan",
+    "completedOrders": "Buyurtma bajargan",
+    "totalBonus": "Jami bonus"
+  },
+  "note": {
+    "title": "Eslatma",
+    "text": "Bonuslar do'stingiz birinchi buyurtmani bajarganidan so'ng 24 soat ichida balansingizga qo'shiladi."
+  }
+}

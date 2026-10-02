@@ -155,9 +155,9 @@ function smartColor(p) {
   if (p.group === 'parking') return parkingColor(p.parkingKind)
   if (p.group === 'wash') return washColor(p.washType)
   if (p.group === 'service') return p.near ? '#16a34a' : '#ef4444'
-  if (p.group === 'fuel') return p.near ? '#16a34a' : '#e91e63'
+  if (p.group === 'fuel') return p.near ? '#16a34a' : '#f97316'
   if (p.group === 'ev') return p.near ? '#16a34a' : '#7c3aed'
-  if (p.group === 'food') return '#e91e63'
+  if (p.group === 'food') return '#f97316'
   if (p.group === 'taxi') return '#2563eb'
   return '#64748b'
 }
@@ -259,7 +259,7 @@ export function SmartPlacesMap() {
       mapLabel={(p) => p.mapLabel}
       legend={[
         { color: '#16a34a', label: 'Yaqin / mumkin' },
-        { color: '#e91e63', label: 'Oshxona / yoqilg‘i' },
+        { color: '#f97316', label: 'Oshxona / yoqilg‘i' },
         { color: '#ef4444', label: 'Taqiqlangan' },
       ]}
       hideList
