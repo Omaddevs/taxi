@@ -20,7 +20,7 @@ WORKDIR /repo
 COPY --from=build /repo/node_modules node_modules
 COPY --from=build /repo/package.json package.json
 WORKDIR /repo/server
-COPY --from=build /repo/server/package.json server/prisma.config.ts ./
+COPY --from=build /repo/server/package.json /repo/server/prisma.config.ts ./
 COPY --from=build /repo/server/prisma prisma
 COPY --from=build /repo/server/dist dist
 EXPOSE 4000
