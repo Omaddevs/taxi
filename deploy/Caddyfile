@@ -7,6 +7,10 @@
 	reverse_proxy web:80
 }
 
+www.{$WEB_DOMAIN} {
+	redir https://{$WEB_DOMAIN}{uri} permanent
+}
+
 {$ADMIN_DOMAIN} {
 	encode zstd gzip
 	reverse_proxy admin:80
