@@ -8,7 +8,7 @@ export function Logo({ size = 36 }) {
       alt="TaxiLine"
       width={size}
       height={size}
-      className="rounded-xl object-cover shadow-sm shadow-brand/30"
+      className="shrink-0 object-contain"
       style={{ width: size, height: size }}
     />
   )

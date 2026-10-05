@@ -34,7 +34,7 @@ export function AuthChrome({ children, onBack }) {
         </header>
 
         <div className="flex flex-col items-center pt-1">
-          <LogoPin size={48} />
+          <LogoPin size={72} />
           <Wordmark className="mt-2 text-[22px]" />
           <p className="mt-1 text-[11px] font-semibold text-muted">Yo‘l va xizmatlar</p>
         </div>

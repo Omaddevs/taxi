@@ -49,12 +49,12 @@ function DriverNav() {
         <button
           type="button"
           onClick={() => navigate('/driver/orders')}
-          className={`absolute left-1/2 top-[-22px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/40 ${
+          className={`absolute left-1/2 top-[-22px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-lg shadow-brand/40 ${
             orderActive ? 'ring-4 ring-brand/25' : ''
           }`}
           aria-label="Buyurtma"
         >
-          <LogoPin size={28} className="brightness-0 invert" />
+          <LogoPin size={40} />
         </button>
       </div>
     </nav>
