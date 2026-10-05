@@ -318,6 +318,79 @@ async def _resolve_active_driver(session, telegram_id: str) -> DriverProfile | N
     return driver
 
 
+# Website search form values → the bot's own codes (see keyboards/trip.py).
+_WEB_SEATS = {"old": "front", "orqa-ong": "rear_right", "orqa-chap": "rear_left", "orqa-orta": "rear_middle"}
+_WEB_LUGGAGE = {"kichik": "S", "o'rta": "M", "o‘rta": "M", "katta": "L", "s": "S", "m": "M", "l": "L"}
+_WEB_GENDER = {"erkak": "Erkak", "ayol": "Ayol", "juft": "Er-xotin"}
+
+
+@routes.post("/webapp/passenger-orders")
+async def passenger_order_create(request: web.Request) -> web.Response:
+    """A passenger looking for a car on the website: becomes a normal bot Order, dispatched to
+    the same driver groups / driver DMs as a Telegram order, and shows up in the website's
+    driver section. Identity is the passenger's linked Telegram account."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    telegram_id = payload.get("telegramId")
+    from_region = (payload.get("fromRegion") or "").strip()
+    to_region = (payload.get("toRegion") or "").strip()
+    if not telegram_id or not from_region or not to_region:
+        return web.json_response({"error": "telegramId, fromRegion and toRegion are required"}, status=400)
+    try:
+        passengers = max(1, min(int(payload.get("passengers") or 1), 8))
+    except (TypeError, ValueError):
+        passengers = 1
+
+    bot: Bot = request.app["bot"]
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        if bot_user is None:
+            return web.json_response({"error": "bot_user_not_found"}, status=404)
+
+        note_parts = []
+        gender = _WEB_GENDER.get(str(payload.get("gender") or "").lower())
+        if gender:
+            note_parts.append(f"Yo'lovchi: {gender}")
+        if payload.get("note"):
+            note_parts.append(str(payload["note"]).strip()[:300])
+
+        order = await trips_service.create_order(
+            session,
+            bot_user,
+            {
+                "passenger_name": (payload.get("name") or bot_user.name or "Yo'lovchi").strip()[:120],
+                "passenger_phone": payload.get("phone") or bot_user.phone or "",
+                "for_someone_else": False,
+                "contact_note": " · ".join(note_parts) or None,
+                "pickup_text": (payload.get("pickupText") or "").strip()[:200] or None,
+                "from_region": groups_service.canonical_region(from_region, REGION_NAMES),
+                "from_district": (payload.get("fromDistrict") or "").strip()[:120] or "-",
+                "to_region": groups_service.canonical_region(to_region, REGION_NAMES),
+                "to_district": (payload.get("toDistrict") or "").strip()[:120] or "-",
+                "car_brand": (payload.get("carBrand") or "").strip()[:60] or "Farqi yo'q",
+                "seat": _WEB_SEATS.get(str(payload.get("seat") or ""), "any"),
+                "passengers": passengers,
+                "luggage_size": _WEB_LUGGAGE.get(str(payload.get("luggage") or "").lower(), "M"),
+                "when_text": (payload.get("whenText") or "").strip()[:60] or "Kelishiladi",
+                "source": "WEBAPP",
+            },
+        )
+        sent = await trips_service.dispatch_order(bot, session, order)
+
+        lang = bot_user.language or "uz"
+        try:
+            await bot.send_message(bot_user.telegram_id, t("order_created" if sent else "no_group_for_region", lang))
+        except TelegramAPIError:
+            pass
+
+        return web.json_response({"order": _serialize_order(order), "sent": sent}, status=201)
+
+
 @routes.get("/webapp/driver-orders")
 async def driver_orders(request: web.Request) -> web.Response:
     if not _authorized(request):
@@ -333,11 +406,13 @@ async def driver_orders(request: web.Request) -> web.Response:
             return web.json_response({"registered": False})
 
         open_result = await session.execute(
-            select(Order)
-            .where(Order.status == "OPEN", Order.from_region == driver.region)
-            .order_by(Order.created_at.desc())
+            select(Order).where(Order.status == "OPEN").order_by(Order.created_at.desc())
         )
-        open_orders = [_serialize_order(o) for o in open_result.scalars()]
+        open_orders = [
+            _serialize_order(o)
+            for o in open_result.scalars()
+            if groups_service.driver_serves(driver, o.from_region, o.to_region)
+        ]
 
         claimed_result = await session.execute(
             select(Order).where(Order.assigned_driver_id == driver.id, Order.status == "CLAIMED")

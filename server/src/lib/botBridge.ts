@@ -96,6 +96,35 @@ export async function cancelBotOrder(telegramId: string, orderId: number): Promi
   })
 }
 
+export interface CreatePassengerOrderPayload {
+  telegramId: string
+  name: string
+  phone: string
+  fromRegion: string
+  fromDistrict?: string
+  toRegion: string
+  toDistrict?: string
+  whenText: string
+  passengers: number
+  seat?: string
+  luggage?: string
+  gender?: string
+  carBrand?: string
+  pickupText?: string
+  note?: string
+}
+
+export async function createPassengerBotOrder(
+  payload: CreatePassengerOrderPayload,
+): Promise<{ order: BotOrder; sent: number }> {
+  // Dispatch posts to groups and DMs every matching driver (incl. TTS) — give it time.
+  return botFetch<{ order: BotOrder; sent: number }>('/webapp/passenger-orders', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    timeoutMs: 30000,
+  })
+}
+
 export async function getPassengerBotOrders(telegramId: string): Promise<{ orders: BotOrder[] }> {
   return botFetch<{ orders: BotOrder[] }>(`/webapp/passenger-orders?telegramId=${encodeURIComponent(telegramId)}`)
 }

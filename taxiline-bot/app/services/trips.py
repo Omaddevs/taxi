@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from aiogram import Bot
@@ -12,6 +13,8 @@ from app.i18n.translations import t
 from app.keyboards.trip import luggage_label, order_claim_kb, rating_kb, seat_label
 from app.services import groups as groups_service
 from app.tts.engine import synth
+
+logger = logging.getLogger(__name__)
 
 FRESH_THRESHOLD_MIN = 5
 STALE_THRESHOLD_MIN = 30
@@ -56,6 +59,11 @@ def status_label(order: Order, lang: str) -> str:
     return t("order_status_stale", lang)
 
 
+def _place(region: str, district: str | None) -> str:
+    # Website requests may come without a district ("-"); don't print "Toshkent shahri, -".
+    return f"{region}, {district}" if district and district.strip() not in ("", "-") else region
+
+
 def render_card(order: Order, lang: str) -> str:
     pickup_line = ""
     if order.pickup_lat is not None and order.pickup_lng is not None:
@@ -73,10 +81,8 @@ def render_card(order: Order, lang: str) -> str:
         source=t(SOURCE_KEYS.get(order.source, "order_source_bot"), lang),
         passenger_name=order.passenger_name,
         passenger_phone=order.passenger_phone,
-        from_region=order.from_region,
-        from_district=order.from_district,
-        to_region=order.to_region,
-        to_district=order.to_district,
+        from_place=_place(order.from_region, order.from_district),
+        to_place=_place(order.to_region, order.to_district),
         car_brand=order.car_brand,
         seat=seat_label(order.seat, lang),
         passengers=order.passengers,
@@ -87,7 +93,7 @@ def render_card(order: Order, lang: str) -> str:
     )
 
 
-async def _send_voice(bot: Bot, chat_id: int, order: Order, lang: str) -> None:
+async def _send_voice(bot: Bot, chat_id: int, order: Order, lang: str, thread_id: int | None = None) -> None:
     text = t(
         "dispatch_voice_summary",
         lang,
@@ -98,7 +104,7 @@ async def _send_voice(bot: Bot, chat_id: int, order: Order, lang: str) -> None:
     )
     try:
         path = await synth(text, lang)
-        await bot.send_audio(chat_id, FSInputFile(path))
+        await bot.send_audio(chat_id, FSInputFile(path), message_thread_id=thread_id)
     except Exception:
         # TTS is best-effort (network call to the edge-tts service) — a failure here must
         # never take down an otherwise-successful dispatch.
@@ -106,18 +112,17 @@ async def _send_voice(bot: Bot, chat_id: int, order: Order, lang: str) -> None:
 
 
 async def _approved_active_drivers(
-    session: AsyncSession, region: str, exclude_driver_ids: set[int] | None = None
+    session: AsyncSession, order: Order, exclude_driver_ids: set[int] | None = None
 ) -> list[DriverProfile]:
+    """Approved, unblocked, subscribed drivers this order belongs to — starting in their work
+    region, or the return leg of their route (see groups_service.driver_serves). Region names
+    are compared suffix-insensitively, so website orders ("Samarqand") match too."""
     result = await session.execute(
         select(DriverProfile)
         .options(selectinload(DriverProfile.bot_user), selectinload(DriverProfile.subscription))
-        .where(
-            DriverProfile.region == region,
-            DriverProfile.status == "APPROVED",
-            DriverProfile.blocked.is_(False),
-        )
+        .where(DriverProfile.status == "APPROVED", DriverProfile.blocked.is_(False))
     )
-    drivers = list(result.scalars())
+    drivers = [d for d in result.scalars() if groups_service.driver_serves(d, order.from_region, order.to_region)]
     active = [d for d in drivers if d.subscription is not None and d.subscription.active]
     if exclude_driver_ids:
         active = [d for d in active if d.id not in exclude_driver_ids]
@@ -133,24 +138,27 @@ async def dispatch_order(
     many chats were reached."""
     sent = 0
     has_location = bool((order.pickup_lat is not None and order.pickup_lng is not None) or order.pickup_text)
-    group = await groups_service.resolve_closed_dispatch_group(session, order.from_region, order.to_region)
-    active_drivers = await _approved_active_drivers(session, order.from_region, exclude_driver_ids)
+    targets = await groups_service.resolve_order_dispatch_targets(session, order.from_region, order.to_region)
+    active_drivers = await _approved_active_drivers(session, order, exclude_driver_ids)
 
-    if group is not None:
+    for group, thread_id in targets:
         lang = group.language or "uz"
         try:
             message = await bot.send_message(
-                group.chat_id, render_card(order, lang), reply_markup=order_claim_kb(order.id, lang, has_location)
+                group.chat_id,
+                render_card(order, lang),
+                reply_markup=order_claim_kb(order.id, lang, has_location),
+                message_thread_id=thread_id,
             )
             session.add(
                 OrderDispatch(
                     order_id=order.id, chat_id=group.chat_id, message_id=message.message_id, kind="GROUP", language=lang
                 )
             )
-            await _send_voice(bot, group.chat_id, order, lang)
+            await _send_voice(bot, group.chat_id, order, lang, thread_id)
             sent += 1
         except TelegramAPIError:
-            pass
+            logger.warning("order %s: could not post to group %s", order.id, group.chat_id)
 
     for driver in active_drivers:
         lang = driver.language or "uz"

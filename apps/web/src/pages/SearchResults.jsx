@@ -3,6 +3,7 @@ import { SlidersHorizontal } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { PageTitle } from '../components/ui/ScreenHeader'
 import { TripCard } from '../components/trip/TripCard'
+import { RideRequestCard } from '../components/trip/RideRequestCard'
 import { useApp } from '../context/AppContext'
 import { useOffersSearch } from '../lib/queries'
 import { services } from '../data/mock'
@@ -51,15 +52,19 @@ export default function SearchResults() {
       </div>
 
       {isLoading ? <p className="text-sm text-muted">Yuklanmoqda…</p> : null}
-      {!isLoading && shown.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">Hech qanday reys topilmadi.</p>
-      ) : null}
+      {!isLoading && shown.length === 0 ? <RideRequestCard search={search} prominent /> : null}
 
       <div className="grid gap-3 lg:grid-cols-2">
         {shown.map((trip) => (
           <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
+
+      {!isLoading && shown.length > 0 ? (
+        <div className="mt-4">
+          <RideRequestCard search={search} />
+        </div>
+      ) : null}
     </div>
   )
 }

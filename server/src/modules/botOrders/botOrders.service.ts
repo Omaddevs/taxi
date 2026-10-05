@@ -34,6 +34,47 @@ export async function cancelDriverOrder(userId: string, orderId: number) {
   return botBridge.cancelBotOrder(telegramId, orderId)
 }
 
+function formatWhen(date?: string, time?: string) {
+  if (!date && !time) return 'Kelishiladi'
+  const day = date ? date.split('-').reverse().join('.') : ''
+  return [day, time].filter(Boolean).join(' ')
+}
+
+export async function createPassengerOrder(
+  userId: string,
+  input: {
+    fromRegion: string
+    fromDistrict?: string
+    toRegion: string
+    toDistrict?: string
+    date?: string
+    time?: string
+    passengers: number
+    seat?: string
+    luggage?: string
+    gender?: string
+    carBrand?: string
+    pickupText?: string
+    note?: string
+  },
+) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { telegramId: true, name: true, phone: true },
+  })
+  if (!user?.telegramId) {
+    throw new ForbiddenError('So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)')
+  }
+  const { date, time, ...rest } = input
+  return botBridge.createPassengerBotOrder({
+    ...rest,
+    telegramId: user.telegramId,
+    name: user.name || 'Yo‘lovchi',
+    phone: user.phone,
+    whenText: formatWhen(date, time),
+  })
+}
+
 export async function getMyPassengerOrders(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { telegramId: true } })
   if (!user?.telegramId) return { orders: [] }

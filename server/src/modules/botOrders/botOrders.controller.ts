@@ -26,6 +26,10 @@ export async function cancelOrder(req: Request, res: Response) {
   res.json(result)
 }
 
+export async function createPassengerOrder(req: Request, res: Response) {
+  res.status(201).json(await botOrdersService.createPassengerOrder(req.user!.id, req.body))
+}
+
 export async function getPassengerOrders(req: Request, res: Response) {
   const result = await botOrdersService.getMyPassengerOrders(req.user!.id)
   res.json(result)

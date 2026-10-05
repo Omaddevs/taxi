@@ -217,11 +217,13 @@ async def get_route_group_fuzzy(
 
 
 async def get_closed_group_for_route_fuzzy(
-    session: AsyncSession, from_region: str | None, to_region: str | None
+    session: AsyncSession, from_region: str | None, to_region: str | None, *, either_direction: bool = False
 ) -> Group | None:
     """CLOSED driver groups that were bound to a specific corridor (Andijon-Toshkent), not just
     a single origin region. Passenger ads must land here only when both ends match — otherwise
-    an Andijon→Buxoro order would leak into the Andijon-Toshkent haydovchilar guruhi."""
+    an Andijon→Buxoro order would leak into the Andijon-Toshkent haydovchilar guruhi.
+    `either_direction`: a corridor group serves both ways (Toshkent→Andijon too), even if the
+    admin only entered one direction."""
     if not from_region or not to_region:
         return None
 
@@ -230,10 +232,14 @@ async def get_closed_group_for_route_fuzzy(
     if not wanted_from or not wanted_to:
         return None
 
+    wanted = {(wanted_from, wanted_to)}
+    if either_direction:
+        wanted.add((wanted_to, wanted_from))
+
     result = await session.execute(select(Group).where(Group.kind == "CLOSED"))
     for group in result.scalars():
         for route in group.routes or []:
-            if _region_key(route.get("from_region", "")) == wanted_from and _region_key(route.get("to_region", "")) == wanted_to:
+            if (_region_key(route.get("from_region", "")), _region_key(route.get("to_region", ""))) in wanted:
                 return group
     return None
 
@@ -269,11 +275,57 @@ async def get_unrouted_closed_group_for_region(session: AsyncSession, region: st
 async def resolve_closed_dispatch_group(
     session: AsyncSession, from_region: str | None, to_region: str | None
 ) -> Group | None:
-    """Passenger ads: corridor CLOSED group first, then a legacy region-only group."""
-    group = await get_closed_group_for_route_fuzzy(session, from_region, to_region)
+    """Passenger ads: corridor CLOSED group first (either direction), then a legacy
+    region-only group."""
+    group = await get_closed_group_for_route_fuzzy(session, from_region, to_region, either_direction=True)
     if group is not None:
         return group
     return await get_unrouted_closed_group_for_region(session, from_region)
+
+
+async def resolve_order_dispatch_targets(
+    session: AsyncSession, from_region: str | None, to_region: str | None
+) -> list[tuple[Group, int | None]]:
+    """Every driver group a passenger order should be posted to: the closed haydovchilar group
+    for the corridor/region, plus a ROUTE (forum) group's topic for this exact direction.
+    Returns (group, message_thread_id) pairs, one per chat."""
+    targets: list[tuple[Group, int | None]] = []
+    closed = await resolve_closed_dispatch_group(session, from_region, to_region)
+    if closed is not None:
+        targets.append((closed, None))
+    routed = await get_route_group_fuzzy(session, from_region, to_region)
+    if routed is not None:
+        group, route = routed
+        if all(existing.chat_id != group.chat_id for existing, _ in targets):
+            targets.append((group, route.get("message_thread_id")))
+    return targets
+
+
+def driver_serves(driver, from_region: str | None, to_region: str | None) -> bool:
+    """Whether an order from→to belongs to this driver: it starts in the driver's work region, or
+    it is the return leg of the driver's route (driver works Andijon→Toshkent, so a
+    Toshkent→Andijon passenger is theirs too)."""
+    region = _region_key(driver.region or "")
+    if not region or not from_region:
+        return False
+    if _region_key(from_region) == region:
+        return True
+    driver_to = _region_key(driver.to_region or "")
+    return bool(driver_to) and bool(to_region) and _region_key(from_region) == driver_to and _region_key(to_region) == region
+
+
+def canonical_region(value: str | None, known: list[str]) -> str | None:
+    """Maps a region string from another naming scheme (the website says "Samarqand") onto the
+    bot's own name ("Samarqand viloyati"); exact matches win, unknown values pass through."""
+    if not value:
+        return value
+    if value in known:
+        return value
+    wanted = _region_key(value)
+    for name in known:
+        if _region_key(name) == wanted:
+            return name
+    return value
 
 
 async def get_closed_group_for_driver(session: AsyncSession, driver) -> Group | None:

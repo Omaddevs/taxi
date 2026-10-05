@@ -672,7 +672,7 @@ function SeatIcon({ className }) {
   )
 }
 
-const CARS = [
+export const CARS = [
   { id: 'cobalt', title: 'Chevrolet Cobalt', photo: '/cars/models/cobalt.png?v=2' },
   { id: 'gentra', title: 'Chevrolet Gentra', photo: '/cars/models/gentra.png?v=2' },
   { id: 'lacetti', title: 'Chevrolet Lacetti', photo: '/cars/models/lacetti.png?v=2' },

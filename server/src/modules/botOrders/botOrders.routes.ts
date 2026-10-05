@@ -3,7 +3,7 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as botOrdersController from './botOrders.controller.js'
-import { orderIdParamSchema, rateBotOrderSchema } from './botOrders.schema.js'
+import { createPassengerOrderSchema, orderIdParamSchema, rateBotOrderSchema } from './botOrders.schema.js'
 
 // Bridges the webapp to taxiline-bot's on-demand order/claim system, for users who are
 // registered in both systems (linked via User.telegramId). See app/webserver.py on the bot
@@ -42,6 +42,12 @@ botOrdersRouter.post(
 )
 
 botOrdersRouter.get('/mine', requireAuth, asyncRoute(botOrdersController.getPassengerOrders))
+botOrdersRouter.post(
+  '/mine',
+  requireAuth,
+  validate({ body: createPassengerOrderSchema }),
+  asyncRoute(botOrdersController.createPassengerOrder),
+)
 botOrdersRouter.post(
   '/mine/:id/rating',
   requireAuth,

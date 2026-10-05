@@ -177,6 +177,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ask_car_brand": {"uz": "Avtomobil rusumini tanlang:", "ru": "Выберите марку автомобиля:", "en": "Choose a car brand:"},
     "ask_seat": {"uz": "O'rindiqni tanlang:", "ru": "Выберите место:", "en": "Choose a seat:"},
     "seat_front": {"uz": "Old o'rindiq", "ru": "Переднее сиденье", "en": "Front seat"},
+    "seat_any": {"uz": "Farqi yo'q", "ru": "Без разницы", "en": "Any seat"},
     "seat_rear_right": {"uz": "Orqa o'ng o'rindiq", "ru": "Заднее правое сиденье", "en": "Rear right seat"},
     "seat_rear_left": {"uz": "Orqa chap o'rindiq", "ru": "Заднее левое сиденье", "en": "Rear left seat"},
     "seat_rear_middle": {"uz": "Orqa o'rta o'rindiq", "ru": "Заднее среднее сиденье", "en": "Rear middle seat"},
@@ -531,7 +532,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "{status_label}\n\n"
             "🚕 Yangi buyurtma ({source})\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
-            "📍 {from_region}, {from_district} → {to_region}, {to_district}\n"
+            "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} yo'lovchi · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"
@@ -542,7 +543,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "{status_label}\n\n"
             "🚕 Новый заказ ({source})\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
-            "📍 {from_region}, {from_district} → {to_region}, {to_district}\n"
+            "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} пассажир(ов) · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"
@@ -553,7 +554,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "{status_label}\n\n"
             "🚕 New order ({source})\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
-            "📍 {from_region}, {from_district} → {to_region}, {to_district}\n"
+            "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} passenger(s) · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"

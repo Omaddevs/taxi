@@ -14,6 +14,9 @@ LUGGAGE_LABEL_KEYS = {"S": "luggage_small", "M": "luggage_medium", "L": "luggage
 
 
 def seat_label(code: str, lang: str) -> str:
+    # "any" only comes from the website's "Farqi yo'q" — not offered as a button in the bot.
+    if code == "any":
+        return t("seat_any", lang)
     return t(SEAT_LABEL_KEYS.get(code, "seat_front"), lang)
 
 
