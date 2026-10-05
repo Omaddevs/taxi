@@ -300,6 +300,7 @@ def _serialize_order(order: Order) -> dict:
         "whenText": order.when_text,
         "status": order.status,
         "source": order.source,
+        "contactNote": order.contact_note,
         "createdAt": order.created_at.isoformat() + "Z",
         "pickupLat": order.pickup_lat,
         "pickupLng": order.pickup_lng,

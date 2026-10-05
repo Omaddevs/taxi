@@ -7,7 +7,7 @@ import { useRateSheet } from '../../components/ui/RateSheet'
 import { useApp } from '../../context/AppContext'
 import { api } from '../../lib/api'
 import { avatarOrFallback } from '../../lib/adapters'
-import { formatSom } from '../../lib/utils'
+import { formatPhoneUz, formatSom } from '../../lib/utils'
 import { googleMapsDirUrl, haversineKm, yandexMapsDirUrl } from '../../lib/geo'
 import { findCity } from '../../data/uzCities'
 import { DriverHeader, RouteStops, SeatChips } from './ui'
@@ -19,7 +19,7 @@ export default function DriverOrder() {
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user, gpsFix, gpsStatus, requestUserLocation, watchUserLocation } = useApp()
+  const { gpsFix, gpsStatus, requestUserLocation, watchUserLocation } = useApp()
 
   const { data: bookings = [] } = useQuery({
     queryKey: ['driver-bookings'],
@@ -340,33 +340,42 @@ export default function DriverOrder() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-3 px-4">
-        <img
-          src={avatarOrFallback(order.rider?.avatarUrl, riderName)}
-          alt=""
-          className="h-14 w-14 rounded-full object-cover"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="font-extrabold">{riderName}</p>
-          <p className="text-xs text-muted">
-            {user?.driver?.carModel || order.carModel || 'Cobalt'} • {user?.driver?.plate || order.plate || '—'}
-          </p>
+      <div className="mx-4 mt-4 rounded-2xl border border-line p-3">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted">Mijoz</p>
+        <div className="flex items-center gap-3">
+          <img
+            src={avatarOrFallback(order.rider?.avatarUrl, riderName)}
+            alt=""
+            className="h-14 w-14 shrink-0 rounded-full object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-extrabold">{riderName}</p>
+            {phone ? (
+              <a href={`tel:${phone}`} className="mt-0.5 block text-[15px] font-bold text-brand">
+                {formatPhoneUz(phone)}
+              </a>
+            ) : (
+              <p className="mt-0.5 text-xs text-muted">Telefon raqami ko‘rsatilmagan</p>
+            )}
+          </div>
+          {phone ? (
+            <a href={`tel:${phone}`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm shadow-brand/30" aria-label="Qo‘ng‘iroq qilish">
+              <Phone className="h-4 w-4" />
+            </a>
+          ) : null}
+          {order.conversationId ? (
+            <button
+              type="button"
+              onClick={() => navigate(`/driver/messages/${order.conversationId}`)}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas"
+              aria-label="Chat"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
-        {phone ? (
-          <a href={`tel:${phone}`} className="flex h-11 w-11 items-center justify-center rounded-full bg-canvas" aria-label="Qo‘ng‘iroq">
-            <Phone className="h-4 w-4" />
-          </a>
-        ) : null}
-        {order.conversationId ? (
-          <button
-            type="button"
-            onClick={() => navigate(`/driver/messages/${order.conversationId}`)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-sm shadow-brand/30"
-            aria-label="Chat"
-          >
-            <MessageCircle className="h-4 w-4" />
-          </button>
-        ) : null}
+
+        <PassengerDetails details={order.details} />
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-2 px-4">
@@ -406,6 +415,36 @@ export default function DriverOrder() {
       </div>
 
       {ratingSheet}
+    </div>
+  )
+}
+
+function PassengerDetails({ details }) {
+  if (!details) return null
+  const rows = [
+    details.passengers ? ['Yo‘lovchilar', `${details.passengers} kishi`] : null,
+    details.seat ? ['O‘rindiq', details.seat] : null,
+    details.luggage ? ['Bagaj', details.luggage] : null,
+    details.car ? ['Mashina', details.car] : null,
+    details.source ? ['Manba', details.source] : null,
+  ].filter(Boolean)
+  if (!rows.length && !details.note) return null
+  return (
+    <div className="mt-3 border-t border-line pt-3">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="min-w-0">
+            <p className="text-[11px] font-semibold text-muted">{label}</p>
+            <p className="truncate text-sm font-bold">{value}</p>
+          </div>
+        ))}
+      </div>
+      {details.note ? (
+        <div className="mt-2 rounded-xl bg-canvas px-3 py-2">
+          <p className="text-[11px] font-semibold text-muted">Izoh</p>
+          <p className="whitespace-pre-line text-sm">{details.note}</p>
+        </div>
+      ) : null}
     </div>
   )
 }
