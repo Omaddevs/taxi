@@ -563,9 +563,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
     },
     "dispatch_voice_summary": {
-        "uz": "TaxiLine. Yangi mijoz! {from_region} dan {to_region} ga. {passengers} yo'lovchi. Vaqti: {when_text}.",
-        "ru": "TaxiLine. Новый клиент! Из {from_region} в {to_region}. {passengers} пассажир(ов). Время: {when_text}.",
-        "en": "TaxiLine. New client! From {from_region} to {to_region}. {passengers} passenger(s). Time: {when_text}.",
+        "uz": "Haydovchi, yangi mijoz! {from_region} dan {to_region} ga. {passengers} yo'lovchi. Vaqti: {when_text}.",
+        "ru": "Водитель, новый клиент! Из {from_region} в {to_region}. {passengers} пассажир(ов). Время: {when_text}.",
+        "en": "Driver, new client! From {from_region} to {to_region}. {passengers} passenger(s). Time: {when_text}.",
     },
     "driver_new_order_alert": {
         "uz": "🔔 TaxiLine — yangi mijoz!\n{from_region} → {to_region}\n\nBuyurtma pastda. Uni istalgan vaqt \"📥 Ochiq buyurtmalar\" bo'limida ham ko'rishingiz mumkin.",

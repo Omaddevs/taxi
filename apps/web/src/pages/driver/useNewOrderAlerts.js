@@ -6,7 +6,7 @@ import { filterByWorkRegions, mergeDriverOrders } from './orders'
 
 const POLL_MS = 5000
 const SEEN_KEY = 'taxiline-seen-orders'
-const VOICE_URL = '/sounds/new-order.mp3' // "TaxiLine. Yangi mijoz!"
+const VOICE_URL = '/sounds/new-order.mp3' // "Haydovchi, yangi mijoz!"
 
 function loadSeen() {
   try {
@@ -53,7 +53,7 @@ function playChime() {
 
 /**
  * Watches the driver's incoming orders (bot orders + website bookings) on every driver page and,
- * when a new one arrives, plays the "TaxiLine. Yangi mijoz!" voice, vibrates, shows an in-app
+ * when a new one arrives, plays the "Haydovchi, yangi mijoz!" voice, vibrates, shows an in-app
  * banner and — when the tab is in the background — a system notification.
  */
 export function useNewOrderAlerts() {
