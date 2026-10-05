@@ -1,9 +1,14 @@
+import asyncio
 import hashlib
+import logging
 import os
 
 import edge_tts
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+ATTEMPTS = 3
 
 VOICES = {
     "uz": "uz-UZ-SardorNeural",
@@ -28,15 +33,21 @@ async def synth(text: str, lang: str) -> str:
         return path
 
     voice = VOICES.get(lang, VOICES["uz"])
-    communicate = edge_tts.Communicate(text, voice)
-    try:
-        await communicate.save(path)
-    except Exception:
-        # communicate.save() writes incrementally, so a mid-stream failure (e.g. the edge-tts
-        # websocket being blocked/rejected) can leave a truncated/empty file behind. Without
-        # this cleanup, every later request for the same text would find that broken file via
-        # the os.path.exists check above and hand it out forever instead of retrying.
-        if os.path.exists(path):
-            os.remove(path)
-        raise
+    # The free edge-tts endpoint now and then answers a request with no audio; a retry almost
+    # always succeeds, so try a few times before giving up.
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            await edge_tts.Communicate(text, voice).save(path)
+            return path
+        except Exception:
+            # communicate.save() writes incrementally, so a mid-stream failure (e.g. the edge-tts
+            # websocket being blocked/rejected) can leave a truncated/empty file behind. Without
+            # this cleanup, every later request for the same text would find that broken file via
+            # the os.path.exists check above and hand it out forever instead of retrying.
+            if os.path.exists(path):
+                os.remove(path)
+            if attempt == ATTEMPTS:
+                logger.warning("TTS failed after %s attempts (lang=%s)", ATTEMPTS, lang, exc_info=True)
+                raise
+            await asyncio.sleep(0.5 * attempt)
     return path

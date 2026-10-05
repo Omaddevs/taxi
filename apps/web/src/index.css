@@ -252,3 +252,15 @@ html.dark .bg-canvas {
     animation: none;
   }
 }
+
+/* Driver "yangi mijoz" banner */
+@keyframes slideDown {
+  from {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

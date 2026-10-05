@@ -1,9 +1,10 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Home, MessageCircle, Send, UserRound } from 'lucide-react'
+import { BellRing, Home, MessageCircle, Send, UserRound, Volume2, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { LogoPin } from '../../components/ui/Logo'
 import { api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
+import { useNewOrderAlerts } from './useNewOrderAlerts'
 
 export function DriverLayout() {
   const { user } = useApp()
@@ -18,12 +19,68 @@ export function DriverLayout() {
 
   return (
     <div className="min-h-svh overflow-x-clip overscroll-x-none bg-canvas">
+      <NewOrderBanner />
       <div className="mx-auto min-h-svh max-w-lg overflow-x-clip bg-white shadow-[0_0_80px_rgba(28,28,40,0.06)]">
         <main className={chatOpen ? 'overflow-x-clip' : 'overflow-x-clip pb-[calc(88px+env(safe-area-inset-bottom))]'}>
           <Outlet />
         </main>
       </div>
       {chatOpen ? null : <DriverNav />}
+    </div>
+  )
+}
+
+function NewOrderBanner() {
+  const navigate = useNavigate()
+  const { alert, dismiss, soundBlocked, enableSound } = useNewOrderAlerts()
+  if (!alert) return null
+  const { order, count } = alert
+  const canAskPermission = typeof Notification !== 'undefined' && Notification.permission === 'default'
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-[60] px-3 pt-[max(10px,env(safe-area-inset-top))]">
+      <div className="mx-auto max-w-lg animate-[slideDown_.3s_ease-out] rounded-2xl bg-ink p-3 text-white shadow-2xl">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand">
+            <BellRing className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-extrabold">TaxiLine — yangi mijoz!{count > 1 ? ` (+${count - 1})` : ''}</p>
+            <p className="truncate text-sm text-white/80">
+              {order.from} → {order.to}
+            </p>
+          </div>
+          <button type="button" onClick={dismiss} aria-label="Yopish" className="rounded-full p-1 text-white/60 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              dismiss()
+              navigate(`/driver/orders/${order.id}`)
+            }}
+            className="h-9 flex-1 rounded-xl bg-brand px-3 text-sm font-extrabold"
+          >
+            Ko‘rish
+          </button>
+          {soundBlocked ? (
+            <button type="button" onClick={enableSound} className="flex h-9 items-center gap-1.5 rounded-xl bg-white/10 px-3 text-sm font-bold">
+              <Volume2 className="h-4 w-4" /> Ovozni yoqish
+            </button>
+          ) : null}
+          {canAskPermission ? (
+            <button
+              type="button"
+              onClick={() => Notification.requestPermission().catch(() => {})}
+              className="h-9 rounded-xl bg-white/10 px-3 text-sm font-bold"
+            >
+              Bildirishnomani yoqish
+            </button>
+          ) : null}
+        </div>
+      </div>
     </div>
   )
 }

@@ -14,6 +14,7 @@ from app.keyboards.common import menu_text, share_phone_kb
 from app.keyboards.regions import driver_region_kb
 from app.keyboards.trip import driver_car_kb, order_claim_kb
 from app.services import drivers as drivers_service
+from app.services import groups as groups_service
 from app.services import trips as trips_service
 from app.services.backend_client import backend_client
 from app.services.phone import format_phone, normalize_phone
@@ -243,12 +244,9 @@ async def driver_open_orders(message: Message, session, bot_user, lang: str) -> 
     if driver is None:
         return
 
-    result = await session.execute(
-        select(Order)
-        .where(Order.status == "OPEN", Order.from_region == driver.region)
-        .order_by(Order.created_at.desc())
-    )
-    orders = list(result.scalars())
+    # Same rule as dispatch: orders from the driver's region and the return leg of their route.
+    result = await session.execute(select(Order).where(Order.status == "OPEN").order_by(Order.created_at.desc()))
+    orders = [o for o in result.scalars() if groups_service.driver_serves(driver, o.from_region, o.to_region)]
 
     if not orders:
         await message.answer(t("driver_open_orders_empty", lang))

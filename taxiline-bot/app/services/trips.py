@@ -163,6 +163,12 @@ async def dispatch_order(
     for driver in active_drivers:
         lang = driver.language or "uz"
         try:
+            # A short heads-up first (its own notification sound in Telegram), then the card
+            # with the claim button, then the voice note.
+            await bot.send_message(
+                driver.bot_user.telegram_id,
+                t("driver_new_order_alert", lang, from_region=order.from_region, to_region=order.to_region),
+            )
             message = await bot.send_message(
                 driver.bot_user.telegram_id,
                 render_card(order, lang),
