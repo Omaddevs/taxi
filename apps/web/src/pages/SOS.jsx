@@ -6,22 +6,21 @@ import { googleMapsUrl } from '../lib/geo'
 
 const CONTACTS_KEY = 'taxiline-sos-contacts'
 
-const DEFAULT_CONTACTS = [
-  { id: 't1', name: 'Onam', phone: '+998 90 111 22 33' },
-  { id: 't2', name: 'Otabek do‘st', phone: '+998 91 555 44 33' },
-]
+// Placeholder contacts an earlier build shipped (and saved to localStorage once the user added
+// their own). They are not real people — never offer them as SOS recipients.
+const LEGACY_PLACEHOLDER_PHONES = new Set(['+998 90 111 22 33', '+998 91 555 44 33'])
 
 function loadContacts() {
   try {
     const raw = localStorage.getItem(CONTACTS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) return parsed.filter((c) => !LEGACY_PLACEHOLDER_PHONES.has(c?.phone))
     }
   } catch {
     /* ignore */
   }
-  return DEFAULT_CONTACTS
+  return []
 }
 
 export default function SOS() {
@@ -196,6 +195,11 @@ export default function SOS() {
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
             <p className="text-lg font-extrabold">Ishonchli kontaktlar</p>
             <div className="mt-3 space-y-2">
+              {contacts.length === 0 ? (
+                <p className="rounded-2xl bg-white/10 px-3 py-3 text-sm text-white/70">
+                  Hali kontakt qo‘shilmagan. Favqulodda holatda xabar boradigan yaqinlaringizni pastda qo‘shing.
+                </p>
+              ) : null}
               {contacts.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-3">
                   <div className="min-w-0 flex-1">

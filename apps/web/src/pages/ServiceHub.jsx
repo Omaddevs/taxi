@@ -3,8 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
 import { hubs } from '../data/ecosystem'
-import { AutoServiceMap, EvMap, ParkingMap, WashMap } from './hubMaps'
-import FoodHub from './FoodHub'
+import { AutoServiceMap, EvMap, FoodMap, ParkingMap, WashMap } from './hubMaps'
 
 export default function ServiceHub() {
   const { slug } = useParams()
@@ -12,7 +11,7 @@ export default function ServiceHub() {
   if (slug === 'wash') return <WashMap />
   if (slug === 'parking') return <ParkingMap />
   if (slug === 'ev') return <EvMap />
-  if (slug === 'food') return <FoodHub />
+  if (slug === 'food') return <FoodMap />
   return <HubFallback slug={slug} />
 }
 
