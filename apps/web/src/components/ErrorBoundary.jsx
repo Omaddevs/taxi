@@ -1,6 +1,5 @@
 import { Component } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 
 export class ErrorBoundary extends Component {
   state = { error: null }
@@ -28,8 +27,17 @@ export class ErrorBoundary extends Component {
   }
 }
 
+// Plain Uzbek strings (locales/uz/errorBoundary.json): react-i18next is not installed, and the
+// fallback must render even when everything else is broken.
+const TEXT = {
+  title: 'Nimadir xato ketdi',
+  description: "Sahifani yuklashda kutilmagan xatolik yuz berdi. Qayta urinib ko'ring yoki bosh sahifaga qayting.",
+  retry: 'Qayta urinish',
+  home: 'Bosh sahifa',
+}
+
 function DefaultFallback({ onReset }) {
-  const { t } = useTranslation('errorBoundary')
+  const t = (key) => TEXT[key]
   return (
     <div className="flex min-h-[60svh] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand">

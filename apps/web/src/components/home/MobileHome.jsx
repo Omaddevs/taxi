@@ -22,10 +22,19 @@ function formatAmount(value) {
 
 // Markaz o‘zgarsa (GPS aniqlandi yoki manzil tanlandi) xaritani silliq suramiz.
 // `recenter` — "joriy joylashuv" bosilganda koordinata o‘zgarmagan bo‘lsa ham qaytib kelish uchun.
+// On desktop this map is mounted but hidden (0×0), and Leaflet's flyTo animation on a 0-size map
+// computes NaN coordinates and throws — so jump without animation until it is actually visible.
 function FollowCenter({ center, recenter }) {
   const map = useMap()
   useEffect(() => {
-    map.flyTo(center, Math.max(map.getZoom(), recenter ? 17 : 16), { duration: 0.8 })
+    if (!center.every(Number.isFinite)) return
+    const zoom = Math.max(map.getZoom(), recenter ? 17 : 16)
+    const size = map.getSize()
+    if (!size.x || !size.y) {
+      map.setView(center, zoom, { animate: false })
+      return
+    }
+    map.flyTo(center, zoom, { duration: 0.8 })
   }, [map, center, recenter])
   return null
 }
