@@ -57,6 +57,7 @@ export function PlacesMap({
   listMeta,
   renderDetail,
   hideList = false,
+  emptyText,
   onBack,
 }) {
   const navigate = useNavigate()
@@ -175,6 +176,11 @@ export function PlacesMap({
             />
           ))}
         </MapContainer>
+        {emptyText && shown.length === 0 ? (
+          <div className="pointer-events-none absolute inset-x-0 top-3 z-[1000] flex justify-center px-4">
+            <p className="rounded-2xl bg-white/95 px-4 py-2 text-xs font-semibold text-muted shadow-md">{emptyText}</p>
+          </div>
+        ) : null}
         {legend?.length ? (
           <div className="absolute right-3 top-3 rounded-2xl bg-white/95 px-2.5 py-2 text-[10px] font-bold shadow-md">
             {legend.map((row) => (

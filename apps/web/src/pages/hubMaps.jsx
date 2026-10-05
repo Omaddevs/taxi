@@ -1,18 +1,15 @@
 import { PlacesMap } from '../components/places/PlacesMap'
 import { PhotoRow, PlaceSheet, PriceGrid } from '../components/places/PlaceSheet'
 import { formatSom } from '../lib/utils'
-import { FUEL_TYPE_LABEL } from '../data/fuel'
 import {
   EV_FILTERS,
   PARKING_FILTERS,
   SERVICE_FILTERS,
-  SMART_FILTERS,
   WASH_FILTERS,
   autoAround,
   evAround,
   parkingAround,
   parkingColor,
-  smartPlaces,
   washAround,
   washColor,
 } from '../data/places'
@@ -96,76 +93,6 @@ function EvDetail({ place, onClose, onShare }) {
   )
 }
 
-function SmartDetail({ place, onClose, onShare }) {
-  if (place.group === 'service') return <AutoDetail place={place} onClose={onClose} onShare={onShare} />
-  if (place.group === 'wash') return <WashDetail place={place} onClose={onClose} onShare={onShare} />
-  if (place.group === 'parking') return <ParkingDetail place={place} onClose={onClose} onShare={onShare} />
-  if (place.group === 'ev') return <EvDetail place={place} onClose={onClose} onShare={onShare} />
-  if (place.group === 'food') {
-    return (
-      <PlaceSheet place={place} onClose={onClose} onShare={onShare}>
-        <PhotoRow photos={place.photos} />
-        <p className="mb-1 mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Menyu</p>
-        <div className="space-y-2">
-          {place.menu?.map((m) => (
-            <div key={m.title} className="flex items-center gap-3 rounded-2xl bg-canvas p-2">
-              <img src={m.photo} alt="" className="h-14 w-14 rounded-xl object-cover" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold">{m.title}</p>
-                <p className="text-xs font-extrabold text-brand">{formatSom(m.price)}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </PlaceSheet>
-    )
-  }
-  if (place.group === 'fuel') {
-    return (
-      <PlaceSheet place={place} onClose={onClose} onShare={onShare}>
-        <div className="flex flex-wrap gap-1.5">
-          {place.types.map((t) => (
-            <span key={t} className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-bold text-brand">
-              {FUEL_TYPE_LABEL[t] || t}
-            </span>
-          ))}
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {Object.entries(place.prices || {}).map(([key, value]) => (
-            <div key={key} className="rounded-2xl bg-canvas px-3 py-2.5">
-              <p className="text-[11px] font-semibold capitalize text-muted">{key === 'kwh' ? 'kWh' : key}</p>
-              <p className="text-[15px] font-extrabold">
-                {formatSom(value)}
-                {key === 'kwh' ? <span className="text-[11px] font-semibold text-muted"> / kWh</span> : null}
-              </p>
-            </div>
-          ))}
-        </div>
-      </PlaceSheet>
-    )
-  }
-  return (
-    <PlaceSheet place={place} onClose={onClose} onShare={onShare}>
-      <p className="text-sm text-muted">{place.address}</p>
-    </PlaceSheet>
-  )
-}
-
-function smartColor(p) {
-  if (p.group === 'parking') return parkingColor(p.parkingKind)
-  if (p.group === 'wash') return washColor(p.washType)
-  if (p.group === 'service') return p.near ? '#16a34a' : '#ef4444'
-  if (p.group === 'fuel') return p.near ? '#16a34a' : '#f97316'
-  if (p.group === 'ev') return p.near ? '#16a34a' : '#7c3aed'
-  if (p.group === 'food') return '#f97316'
-  if (p.group === 'taxi') return '#2563eb'
-  return '#64748b'
-}
-
-function smartMatch(p, filter) {
-  return p.group === filter
-}
-
 export function AutoServiceMap() {
   return (
     <PlacesMap
@@ -247,23 +174,21 @@ export function EvMap() {
   )
 }
 
+// Demo places were removed; the map stays empty until real places come from the backend.
+const noPlaces = () => []
+
 export function SmartPlacesMap() {
   return (
     <PlacesMap
       title="Smart xarita"
-      hint="Barcha xizmatlar · belgini bosing"
-      filters={SMART_FILTERS}
-      items={smartPlaces}
-      filterMatch={smartMatch}
-      pinColor={smartColor}
+      hint="Barcha xizmatlar bir xaritada"
+      items={noPlaces}
+      filterMatch={() => true}
+      pinColor={() => '#16a34a'}
       mapLabel={(p) => p.mapLabel}
-      legend={[
-        { color: '#16a34a', label: 'Yaqin / mumkin' },
-        { color: '#f97316', label: 'Oshxona / yoqilg‘i' },
-        { color: '#ef4444', label: 'Taqiqlangan' },
-      ]}
       hideList
-      renderDetail={(p, h) => <SmartDetail place={p} {...h} />}
+      emptyText="Hozircha xaritada joylar yo‘q"
+      renderDetail={() => null}
     />
   )
 }
