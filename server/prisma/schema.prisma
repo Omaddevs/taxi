@@ -347,6 +347,38 @@ model DriverApplication {
   @@index([status])
 }
 
+enum MapPlaceCategory {
+  FUEL
+  SERVICE
+  WASH
+  PARKING
+  EV
+  FOOD
+  HELP
+  OTHER
+}
+
+// Places on the website's Smart xarita, managed in the admin panel (→ Xarita joylari).
+model MapPlace {
+  id          String           @id @default(cuid())
+  category    MapPlaceCategory
+  name        String
+  brand       String?
+  address     String?
+  phone       String?
+  hours       String? // free text, e.g. "08:00–22:00" or "24/7"
+  description String?
+  lat         Float
+  lng         Float
+  imageUrl    String? // data: URI from the admin uploader, or a plain https URL
+  prices      Json             @default("[]") // [{ title: string, price: number (so'm) }]
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([active, category])
+}
+
 // Admin-managed car catalog shown to drivers when they register (admin panel → Mashinalar).
 model Car {
   id        String      @id @default(cuid())

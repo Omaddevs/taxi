@@ -32,6 +32,7 @@ import { adminBotGroupsRouter } from './modules/botGroups/adminBotGroups.routes.
 import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter } from './modules/instagram/instagram.routes.js'
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
 import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
+import { adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPlaces.routes.js'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -89,6 +90,8 @@ export function createApp() {
   app.use('/admin/services', adminServicesRouter)
   app.use('/cars', carsRouter)
   app.use('/admin/cars', adminCarsRouter)
+  app.use('/places', mapPlacesRouter)
+  app.use('/admin/places', adminMapPlacesRouter)
   app.use('/admin/subscription-plans', adminSubscriptionPlansRouter)
   app.use('/admin/driver-subscriptions', adminDriverSubscriptionsRouter)
   app.use('/admin/analytics', adminAnalyticsRouter)

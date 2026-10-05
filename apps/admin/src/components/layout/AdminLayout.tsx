@@ -28,6 +28,7 @@ import {
   MessagesSquare,
   type LucideIcon,
   CarFront,
+  MapPinned,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
@@ -89,6 +90,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { to: '/services', label: 'Xizmatlar', icon: Layers, roles: ['ADMIN'] },
       { to: '/cars', label: 'Mashinalar', icon: CarFront, roles: ['ADMIN'] },
+      { to: '/map-places', label: 'Xarita joylari', icon: MapPinned, roles: ['ADMIN'] },
       { to: '/groups', label: 'Guruhlar', icon: MessagesSquare, roles: ['ADMIN'] },
       { to: '/broadcast', label: 'Xabar yuborish', icon: Megaphone, roles: ['ADMIN'] },
       { to: '/integrations', label: 'Integratsiyalar', icon: Link2, roles: ['ADMIN'] },

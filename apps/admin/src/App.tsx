@@ -23,6 +23,7 @@ import OrderDetail from './pages/OrderDetail'
 import Listings from './pages/Listings'
 import Services from './pages/Services'
 import Cars from './pages/Cars'
+import MapPlaces from './pages/MapPlaces'
 import SubscriptionPlans from './pages/SubscriptionPlans'
 import Promo from './pages/Promo'
 import Finance from './pages/Finance'
@@ -219,6 +220,14 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <Cars />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/map-places"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <MapPlaces />
             </RequireRole>
           }
         />

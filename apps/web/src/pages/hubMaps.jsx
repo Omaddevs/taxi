@@ -1,6 +1,11 @@
+import { useCallback, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { PlacesMap } from '../components/places/PlacesMap'
 import { PhotoRow, PlaceSheet, PriceGrid } from '../components/places/PlaceSheet'
 import { formatSom } from '../lib/utils'
+import { api } from '../lib/api'
+import { haversineKm } from '../lib/geo'
+import { MAP_PLACE_CATEGORIES, MAP_PLACE_CATEGORY } from '../data/mapPlaceCategories'
 import {
   EV_FILTERS,
   PARKING_FILTERS,
@@ -174,21 +179,64 @@ export function EvMap() {
   )
 }
 
-// Demo places were removed; the map stays empty until real places come from the backend.
-const noPlaces = () => []
+// Places added by admins in the admin panel (→ Xarita joylari), served by GET /places.
+function toMapItem(place, origin) {
+  const km = haversineKm(origin, place)
+  return {
+    ...place,
+    km,
+    near: km <= 3,
+    mapLabel: place.brand || place.name,
+    photos: place.imageUrl ? [place.imageUrl] : [],
+  }
+}
+
+function SmartPlaceDetail({ place, onClose, onShare }) {
+  const category = MAP_PLACE_CATEGORY[place.category]
+  return (
+    <PlaceSheet place={place} onClose={onClose} onShare={onShare}>
+      <span
+        className="inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+        style={{ background: category?.color || '#64748b' }}
+      >
+        {category?.label || 'Joy'}
+        {Number.isFinite(place.km) ? ` · ${place.km < 1 ? `${Math.round(place.km * 1000)} m` : `${place.km.toFixed(1)} km`}` : ''}
+      </span>
+      <PhotoRow photos={place.photos} />
+      {place.description ? <p className="mt-3 whitespace-pre-line text-sm text-ink">{place.description}</p> : null}
+      <PriceGrid items={place.prices} />
+    </PlaceSheet>
+  )
+}
 
 export function SmartPlacesMap() {
+  const { data = [], isLoading, isError } = useQuery({
+    queryKey: ['map-places'],
+    queryFn: () => api.get('/places'),
+    staleTime: 60_000,
+  })
+
+  const items = useCallback((origin) => data.map((p) => toMapItem(p, origin)).sort((a, b) => a.km - b.km), [data])
+
+  // Only categories that actually have places get a filter chip.
+  const filters = useMemo(() => {
+    const present = new Set(data.map((p) => p.category))
+    const chips = MAP_PLACE_CATEGORIES.filter((c) => present.has(c.id))
+    return chips.length > 1 ? [{ id: 'all', label: 'Barchasi' }, ...chips] : []
+  }, [data])
+
   return (
     <PlacesMap
       title="Smart xarita"
       hint="Barcha xizmatlar bir xaritada"
-      items={noPlaces}
-      filterMatch={() => true}
-      pinColor={() => '#16a34a'}
+      filters={filters}
+      items={items}
+      filterMatch={(p, filter) => p.category === filter}
+      pinColor={(p) => MAP_PLACE_CATEGORY[p.category]?.color || '#64748b'}
       mapLabel={(p) => p.mapLabel}
       hideList
-      emptyText="Hozircha xaritada joylar yo‘q"
-      renderDetail={() => null}
+      emptyText={isLoading ? 'Joylar yuklanmoqda…' : isError ? 'Joylarni yuklab bo‘lmadi' : 'Hozircha xaritada joylar yo‘q'}
+      renderDetail={(p, h) => <SmartPlaceDetail place={p} {...h} />}
     />
   )
 }

@@ -40,18 +40,6 @@ export const FOOD_FILTERS = [
   { id: 'grocery', label: 'Do‘kon' },
 ]
 
-export const SMART_FILTERS = [
-  { id: 'all', label: 'Barchasi' },
-  { id: 'taxi', label: 'Taxi' },
-  { id: 'fuel', label: 'Yoqilg‘i' },
-  { id: 'service', label: 'Avtoservis' },
-  { id: 'wash', label: 'Moyka' },
-  { id: 'parking', label: 'Parking' },
-  { id: 'ev', label: 'EV' },
-  { id: 'food', label: 'Oshxona' },
-  { id: 'help', label: 'Yordam' },
-]
-
 export const AUTO_SERVICES = [
   {
     id: 'as1',
