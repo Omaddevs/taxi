@@ -2,6 +2,8 @@ import { prisma } from '../../lib/prisma.js'
 import { ConflictError, ForbiddenError, NotFoundError } from '../../errors/AppError.js'
 import { normalizePhone } from '../../lib/otp.js'
 import { writeAudit } from '../../lib/audit.js'
+import { notifyDriverReviewed } from '../../lib/botNotify.js'
+import { startSubscriptionOnApproval } from '../subscriptions/subscriptions.lifecycle.js'
 
 export async function submitApplication(
   userId: string,
@@ -291,8 +293,8 @@ export async function setApproved(driverId: string, approved: boolean) {
   const driver = await prisma.driver.findUnique({ where: { id: driverId } })
   if (!driver) throw new NotFoundError('Haydovchi topilmadi')
 
-  return prisma.$transaction(async (tx) => {
-    const updated = await tx.driver.update({
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.driver.update({
       where: { id: driverId },
       data: { approved, online: approved ? driver.online : false },
       include: { user: { select: DRIVER_USER_SELECT } },
@@ -301,8 +303,22 @@ export async function setApproved(driverId: string, approved: boolean) {
       where: { id: driver.userId },
       data: { role: approved ? 'DRIVER' : 'PASSENGER' },
     })
-    return updated
+    if (approved) {
+      // Approving from the Drivers list settles a still-pending application too, so it doesn't
+      // linger under "Haydovchi arizalari" → Kutilmoqda.
+      await tx.driverApplication.updateMany({
+        where: { userId: driver.userId, status: 'PENDING' },
+        data: { status: 'APPROVED', reviewedAt: new Date() },
+      })
+    }
+    return result
   })
+
+  if (approved && !driver.approved) {
+    await startSubscriptionOnApproval(driverId)
+    await notifyDriverReviewed({ telegramId: updated.user.telegramId, phone: updated.user.phone, status: 'APPROVED' })
+  }
+  return updated
 }
 
 export async function archiveDriver(driverId: string, actorId: string, reason?: string) {
@@ -361,14 +377,15 @@ export async function reviewApplication(
   if (!application) throw new NotFoundError('Application not found')
   if (application.status !== 'PENDING') throw new ConflictError('Application already reviewed')
 
-  return prisma.$transaction(async (tx) => {
+  const { reviewed, approvedDriverId } = await prisma.$transaction(async (tx) => {
     const updated = await tx.driverApplication.update({
       where: { id: applicationId },
       data: { status, reviewedBy: adminUserId, reviewedAt: new Date(), rejectionReason: rejectionReason ?? null },
     })
 
+    let approvedDriverId: string | null = null
     if (status === 'APPROVED') {
-      await tx.driver.upsert({
+      const driver = await tx.driver.upsert({
         where: { userId: application.userId },
         update: { carModel: application.carModel, plate: application.plate, approved: true },
         create: {
@@ -378,11 +395,29 @@ export async function reviewApplication(
           approved: true,
         },
       })
+      approvedDriverId = driver.id
       await tx.user.update({ where: { id: application.userId }, data: { role: 'DRIVER' } })
     }
 
-    return updated
+    return { reviewed: updated, approvedDriverId }
   })
+
+  if (approvedDriverId) await startSubscriptionOnApproval(approvedDriverId)
+
+  const user = await prisma.user.findUnique({
+    where: { id: application.userId },
+    select: { telegramId: true, phone: true },
+  })
+  if (user) {
+    await notifyDriverReviewed({
+      telegramId: user.telegramId,
+      phone: user.phone,
+      status,
+      rejectionReason: rejectionReason ?? null,
+    })
+  }
+
+  return reviewed
 }
 
 // Public-facing driver directory: approved, not archived, best rated first. No phone or plate.

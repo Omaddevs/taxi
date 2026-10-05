@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from aiogram import Bot
@@ -57,7 +58,8 @@ async def _subscription_job(bot: Bot) -> None:
     async with session_scope() as session:
         for subscription in await drivers_service.expiring_soon(session, settings.subscription_reminder_days):
             driver = subscription.driver
-            days_left = max((subscription.expires_at - datetime.utcnow()).days, 0)
+            # Rounded up: the job runs every few hours, so "4.8 days left" should still read 5.
+            days_left = max(math.ceil((subscription.expires_at - datetime.utcnow()).total_seconds() / 86400), 1)
             try:
                 await bot.send_message(
                     driver.bot_user.telegram_id,
@@ -72,7 +74,11 @@ async def _subscription_job(bot: Bot) -> None:
             driver = subscription.driver
             await drivers_service.deactivate(session, subscription)
             try:
-                await bot.send_message(driver.bot_user.telegram_id, t("driver_subscription_expired", driver.language))
+                await bot.send_message(
+                    driver.bot_user.telegram_id,
+                    t("driver_subscription_expired", driver.language),
+                    reply_markup=_admin_contact_kb(),
+                )
             except TelegramAPIError:
                 pass
             await _kick_from_closed_group(bot, session, driver)

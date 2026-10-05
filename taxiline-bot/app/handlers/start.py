@@ -30,6 +30,7 @@ async def _build_menu(session, bot_user, lang: str):
             car_model=driver.car_model,
             plate=driver.plate,
             approved=driver.status == "APPROVED",
+            status=driver.status,
         )
 
     code = await backend_client.telegram_login_token(bot_user.telegram_id)

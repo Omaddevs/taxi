@@ -39,17 +39,21 @@ async def create_application(
     region: str,
     to_region: str | None = None,
 ) -> DriverProfile:
-    driver = DriverProfile(
-        bot_user_id=bot_user.id,
-        full_name=full_name,
-        phone=phone,
-        car_model=car_model,
-        plate=normalize_plate(plate),
-        region=region,
-        to_region=to_region,
-        language=bot_user.language,
-    )
-    session.add(driver)
+    # bot_users.id is unique on driver_profiles, so a driver re-applying after a rejection
+    # reuses their old row instead of inserting a second one.
+    driver = await get_by_bot_user(session, bot_user.id)
+    if driver is None:
+        driver = DriverProfile(bot_user_id=bot_user.id)
+        session.add(driver)
+    driver.full_name = full_name
+    driver.phone = phone
+    driver.car_model = car_model
+    driver.plate = normalize_plate(plate)
+    driver.region = region
+    driver.to_region = to_region
+    driver.language = bot_user.language
+    driver.status = "PENDING"
+    driver.rejection_reason = None
     bot_user.role = "DRIVER"
     await session.commit()
     await session.refresh(driver)
@@ -189,12 +193,21 @@ async def find_by_phone(session: AsyncSession, phone: str) -> DriverProfile | No
 
 
 async def approve_application(session: AsyncSession, driver: DriverProfile) -> None:
-    """Marks the application approved. Does **not** start the subscription — per the new
-    lifecycle, that only begins once the driver's chat_join_request into the region's closed
-    group is auto-approved (handlers/admin/group_join.py) via `start_subscription` below."""
+    """Marks the application approved and starts the 1-month subscription from the approval
+    day (the expiry reminder goes out `subscription_reminder_days` before it ends)."""
     driver.status = "APPROVED"
     driver.approved_at = datetime.utcnow()
     await session.commit()
+    await ensure_subscription(session, driver)
+
+
+async def ensure_subscription(session: AsyncSession, driver: DriverProfile) -> DriverSubscription:
+    """Starts the subscription unless one is already running — joining the closed group after
+    approval must not push the end date further out."""
+    subscription = await _get_subscription(session, driver.id)
+    if subscription is not None and subscription.active and subscription.expires_at > datetime.utcnow():
+        return subscription
+    return await start_subscription(session, driver)
 
 
 async def _get_subscription(session: AsyncSession, driver_id: int) -> DriverSubscription | None:
@@ -203,8 +216,8 @@ async def _get_subscription(session: AsyncSession, driver_id: int) -> DriverSubs
 
 
 async def start_subscription(session: AsyncSession, driver: DriverProfile) -> DriverSubscription:
-    """Starts (or restarts) the 30-day subscription clock from now. Called both when a driver
-    actually joins their closed group, and by an admin's manual "Obunani yangilash".
+    """Starts (or restarts) the 30-day subscription clock from now. Called on approval (via
+    `ensure_subscription`) and by an admin's manual "Obunani yangilash".
 
     Takes the `driver` object (not just its id) so that when a subscription is created for the
     first time, the new row can be attached to `driver.subscription` directly — otherwise the

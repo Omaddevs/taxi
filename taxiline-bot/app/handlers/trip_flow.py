@@ -16,6 +16,7 @@ from app.keyboards.trip import (
     luggage_kb,
     luggage_label,
     order_confirm_kb,
+    order_edit_kb,
     passengers_kb,
     seat_kb,
     seat_label,
@@ -24,6 +25,7 @@ from app.keyboards.trip import (
 from app.data.cars import CAR_BRANDS
 from app.scheduler import activity_tracker
 from app.services.phone import format_phone, normalize_phone
+from app.services.stats import TASHKENT
 from app.services.trips import create_order, dispatch_order
 from app.states.trip import TripOrder
 
@@ -88,6 +90,8 @@ async def enter_new_phone(message: Message, state: FSMContext, bot_user, lang: s
         await message.answer(t("invalid_phone", lang))
         return
     await state.update_data(passenger_phone=phone, passenger_name=bot_user.name or message.from_user.full_name)
+    if await _finish_edit(message, state, lang, edit=False):
+        return
     await _ask_location(message, lang)
     await state.set_state(TripOrder.entering_location)
 
@@ -136,6 +140,8 @@ async def pick_from_district(callback: CallbackQuery, state: FSMContext, lang: s
     district = REGIONS[region][int(didx)]
     await state.update_data(from_district=district)
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_to_region", lang), reply_markup=regions_kb("to"))
     await state.set_state(TripOrder.choosing_to_region)
 
@@ -157,6 +163,8 @@ async def pick_to_district(callback: CallbackQuery, state: FSMContext, lang: str
     district = REGIONS[region][int(didx)]
     await state.update_data(to_district=district)
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_car_brand", lang), reply_markup=car_brand_kb())
     await state.set_state(TripOrder.choosing_car)
 
@@ -166,6 +174,8 @@ async def pick_car(callback: CallbackQuery, state: FSMContext, lang: str) -> Non
     idx = int(callback.data.split(":")[-1])
     await state.update_data(car_brand=CAR_BRANDS[idx])
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_seat", lang), reply_markup=seat_kb(lang))
     await state.set_state(TripOrder.choosing_seat)
 
@@ -175,6 +185,8 @@ async def pick_seat(callback: CallbackQuery, state: FSMContext, lang: str) -> No
     seat = callback.data.split(":")[-1]
     await state.update_data(seat=seat)
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_passengers", lang), reply_markup=passengers_kb())
     await state.set_state(TripOrder.choosing_passengers)
 
@@ -184,6 +196,8 @@ async def pick_passengers(callback: CallbackQuery, state: FSMContext, lang: str)
     n = int(callback.data.split(":")[-1])
     await state.update_data(passengers=n)
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_luggage", lang), reply_markup=luggage_kb(lang))
     await state.set_state(TripOrder.choosing_luggage)
 
@@ -193,13 +207,15 @@ async def pick_luggage(callback: CallbackQuery, state: FSMContext, lang: str) ->
     code = callback.data.split(":")[-1]
     await state.update_data(luggage_size=code)
     await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_time", lang), reply_markup=time_kb(lang))
     await state.set_state(TripOrder.entering_time)
 
 
 @router.callback_query(TripOrder.entering_time, F.data == "trip:time:now")
 async def pick_time_now(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
-    await state.update_data(when_text=datetime.now().strftime("%H:%M"))
+    await state.update_data(when_text=datetime.now(TASHKENT).strftime("%H:%M"))
     await callback.answer()
     await _show_summary(callback.message, state, lang, edit=True)
 
@@ -210,7 +226,17 @@ async def pick_time_text(message: Message, state: FSMContext, lang: str) -> None
     await _show_summary(message, state, lang, edit=False)
 
 
+async def _finish_edit(message: Message, state: FSMContext, lang: str, *, edit: bool) -> bool:
+    """When the step was reached from the summary's edit menu, jumps straight back to the
+    summary instead of continuing the linear flow. Returns True if it did."""
+    if not (await state.get_data()).get("editing"):
+        return False
+    await _show_summary(message, state, lang, edit=edit)
+    return True
+
+
 async def _show_summary(message: Message, state: FSMContext, lang: str, *, edit: bool) -> None:
+    await state.update_data(editing=False)
     data = await state.get_data()
     text = t(
         "order_summary",
@@ -252,6 +278,48 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, session, bot
     else:
         await callback.message.answer(t("order_created", lang))
     await send_main_menu(callback.message, session, bot_user, lang)
+
+
+@router.callback_query(TripOrder.confirming_order, F.data == "trip:edit")
+async def edit_order(callback: CallbackQuery, lang: str) -> None:
+    await callback.answer()
+    await callback.message.edit_text(t("ask_edit_field", lang), reply_markup=order_edit_kb(lang))
+
+
+@router.callback_query(TripOrder.confirming_order, F.data == "trip:edit:back")
+async def edit_order_back(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
+    await callback.answer()
+    await _show_summary(callback.message, state, lang, edit=True)
+
+
+# field -> (prompt key, keyboard factory, state). Phone is handled separately because its
+# prompt is a plain text request rather than an inline-keyboard choice.
+_EDIT_STEPS = {
+    "from": ("ask_from_region", lambda lang: regions_kb("from"), TripOrder.choosing_from_region),
+    "to": ("ask_to_region", lambda lang: regions_kb("to"), TripOrder.choosing_to_region),
+    "car": ("ask_car_brand", lambda lang: car_brand_kb(), TripOrder.choosing_car),
+    "seat": ("ask_seat", seat_kb, TripOrder.choosing_seat),
+    "passengers": ("ask_passengers", lambda lang: passengers_kb(), TripOrder.choosing_passengers),
+    "luggage": ("ask_luggage", luggage_kb, TripOrder.choosing_luggage),
+    "time": ("ask_time", time_kb, TripOrder.entering_time),
+}
+
+
+@router.callback_query(TripOrder.confirming_order, F.data.startswith("trip:edit:"))
+async def edit_order_field(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
+    field = callback.data.split(":")[-1]
+    await callback.answer()
+    await state.update_data(editing=True)
+    if field == "phone":
+        await callback.message.edit_reply_markup()
+        await callback.message.answer(t("ask_new_phone", lang))
+        await state.set_state(TripOrder.entering_new_phone)
+        return
+    if field not in _EDIT_STEPS:
+        return
+    prompt_key, kb_factory, next_state = _EDIT_STEPS[field]
+    await callback.message.edit_text(t(prompt_key, lang), reply_markup=kb_factory(lang))
+    await state.set_state(next_state)
 
 
 @router.callback_query(TripOrder.confirming_order, F.data == "trip:cancel")

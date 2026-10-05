@@ -54,7 +54,7 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
     const refreshed = await tryRefresh()
     if (refreshed) return request<T>(path, options, false)
     clearSession()
-    window.location.href = '/login'
+    window.location.href = `${import.meta.env.BASE_URL}login`
     throw new ApiError(401, 'Session expired')
   }
 

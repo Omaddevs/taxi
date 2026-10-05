@@ -71,21 +71,28 @@ class BackendClient:
         car_model: str,
         plate: str,
         approved: bool,
+        status: str | None = None,
+        new_application: bool = False,
+        rejection_reason: str | None = None,
     ) -> dict | None:
         """Promote the core User to DRIVER and upsert the Driver row the webapp dashboard needs.
         Best-effort: a downed server must never block bot registration/approval."""
+        payload: dict = {
+            "phone": phone,
+            "telegramId": str(telegram_id),
+            "carModel": car_model,
+            "plate": plate,
+            "approved": approved,
+            "newApplication": new_application,
+        }
+        if name:
+            payload["name"] = name
+        if status:
+            payload["status"] = status
+        if rejection_reason:
+            payload["rejectionReason"] = rejection_reason
         try:
-            resp = await self._client.post(
-                "/bot/sync-driver",
-                json={
-                    "phone": phone,
-                    "telegramId": str(telegram_id),
-                    "name": name,
-                    "carModel": car_model,
-                    "plate": plate,
-                    "approved": approved,
-                },
-            )
+            resp = await self._client.post("/bot/sync-driver", json=payload)
             resp.raise_for_status()
             return resp.json()["user"]
         except Exception:

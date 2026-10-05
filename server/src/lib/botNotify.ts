@@ -113,3 +113,26 @@ export async function notifyOtpViaBot(payload: OtpNotifyPayload): Promise<void> 
     console.error('notifyOtpViaBot failed:', err)
   }
 }
+
+export interface DriverReviewedPayload {
+  telegramId: string | null
+  phone: string
+  status: 'APPROVED' | 'REJECTED'
+  rejectionReason?: string | null
+}
+
+// Best-effort push so a review done in the admin panel reaches the bot too: the bot flips its
+// own DriverProfile, DMs the driver and switches them to the driver menu (or tells them why
+// they were rejected). Never throws — the review itself is already committed.
+export async function notifyDriverReviewed(payload: DriverReviewedPayload): Promise<void> {
+  try {
+    await fetch(`${env.BOT_HTTP_URL}/webapp/driver-reviewed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Bot-Secret': env.BOT_API_SECRET },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    })
+  } catch (err) {
+    console.error('notifyDriverReviewed failed:', err)
+  }
+}

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     subscription_reminder_days: int = 5
     claim_timeout_minutes: int = 10
     driver_no_show_alert_threshold: int = 3
-    admin_contact_url: str = "https://t.me/omadbek_egamberdiyev"
+    admin_contact_url: str = "https://t.me/taxiline_toshkent"
 
     bot_http_port: int = 8081
 

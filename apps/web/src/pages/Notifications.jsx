@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Star } from 'lucide-react'
+import { Star, UserRound } from 'lucide-react'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Card } from '../components/ui/Button'
 import { api, ApiError } from '../lib/api'
@@ -44,6 +44,27 @@ function SatisfactionRating({ ticketId }) {
       </div>
       {error ? <p className="mt-1 text-xs text-red-500">{error}</p> : null}
     </div>
+  )
+}
+
+const ADMIN_CONTACT_URL = import.meta.env.VITE_ADMIN_CONTACT_URL || 'https://t.me/taxiline_toshkent'
+
+// Subscription expiring/expired reminders (server: subscriptions.lifecycle.ts) carry this refId prefix.
+function isSubscriptionNotice(n) {
+  return typeof n.refId === 'string' && n.refId.startsWith('subscription-')
+}
+
+function AdminContactButton() {
+  return (
+    <a
+      href={ADMIN_CONTACT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white"
+    >
+      <UserRound className="h-4 w-4" />
+      Admin
+    </a>
   )
 }
 
@@ -92,6 +113,7 @@ export default function Notifications() {
                 <p className="text-sm text-muted">{n.text}</p>
                 <p className="mt-1 text-[11px] text-muted">{timeAgo(n.createdAt)}</p>
                 {n.type === 'TICKET_SATISFACTION' && n.refId ? <SatisfactionRating ticketId={n.refId} /> : null}
+                {isSubscriptionNotice(n) ? <AdminContactButton /> : null}
               </div>
             </div>
           ))}

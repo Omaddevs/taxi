@@ -71,8 +71,21 @@ def time_kb(lang: str) -> InlineKeyboardMarkup:
 def order_confirm_kb(lang: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text=t("order_confirm_btn", lang), callback_data="trip:confirm")
+    builder.button(text=t("order_edit_btn", lang), callback_data="trip:edit")
     builder.button(text=t("order_cancel_btn", lang), callback_data="trip:cancel")
     builder.adjust(1)
+    return builder.as_markup()
+
+
+EDIT_FIELDS = ("phone", "from", "to", "car", "seat", "passengers", "luggage", "time")
+
+
+def order_edit_kb(lang: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for field in EDIT_FIELDS:
+        builder.button(text=t(f"edit_{field}", lang), callback_data=f"trip:edit:{field}")
+    builder.button(text=t("back", lang), callback_data="trip:edit:back")
+    builder.adjust(2)
     return builder.as_markup()
 
 

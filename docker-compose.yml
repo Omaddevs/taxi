@@ -32,7 +32,7 @@ services:
       PORT: 4000
       DATABASE_URL: postgresql://taxiline:${POSTGRES_PASSWORD}@postgres:5432/taxiline?schema=public
       CORS_ORIGINS: https://${WEB_DOMAIN},https://${ADMIN_DOMAIN}
-      ADMIN_PANEL_URL: https://${ADMIN_DOMAIN}
+      ADMIN_PANEL_URL: https://${WEB_DOMAIN}/admin
       BOT_HTTP_URL: http://bot:8081
       TRUST_PROXY: 'true'
 
@@ -44,6 +44,7 @@ services:
         VITE_API_URL: https://${API_DOMAIN}
         VITE_TELEGRAM_BOT: ${TELEGRAM_BOT_USERNAME}
         VITE_ONLINE_PAYMENTS: ${ONLINE_PAYMENTS_ENABLED:-false}
+        VITE_ADMIN_CONTACT_URL: ${ADMIN_CONTACT_URL:-https://t.me/taxiline_toshkent}
     restart: unless-stopped
 
   admin:

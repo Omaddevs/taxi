@@ -1,18 +1,15 @@
 from aiogram import F, Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.data.regions import REGION_NAMES
-from app.handlers.start import send_menu_to
-from app.i18n.translations import t
 from app.keyboards.admin import ADMIN_DRIVERS_BTN
 from app.services import drivers as drivers_service
-from app.services import groups as groups_service
 from app.services.backend_client import backend_client
+from app.services.driver_review import notify_rejected_driver, welcome_approved_driver
 from app.states.admin_broadcast import AdminDriverAction
-from app.tts.engine import synth
 
 router = Router(name="admin_drivers")
 
@@ -118,17 +115,20 @@ async def approve_driver(callback: CallbackQuery, session, bot_user) -> None:
         await callback.answer()
         return
 
-    _, _, driver_id_str, index_str = callback.data.split(":")
-    driver = await drivers_service.get(session, int(driver_id_str))
+    driver_id, index = _parse_review_callback(callback.data)
+    driver = await drivers_service.get(session, driver_id)
     if driver is None:
         await callback.answer("Topilmadi", show_alert=True)
+        return
+    if driver.status == "APPROVED":
+        await callback.answer("Allaqachon tasdiqlangan", show_alert=True)
+        await _close_review_message(callback, index, session, "✅ Tasdiqlangan")
         return
 
     await drivers_service.approve_application(session, driver)
     await callback.answer("Tasdiqlandi ✅")
 
     telegram_id = driver.bot_user.telegram_id
-    lang = driver.language
 
     # Explicit, first-class step — must not depend on _build_menu's side effect (which only
     # runs if the driver later interacts with the bot again). Without this, an approved driver
@@ -141,40 +141,33 @@ async def approve_driver(callback: CallbackQuery, session, bot_user) -> None:
         car_model=driver.car_model,
         plate=driver.plate,
         approved=True,
+        status="APPROVED",
     )
 
-    try:
-        await callback.bot.send_message(telegram_id, t("driver_approved_dm", lang))
-        path = await synth(t("driver_approved_dm", lang), lang)
-        await callback.bot.send_audio(telegram_id, FSInputFile(path))
-    except Exception:
-        pass  # DM/TTS is best-effort; approval itself already succeeded above
+    warning = await welcome_approved_driver(callback.bot, session, driver)
+    if warning:
+        await callback.message.answer(warning)
 
-    # Switch them to the driver-oriented menu immediately, not just on their next /start.
+    await _close_review_message(callback, index, session, "✅ Tasdiqlandi")
+
+
+def _parse_review_callback(data: str) -> tuple[int, int | None]:
+    """admindriver:<action>:<driver_id>[:<list index>] — the index is only present when the
+    button came from the paginated admin list; the new-application DM sends it without."""
+    parts = data.split(":")
+    index = int(parts[3]) if len(parts) > 3 else None
+    return int(parts[2]), index
+
+
+async def _close_review_message(callback: CallbackQuery, index: int | None, session, verdict: str) -> None:
+    if index is not None:
+        await _render_list(callback, session, "pending", index)
+        return
+    # From the new-application DM: keep the card, swap the buttons for the verdict.
     try:
-        await send_menu_to(callback.bot, telegram_id, session, driver.bot_user, lang)
+        await callback.message.edit_text(f"{callback.message.text}\n\n{verdict}")
     except TelegramAPIError:
         pass
-
-    group = await groups_service.get_closed_group_for_driver(session, driver)
-    if group is None:
-        try:
-            await callback.bot.send_message(telegram_id, t("driver_group_invite_missing", lang))
-        except TelegramAPIError:
-            pass
-    else:
-        try:
-            invite = await callback.bot.create_chat_invite_link(
-                group.chat_id, name=f"driver-{driver.id}", creates_join_request=True
-            )
-            await callback.bot.send_message(telegram_id, t("driver_group_invite_message", lang, link=invite.invite_link))
-        except TelegramAPIError:
-            await callback.message.answer(
-                "⚠️ Guruh havolasini yaratib bo'lmadi — botning guruhda 'foydalanuvchi qo'shish' huquqi "
-                "borligini tekshiring."
-            )
-
-    await _render_list(callback, session, "pending", int(index_str))
 
 
 @router.callback_query(F.data.startswith("admindriver:reject:"))
@@ -183,8 +176,8 @@ async def reject_driver_start(callback: CallbackQuery, state: FSMContext, bot_us
         await callback.answer()
         return
 
-    _, _, driver_id_str, index_str = callback.data.split(":")
-    await state.update_data(reject_driver_id=int(driver_id_str), reject_index=int(index_str))
+    driver_id, index = _parse_review_callback(callback.data)
+    await state.update_data(reject_driver_id=driver_id, reject_index=index)
     await state.set_state(AdminDriverAction.entering_rejection_reason)
     await callback.answer()
     await callback.message.answer("Rad etish sababini yozing:")
@@ -201,15 +194,21 @@ async def reject_driver_reason(message: Message, state: FSMContext, session, bot
     if driver is None:
         return
 
-    await drivers_service.reject(session, driver, message.text.strip())
+    reason = message.text.strip()
+    await drivers_service.reject(session, driver, reason)
     await message.answer("Rad etildi ❌")
 
-    try:
-        await message.bot.send_message(
-            driver.bot_user.telegram_id, t("driver_rejected_dm", driver.language, reason=message.text.strip())
-        )
-    except TelegramAPIError:
-        pass
+    await backend_client.sync_driver(
+        phone=driver.phone or driver.bot_user.phone,
+        telegram_id=driver.bot_user.telegram_id,
+        name=driver.full_name or driver.bot_user.name,
+        car_model=driver.car_model,
+        plate=driver.plate,
+        approved=False,
+        status="REJECTED",
+        rejection_reason=reason,
+    )
+    await notify_rejected_driver(message.bot, driver.bot_user.telegram_id, driver.language, reason)
 
 
 @router.callback_query(F.data.startswith("admindriverblock:"))

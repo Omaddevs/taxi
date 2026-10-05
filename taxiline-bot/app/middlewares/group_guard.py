@@ -39,8 +39,17 @@ class GroupGuardMiddleware(BaseMiddleware):
         if not group or event.from_user is None:
             return await handler(event, data)
 
-        member = await bot.get_chat_member(event.chat.id, event.from_user.id)
-        is_chat_admin = member.status in ("administrator", "creator")
+        # Anonymous admins post as the group itself (from_user is the GroupAnonymousBot) and the
+        # linked channel's posts arrive as automatic forwards — both are admin traffic. Someone
+        # posting as their own channel is not, and has no member record to look up.
+        if event.sender_chat is not None:
+            is_chat_admin = event.sender_chat.id == event.chat.id or bool(event.is_automatic_forward)
+        else:
+            try:
+                member = await bot.get_chat_member(event.chat.id, event.from_user.id)
+                is_chat_admin = member.status in ("administrator", "creator")
+            except TelegramBadRequest:
+                is_chat_admin = False
 
         if is_chat_admin:
             return await handler(event, data)

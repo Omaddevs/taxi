@@ -25,6 +25,9 @@ const schema = z.object({
   ADMIN_BOOTSTRAP_SECRET: z.string().min(1, 'ADMIN_BOOTSTRAP_SECRET is required'),
   BOT_API_SECRET: z.string().min(1, 'BOT_API_SECRET is required'),
   BOT_HTTP_URL: z.string().default('http://localhost:8081'),
+  // Admin-panel account ensured on every start-up (see lib/ensureAdmin.ts). Both optional.
+  ADMIN_PHONE: z.string().optional().default(''),
+  ADMIN_PASSWORD: z.string().optional().default(''),
   INSTAGRAM_APP_ID: z.string().optional().default(''),
   INSTAGRAM_APP_SECRET: z.string().optional().default(''),
   INSTAGRAM_VERIFY_TOKEN: z.string().optional().default(''),

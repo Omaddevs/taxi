@@ -8,6 +8,7 @@ class DriverApplication(StatesGroup):
     entering_plate = State()
     choosing_region = State()
     choosing_to_region = State()
+    confirming = State()
 
 
 class DriverProfileEdit(StatesGroup):

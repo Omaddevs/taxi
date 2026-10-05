@@ -53,5 +53,7 @@ async def handle_join_request(update: ChatJoinRequest, session) -> None:
         return
 
     await drivers_service.mark_joined_group(session, driver)
-    await drivers_service.start_subscription(session, driver)
+    # Normally already running since approval; this only starts one for drivers approved
+    # before subscriptions began on approval.
+    await drivers_service.ensure_subscription(session, driver)
     await backend_client.touch_channel(update.from_user.id, "GROUP")

@@ -6,7 +6,7 @@ Bitta Ubuntu serverda hammasi Docker orqali ishlaydi:
 |---|---|---|
 | `caddy` | HTTPS (Let's Encrypt sertifikatini o‘zi oladi va yangilaydi) | 80, 443-portlar |
 | `web` | Yo‘lovchi va haydovchi ilovasi | `https://WEB_DOMAIN` |
-| `admin` | Admin panel | `https://ADMIN_DOMAIN` |
+| `admin` | Admin panel | `https://WEB_DOMAIN/admin` (`ADMIN_DOMAIN` shu yerga yo‘naltiradi) |
 | `server` | API va Socket.IO | `https://API_DOMAIN` |
 | `bot` | Telegram bot | tashqariga ochilmagan |
 | `postgres` | Ma'lumotlar bazasi (`taxiline` va `taxiline_bot`) | tashqariga ochilmagan |
@@ -47,14 +47,16 @@ docker compose logs -f server bot caddy     # chiqish: Ctrl+C
 
 Server har safar ishga tushganda o‘zi migratsiyalarni qo‘llaydi va xizmat turlari hamda tariflar bor-yo‘qligini tekshiradi. Admin o‘zgartirgan narxlar qayta yozilmaydi.
 
-## 4. Birinchi admin
+## 4. Admin
 
-```bash
-docker compose exec server node dist/scripts/bootstrapAdmin.js \
-  --phone=+998901112233 --password=KuchliParol123 --secret=<ADMIN_BOOTSTRAP_SECRET>
+`.env`ga admin telefoni va parolini yozing:
+
+```
+ADMIN_PHONE=+998901112233
+ADMIN_PASSWORD=KuchliParol123
 ```
 
-Keyin `https://ADMIN_DOMAIN` sahifasidan shu telefon va parol bilan kiring.
+Server har safar ishga tushganda shu akkauntni o‘zi yaratadi yoki parolini yangilaydi. Keyin `https://WEB_DOMAIN/admin/login` sahifasidan shu telefon va parol bilan kiring. Parolni o‘zgartirish uchun `.env`dagi qiymatni o‘zgartirib, `docker compose up -d server` buyrug‘ini bering.
 
 ## 5. Tizimga kirish (SMS)
 

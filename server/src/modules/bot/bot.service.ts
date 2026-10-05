@@ -4,6 +4,7 @@ import { normalizePhone } from '../../lib/otp.js'
 import { NotFoundError } from '../../errors/AppError.js'
 import { markChannel } from '../people/people.service.js'
 import * as ratingsService from '../ratings/ratings.service.js'
+import { startSubscriptionOnApproval } from '../subscriptions/subscriptions.lifecycle.js'
 import type { RatingDirection } from '@prisma/client'
 
 const LOGIN_TOKEN_TTL_MS = 5 * 60 * 1000
@@ -66,8 +67,9 @@ export async function touchChannel(telegramId: string, source: 'BOT' | 'GROUP' |
   })
 }
 
-// Called whenever the bot creates or approves a driver application so the same phone logs
-// into the webapp as DRIVER (with a Driver row the dashboard /me/stats endpoints need).
+// Called whenever the bot creates, re-renders, approves or rejects a driver application so the
+// same phone logs into the webapp as DRIVER (with a Driver row the dashboard /me/stats endpoints
+// need), and so bot applications show up in the admin panel's "Haydovchi arizalari".
 export async function syncDriver(input: {
   phone: string
   telegramId: string
@@ -75,7 +77,12 @@ export async function syncDriver(input: {
   carModel: string
   plate: string
   approved: boolean
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  newApplication?: boolean
+  rejectionReason?: string
 }) {
+  const status = input.status ?? (input.approved ? 'APPROVED' : 'PENDING')
+
   // Only promote to DRIVER once actually approved — a pending applicant must stay a normal
   // passenger in the webapp (PassengerShell redirects any role=DRIVER user to /driver, which
   // would lock them out of ordering rides while still just under review), mirroring the same
@@ -84,25 +91,80 @@ export async function syncDriver(input: {
     phone: input.phone,
     telegramId: input.telegramId,
     name: input.name,
-    role: input.approved ? 'DRIVER' : undefined,
+    role: status === 'APPROVED' ? 'DRIVER' : undefined,
   })
 
-  await prisma.driver.upsert({
+  const existingDriver = await prisma.driver.findUnique({ where: { userId: user.id } })
+  // The bot re-syncs on every menu render. A PENDING there must never revoke an approval granted
+  // from the admin panel (e.g. if the bot missed that notification) — only a fresh application
+  // or an explicit rejection does.
+  const approved =
+    status === 'APPROVED'
+      ? true
+      : input.newApplication || status === 'REJECTED'
+        ? false
+        : (existingDriver?.approved ?? false)
+
+  const driver = await prisma.driver.upsert({
     where: { userId: user.id },
-    update: {
-      carModel: input.carModel,
-      plate: input.plate,
-      approved: input.approved,
-    },
-    create: {
-      userId: user.id,
-      carModel: input.carModel,
-      plate: input.plate,
-      approved: input.approved,
-    },
+    update: { carModel: input.carModel, plate: input.plate, approved, ...(approved ? {} : { online: false }) },
+    create: { userId: user.id, carModel: input.carModel, plate: input.plate, approved },
   })
+  // Approved from Telegram: the subscription month starts today, same as an admin-panel approval.
+  if (approved && !existingDriver?.approved) await startSubscriptionOnApproval(driver.id)
 
-  return user
+  let result = user
+  if (!approved && existingDriver?.approved && user.role === 'DRIVER') {
+    result = await prisma.user.update({ where: { id: user.id }, data: { role: 'PASSENGER' } })
+  }
+
+  const fields = {
+    fullName: input.name || user.name || user.phone,
+    phone: user.phone,
+    carModel: input.carModel,
+    plate: input.plate,
+  }
+  const application = await prisma.driverApplication.findUnique({ where: { userId: user.id } })
+
+  if (status === 'PENDING') {
+    if (!application) {
+      await prisma.driverApplication.create({ data: { userId: user.id, ...fields } })
+    } else if (input.newApplication) {
+      await prisma.driverApplication.update({
+        where: { id: application.id },
+        data: {
+          ...fields,
+          status: 'PENDING',
+          reviewedBy: null,
+          reviewedAt: null,
+          rejectionReason: null,
+          createdAt: new Date(),
+        },
+      })
+    } else if (application.status === 'PENDING') {
+      await prisma.driverApplication.update({ where: { id: application.id }, data: fields })
+    }
+  } else if (status === 'APPROVED') {
+    if (!application) {
+      await prisma.driverApplication.create({
+        data: { userId: user.id, ...fields, status: 'APPROVED', reviewedAt: new Date() },
+      })
+    } else if (application.status !== 'APPROVED') {
+      await prisma.driverApplication.update({
+        where: { id: application.id },
+        data: { ...fields, status: 'APPROVED', reviewedAt: new Date(), rejectionReason: null },
+      })
+    }
+  } else {
+    const rejection = { status: 'REJECTED' as const, reviewedAt: new Date(), rejectionReason: input.rejectionReason ?? null }
+    if (!application) {
+      await prisma.driverApplication.create({ data: { userId: user.id, ...fields, ...rejection } })
+    } else if (application.status !== 'REJECTED') {
+      await prisma.driverApplication.update({ where: { id: application.id }, data: rejection })
+    }
+  }
+
+  return result
 }
 
 export async function issueTelegramLoginToken(telegramId: string) {

@@ -53,6 +53,7 @@ async def _sync_driver_to_backend(driver, telegram_id: int) -> None:
         car_model=driver.car_model,
         plate=driver.plate,
         approved=driver.status == "APPROVED",
+        status=driver.status,
     )
 
 

@@ -231,6 +231,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "order_confirm_btn": {"uz": "✅ Tasdiqlash", "ru": "✅ Подтвердить", "en": "✅ Confirm"},
     "order_cancel_btn": {"uz": "❌ Bekor qilish", "ru": "❌ Отменить", "en": "❌ Cancel"},
+    "order_edit_btn": {"uz": "✏️ Tahrirlash", "ru": "✏️ Изменить", "en": "✏️ Edit"},
+    "ask_edit_field": {
+        "uz": "Nimani o'zgartirmoqchisiz?",
+        "ru": "Что вы хотите изменить?",
+        "en": "What would you like to change?",
+    },
+    "edit_phone": {"uz": "📱 Telefon raqam", "ru": "📱 Номер телефона", "en": "📱 Phone number"},
+    "edit_from": {"uz": "📍 Qayerdan", "ru": "📍 Откуда", "en": "📍 From"},
+    "edit_to": {"uz": "🏁 Qayerga", "ru": "🏁 Куда", "en": "🏁 To"},
+    "edit_car": {"uz": "🚗 Avtomobil", "ru": "🚗 Автомобиль", "en": "🚗 Car"},
+    "edit_seat": {"uz": "💺 O'rindiq", "ru": "💺 Место", "en": "💺 Seat"},
+    "edit_passengers": {"uz": "👥 Yo'lovchilar soni", "ru": "👥 Пассажиров", "en": "👥 Passengers"},
+    "edit_luggage": {"uz": "🧳 Bagaj", "ru": "🧳 Багаж", "en": "🧳 Luggage"},
+    "edit_time": {"uz": "🕐 Vaqt", "ru": "🕐 Время", "en": "🕐 Time"},
     "order_created": {
         "uz": "✅ Buyurtmangiz qabul qilindi! Haydovchilar tez orada siz bilan bog'lanishadi.",
         "ru": "✅ Ваш заказ принят! Водители скоро свяжутся с вами.",
@@ -287,6 +301,34 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "ask_driver_region": {"uz": "Qaysi viloyatdan ishlaysiz?", "ru": "Из какой области вы работаете?", "en": "Which region do you drive from?"},
     "ask_driver_to_region": {"uz": "Odatda qayerga olib borasiz?", "ru": "Куда вы обычно возите пассажиров?", "en": "Where do you usually drive to?"},
+    "driver_application_summary": {
+        "uz": (
+            "📋 Ariza ma'lumotlari:\n\n"
+            "👤 Ism: {full_name}\n"
+            "📱 Telefon: {phone}\n"
+            "🚙 Avtomobil: {car_model} · {plate}\n"
+            "📍 Yo'nalish: {region} → {to_region}\n\n"
+            "Arizani yuborasizmi?"
+        ),
+        "ru": (
+            "📋 Данные заявки:\n\n"
+            "👤 Имя: {full_name}\n"
+            "📱 Телефон: {phone}\n"
+            "🚙 Автомобиль: {car_model} · {plate}\n"
+            "📍 Маршрут: {region} → {to_region}\n\n"
+            "Отправить заявку?"
+        ),
+        "en": (
+            "📋 Application details:\n\n"
+            "👤 Name: {full_name}\n"
+            "📱 Phone: {phone}\n"
+            "🚙 Car: {car_model} · {plate}\n"
+            "📍 Route: {region} → {to_region}\n\n"
+            "Send the application?"
+        ),
+    },
+    "driver_application_submit_btn": {"uz": "✅ Yuborish", "ru": "✅ Отправить", "en": "✅ Submit"},
+    "driver_application_cancelled": {"uz": "Ariza bekor qilindi.", "ru": "Заявка отменена.", "en": "Application cancelled."},
     "driver_application_sent": {
         "uz": "✅ Arizangiz qabul qilindi va admin ko'rib chiqishi uchun yuborildi.",
         "ru": "✅ Ваша заявка принята и отправлена на рассмотрение администратору.",
@@ -332,9 +374,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Unfortunately your application was rejected. Reason: {reason}",
     },
     "driver_subscription_expiring": {
-        "uz": "⚠️ Obunangiz {days} kundan so'ng tugaydi. Yangilash uchun adminga murojaat qiling.",
-        "ru": "⚠️ Ваша подписка истекает через {days} дн. Обратитесь к администратору для продления.",
-        "en": "⚠️ Your subscription expires in {days} day(s). Contact the admin to renew it.",
+        "uz": "⚠️ {days} kundan so'ng obunangiz tugaydi. Qayta obuna bo'lish uchun Adminga murojaat qiling.",
+        "ru": "⚠️ Через {days} дн. ваша подписка закончится. Чтобы продлить, обратитесь к администратору.",
+        "en": "⚠️ Your subscription ends in {days} day(s). To renew it, contact the Admin.",
     },
     "driver_subscription_expired": {
         "uz": "❌ Obunangiz tugadi. Qayta obuna bo'lmoqchi bo'lsangiz adminga murojaat qiling.",

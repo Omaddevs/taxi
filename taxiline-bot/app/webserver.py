@@ -30,6 +30,8 @@ from app.services import groups as groups_service
 from app.services import trips as trips_service
 from app.services import users as users_service
 from app.services.backend_client import backend_client
+from app.services.driver_review import notify_rejected_driver, welcome_approved_driver
+from app.services.phone import normalize_phone
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +225,63 @@ async def otp_code(request: web.Request) -> web.Response:
         logger.warning("Failed to DM OTP code to telegram_id=%s", telegram_id)
 
     return web.json_response({"ok": True})
+
+
+@routes.post("/webapp/driver-reviewed")
+async def driver_reviewed(request: web.Request) -> web.Response:
+    """An admin approved/rejected a driver application in the admin panel — mirror it onto the
+    bot's DriverProfile and land the driver in the same place a Telegram-side review would."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    status = payload.get("status")
+    if status not in ("APPROVED", "REJECTED"):
+        return web.json_response({"error": "status must be APPROVED or REJECTED"}, status=400)
+    reason = (payload.get("rejectionReason") or "").strip() or "-"
+
+    bot: Bot = request.app["bot"]
+    async with session_scope() as session:
+        bot_user = None
+        if payload.get("telegramId"):
+            bot_user = await users_service.get_by_telegram_id(session, int(payload["telegramId"]))
+        driver = await drivers_service.get_by_bot_user(session, bot_user.id) if bot_user else None
+        if driver is None and payload.get("phone"):
+            driver = await drivers_service.find_by_phone(session, normalize_phone(payload["phone"]) or payload["phone"])
+        if driver is not None:
+            driver = await drivers_service.get(session, driver.id)  # with bot_user loaded
+
+        if driver is None:
+            # Applied on the website only — no bot profile to flip, but still tell them on
+            # Telegram if their account is linked.
+            if bot_user is not None:
+                lang = bot_user.language or "uz"
+                text = (
+                    t("driver_approved_dm", lang)
+                    if status == "APPROVED"
+                    else t("driver_rejected_dm", lang, reason=reason)
+                )
+                try:
+                    await bot.send_message(bot_user.telegram_id, text)
+                except TelegramAPIError:
+                    pass
+            return web.json_response({"ok": True, "driverProfile": False})
+
+        if status == "APPROVED":
+            if driver.status != "APPROVED":
+                await drivers_service.approve_application(session, driver)
+                warning = await welcome_approved_driver(bot, session, driver)
+                if warning:
+                    logger.warning("driver %s approved from admin panel: %s", driver.id, warning)
+        elif driver.status != "REJECTED":
+            await drivers_service.reject(session, driver, reason)
+            await notify_rejected_driver(bot, driver.bot_user.telegram_id, driver.language, reason)
+
+    return web.json_response({"ok": True, "driverProfile": True})
 
 
 def _serialize_order(order: Order) -> dict:

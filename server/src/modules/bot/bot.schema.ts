@@ -23,6 +23,11 @@ export const syncDriverSchema = z.object({
   carModel: z.string().min(1).max(80),
   plate: z.string().min(1).max(20),
   approved: z.boolean(),
+  // The bot's own application status. Omitted by older callers: then derived from `approved`.
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+  // True only when the driver has just submitted (or re-submitted) the application in the bot.
+  newApplication: z.boolean().optional(),
+  rejectionReason: z.string().max(500).optional(),
 })
 
 export const telegramLoginTokenSchema = z.object({

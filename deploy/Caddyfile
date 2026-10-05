@@ -4,16 +4,26 @@
 
 {$WEB_DOMAIN} {
 	encode zstd gzip
-	reverse_proxy web:80
+
+	# Admin panel lives under /admin (built with base /admin/). handle_path strips the prefix
+	# so the admin container keeps serving from its own root.
+	redir /admin /admin/ 308
+	handle_path /admin/* {
+		reverse_proxy admin:80
+	}
+
+	handle {
+		reverse_proxy web:80
+	}
 }
 
 www.{$WEB_DOMAIN} {
 	redir https://{$WEB_DOMAIN}{uri} permanent
 }
 
+# Old admin address — keeps bookmarks working.
 {$ADMIN_DOMAIN} {
-	encode zstd gzip
-	reverse_proxy admin:80
+	redir https://{$WEB_DOMAIN}/admin{uri} permanent
 }
 
 # REST API + Socket.IO (Caddy proxies WebSocket upgrades automatically).
