@@ -50,7 +50,7 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       inert={floating && !shown ? true : undefined}
       className={`${position} z-[100] border-b border-black/[0.05] bg-white/85 backdrop-blur-md`}
     >
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 sm:h-[72px] sm:px-6 2xl:max-w-[1600px]">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-4 sm:h-[72px] sm:px-6">
         <Link to="/" className="flex items-center gap-2.5" aria-label="TaxiLine — bosh sahifa">
           <Logo size={38} className="sm:h-11! sm:w-11!" />
           <Wordmark className="text-[20px] sm:text-[23px]" />
@@ -159,7 +159,7 @@ const FOOTER_COLUMNS = [
 // `attached` — landing'da footer tepadagi bo‘limga yopishgan (faqat pastki burchaklar yumaloq).
 export function SiteFooter({ attached = false }) {
   return (
-    <footer className="mx-auto max-w-[1200px] px-3 pb-6 sm:px-6 2xl:max-w-[1600px]">
+    <footer className="mx-auto max-w-[1600px] px-3 pb-6 sm:px-6">
       <div
         className={`${attached ? 'rounded-b-[32px] sm:rounded-b-[40px]' : 'rounded-[32px] sm:rounded-[40px]'} bg-[#1d2229] px-7 pb-8 pt-12 text-white sm:px-12 sm:pt-16 lg:px-14 lg:pb-10 lg:pt-20 2xl:px-20 2xl:pt-24`}
       >

@@ -67,7 +67,7 @@ export default function NewsDetail() {
     <div className="min-h-svh bg-[#f6f7f9] text-ink">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1200px] px-3 pb-16 pt-6 sm:px-6 sm:pt-10 2xl:max-w-[1600px]">
+      <main className="mx-auto max-w-[1600px] px-3 pb-16 pt-6 sm:px-6 sm:pt-10">
         <div className="mx-auto max-w-[820px] 2xl:max-w-[960px]">
           <Link to="/news" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[14px] font-semibold text-ink ring-1 ring-black/[0.06] transition hover:bg-canvas">
             <ArrowLeft className="h-4 w-4" /> Barcha yangiliklar

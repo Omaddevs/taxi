@@ -66,7 +66,7 @@ export default function News() {
     <div className="min-h-svh bg-[#f6f7f9] text-ink">
       <SiteHeader />
 
-      <main className="mx-auto max-w-[1200px] px-3 pb-16 pt-4 sm:px-6 sm:pt-6 2xl:max-w-[1600px]">
+      <main className="mx-auto max-w-[1600px] px-3 pb-16 pt-4 sm:px-6 sm:pt-6">
         {/* Sarlavha bloki */}
         <section className="relative overflow-hidden rounded-[32px] bg-[#1d2229] px-6 pb-8 pt-12 text-white sm:rounded-[40px] sm:px-12 sm:pb-10 sm:pt-16 lg:px-14 2xl:px-20 2xl:pt-20">
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-56 -right-40 h-[340px] w-[340px] rounded-full bg-brand sm:bottom-auto sm:-right-28 sm:-top-36 sm:h-[520px] sm:w-[520px]" />

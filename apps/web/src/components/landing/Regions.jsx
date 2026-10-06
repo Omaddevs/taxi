@@ -258,7 +258,7 @@ export function Regions() {
 
   return (
     <section ref={ref} id="regions" className="relative scroll-mt-24 overflow-hidden pb-20 pt-4">
-      <div className="mx-auto max-w-[1200px] px-5 text-center sm:px-6 2xl:max-w-[1600px]">
+      <div className="mx-auto max-w-[1600px] px-5 text-center sm:px-6">
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3.5 py-1.5 text-[13px] font-bold text-brand-dark">
           <MapPin className="h-4 w-4" /> Butun O‘zbekiston bo‘ylab
         </span>
@@ -271,7 +271,7 @@ export function Regions() {
       </div>
 
       {/* Tarmoq xaritasi */}
-      <div className="relative mx-auto mt-6 max-w-[1200px] px-7 sm:mt-10 sm:px-10 2xl:max-w-[1500px]">
+      <div className="relative mx-auto mt-6 max-w-[1500px] px-7 sm:mt-10 sm:px-10">
         <div ref={mapRef} className="relative aspect-[10/7] sm:aspect-[1000/560]">
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
             {ROUTES.map((r, i) => {
@@ -343,7 +343,7 @@ export function Regions() {
       </div>
 
       {/* Statistika */}
-      <div className="mx-auto mt-10 grid max-w-[1200px] grid-cols-2 gap-3 px-3 sm:mt-14 sm:gap-4 sm:px-6 lg:grid-cols-4 2xl:max-w-[1600px]">
+      <div className="mx-auto mt-10 grid max-w-[1600px] grid-cols-2 gap-3 px-3 sm:mt-14 sm:gap-4 sm:px-6 lg:grid-cols-4">
         {cards.map(({ icon: Icon, value, label, hint }, i) => (
           <div
             key={label}
