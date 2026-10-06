@@ -217,7 +217,7 @@ export default function DriverMap() {
             <Marker
               key={o.id}
               position={[o.pickupLat, o.pickupLng]}
-              icon={pinIcon(selectedId === o.id ? '#1c1c28' : '#12a594', `#${o.code}`, selectedId === o.id ? 34 : 28)}
+              icon={pinIcon(selectedId === o.id ? '#1c1c28' : '#00c7d4', `#${o.code}`, selectedId === o.id ? 34 : 28)}
               eventHandlers={{ click: () => setSelectedId(o.id) }}
             />
           ))}

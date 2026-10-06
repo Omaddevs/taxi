@@ -19,7 +19,7 @@ export function RevealSecret({
       </code>
       <button
         type="button"
-        className="text-xs font-bold text-brand hover:underline"
+        className="text-xs font-bold text-brand-dark hover:underline"
         onClick={(e) => {
           e.stopPropagation()
           setShow((v) => !v)

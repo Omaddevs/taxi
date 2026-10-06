@@ -51,7 +51,7 @@ export default function SubscriptionPlans() {
               <p className="mb-3 text-xs text-muted">Joriy: {formatSom(plan.price)}</p>
               <button
                 onClick={() => updatePlan.mutate({ id: plan.id, patch: { active: !plan.active } })}
-                className="text-sm font-semibold text-brand hover:underline"
+                className="text-sm font-semibold text-brand-dark hover:underline"
               >
                 {plan.active ? 'O‘chirish' : 'Yoqish'}
               </button>

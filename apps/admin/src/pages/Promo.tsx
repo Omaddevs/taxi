@@ -100,7 +100,7 @@ export default function Promo() {
           {data.map((promo) => (
             <Card key={promo.id} className="p-5">
               <div className="mb-2 flex items-center justify-between">
-                <p className="font-mono text-sm font-extrabold text-brand">{promo.code}</p>
+                <p className="font-mono text-sm font-extrabold text-brand-dark">{promo.code}</p>
                 {promo.active ? <Badge tone="green">Faol</Badge> : <Badge tone="gray">Faol emas</Badge>}
               </div>
               <p className="mb-1 text-sm font-semibold text-ink">{promo.title}</p>
@@ -116,7 +116,7 @@ export default function Promo() {
               </p>
               <button
                 onClick={() => toggleActive.mutate({ id: promo.id, active: !promo.active })}
-                className="mt-3 text-sm font-semibold text-brand hover:underline"
+                className="mt-3 text-sm font-semibold text-brand-dark hover:underline"
               >
                 {promo.active ? 'O‘chirish' : 'Yoqish'}
               </button>

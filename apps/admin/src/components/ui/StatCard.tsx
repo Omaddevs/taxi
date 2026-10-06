@@ -16,7 +16,7 @@ export function StatCard({
   tone?: 'brand' | 'success' | 'amber' | 'slate'
 }) {
   const tones = {
-    brand: 'bg-brand-soft text-brand',
+    brand: 'bg-brand-soft text-brand-dark',
     success: 'bg-emerald-50 text-emerald-600',
     amber: 'bg-amber-50 text-amber-600',
     slate: 'bg-slate-100 text-slate-600',

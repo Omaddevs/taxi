@@ -114,7 +114,7 @@ export function MobileHome() {
 
           <Link
             to="/wallet"
-            className="pointer-events-auto absolute left-1/2 flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-brand pl-1.5 pr-4 text-white shadow-[0_8px_22px_rgba(18,165,148,0.35)]"
+            className="pointer-events-auto absolute left-1/2 flex h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-brand pl-1.5 pr-4 text-white shadow-[0_8px_22px_rgba(0,199,212,0.35)]"
             aria-label="Hamyon"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">

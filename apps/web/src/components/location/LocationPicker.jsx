@@ -46,12 +46,12 @@ function GpsLayer({ gps }) {
       <Circle
         center={[gps.lat, gps.lng]}
         radius={radius}
-        pathOptions={{ color: '#12a594', fillColor: '#12a594', fillOpacity: 0.14, weight: 1 }}
+        pathOptions={{ color: '#00c7d4', fillColor: '#00c7d4', fillOpacity: 0.14, weight: 1 }}
       />
       <CircleMarker
         center={[gps.lat, gps.lng]}
         radius={7}
-        pathOptions={{ color: '#fff', weight: 3, fillColor: '#12a594', fillOpacity: 1 }}
+        pathOptions={{ color: '#fff', weight: 3, fillColor: '#00c7d4', fillOpacity: 1 }}
       />
     </>
   )

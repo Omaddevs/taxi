@@ -10,6 +10,7 @@ services/backend_client.py. Two things live here:
    so the two surfaces can never drift apart.
 """
 
+import asyncio
 import logging
 import re
 from datetime import datetime
@@ -1051,6 +1052,68 @@ async def admin_delete_group(request: web.Request) -> web.Response:
             return web.json_response({"ok": True})
         await groups_service.remove_group(session, group)
         return web.json_response({"ok": True})
+
+
+# ── Random mijoz: kanal/guruh a'zoligini ommaviy tekshirish ─────────────────────────────────
+# server/ sends {chats: ["@channel", "-100…"], telegramIds: ["123", …]} and gets back
+# {members: {tgId: {chat: bool}}, chatErrors: {chat: reason}}. A chat-level failure (wrong id,
+# bot not an admin of the channel) is reported once per chat instead of marking everyone as
+# "not subscribed", so the admin sees the real cause.
+_MEMBER_STATUSES = {"member", "administrator", "creator"}
+_CHAT_LEVEL_ERRORS = ("chat not found", "member list is inaccessible", "not enough rights", "bot is not a member", "chat_admin_required")
+
+
+def _is_member(member) -> bool:
+    if member.status in _MEMBER_STATUSES:
+        return True
+    if member.status == "restricted":
+        return bool(getattr(member, "is_member", False))
+    return False
+
+
+@routes.post("/webapp/chat-members")
+async def chat_members(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    chats = [str(c) for c in (payload.get("chats") or []) if c][:5]
+    telegram_ids = [str(i) for i in (payload.get("telegramIds") or []) if str(i).isdigit()][:200]
+    bot: Bot = request.app["bot"]
+    members: dict[str, dict[str, bool]] = {tg: {} for tg in telegram_ids}
+    chat_errors: dict[str, str] = {}
+
+    for chat in chats:
+        chat_ref = int(chat) if chat.lstrip("-").isdigit() else chat
+        try:
+            await bot.get_chat(chat_ref)
+        except TelegramAPIError as exc:
+            chat_errors[chat] = str(exc.message if hasattr(exc, "message") else exc)
+            continue
+
+        sem = asyncio.Semaphore(15)
+
+        async def check(tg: str, chat=chat, chat_ref=chat_ref) -> None:
+            if chat in chat_errors:
+                return
+            async with sem:
+                try:
+                    member = await bot.get_chat_member(chat_ref, int(tg))
+                    members[tg][chat] = _is_member(member)
+                except TelegramAPIError as exc:
+                    reason = str(getattr(exc, "message", exc))
+                    if any(marker in reason.lower() for marker in _CHAT_LEVEL_ERRORS):
+                        chat_errors[chat] = reason
+                    else:
+                        # "user not found" / "participant_id_invalid" — never joined.
+                        members[tg][chat] = False
+
+        await asyncio.gather(*(check(tg) for tg in telegram_ids))
+
+    return web.json_response({"members": members, "chatErrors": chat_errors})
 
 
 def build_app(bot: Bot) -> web.Application:

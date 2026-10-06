@@ -1,9 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
 import { useAuth } from './context/AuthContext'
 import { isDriverUser } from './lib/role'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Landing from './pages/Landing'
+import News from './pages/News'
+import NewsDetail from './pages/NewsDetail'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import TripDetails from './pages/TripDetails'
@@ -46,11 +49,21 @@ import DriverCargo from './pages/driver/DriverCargo'
 
 function RequireAuth({ children }) {
   const { status } = useAuth()
-  if (status === 'guest') return <Navigate to="/login" replace />
+  const location = useLocation()
+  // A guest opening the site root sees the public landing page; deep links still go to login.
+  // Mehmon taxiline.uz (/) ni ochsa — landing sahifa; boshqa yopiq sahifalar loginga yuboradi.
+  // Buyurtma berish va ilovaning qolgan qismi faqat kirgandan/ro‘yxatdan o‘tgandan keyin ochiladi.
+  if (status === 'guest') return location.pathname === '/' ? <Landing /> : <Navigate to="/login" replace />
   if (status === 'checking' || status === 'checking-telegram') {
     return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
   }
   return children
+}
+
+// Eski /welcome havolalari (va #bo‘lim) asosiy sahifaga yo‘naltiriladi.
+function WelcomeRedirect() {
+  const { hash } = useLocation()
+  return <Navigate to={{ pathname: '/', hash }} replace />
 }
 
 function PassengerShell() {
@@ -68,6 +81,9 @@ function DriverShell() {
 export default function App() {
   return (
     <Routes>
+      <Route path="/welcome" element={<WelcomeRedirect />} />
+      <Route path="/news" element={<News />} />
+      <Route path="/news/:slug" element={<NewsDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route

@@ -8,8 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({ children, className, variant = 'primary', size = 'md', type = 'button', ...props }: ButtonProps) {
   const variants = {
-    primary: 'bg-brand text-white hover:bg-brand-dark shadow-sm shadow-brand/20',
-    soft: 'bg-brand-soft text-brand hover:bg-pink-100',
+    primary: 'bg-brand text-ink hover:bg-[#00b6c2] shadow-sm shadow-brand/30',
+    soft: 'bg-brand-soft text-brand-dark hover:bg-[#c9f3f7]',
     outline: 'border border-line bg-white text-ink hover:bg-canvas',
     ghost: 'text-ink hover:bg-canvas',
     danger: 'bg-red-500 text-white hover:bg-red-600',
@@ -58,7 +58,7 @@ export function Badge({
   className?: string
 }) {
   const tones = {
-    pink: 'bg-brand-soft text-brand',
+    pink: 'bg-brand-soft text-brand-dark',
     green: 'bg-emerald-50 text-emerald-600',
     red: 'bg-red-50 text-red-500',
     gray: 'bg-slate-100 text-slate-600',

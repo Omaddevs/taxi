@@ -826,6 +826,42 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "back": {"uz": "⬅️ Orqaga", "ru": "⬅️ Назад", "en": "⬅️ Back"},
     "cancel": {"uz": "Bekor qilish", "ru": "Отмена", "en": "Cancel"},
+    "gw_header": {
+        "uz": "🎁 <b>{title}</b>\n\n{name}, siz ro'yxatga olindingiz.",
+        "ru": "🎁 <b>{title}</b>\n\n{name}, вы зарегистрированы.",
+        "en": "🎁 <b>{title}</b>\n\n{name}, you are registered.",
+    },
+    "gw_linked": {"uz": "Telegram ulandi", "ru": "Telegram подключён", "en": "Telegram linked"},
+    "gw_channel": {"uz": "Kanalga obuna", "ru": "Подписка на канал", "en": "Channel subscription"},
+    "gw_group": {"uz": "Guruhga a'zolik", "ru": "Участие в группе", "en": "Group membership"},
+    "gw_eligible": {
+        "uz": "🎉 Siz o'yin ishtirokchisisiz! G'oliblar barcha shartlarni bajarganlar orasidan tasodifiy tanlanadi.",
+        "ru": "🎉 Вы участвуете в розыгрыше! Победители выбираются случайно среди выполнивших все условия.",
+        "en": "🎉 You're in the draw! Winners are picked at random among everyone who met all the conditions.",
+    },
+    "gw_not_yet": {
+        "uz": "Ishtirok etish uchun quyidagi kanal va guruhga qo'shiling, so'ng «🔄 Qayta tekshirish»ni bosing.",
+        "ru": "Чтобы участвовать, подпишитесь на канал и группу ниже, затем нажмите «🔄 Проверить снова».",
+        "en": "To take part, join the channel and group below, then tap “🔄 Check again”.",
+    },
+    "gw_unsub_warning": {
+        "uz": "⚠️ Obunani bekor qilsangiz, o'yindan chiqib qolasiz — g'olib tanlanishidan oldin qayta tekshiriladi.",
+        "ru": "⚠️ Если отпишетесь, выбываете из розыгрыша — подписка проверяется перед выбором победителя.",
+        "en": "⚠️ Unsubscribing removes you from the draw — membership is re-checked before winners are picked.",
+    },
+    "gw_channel_btn": {"uz": "📢 Kanalga obuna bo'lish", "ru": "📢 Подписаться на канал", "en": "📢 Join the channel"},
+    "gw_group_btn": {"uz": "👥 Guruhga qo'shilish", "ru": "👥 Вступить в группу", "en": "👥 Join the group"},
+    "gw_recheck_btn": {"uz": "🔄 Qayta tekshirish", "ru": "🔄 Проверить снова", "en": "🔄 Check again"},
+    "gw_not_found": {
+        "uz": "⚠️ Ishtirokchi topilmadi. Saytdagi «Random mijoz» formasini qaytadan to'ldiring.",
+        "ru": "⚠️ Участник не найден. Заполните форму «Random mijoz» на сайте ещё раз.",
+        "en": "⚠️ Entry not found. Please fill in the “Random mijoz” form on the website again.",
+    },
+    "gw_conflict": {
+        "uz": "⚠️ Bu Telegram akkaunt boshqa telefon raqami bilan ro'yxatdan o'tgan. Bitta akkaunt — bitta ishtirok.",
+        "ru": "⚠️ Этот Telegram-аккаунт уже зарегистрирован с другим номером. Один аккаунт — одно участие.",
+        "en": "⚠️ This Telegram account is already registered with another phone number. One account — one entry.",
+    },
 }
 
 

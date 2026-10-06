@@ -117,7 +117,7 @@ export default function Services() {
               <p className="mb-3 text-xs text-muted">Joriy: {formatSom(service.basePrice)}</p>
               <button
                 onClick={() => toggleActive.mutate({ id: service.id, active: !service.active })}
-                className="text-sm font-semibold text-brand hover:underline"
+                className="text-sm font-semibold text-brand-dark hover:underline"
               >
                 {service.active ? 'O‘chirish' : 'Yoqish'}
               </button>

@@ -4,9 +4,9 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   /* Ilovaning asosiy blok radiusi — kartalar, inputlar va panellar shu tokenni ishlatadi. */
   --radius-2xl: 20px;
-  --color-brand: #12a594;
-  --color-brand-dark: #0b8577;
-  --color-brand-soft: #e3f6f3;
+  --color-brand: #00c7d4;
+  --color-brand-dark: #00a3ae;
+  --color-brand-soft: #e0f9fb;
   --color-ink: #1a2b3c;
   --color-muted: #6b7280;
   --color-line: #eceef2;
@@ -36,13 +36,22 @@ body {
 }
 
 /* iOS 16px dan kichik shriftda inputga bosilsa sahifani zoom qiladi — shuning uchun
-   mobil ekranlarda forma maydonlarini 16px da ushlab turamiz (pinch-zoom saqlanadi). */
-@media (max-width: 1023px) {
-  input:not([type='checkbox']):not([type='radio']),
+   telefon va planshetlarda (tor ekran YOKI har qanday kenglikdagi sensorli ekran, masalan
+   yotiq iPad) forma maydonlarini kamida 16px da ushlab turamiz. Pinch-zoom saqlanadi —
+   viewport'da maximum-scale ishlatilmaydi (ko‘rish qiyin bo‘lganlar uchun kattalashtirish kerak). */
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
   textarea,
-  select {
-    font-size: 16px;
+  select,
+  [role='combobox'] {
+    font-size: max(16px, 1em) !important;
   }
+}
+
+/* Telefonni yon tomonga burganda iOS matnni o‘zicha kattalashtirmasin. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -66,9 +75,9 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 50% 50% 50% 0;
-  background: #12a594;
+  background: #00c7d4;
   transform: rotate(-45deg);
-  box-shadow: 0 10px 18px rgba(18, 165, 148, 0.42);
+  box-shadow: 0 10px 18px rgba(0,199,212, 0.42);
 }
 
 .location-pin::after {
@@ -231,7 +240,7 @@ html.dark .bg-canvas {
 .user-pulse-dot {
   width: 24px;
   height: 24px;
-  background: #12a594;
+  background: #00c7d4;
   border: 4px solid #fff;
   box-shadow: 0 4px 12px rgb(18 165 148 / 0.45);
 }
@@ -262,5 +271,251 @@ html.dark .bg-canvas {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* Landing — aksiyalar karuselining avto-o‘tish progress chizig‘i */
+@keyframes promo-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Til menyusi ochilish animatsiyasi */
+@keyframes lang-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* "Kirish" tugmasi: hover/fokusda chegarasi bo‘ylab brend rangidagi yoy loading kabi aylanadi.
+   Halqa tugmaning ichki chetiga chiziladi — teal fonda ham to‘q tugma ustida aniq ko‘rinadi. */
+@property --spin-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.spin-border {
+  position: relative;
+  isolation: isolate;
+}
+.spin-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--spin-angle), transparent 0deg, transparent 150deg, rgba(0, 199, 212, 0.35) 220deg, #00c7d4 300deg, #7af0f6 345deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  animation: spin-border 1.2s linear infinite;
+  animation-play-state: paused;
+  pointer-events: none;
+}
+.spin-border > * {
+  position: relative;
+}
+.spin-border:hover::before,
+.spin-border:focus-visible::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+@keyframes spin-border {
+  to {
+    --spin-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin-border::before {
+    animation: none;
+    background: #00c7d4;
+  }
+}
+
+/* Yangilik matni — admin muharriri va saytda bir xil ko‘rinadi */
+.news-content {
+  color: rgb(28 28 40 / 0.86);
+  font-size: 17px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.news-content > * + * {
+  margin-top: 1.1em;
+}
+.news-content h2 {
+  margin-top: 1.6em;
+  color: #1d2229;
+  font-size: 1.6em;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.news-content h3 {
+  margin-top: 1.4em;
+  color: #1d2229;
+  font-size: 1.25em;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.news-content strong {
+  color: #1d2229;
+  font-weight: 700;
+}
+/* Muharrirda tanlangan rang qalin/kursiv matnda ham saqlansin */
+.news-content [style*='color'] strong,
+.news-content [style*='color'] em,
+.news-content [style*='color'] a,
+.news-content mark strong {
+  color: inherit;
+}
+.news-content a {
+  color: #00838c;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgb(0 199 212 / 0.5);
+  text-underline-offset: 3px;
+}
+.news-content mark {
+  border-radius: 4px;
+  padding: 0.05em 0.2em;
+  color: inherit;
+}
+.news-content ul,
+.news-content ol {
+  padding-left: 1.4em;
+}
+.news-content ul {
+  list-style: none;
+}
+.news-content ul > li {
+  position: relative;
+}
+.news-content ul > li::before {
+  content: '';
+  position: absolute;
+  left: -1.1em;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #00c7d4;
+}
+.news-content ol {
+  list-style: decimal;
+}
+.news-content ol > li::marker {
+  color: #00a3ae;
+  font-weight: 700;
+}
+.news-content li + li {
+  margin-top: 0.4em;
+}
+.news-content li > p {
+  margin: 0;
+}
+.news-content blockquote {
+  border-left: 4px solid #00c7d4;
+  border-radius: 0 16px 16px 0;
+  background: rgb(224 249 251 / 0.6);
+  padding: 0.8em 1.3em;
+  color: #1d2229;
+  font-style: italic;
+  font-weight: 500;
+}
+.news-content blockquote > p {
+  margin: 0;
+}
+.news-content hr {
+  margin: 2em auto;
+  width: 100%;
+  border: 0;
+  border-top: 2px dashed rgb(0 0 0 / 0.1);
+}
+.news-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 18px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.news-content img[data-size='25'] {
+  width: 25%;
+}
+.news-content img[data-size='50'] {
+  width: 50%;
+}
+.news-content img[data-size='75'] {
+  width: 75%;
+}
+.news-content img[data-size='100'] {
+  width: 100%;
+}
+.news-content img[data-align='left'] {
+  margin-left: 0;
+}
+.news-content img[data-align='right'] {
+  margin-right: 0;
+}
+@media (max-width: 639px) {
+  .news-content img[data-size='25'],
+  .news-content img[data-size='50'] {
+    width: 100%;
+  }
+}
+
+/* Landing — "Butun O‘zbekiston bo‘ylab" tarmoq xaritasi va hududlar karuseli */
+@keyframes regions-flow {
+  to {
+    stroke-dashoffset: -110;
+  }
+}
+@keyframes regions-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 7px));
+  }
+}
+@keyframes regions-chip-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% + 6px));
+  }
+}
+.regions-flow {
+  animation: regions-flow 4s linear infinite;
+}
+.regions-node {
+  animation: regions-float 5s ease-in-out infinite;
+}
+.regions-chip {
+  animation: regions-chip-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .regions-flow,
+  .regions-node,
+  .regions-chip {
+    animation: none;
+  }
+  .regions-taxi {
+    display: none;
   }
 }

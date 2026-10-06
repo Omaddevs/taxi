@@ -157,7 +157,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => navigate('/bookings')}
-                  className="text-sm font-semibold text-brand hover:underline"
+                  className="text-sm font-semibold text-brand-dark hover:underline"
                 >
                   Barchasi
                 </button>
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => navigate('/drivers/applications')}
-                  className="text-sm font-semibold text-brand hover:underline"
+                  className="text-sm font-semibold text-brand-dark hover:underline"
                 >
                   Ko‘rish
                 </button>
@@ -237,7 +237,7 @@ export default function Dashboard() {
             <Card className="p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-ink">Sotuv KPI (bugun)</h2>
-                <button type="button" onClick={() => navigate('/operators')} className="text-sm font-semibold text-brand hover:underline">
+                <button type="button" onClick={() => navigate('/operators')} className="text-sm font-semibold text-brand-dark hover:underline">
                   Boshqarish
                 </button>
               </div>
@@ -260,10 +260,10 @@ export default function Dashboard() {
             <Card className="p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-                  <LifeBuoy className="h-4 w-4 text-brand" />
+                  <LifeBuoy className="h-4 w-4 text-brand-dark" />
                   Texnik xizmat
                 </h2>
-                <button type="button" onClick={() => navigate('/support')} className="text-sm font-semibold text-brand hover:underline">
+                <button type="button" onClick={() => navigate('/support')} className="text-sm font-semibold text-brand-dark hover:underline">
                   Navbat
                 </button>
               </div>

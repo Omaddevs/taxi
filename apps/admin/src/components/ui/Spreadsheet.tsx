@@ -13,7 +13,7 @@ export function Spreadsheet({
             {columns.map((col, i) => (
               <th
                 key={`${col}-${i}`}
-                className="sticky top-0 border-b border-line bg-[#e91e63] px-3 py-2 font-bold whitespace-nowrap text-white"
+                className="sticky top-0 border-b border-line bg-[#00c7d4] px-3 py-2 font-bold whitespace-nowrap text-ink"
               >
                 {col}
               </th>

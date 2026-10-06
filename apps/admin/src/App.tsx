@@ -35,6 +35,9 @@ import Leads from './pages/Leads'
 import Integrations from './pages/Integrations'
 import CannedResponses from './pages/CannedResponses'
 import TelegramGroups from './pages/TelegramGroups'
+import Giveaway from './pages/Giveaway'
+import News from './pages/News'
+import NewsEditor from './pages/NewsEditor'
 import type { PanelRole } from './lib/tokens'
 
 function Home() {
@@ -188,6 +191,38 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <OrderDetail />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/news/new"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <NewsEditor />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/news/:id"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <NewsEditor />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/news"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <News />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/giveaway"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <Giveaway />
             </RequireRole>
           }
         />

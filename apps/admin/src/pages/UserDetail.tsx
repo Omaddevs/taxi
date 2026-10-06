@@ -97,7 +97,7 @@ export default function UserDetail() {
             <button
               type="button"
               onClick={() => navigate(`/drivers/${user.driver!.id}`)}
-              className="mt-4 text-sm font-semibold text-brand hover:underline"
+              className="mt-4 text-sm font-semibold text-brand-dark hover:underline"
             >
               Haydovchi profili →
             </button>

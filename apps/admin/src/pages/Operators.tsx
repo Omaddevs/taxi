@@ -192,7 +192,7 @@ function CreateOperatorModal({
             />
             <button
               type="button"
-              className="shrink-0 text-xs font-bold text-brand"
+              className="shrink-0 text-xs font-bold text-brand-dark"
               onClick={() => setShowPass((v) => !v)}
             >
               {showPass ? 'Yashirish' : 'Ko‘rsat'}

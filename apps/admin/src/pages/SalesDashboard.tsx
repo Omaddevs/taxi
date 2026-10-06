@@ -162,7 +162,7 @@ export default function SalesDashboard() {
             </Card>
             <Card className="p-5">
               <div className="mb-3 flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-brand" />
+                <Trophy className="h-4 w-4 text-brand-dark" />
                 <h2 className="text-sm font-bold text-ink">Reyting</h2>
               </div>
               <ol className="space-y-2">
@@ -173,7 +173,7 @@ export default function SalesDashboard() {
                       <p className="truncate text-sm font-semibold">{row.name || row.phone}</p>
                       <p className="text-[11px] text-muted">{row.actual.bookings} bron · {row.actual.calls} chaqiruv</p>
                     </div>
-                    {row.id === user?.id ? <Users className="h-4 w-4 text-brand" /> : null}
+                    {row.id === user?.id ? <Users className="h-4 w-4 text-brand-dark" /> : null}
                   </li>
                 ))}
               </ol>

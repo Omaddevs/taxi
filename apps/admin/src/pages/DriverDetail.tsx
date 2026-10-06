@@ -184,7 +184,7 @@ export default function DriverDetail() {
           <button
             type="button"
             onClick={() => navigate(`/users/${driver.userId}`)}
-            className="mt-4 text-sm font-semibold text-brand hover:underline"
+            className="mt-4 text-sm font-semibold text-brand-dark hover:underline"
           >
             Foydalanuvchi profili →
           </button>

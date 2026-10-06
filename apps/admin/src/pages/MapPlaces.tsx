@@ -525,7 +525,7 @@ function PlaceModal({ open, editing, onClose }: { open: boolean; editing: MapPla
               <button
                 type="button"
                 onClick={() => setPrices((list) => [...list, { title: '', price: '' }])}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-dark hover:underline"
               >
                 <Plus className="h-3.5 w-3.5" /> Narx qo‘shish
               </button>

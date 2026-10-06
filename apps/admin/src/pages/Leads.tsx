@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlarmClock, Camera, MessageCircle, Phone, Send, Trash2, UserPlus } from 'lucide-react'
+import { AlarmClock, Camera, Globe, MessageCircle, Phone, Send, Trash2, UserPlus } from 'lucide-react'
 import { api } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Badge, Button, Card } from '../components/ui/Button'
@@ -156,8 +156,9 @@ export default function Leads() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge tone={lead.leadType === 'DRIVER' ? 'amber' : 'gray'}>{LEAD_TYPE_LABEL[lead.leadType]}</Badge>
                       {lead.channel !== 'MANUAL' ? (
-                        <Badge tone="pink" className="gap-1">
-                          <Camera className="h-3 w-3" /> {LEAD_CHANNEL_LABEL[lead.channel]}
+                        <Badge tone={lead.channel === 'WEBSITE' ? 'green' : 'pink'} className="gap-1">
+                          {lead.channel === 'WEBSITE' ? <Globe className="h-3 w-3" /> : <Camera className="h-3 w-3" />}{' '}
+                          {LEAD_CHANNEL_LABEL[lead.channel]}
                         </Badge>
                       ) : null}
                     </div>
@@ -172,7 +173,7 @@ export default function Leads() {
                       <button
                         type="button"
                         onClick={() => setThreadLead(lead)}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line py-1.5 text-xs font-bold text-brand hover:bg-brand-soft"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line py-1.5 text-xs font-bold text-brand-dark hover:bg-brand-soft"
                       >
                         <MessageCircle className="h-3.5 w-3.5" />
                         Yozishmalar
@@ -345,7 +346,7 @@ function LeadThreadModal({ lead, onClose }: { lead: LeadRow | null; onClose: () 
               <div
                 className={cn(
                   'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
-                  m.direction === 'OUT' ? 'bg-brand text-white' : 'bg-white text-ink',
+                  m.direction === 'OUT' ? 'bg-brand text-ink' : 'bg-white text-ink',
                 )}
               >
                 <p>{m.body}</p>

@@ -209,7 +209,7 @@ export default function OperatorDetail() {
                   className={inputClass}
                   autoComplete="new-password"
                 />
-                <button type="button" className="shrink-0 text-xs font-bold text-brand" onClick={() => setShowPass((v) => !v)}>
+                <button type="button" className="shrink-0 text-xs font-bold text-brand-dark" onClick={() => setShowPass((v) => !v)}>
                   {showPass ? 'Yashirish' : 'Ko‘rsat'}
                 </button>
               </div>
@@ -356,7 +356,7 @@ function SessionsCard({ operatorId }: { operatorId: string }) {
   return (
     <Card className="p-5">
       <div className="mb-3 flex items-center gap-2">
-        <Monitor className="h-4 w-4 text-brand" />
+        <Monitor className="h-4 w-4 text-brand-dark" />
         <h2 className="text-sm font-bold text-ink">Faol sessiyalar</h2>
       </div>
       {isLoading ? (

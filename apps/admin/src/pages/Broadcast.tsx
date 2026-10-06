@@ -45,7 +45,7 @@ export default function Broadcast() {
       />
       <Card className="max-w-xl p-5">
         <div className="mb-4 flex items-start gap-3 rounded-xl bg-canvas px-3 py-3 text-sm text-muted">
-          <Megaphone className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+          <Megaphone className="mt-0.5 h-4 w-4 shrink-0 text-brand-dark" />
           Xabar ilova ichidagi bildirishnomalar ro‘yxatiga tushadi.
         </div>
         <form onSubmit={onSubmit} className="space-y-4">

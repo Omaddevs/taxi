@@ -175,7 +175,7 @@ export default function PersonDetailPage() {
           {person.driver ? (
             <Card className="p-5">
               <div className="mb-3 flex items-center gap-2">
-                <Car className="h-4 w-4 text-brand" />
+                <Car className="h-4 w-4 text-brand-dark" />
                 <h2 className="text-sm font-bold text-ink">Avtomobil</h2>
               </div>
               <dl className="space-y-2.5 text-sm">
@@ -197,7 +197,7 @@ export default function PersonDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/drivers/${person.driver!.id}`)}
-                  className="mt-3 text-sm font-semibold text-brand hover:underline"
+                  className="mt-3 text-sm font-semibold text-brand-dark hover:underline"
                 >
                   Haydovchi operatsiyasi →
                 </button>

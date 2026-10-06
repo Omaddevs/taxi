@@ -153,7 +153,7 @@ function OnboardingChecklist() {
       <ol className="space-y-2 text-sm text-muted">
         {steps.map((step, i) => (
           <li key={i} className="flex gap-2.5">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[11px] font-bold text-brand">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[11px] font-bold text-brand-dark">
               {i + 1}
             </span>
             <span>{step}</span>

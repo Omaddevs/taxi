@@ -164,4 +164,18 @@ class BackendClient:
         await self._client.aclose()
 
 
+    async def giveaway_link(self, token: str, telegram_id: int, username: str | None = None) -> tuple[int, dict]:
+        """Links a landing-page "Random mijoz" entry to this Telegram account and returns the
+        (status_code, body) pair — 200 with membership status, 404 unknown token, 409 when the
+        Telegram account is already used by another phone number."""
+        payload: dict = {"token": token, "telegramId": str(telegram_id)}
+        if username:
+            payload["telegramUsername"] = username
+        resp = await self._client.post("/bot/giveaway/link", json=payload, timeout=30.0)
+        return resp.status_code, resp.json() if resp.content else {}
+
+    async def giveaway_recheck(self, telegram_id: int) -> tuple[int, dict]:
+        resp = await self._client.post("/bot/giveaway/recheck", json={"telegramId": str(telegram_id)}, timeout=30.0)
+        return resp.status_code, resp.json() if resp.content else {}
+
 backend_client = BackendClient()

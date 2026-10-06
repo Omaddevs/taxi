@@ -387,7 +387,7 @@ export default function Cargo() {
         <button
           type="button"
           onClick={startOrder}
-          className="h-14 flex-1 rounded-2xl bg-brand text-[17px] font-bold text-white shadow-[0_8px_20px_rgba(18,165,148,0.28)] transition active:scale-[0.99]"
+          className="h-14 flex-1 rounded-2xl bg-brand text-[17px] font-bold text-white shadow-[0_8px_20px_rgba(0,199,212,0.28)] transition active:scale-[0.99]"
         >
           Buyurtma berish
         </button>

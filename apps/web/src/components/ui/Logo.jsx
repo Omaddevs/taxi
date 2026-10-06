@@ -1,14 +1,14 @@
 import logo from '../../assets/logo.png'
 import logoPin from '../../assets/logo-pin.png'
 
-export function Logo({ size = 36 }) {
+export function Logo({ size = 36, className = '' }) {
   return (
     <img
       src={logo}
       alt="TaxiLine"
       width={size}
       height={size}
-      className="shrink-0 object-contain"
+      className={`shrink-0 object-contain ${className}`}
       style={{ width: size, height: size }}
     />
   )

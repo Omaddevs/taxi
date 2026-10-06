@@ -175,13 +175,13 @@ function LineChart({ points }) {
         {[0, 0.25, 0.5, 0.75, 1].map((t) => (
           <line key={t} x1={pad} x2={w - pad} y1={h - pad - t * (h - pad * 2)} y2={h - pad - t * (h - pad * 2)} stroke="#eceef2" />
         ))}
-        <path d={d} fill="none" stroke="#12a594" strokeWidth="2.5" />
+        <path d={d} fill="none" stroke="#00c7d4" strokeWidth="2.5" />
         {coords.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="3.5" fill="#12a594" />
+          <circle key={i} cx={x} cy={y} r="3.5" fill="#00c7d4" />
         ))}
         {last ? (
           <g>
-            <rect x={Math.min(Math.max(last[0] - 22, 4), w - 48)} y={Math.max(last[1] - 22, 2)} width="44" height="16" rx="8" fill="#12a594" />
+            <rect x={Math.min(Math.max(last[0] - 22, 4), w - 48)} y={Math.max(last[1] - 22, 2)} width="44" height="16" rx="8" fill="#00c7d4" />
             <text
               x={Math.min(Math.max(last[0], 26), w - 26)}
               y={Math.max(last[1] - 11, 13)}
@@ -225,7 +225,7 @@ function BarChart({ values }) {
   )
 }
 
-const SOURCE_COLORS = ['#12a594', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6']
+const SOURCE_COLORS = ['#00c7d4', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6']
 
 function Donut({ amount, sources }) {
   const sourceTotal = sources.reduce((s, x) => s + x.amount, 0)

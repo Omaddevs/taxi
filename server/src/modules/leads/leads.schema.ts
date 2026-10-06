@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const leadStatusSchema = z.enum(['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'LOST'])
 export const leadTypeSchema = z.enum(['PASSENGER', 'DRIVER'])
-export const leadChannelSchema = z.enum(['MANUAL', 'INSTAGRAM_DM', 'INSTAGRAM_LEAD_AD'])
+export const leadChannelSchema = z.enum(['MANUAL', 'INSTAGRAM_DM', 'INSTAGRAM_LEAD_AD', 'WEBSITE'])
 
 export const listLeadsQuerySchema = z.object({
   status: leadStatusSchema.optional(),
@@ -38,4 +38,12 @@ export const updateLeadSchema = z.object({
 
 export const sendLeadMessageSchema = z.object({
   body: z.string().trim().min(1).max(2000),
+})
+
+// Landing sahifadagi ochiq "Haydovchi bo‘ling" formasi
+export const websiteLeadSchema = z.object({
+  name: z.string().trim().min(2, 'Ism familiyangizni kiriting').max(120),
+  phone: z.string().min(9).max(20),
+  city: z.string().trim().max(80).optional(),
+  activity: z.enum(['driver', 'courier', 'passenger']).default('driver'),
 })

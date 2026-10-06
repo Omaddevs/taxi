@@ -99,7 +99,7 @@ export default function Login() {
       {step === 'phone' ? (
         <form onSubmit={onRequestOtp} className="flex flex-1 flex-col">
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Xush kelibsiz!</h1>
-          <p className="mt-1 text-[13px] leading-5 text-muted">Telefon raqamingizni kiriting</p>
+          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">Telefon raqamingizni kiriting</p>
 
           <label className="relative mt-5 block">
             <span className="absolute -top-2 left-3 z-10 bg-white px-1 text-[11px] font-bold text-brand">Telefon raqam</span>
@@ -144,7 +144,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading || !phoneReady}
-            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
             {loading ? 'Yuborilmoqda…' : 'Kod olish'}
             <ArrowRight className="absolute right-5 h-5 w-5" />
@@ -160,7 +160,7 @@ export default function Login() {
             href={`https://t.me/${TELEGRAM_BOT}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3"
+            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:h-14 lg:px-4"
           >
             <TelegramMark />
             <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali kirish</span>
@@ -169,7 +169,7 @@ export default function Login() {
           <button
             type="button"
             onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon yoki Telegram ishlating.')}
-            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3"
+            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:mt-3 lg:h-14 lg:px-4"
           >
             <GoogleMark />
             <span className="min-w-0 flex-1 text-left text-[14px] font-bold">Google orqali kirish</span>
@@ -194,7 +194,7 @@ export default function Login() {
             <ArrowLeft className="h-4 w-4" /> {phone}
           </button>
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
-          <p className="mt-1 text-[13px] leading-5 text-muted">
+          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
             SMS yoki Telegram orqali kelgan 6 xonali kodni kiriting. Telegramdagi “Tasdiqlash va kirish” ham ishlaydi.
           </p>
           <input
@@ -208,7 +208,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
             {loading ? 'Tekshirilmoqda…' : 'Tasdiqlash'}
             <ArrowRight className="absolute right-5 h-5 w-5" />

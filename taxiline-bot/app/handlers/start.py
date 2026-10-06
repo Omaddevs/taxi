@@ -11,6 +11,7 @@ from app.services import users as users_service
 from app.services.backend_client import backend_client
 from app.services.phone import normalize_phone
 from app.states.registration import Registration
+from app.handlers import giveaway
 
 router = Router(name="start")
 
@@ -74,6 +75,10 @@ async def cmd_start(message: Message, state: FSMContext, session, bot_user, lang
     payload = parts[1].strip() if len(parts) > 1 else ""
     if payload.startswith("otp_"):
         await _handle_otp_deep_link(message, payload[len("otp_") :], lang)
+        return
+    # Landing page "Random mijoz" form: `t.me/<bot>?start=gw_<token>` links the entry to this account.
+    if payload.startswith("gw_"):
+        await giveaway.handle_deep_link(message, payload[len("gw_") :], lang)
         return
 
     await state.clear()

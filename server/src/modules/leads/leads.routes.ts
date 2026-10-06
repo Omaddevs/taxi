@@ -3,7 +3,9 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as leadsController from './leads.controller.js'
-import { createLeadSchema, leadIdParamSchema, listLeadsQuerySchema, updateLeadSchema } from './leads.schema.js'
+import { createLeadSchema, leadIdParamSchema, listLeadsQuerySchema, updateLeadSchema, websiteLeadSchema } from './leads.schema.js'
+import { rateLimit } from '../../middleware/rateLimit.js'
+import * as leadsService from './leads.service.js'
 
 const staff = ['ADMIN', 'SALES_OPERATOR'] as const
 
@@ -36,4 +38,15 @@ adminLeadsRouter.delete(
   requireRole(...staff),
   validate({ params: leadIdParamSchema }),
   asyncRoute(leadsController.deleteLead),
+)
+
+// Ochiq: landing sahifadagi forma (autentifikatsiyasiz, IP bo‘yicha cheklangan)
+export const publicLeadsRouter = Router()
+publicLeadsRouter.post(
+  '/',
+  rateLimit(20, 10 * 60_000),
+  validate({ body: websiteLeadSchema }),
+  asyncRoute(async (req, res) => {
+    res.status(201).json(await leadsService.createWebsiteLead(req.body))
+  }),
 )

@@ -1,34 +1,36 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import {
-  LayoutDashboard,
-  Car,
-  ClipboardCheck,
-  Ticket,
-  Route,
-  Star,
-  Wallet,
-  Tag,
-  Layers,
-  Megaphone,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Headset,
-  Users,
-  FileSpreadsheet,
-  LifeBuoy,
-  ShieldCheck,
-  UserPlus,
-  MessageSquareText,
-  Link2,
   CalendarClock,
-  Radio,
-  MessagesSquare,
-  type LucideIcon,
+  Car,
   CarFront,
+  ClipboardCheck,
+  FileSpreadsheet,
+  Gift,
+  Headset,
+  Layers,
+  LayoutDashboard,
+  LifeBuoy,
+  Link2,
+  LogOut,
   MapPinned,
+  Megaphone,
+  Menu,
+  MessageSquareText,
+  MessagesSquare,
+  Newspaper,
+  Radio,
+  Route,
+  Settings,
+  ShieldCheck,
+  Star,
+  Tag,
+  Ticket,
+  UserPlus,
+  Users,
+  Wallet,
+  X,
+  type LucideIcon,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
@@ -43,7 +45,7 @@ type NavItem = {
   label: string
   icon: LucideIcon
   end?: boolean
-  badge?: 'pending'
+  badge?: 'pending' | 'newLeads'
   roles: PanelRole[]
 }
 
@@ -63,7 +65,8 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: 'Odamlar',
     items: [
       { to: '/people', label: 'Mijozlar', icon: Users, roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
-      { to: '/leads', label: 'Lidlar', icon: UserPlus, roles: ['ADMIN', 'SALES_OPERATOR'] },
+      { to: '/leads', label: 'Lidlar', icon: UserPlus, badge: 'newLeads', roles: ['ADMIN', 'SALES_OPERATOR'] },
+      { to: '/giveaway', label: 'Random mijozlar', icon: Gift, roles: ['ADMIN'] },
       { to: '/drivers', label: 'Haydovchilar', icon: Car, end: true, roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
       { to: '/drivers/applications', label: 'Arizalar', icon: ClipboardCheck, badge: 'pending', roles: ['ADMIN'] },
     ],
@@ -88,6 +91,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
   {
     label: 'Kontent',
     items: [
+      { to: '/news', label: 'Yangiliklar', icon: Newspaper, roles: ['ADMIN'] },
       { to: '/services', label: 'Xizmatlar', icon: Layers, roles: ['ADMIN'] },
       { to: '/cars', label: 'Mashinalar', icon: CarFront, roles: ['ADMIN'] },
       { to: '/map-places', label: 'Xarita joylari', icon: MapPinned, roles: ['ADMIN'] },
@@ -108,10 +112,12 @@ const ROLE_BADGE: Record<PanelRole, string> = {
 function SidebarNav({
   role,
   pending,
+  newLeads,
   onNavigate,
 }: {
   role: PanelRole
   pending: number
+  newLeads: number
   onNavigate?: () => void
 }) {
   return (
@@ -132,7 +138,7 @@ function SidebarNav({
                   className={({ isActive }) =>
                     cn(
                       'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
-                      isActive ? 'bg-brand text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+                      isActive ? 'bg-brand text-ink font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white',
                     )
                   }
                 >
@@ -141,6 +147,11 @@ function SidebarNav({
                   {item.badge === 'pending' && pending > 0 ? (
                     <span className="min-w-5 rounded-full bg-white/20 px-1.5 text-center text-[11px] font-bold">
                       {pending}
+                    </span>
+                  ) : null}
+                  {item.badge === 'newLeads' && newLeads > 0 ? (
+                    <span className="min-w-5 rounded-full bg-brand px-1.5 text-center text-[11px] font-bold text-ink" title="Yangi arizalar">
+                      {newLeads}
                     </span>
                   ) : null}
                 </NavLink>
@@ -194,6 +205,14 @@ export function AdminLayout() {
     enabled: user?.role === 'ADMIN',
   })
 
+  // Lidlar yonidagi raqam: sayt formasi va boshqa manbalardan kelgan, hali ishlanmagan (NEW) arizalar.
+  const { data: leadsBadge } = useQuery({
+    queryKey: ['leads', 'new-badge'],
+    queryFn: () => api.get<{ id: string }[]>('/admin/leads?status=NEW'),
+    refetchInterval: 30_000,
+    enabled: user?.role === 'ADMIN' || user?.role === 'SALES_OPERATOR',
+  })
+
   // Cheap presence signal: ping every 30s while the panel tab is open so teammates see this
   // account as "online" in the Operators list (see staff.service's 90s online window).
   useEffect(() => {
@@ -207,6 +226,7 @@ export function AdminLayout() {
   if (!user) return <Navigate to="/login" replace />
 
   const pending = data?.pendingApplications ?? 0
+  const newLeads = leadsBadge?.length ?? 0
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -236,7 +256,7 @@ export function AdminLayout() {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <SidebarNav role={user.role} pending={pending} onNavigate={() => setOpen(false)} />
+        <SidebarNav role={user.role} pending={pending} newLeads={newLeads} onNavigate={() => setOpen(false)} />
         <div className="border-t border-white/10 px-3 py-4">
           <div className="mb-2 truncate px-3 text-xs font-semibold text-white/50">{user.name || user.phone}</div>
           <div className="mb-2">

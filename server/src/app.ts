@@ -22,7 +22,7 @@ import { adminStaffRouter } from './modules/staff/staff.routes.js'
 import { adminTicketsRouter } from './modules/tickets/tickets.routes.js'
 import { adminReportsRouter } from './modules/reports/reports.routes.js'
 import { adminAuditRouter } from './modules/audit/audit.routes.js'
-import { adminLeadsRouter } from './modules/leads/leads.routes.js'
+import { adminLeadsRouter, publicLeadsRouter } from './modules/leads/leads.routes.js'
 import { adminCannedResponsesRouter } from './modules/cannedResponses/cannedResponses.routes.js'
 import { ticketSatisfactionRouter } from './modules/tickets/tickets.routes.js'
 import { botRouter } from './modules/bot/bot.routes.js'
@@ -33,6 +33,9 @@ import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter }
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
 import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
 import { adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPlaces.routes.js'
+import { adminGiveawayRouter, botGiveawayRouter, giveawayRouter } from './modules/giveaway/giveaway.routes.js'
+import { adminNewsRouter, newsRouter } from './modules/news/news.routes.js'
+import { publicStatsRouter } from './modules/publicStats/publicStats.routes.js'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -53,7 +56,7 @@ export function createApp() {
   app.use(
     express.json({
       // Admin image uploads (car catalog) travel as data: URIs — the 100kb default rejects them.
-      limit: '2mb',
+      limit: '6mb',
       verify: (req, _res, buf) => {
         ;(req as express.Request).rawBody = buf
       },
@@ -104,6 +107,13 @@ export function createApp() {
   app.use('/admin/audit', adminAuditRouter)
   app.use('/admin/leads', adminLeadsRouter)
   app.use('/admin/canned-responses', adminCannedResponsesRouter)
+  app.use('/stats', publicStatsRouter)
+  app.use('/leads', publicLeadsRouter)
+  app.use('/news', newsRouter)
+  app.use('/admin/news', adminNewsRouter)
+  app.use('/giveaway', giveawayRouter)
+  app.use('/admin/giveaway', adminGiveawayRouter)
+  app.use('/bot/giveaway', botGiveawayRouter)
   app.use('/bot', botRouter)
   app.use('/bot-orders', botOrdersRouter)
   app.use('/admin/bot-orders', adminBotOrdersRouter)

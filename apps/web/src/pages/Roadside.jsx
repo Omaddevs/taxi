@@ -59,7 +59,7 @@ export default function Roadside() {
                 className={cn(
                   'flex min-h-[112px] flex-col rounded-[20px] border p-3 text-left transition-all active:scale-[0.98]',
                   active
-                    ? 'border-brand bg-brand-soft shadow-[0_8px_20px_rgba(18,165,148,0.14)]'
+                    ? 'border-brand bg-brand-soft shadow-[0_8px_20px_rgba(0,199,212,0.14)]'
                     : 'border-line bg-white shadow-[0_6px_18px_rgba(28,28,40,0.04)]',
                 )}
               >

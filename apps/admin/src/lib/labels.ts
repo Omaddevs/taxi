@@ -194,12 +194,14 @@ export const LEAD_CHANNEL_LABEL = {
   MANUAL: 'Qo‘lda kiritilgan',
   INSTAGRAM_DM: 'Instagram DM',
   INSTAGRAM_LEAD_AD: 'Instagram forma',
+  WEBSITE: 'Sayt formasi',
 } as const
 
 export const LEAD_CHANNEL_TONE = {
   MANUAL: 'gray',
   INSTAGRAM_DM: 'pink',
   INSTAGRAM_LEAD_AD: 'pink',
+  WEBSITE: 'green',
 } as const
 
 export const AUDIT_ACTION_LABEL: Record<string, string> = {

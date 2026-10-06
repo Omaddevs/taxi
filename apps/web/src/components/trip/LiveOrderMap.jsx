@@ -150,11 +150,11 @@ export function LiveOrderMap({ order, driverPos, className = '', interactive = f
         {route?.points?.length ? (
           <>
             <Polyline positions={route.points} pathOptions={{ color: '#ffffff', weight: 8, opacity: 0.9 }} />
-            <Polyline positions={route.points} pathOptions={{ color: '#12a594', weight: 4 }} />
+            <Polyline positions={route.points} pathOptions={{ color: '#00c7d4', weight: 4 }} />
           </>
         ) : null}
         {driverPos ? <Marker position={[driverPos.lat, driverPos.lng]} icon={driverDotIcon()} /> : null}
-        {pickup ? <Marker position={[pickup.lat, pickup.lng]} icon={pinIcon('#12a594', 'Mijoz', 26)} /> : null}
+        {pickup ? <Marker position={[pickup.lat, pickup.lng]} icon={pinIcon('#00c7d4', 'Mijoz', 26)} /> : null}
         {dest ? <Marker position={[dest.lat, dest.lng]} icon={pinIcon('#1c1c28', 'Manzil', 26)} /> : null}
       </MapContainer>
       <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-extrabold shadow-sm">

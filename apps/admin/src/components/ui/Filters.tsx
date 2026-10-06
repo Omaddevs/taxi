@@ -43,7 +43,7 @@ export function FilterPills({
           onClick={() => onChange(option.value)}
           className={
             value === option.value
-              ? 'rounded-full bg-brand px-3.5 py-1.5 text-sm font-semibold text-white'
+              ? 'rounded-full bg-brand px-3.5 py-1.5 text-sm font-semibold text-ink'
               : 'rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-semibold text-ink hover:bg-canvas'
           }
         >

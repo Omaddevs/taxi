@@ -273,3 +273,21 @@ export async function updateAdminBotGroup(groupId: number, payload: BotGroupPayl
 export async function deleteAdminBotGroup(groupId: number): Promise<{ ok: true }> {
   return botFetch<{ ok: true }>(`/webapp/admin/groups/${groupId}`, { method: 'DELETE', ...GROUP_TIMEOUT })
 }
+
+// ── Random mijoz: Telegram kanal/guruh a'zoligini tekshirish ───────────────────────────────
+// The bot runs getChatMember for every (chat, user) pair. Per chat the answer is `true`
+// (member/admin/creator), `false` (left/kicked/never joined) or an error string when the chat
+// itself can't be queried (wrong id, bot isn't an admin of the channel).
+export interface ChatMembersResult {
+  members: Record<string, Record<string, boolean>>
+  chatErrors: Record<string, string>
+}
+
+export async function checkChatMembers(chats: string[], telegramIds: string[]): Promise<ChatMembersResult> {
+  return botFetch<ChatMembersResult>('/webapp/chat-members', {
+    method: 'POST',
+    body: JSON.stringify({ chats, telegramIds }),
+    // ~25 getChatMember calls per second on the bot side; large rechecks are chunked by the caller.
+    timeoutMs: 60_000,
+  })
+}

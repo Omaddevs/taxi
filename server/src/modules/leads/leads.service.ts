@@ -1,7 +1,7 @@
 import type { LeadChannel, LeadStatus, LeadType } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { normalizePhone } from '../../lib/otp.js'
-import { ForbiddenError, NotFoundError } from '../../errors/AppError.js'
+import { ForbiddenError, NotFoundError, ValidationError } from '../../errors/AppError.js'
 import type { JwtRole } from '../../lib/jwt.js'
 
 const LEAD_INCLUDE = { owner: { select: { id: true, name: true, phone: true } } }
@@ -139,4 +139,43 @@ export async function updateLead(
 export async function deleteLead(id: string, actorRole: JwtRole, actorId: string) {
   await ownedLead(id, actorRole, actorId)
   await prisma.lead.delete({ where: { id } })
+}
+
+const ACTIVITY_LABEL = { driver: 'Haydovchi', courier: 'Kuryer / pochta', passenger: 'Yo‘lovchi' } as const
+
+// Sayt formasidan kelgan ariza: navbatdagi sotuv operatoriga biriktiriladi va darhol "qo‘ng‘iroq
+// qilish kerak" ro‘yxatiga tushadi. Bir raqamdan ochiq ariza bo‘lsa, yangisi ochilmaydi —
+// mavjudi yangilanadi (takroriy bosish yoki qayta yuborishda ro‘yxat to‘lib ketmasligi uchun).
+export async function createWebsiteLead(input: { name: string; phone: string; city?: string; activity: keyof typeof ACTIVITY_LABEL }) {
+  const phone = normalizePhone(input.phone)
+  if (!/^\+998\d{9}$/.test(phone)) throw new ValidationError('Telefon raqami +998 XX XXX XX XX formatida bo‘lishi kerak')
+  const leadType: LeadType = input.activity === 'passenger' ? 'PASSENGER' : 'DRIVER'
+  const note = [`Faoliyat: ${ACTIVITY_LABEL[input.activity]}`, input.city ? `Shahar: ${input.city}` : null].filter(Boolean).join(' · ')
+  const source = 'Sayt: “Haydovchi bo‘ling” formasi'
+
+  const open = await prisma.lead.findFirst({
+    where: { phone, channel: 'WEBSITE', status: { notIn: ['CONVERTED', 'LOST'] } },
+    orderBy: { createdAt: 'desc' },
+  })
+  if (open) {
+    await prisma.lead.update({
+      where: { id: open.id },
+      data: { name: input.name, note, leadType, followUpAt: new Date() },
+    })
+    return { ok: true, duplicate: true }
+  }
+
+  await prisma.lead.create({
+    data: {
+      name: input.name,
+      phone,
+      source,
+      note,
+      leadType,
+      channel: 'WEBSITE',
+      ownerId: await pickLeadOwner(),
+      followUpAt: new Date(),
+    },
+  })
+  return { ok: true, duplicate: false }
 }

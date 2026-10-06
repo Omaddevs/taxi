@@ -42,7 +42,7 @@ export default function Login() {
       <div className="login-grid relative hidden flex-col justify-between p-10 text-white lg:flex">
         <Logo light />
         <div className="max-w-md">
-          <p className="text-sm font-semibold tracking-[0.2em] text-brand uppercase">Operator paneli</p>
+          <p className="text-sm font-semibold tracking-[0.2em] text-brand-dark uppercase">Operator paneli</p>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">TaxiLine tizimini boshqaring</h1>
           <p className="mt-4 text-sm leading-6 text-white/65">
             Foydalanuvchilar, haydovchilar, bronlar, moliya va xizmatlarni bitta joydan kuzating va boshqaring.

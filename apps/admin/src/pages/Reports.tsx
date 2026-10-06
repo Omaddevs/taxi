@@ -71,7 +71,7 @@ export default function Reports() {
                 onClick={() => setSheet(i)}
                 className={
                   (active?.name === s.name)
-                    ? 'rounded-t-lg bg-white px-3 py-2 text-sm font-bold text-brand ring-1 ring-line'
+                    ? 'rounded-t-lg bg-white px-3 py-2 text-sm font-bold text-brand-dark ring-1 ring-line'
                     : 'rounded-t-lg px-3 py-2 text-sm font-semibold text-muted hover:text-ink'
                 }
               >

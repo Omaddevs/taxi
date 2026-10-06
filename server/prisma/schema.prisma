@@ -158,6 +158,7 @@ enum LeadChannel {
   MANUAL
   INSTAGRAM_DM
   INSTAGRAM_LEAD_AD
+  WEBSITE // landing sahifadagi "Haydovchi bo‘ling" formasi
 }
 
 enum LeadMessageDirection {
@@ -884,4 +885,110 @@ model CannedResponse {
   updatedAt   DateTime        @updatedAt
 
   @@index([category])
+}
+
+// ── Random mijoz (giveaway) ─────────────────────────────────────────────────────────────────
+// Landing page visitors leave name + phone, then open the bot (`t.me/<bot>?start=gw_<token>`)
+// so we learn their Telegram id; the bot then checks channel/group membership via getChatMember.
+// Admins draw winners only from entries whose membership is confirmed.
+
+enum GiveawayPrize {
+  GOING // borish yo'li haqi
+  RETURN // qaytish yo'li haqi
+}
+
+// Single-row settings ("default"): which channel/group must be subscribed and their invite links.
+model GiveawaySettings {
+  id            String   @id @default("default")
+  title         String   @default("Random mijoz")
+  prizeText     String?
+  channelChatId String? // "@taxiline_uz" or "-100…" — bot must be an admin there
+  channelUrl    String?
+  groupChatId   String?
+  groupUrl      String?
+  entriesOpen   Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+}
+
+model GiveawayEntry {
+  id               String           @id @default(cuid())
+  firstName        String
+  lastName         String
+  phone            String           @unique
+  linkToken        String           @unique
+  telegramId       String?          @unique // one Telegram account = one entry
+  telegramUsername String?
+  channelMember    Boolean? // null = not checked yet
+  groupMember      Boolean?
+  checkedAt        DateTime?
+  checkError       String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  wins             GiveawayWinner[]
+
+  @@index([createdAt])
+}
+
+model GiveawayDraw {
+  id            String           @id @default(cuid())
+  prize         GiveawayPrize
+  count         Int
+  poolSize      Int
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime         @default(now())
+  winners       GiveawayWinner[]
+
+  @@index([createdAt])
+}
+
+model GiveawayWinner {
+  id        String        @id @default(cuid())
+  drawId    String
+  draw      GiveawayDraw  @relation(fields: [drawId], references: [id], onDelete: Cascade)
+  entryId   String
+  entry     GiveawayEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  prize     GiveawayPrize
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@unique([drawId, entryId])
+  @@index([entryId])
+}
+
+// ── Yangiliklar (landing /news) ────────────────────────────────────────────────────────────
+enum NewsCategory {
+  NEWS // Yangilik
+  UPDATE // Ilova yangilanishi
+  PROMO // Aksiya
+  DRIVERS // Haydovchilar uchun
+}
+
+model NewsPost {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  excerpt     String
+  body        String // plain text; blank lines separate paragraphs
+  coverUrl    String? // data: URI from the admin uploader, or a plain https URL
+  category    NewsCategory @default(NEWS)
+  published   Boolean      @default(false)
+  pinned      Boolean      @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([published, publishedAt])
+}
+
+// Images used inside news posts (cover + inline). Stored in the DB so no file storage is needed;
+// served publicly by GET /news/images/:id with long-lived cache headers.
+model NewsImage {
+  id        String   @id @default(cuid())
+  mime      String
+  data      Bytes
+  width     Int?
+  height    Int?
+  size      Int
+  createdAt DateTime @default(now())
 }

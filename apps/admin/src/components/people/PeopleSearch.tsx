@@ -37,7 +37,7 @@ export function PeopleSearch() {
         <button
           type="button"
           onClick={() => navigate(debounced ? `/people?q=${encodeURIComponent(debounced)}` : '/people')}
-          className="text-sm font-semibold text-brand hover:underline"
+          className="text-sm font-semibold text-brand-dark hover:underline"
         >
           Katalog →
         </button>

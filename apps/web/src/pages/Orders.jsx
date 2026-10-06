@@ -458,7 +458,7 @@ export default function Orders() {
               type="button"
               onClick={() => setCategory(id)}
               className={`flex h-11 shrink-0 items-center gap-2 rounded-full pl-3.5 pr-2 text-[13px] font-semibold transition-colors ${
-                on ? 'bg-brand text-white shadow-[0_8px_20px_rgba(18,165,148,0.3)]' : 'bg-white text-ink shadow-[0_4px_14px_rgba(16,42,67,0.06)]'
+                on ? 'bg-brand text-white shadow-[0_8px_20px_rgba(0,199,212,0.3)]' : 'bg-white text-ink shadow-[0_4px_14px_rgba(16,42,67,0.06)]'
               }`}
             >
               <Icon className={`h-4.5 w-4.5 ${on ? '' : 'text-slate-600'}`} />

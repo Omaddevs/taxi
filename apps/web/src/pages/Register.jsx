@@ -25,7 +25,7 @@ export default function Register() {
   const location = useLocation()
   const nameInputRef = useRef(null)
   const [step, setStep] = useState('profile')
-  const [name, setName] = useState('')
+  const [name, setName] = useState(location.state?.name || '')
   const [phone, setPhone] = useState(maskPhoneUz(location.state?.phone || '+998'))
   const phoneReady = isCompletePhoneUz(phone)
   const nameReady = cleanName(name).length >= 2
@@ -125,7 +125,7 @@ export default function Register() {
       {step === 'profile' ? (
         <form onSubmit={onRequestOtp} className="flex flex-1 flex-col">
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Ro‘yxatdan o‘tish</h1>
-          <p className="mt-1 text-[13px] leading-5 text-muted">
+          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
             Botdagi kabi til, ism va telefon raqam kerak. Shu nomer bilan Telegram botga ham kirasiz.
           </p>
 
@@ -202,7 +202,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading || !nameReady || !phoneReady}
-            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
             {loading ? 'Yuborilmoqda…' : 'Kod olish'}
             <ArrowRight className="absolute right-5 h-5 w-5" />
@@ -218,7 +218,7 @@ export default function Register() {
             href={`https://t.me/${TELEGRAM_BOT}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3"
+            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:h-14 lg:px-4"
           >
             <TelegramMark />
             <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali ro‘yxatdan o‘tish</span>
@@ -227,7 +227,7 @@ export default function Register() {
           <button
             type="button"
             onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon yoki Telegram ishlating.')}
-            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3"
+            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:mt-3 lg:h-14 lg:px-4"
           >
             <GoogleMark />
             <span className="min-w-0 flex-1 text-left text-[14px] font-bold">Google orqali kirish</span>
@@ -252,7 +252,7 @@ export default function Register() {
             <ArrowLeft className="h-4 w-4" /> {phone}
           </button>
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
-          <p className="mt-1 text-[13px] leading-5 text-muted">
+          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
             {cleanName(name)}, SMS yoki Telegram orqali kelgan 6 xonali kodni kiriting.
           </p>
           <input
@@ -266,7 +266,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-white shadow-[0_8px_18px_rgba(18,165,148,0.28)] disabled:opacity-45"
+            className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
             {loading ? 'Tekshirilmoqda…' : 'Tasdiqlash'}
             <ArrowRight className="absolute right-5 h-5 w-5" />

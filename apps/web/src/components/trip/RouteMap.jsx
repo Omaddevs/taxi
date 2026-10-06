@@ -71,8 +71,8 @@ export function RouteMap({ from = 'Qarshi', to = 'Toshkent', className = '' }) {
         {line ? (
           <>
             <Polyline positions={line} pathOptions={{ color: '#ffffff', weight: 9, opacity: 0.9 }} />
-            <Polyline positions={line} pathOptions={{ color: '#12a594', weight: 5 }} />
-            <Marker position={[origin.lat, origin.lng]} icon={cityPin('#12a594', origin.name)} />
+            <Polyline positions={line} pathOptions={{ color: '#00c7d4', weight: 5 }} />
+            <Marker position={[origin.lat, origin.lng]} icon={cityPin('#00c7d4', origin.name)} />
             <Marker position={[target.lat, target.lng]} icon={cityPin('#1c1c28', target.name)} />
           </>
         ) : null}
@@ -100,13 +100,13 @@ export function CarArt() {
       <ellipse cx="110" cy="96" rx="70" ry="8" fill="rgba(255,255,255,0.25)" />
       <path d="M30 72 L48 48 C54 40 62 36 78 36 H142 C160 36 170 42 178 52 L196 72 V84 H30 Z" fill="#fff" />
       <path d="M70 38 C78 26 90 20 110 20 C132 20 146 28 152 38" fill="#f8bbd0" />
-      <rect x="78" y="40" width="28" height="16" rx="3" fill="#e3f6f3" />
-      <rect x="112" y="40" width="28" height="16" rx="3" fill="#e3f6f3" />
+      <rect x="78" y="40" width="28" height="16" rx="3" fill="#e0f9fb" />
+      <rect x="112" y="40" width="28" height="16" rx="3" fill="#e0f9fb" />
       <circle cx="62" cy="84" r="12" fill="#1c1c28" />
       <circle cx="62" cy="84" r="6" fill="#d1d5db" />
       <circle cx="164" cy="84" r="12" fill="#1c1c28" />
       <circle cx="164" cy="84" r="6" fill="#d1d5db" />
-      <rect x="100" y="68" width="18" height="6" rx="2" fill="#12a594" />
+      <rect x="100" y="68" width="18" height="6" rx="2" fill="#00c7d4" />
     </svg>
   )
 }

@@ -1,6 +1,6 @@
 export type LeadStatus = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'CONVERTED' | 'LOST'
 export type LeadType = 'PASSENGER' | 'DRIVER'
-export type LeadChannel = 'MANUAL' | 'INSTAGRAM_DM' | 'INSTAGRAM_LEAD_AD'
+export type LeadChannel = 'MANUAL' | 'INSTAGRAM_DM' | 'INSTAGRAM_LEAD_AD' | 'WEBSITE'
 
 export interface LeadRow {
   id: string
