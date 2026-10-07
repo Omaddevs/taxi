@@ -8,7 +8,7 @@ import { isDriverUser } from '../lib/role'
 // Landing sahifasidagi hero bilan bir xil vizual til, lekin pushti rangda (mashina ham hue-rotate bilan pushti): kulrang + pushti panel, katta "T" shakli,
 // qorong‘i "nega biz" bloki va varaqlanadigan kartalar.
 const FEATURES = [
-  { icon: UserRoundCheck, title: 'Ayol haydovchilar', text: 'Rulda faqat hujjati tekshirilgan ayol haydovchi', tone: 'brand' },
+  { icon: UserRoundCheck, title: 'Ayol haydovchilar', text: 'Buyurtmangiz avval hujjati tekshirilgan ayol haydovchilarga boradi', tone: 'brand' },
   { icon: MapPinned, title: 'Jonli GPS', text: 'Safaringizni yaqinlaringiz real vaqtda kuzatadi', tone: 'light' },
   { icon: Siren, title: 'SOS tugmasi', text: 'Bir bosishda ishonchli kontaktlar va yordam xizmati', tone: 'brand' },
   { icon: Headphones, title: '24/7 yordam', text: 'Qo‘llab-quvvatlash safar davomida aloqada', tone: 'light' },
@@ -16,7 +16,7 @@ const FEATURES = [
 
 const STEPS = [
   { title: 'Manzilni kiriting', text: 'Qayerdan va qayerga borishingizni tanlang' },
-  { title: 'Ayol haydovchini tanlang', text: 'Faqat ayol haydovchilar takliflari ko‘rsatiladi' },
+  { title: 'So‘rov yuboring', text: 'Avval ayol haydovchilar ko‘radi, 5 daqiqadan keyin — barcha haydovchilar' },
   { title: 'Xotirjam yetib boring', text: 'Safar GPS va SOS himoyasi ostida o‘tadi' },
 ]
 
@@ -133,12 +133,13 @@ export default function WomenTaxi() {
             </svg>
 
             <h2 className="relative text-[30px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[40px] lg:mt-[68px] lg:text-[36px] xl:text-[42px]">
-              Rulda — faqat
+              Avval —
               <br />
-              ayol haydovchi
+              ayol haydovchilar
             </h2>
             <p className="relative mt-4 max-w-[420px] text-[15px] leading-[1.5] text-ink/85 sm:text-[17px]">
-              Tasdiqlangan ayol haydovchilar bilan shahar ichida va viloyatlararo xotirjam safar qiling.
+              Buyurtmangiz avval tasdiqlangan ayol haydovchilarga yuboriladi. 5 daqiqada hech kim olmasa, barcha haydovchilarga
+              ochiladi — kutib qolmaysiz.
             </p>
 
             <div className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

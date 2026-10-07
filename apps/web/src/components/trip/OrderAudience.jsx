@@ -16,7 +16,7 @@ export function WomenOrderRibbon({ className = '' }) {
     >
       <span aria-hidden>🌸</span>
       <span className="min-w-0 flex-1 truncate">Ayollar uchun taxi</span>
-      <span className="shrink-0 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">Faqat ayol haydovchilar</span>
+      <span className="shrink-0 rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">Ayol yo‘lovchi</span>
     </div>
   )
 }

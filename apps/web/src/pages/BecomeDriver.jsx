@@ -170,7 +170,7 @@ export default function BecomeDriver() {
               </div>
               {form.gender === 'FEMALE' ? (
                 <p className="rounded-2xl bg-white/80 px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
-                  🌸 Ayol haydovchilarga «Ayollar uchun taxi» buyurtmalari ham keladi.
+                  🌸 «Ayollar uchun taxi» buyurtmalari avval ayol haydovchilarga keladi.
                 </p>
               ) : null}
               <label className={FIELD}>

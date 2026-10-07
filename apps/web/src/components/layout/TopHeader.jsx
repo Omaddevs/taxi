@@ -16,7 +16,7 @@ const titles = {
   '/results': { title: 'Safar natijalari', subtitle: 'Mavjud haydovchilar' },
   '/profile': { title: 'Profil', subtitle: 'Shaxsiy ma’lumotlar' },
   '/women': { title: 'Ayollar uchun', subtitle: 'Xavfsiz taksi xizmati' },
-  '/women/taxi': { title: 'Ayollar uchun Taxi', subtitle: 'Faqat ayol haydovchilar' },
+  '/women/taxi': { title: 'Ayollar uchun Taxi', subtitle: 'Avval ayol haydovchilarga' },
   '/taxi': { title: 'Taxi', subtitle: 'Olib ketish joyini tanlang' },
   '/cars': { title: 'Avtomobil turlari', subtitle: 'Klassni tanlang' },
   '/payment': { title: 'To‘lov', subtitle: 'To‘lov usulini tanlang' },

@@ -239,7 +239,7 @@ export default function TaxiMap({ women = false }) {
           {women ? (
             <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#fde7f1] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
               <ShieldCheck className="h-4 w-4 shrink-0" />
-              Ayollar uchun Taxi · faqat ayol haydovchilar
+              Ayollar uchun Taxi · avval ayol haydovchilarga
             </div>
           ) : null}
 

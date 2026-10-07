@@ -50,8 +50,10 @@ export function RideRequestCard({ search, prominent = false }) {
         <p className="mt-1 text-sm text-emerald-800">
           {womenOnly
             ? result.sent > 0
-              ? 'So‘rovingiz faqat ayol haydovchilarga yuborildi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
-              : 'So‘rovingiz saqlandi — bu yo‘nalishdagi ayol haydovchi qabul qilishi bilan sizga xabar beramiz.'
+              ? result.order?.femaleOnly
+                ? 'So‘rovingiz avval ayol haydovchilarga yuborildi. 5 daqiqada hech kim qabul qilmasa, barcha haydovchilarga ochiladi.'
+                : 'Hozir bu yo‘nalishda bo‘sh ayol haydovchi yo‘q, shuning uchun so‘rovingiz barcha haydovchilarga yuborildi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
+              : 'So‘rovingiz saqlandi — bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'
             : result.sent > 0
               ? 'Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
               : 'So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'}
@@ -80,7 +82,8 @@ export function RideRequestCard({ search, prominent = false }) {
       <p className="font-extrabold text-ink">{prominent ? 'Mos reys topilmadi' : 'Mos reys yo‘qmi?'}</p>
       <p className="mt-1 text-sm text-muted">
         So‘rov yuboring — {search.fromRegion || '…'} → {search.toRegion || '…'} yo‘nalishidagi{' '}
-        {womenOnly ? 'ayol haydovchilar' : 'haydovchilar'} ko‘radi va qabul qilgan haydovchi o‘zi bog‘lanadi.
+        {womenOnly ? 'avval ayol haydovchilar, 5 daqiqadan keyin esa barcha haydovchilar' : 'haydovchilar'} ko‘radi va qabul
+        qilgan haydovchi o‘zi bog‘lanadi.
       </p>
       <input
         value={note}
@@ -96,7 +99,7 @@ export function RideRequestCard({ search, prominent = false }) {
         disabled={!ready || send.isPending}
       >
         <Send className="h-4 w-4" />
-        {send.isPending ? 'Yuborilmoqda…' : womenOnly ? 'Ayol haydovchilarga so‘rov yuborish' : 'Haydovchilarga so‘rov yuborish'}
+        {send.isPending ? 'Yuborilmoqda…' : womenOnly ? 'Avval ayol haydovchilarga yuborish' : 'Haydovchilarga so‘rov yuborish'}
       </Button>
     </div>
   )

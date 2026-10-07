@@ -304,6 +304,8 @@ def _serialize_order(order: Order) -> dict:
         "status": order.status,
         "source": order.source,
         "womenOnly": bool(order.women_only),
+        # Still in the female-drivers-first window (see trips.WOMEN_FIRST_MINUTES).
+        "femaleOnly": trips_service.is_female_only(order),
         "passengerGender": order.passenger_gender,
         "contactNote": order.contact_note,
         "createdAt": order.created_at.isoformat() + "Z",
@@ -417,7 +419,7 @@ async def passenger_order_create(request: web.Request) -> web.Response:
         sent = await trips_service.dispatch_order(bot, session, order)
 
         lang = bot_user.language or "uz"
-        created_key = "order_created_women" if women_only else "order_created"
+        created_key = trips_service.created_message_key(order)
         try:
             await bot.send_message(bot_user.telegram_id, t(created_key if sent else "no_group_for_region", lang))
         except TelegramAPIError:

@@ -58,7 +58,7 @@ export default function WomenOrders() {
   const unknownGender = (drivers ?? []).filter((d) => !d.user.gender).length
 
   const columns: Column<BotOrderRow>[] = [
-    { header: 'Xizmat', cell: (r) => <OrderAudienceBadge womenOnly={r.womenOnly} gender={r.passengerGender ?? 'FEMALE'} /> },
+    { header: 'Xizmat', cell: (r) => <OrderAudienceBadge womenOnly={r.womenOnly} femaleOnly={r.femaleOnly} gender={r.passengerGender ?? 'FEMALE'} /> },
     {
       header: 'Yo‘nalish',
       cell: (r) => (

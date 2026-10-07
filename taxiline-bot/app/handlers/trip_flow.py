@@ -27,7 +27,7 @@ from app.data.cars import CAR_BRANDS
 from app.scheduler import activity_tracker
 from app.services.phone import format_phone, normalize_phone
 from app.services.stats import TASHKENT
-from app.services.trips import create_order, dispatch_order, passenger_gender_line
+from app.services.trips import created_message_key, create_order, dispatch_order, passenger_gender_line
 from app.states.trip import TripOrder
 
 router = Router(name="trip_flow")
@@ -312,7 +312,7 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, session, bot
     if sent == 0:
         await callback.message.answer(t("no_group_for_region", lang))
     else:
-        await callback.message.answer(t("order_created_women" if order.women_only else "order_created", lang))
+        await callback.message.answer(t(created_message_key(order), lang))
     await send_main_menu(callback.message, session, bot_user, lang)
 
 

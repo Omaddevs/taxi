@@ -882,15 +882,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "women_trip_intro": {
         "uz": (
             "🌸 Ayollar uchun taxi\n\n"
-            "Buyurtmangiz faqat tasdiqlangan ayol haydovchilarga yuboriladi va faqat ular qabul qila oladi."
+            "Buyurtmangiz avval tasdiqlangan ayol haydovchilarga yuboriladi. 5 daqiqa ichida ayol haydovchi qabul qilmasa, "
+            "barcha haydovchilarga ochiladi — shunda siz kutib qolmaysiz."
         ),
         "ru": (
             "🌸 Такси для женщин\n\n"
-            "Ваш заказ увидят и смогут принять только проверенные женщины-водители."
+            "Ваш заказ сначала получат проверенные женщины-водители. Если за 5 минут никто из них не примет заказ, "
+            "он откроется всем водителям — чтобы вам не пришлось ждать."
         ),
         "en": (
             "🌸 Women's taxi\n\n"
-            "Your order goes only to verified female drivers, and only they can accept it."
+            "Your order goes to verified female drivers first. If none of them accepts it within 5 minutes, "
+            "it opens to all drivers so you are not left waiting."
         ),
     },
     "ask_passenger_gender": {"uz": "Kim yo'lga chiqadi?", "ru": "Кто едет?", "en": "Who is travelling?"},
@@ -902,9 +905,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "pg_line_COUPLE": {"uz": "👫 Er-xotin / oila\n", "ru": "👫 Пара / семья\n", "en": "👫 Couple / family\n"},
     "edit_gender": {"uz": "👤 Kim boradi", "ru": "👤 Кто едет", "en": "👤 Who travels"},
     "summary_women_line": {
-        "uz": "🌸 Ayollar uchun taxi — faqat ayol haydovchilar\n",
-        "ru": "🌸 Такси для женщин — только женщины-водители\n",
-        "en": "🌸 Women's taxi — female drivers only\n",
+        "uz": "🌸 Ayollar uchun taxi — avval ayol haydovchilarga\n",
+        "ru": "🌸 Такси для женщин — сначала женщинам-водителям\n",
+        "en": "🌸 Women's taxi — female drivers first\n",
     },
     "card_header_regular": {
         "uz": "🚕 Yangi buyurtma ({source})",
@@ -912,9 +915,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "🚕 New order ({source})",
     },
     "card_header_women": {
-        "uz": "🌸🌸 AYOLLAR UCHUN TAXI 🌸🌸\n👩 Faqat ayol haydovchilar qabul qiladi · {source}",
-        "ru": "🌸🌸 ТАКСИ ДЛЯ ЖЕНЩИН 🌸🌸\n👩 Принимают только женщины-водители · {source}",
-        "en": "🌸🌸 WOMEN'S TAXI 🌸🌸\n👩 Female drivers only · {source}",
+        "uz": "🌸🌸 AYOLLAR UCHUN TAXI 🌸🌸\n👩 Yo'lovchi — ayol kishi · {source}",
+        "ru": "🌸🌸 ТАКСИ ДЛЯ ЖЕНЩИН 🌸🌸\n👩 Пассажир — женщина · {source}",
+        "en": "🌸🌸 WOMEN'S TAXI 🌸🌸\n👩 Passenger is a woman · {source}",
     },
     "driver_new_women_order_alert": {
         "uz": "🌸 TaxiLine — ayollar uchun yangi buyurtma!\n{from_region} → {to_region}\n\nBuyurtma pastda. Uni \"📥 Ochiq buyurtmalar\" bo'limida ham ko'rishingiz mumkin.",
@@ -927,19 +930,29 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Driver, new women's taxi order! From {from_region} to {to_region}. {passengers} passenger(s). Time: {when_text}.",
     },
     "order_women_only_denied": {
-        "uz": "🌸 Bu buyurtma faqat ayol haydovchilar uchun.",
-        "ru": "🌸 Этот заказ только для женщин-водителей.",
-        "en": "🌸 This order is for female drivers only.",
+        "uz": "🌸 Bu buyurtma hozircha faqat ayol haydovchilarga ko'rsatilmoqda. Ayol haydovchi olmasa, birozdan keyin hammaga ochiladi.",
+        "ru": "🌸 Сейчас этот заказ показан только женщинам-водителям. Если никто из них не примет его, скоро он откроется всем.",
+        "en": "🌸 This order is shown to female drivers only for now. If none takes it, it opens to everyone shortly.",
     },
     "order_women_gender_unknown": {
-        "uz": "🌸 Bu buyurtma faqat ayol haydovchilar uchun. Profilingizda jinsingiz ko'rsatilmagan — \"🚗 Mening profilim\" bo'limida belgilang.",
-        "ru": "🌸 Этот заказ только для женщин-водителей. В вашем профиле не указан пол — укажите его в разделе \"🚗 Мой профиль\".",
-        "en": "🌸 This order is for female drivers only. Your profile has no gender set — set it under \"🚗 My profile\".",
+        "uz": "🌸 Bu buyurtma hozircha faqat ayol haydovchilarga ko'rsatilmoqda. Profilingizda jinsingiz ko'rsatilmagan — \"🚗 Mening profilim\" bo'limida belgilang.",
+        "ru": "🌸 Сейчас этот заказ показан только женщинам-водителям. В вашем профиле не указан пол — укажите его в разделе \"🚗 Мой профиль\".",
+        "en": "🌸 This order is shown to female drivers only for now. Your profile has no gender set — set it under \"🚗 My profile\".",
     },
     "order_created_women": {
-        "uz": "✅ Buyurtmangiz qabul qilindi! 🌸 U faqat ayol haydovchilarga yuborildi — tez orada siz bilan bog'lanishadi.",
-        "ru": "✅ Ваш заказ принят! 🌸 Он отправлен только женщинам-водителям — скоро с вами свяжутся.",
-        "en": "✅ Your order has been placed! 🌸 It went to female drivers only — they will contact you shortly.",
+        "uz": "✅ Buyurtmangiz qabul qilindi! 🌸 U avval ayol haydovchilarga yuborildi. 5 daqiqada hech kim olmasa, barcha haydovchilarga ochiladi.",
+        "ru": "✅ Ваш заказ принят! 🌸 Сначала он отправлен женщинам-водителям. Если за 5 минут никто не примет, он откроется всем водителям.",
+        "en": "✅ Your order has been placed! 🌸 It went to female drivers first. If nobody accepts it within 5 minutes, it opens to all drivers.",
+    },
+    "order_created_women_all": {
+        "uz": "✅ Buyurtmangiz qabul qilindi! 🌸 Hozir bu yo'nalishda bo'sh ayol haydovchi yo'q, shuning uchun buyurtma barcha haydovchilarga yuborildi — tez orada siz bilan bog'lanishadi.",
+        "ru": "✅ Ваш заказ принят! 🌸 Сейчас на этом направлении нет свободных женщин-водителей, поэтому заказ отправлен всем водителям — скоро с вами свяжутся.",
+        "en": "✅ Your order has been placed! 🌸 No female driver is available on this route right now, so it went to all drivers — they will contact you shortly.",
+    },
+    "order_women_opened_client": {
+        "uz": "🌸 Ayol haydovchilar hozir band. Kutib qolmasligingiz uchun buyurtmangiz barcha haydovchilarga yuborildi.",
+        "ru": "🌸 Женщины-водители сейчас заняты. Чтобы вам не ждать, заказ отправлен всем водителям.",
+        "en": "🌸 Female drivers are busy right now. So you are not left waiting, your order went to all drivers.",
     },
     "ask_driver_gender": {"uz": "Jinsingizni tanlang:", "ru": "Укажите ваш пол:", "en": "Select your gender:"},
     "driver_gender_MALE": {"uz": "👨 Erkak", "ru": "👨 Мужчина", "en": "👨 Male"},

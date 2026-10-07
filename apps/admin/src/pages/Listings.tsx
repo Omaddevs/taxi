@@ -140,7 +140,7 @@ export default function Listings() {
         ) : (
           <div className="flex flex-wrap gap-1">
             <Badge tone="gray">Yo‘lovchi eloni</Badge>
-            <OrderAudienceBadge womenOnly={r.womenOnly} gender={r.passengerGender} />
+            <OrderAudienceBadge womenOnly={r.womenOnly} femaleOnly={r.femaleOnly} gender={r.passengerGender} />
           </div>
         ),
     },

@@ -52,6 +52,8 @@ export interface BotOrder {
   source: string
   // "Ayollar uchun taxi" — female drivers only. passengerGender: MALE | FEMALE | COUPLE | null.
   womenOnly: boolean
+  // True while a women-only order is still offered to female drivers alone (first 5 minutes).
+  femaleOnly: boolean
   passengerGender: string | null
   createdAt: string
   pickupLat: number | null

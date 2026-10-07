@@ -58,7 +58,7 @@ export default function OrderDetail() {
         onBack={() => navigate('/listings')}
         action={
           <div className="flex items-center gap-2">
-            <OrderAudienceBadge womenOnly={order.womenOnly} gender={order.passengerGender} />
+            <OrderAudienceBadge womenOnly={order.womenOnly} femaleOnly={order.femaleOnly} gender={order.passengerGender} />
             <Badge tone={ORDER_STATUS_TONE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>
             <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
               <Pencil className="h-3.5 w-3.5" /> Tahrirlash

@@ -167,9 +167,13 @@ class Order(Base):
     luggage_size: Mapped[str] = mapped_column()
     when_text: Mapped[str] = mapped_column()
 
-    # "Ayollar uchun taxi": dispatched to female drivers only and claimable only by them; every
-    # surface (group card, driver DM, website, admin panel) renders it in its own pink style.
+    # "Ayollar uchun taxi": offered to female drivers first; every surface (group card, driver
+    # DM, website, admin panel) renders it in its own pink style.
     women_only: Mapped[bool] = mapped_column(default=False, server_default="false", index=True)
+    # When a women-only order stopped being female-drivers-only — straight away if no female
+    # driver serves the route, else after trips.WOMEN_FIRST_MINUTES unclaimed. None = still
+    # female-only (or not a women-only order at all).
+    opened_to_all_at: Mapped[datetime | None] = mapped_column(nullable=True)
     # Who is travelling: MALE | FEMALE | COUPLE | None (unknown, e.g. older orders).
     passenger_gender: Mapped[str | None] = mapped_column(nullable=True)
 

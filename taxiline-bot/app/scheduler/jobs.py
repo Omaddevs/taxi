@@ -37,6 +37,18 @@ async def _freshness_job(bot: Bot) -> None:
         await trips_service.refresh_dispatch_labels(bot, session)
 
 
+async def _women_first_job(bot: Bot) -> None:
+    async with session_scope() as session:
+        for order in await trips_service.open_expired_women_orders(bot, session):
+            client = await session.get(BotUser, order.bot_user_id)
+            if client is None:
+                continue
+            try:
+                await bot.send_message(client.telegram_id, t("order_women_opened_client", client.language))
+            except TelegramAPIError:
+                pass
+
+
 async def _kick_from_closed_group(bot: Bot, session, driver) -> None:
     group = await groups_service.get_closed_group_for_driver(session, driver)
     if group is None:
@@ -123,4 +135,5 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler.add_job(_freshness_job, "interval", minutes=2, args=[bot], id="order_freshness")
     scheduler.add_job(_subscription_job, "interval", hours=6, args=[bot], id="driver_subscriptions")
     scheduler.add_job(_claim_timeout_job, "interval", minutes=1, args=[bot], id="claim_timeout")
+    scheduler.add_job(_women_first_job, "interval", seconds=30, args=[bot], id="women_first")
     return scheduler

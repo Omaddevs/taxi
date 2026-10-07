@@ -151,7 +151,7 @@ export function MobileHome() {
         <Tile
           to="/women/taxi"
           title="Ayollar uchun Taxi"
-          hint="Faqat ayol haydovchilar"
+          hint="Avval ayol haydovchilarga"
           badge="Xavfsiz"
           badgeTone="hot"
           className="col-span-2 bg-gradient-to-br from-[#fff0f5] to-[#fde2ec]"

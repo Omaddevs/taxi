@@ -9,7 +9,7 @@ export const services = [
   {
     id: 'women',
     title: 'Ayollar uchun',
-    desc: 'Faqat ayol haydovchilar',
+    desc: 'Avval ayol haydovchilarga',
     icon: 'heart',
     from: 200000,
   },
@@ -46,7 +46,7 @@ export const services = [
 export const faqs = [
   { q: 'Safarni qanday bekor qilaman?', a: 'Safar tafsilotlari sahifasida “Bekor qilish” tugmasini bosing. 30 daqiqadan oldin bekor qilish bepul.' },
   { q: 'To‘lov qanday amalga oshiriladi?', a: 'Naqd, UzCard, Humo, Click, Payme yoki Uzum Bank orqali to‘lashingiz mumkin.' },
-  { q: 'Ayollar uchun taksi xavfsizmi?', a: 'Ha. Bu xizmatda faqat tasdiqlangan ayol haydovchilar, GPS kuzatuv va SOS tugmasi mavjud.' },
+  { q: 'Ayollar uchun taksi xavfsizmi?', a: 'Ha. Buyurtma avval tasdiqlangan ayol haydovchilarga yuboriladi, safar davomida GPS kuzatuv va SOS tugmasi ishlaydi.' },
   { q: 'Yuk qancha vaqtda yetib boradi?', a: 'Shahardan shaharga odatda 4–8 soat. Og‘irlik va yo‘nalishga qarab aniq vaqt ko‘rsatiladi.' },
   { q: 'Haydovchi bo‘lish uchun nima kerak?', a: 'Passport, haydovchilik guvohnomasi, mashina hujjatlari va toza jinoiy tarix talab qilinadi.' },
 ]

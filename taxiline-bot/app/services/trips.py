@@ -22,23 +22,37 @@ RELABEL_WINDOW = timedelta(hours=2)
 
 SOURCE_KEYS = {"BOT": "order_source_bot", "WEBAPP": "order_source_webapp", "GROUP": "order_source_group"}
 PASSENGER_GENDERS = ("MALE", "FEMALE", "COUPLE")
+# A women-only order is offered to female drivers alone for this long, then to everyone.
+WOMEN_FIRST_MINUTES = 5
 
 
 def is_female_driver(driver: DriverProfile | None) -> bool:
     return driver is not None and driver.gender == "FEMALE"
 
 
+def is_female_only(order: Order) -> bool:
+    """True while a women-only order is still in its female-drivers-first window."""
+    return bool(order.women_only) and order.opened_to_all_at is None
+
+
 def driver_can_see(driver: DriverProfile, order: Order) -> bool:
-    """Women-only orders are hidden from (and never dispatched to) anyone but female drivers."""
-    return not order.women_only or is_female_driver(driver)
+    """During the female-first window a women-only order is hidden from everyone but female drivers."""
+    return not is_female_only(order) or is_female_driver(driver)
 
 
 def claim_denied_key(driver: DriverProfile, order: Order) -> str | None:
     """Translation key explaining why `driver` may not take `order`, or None if they may.
     Shared by the Telegram claim button and the website bridge."""
-    if not order.women_only or is_female_driver(driver):
+    if not is_female_only(order) or is_female_driver(driver):
         return None
     return "order_women_gender_unknown" if driver.gender is None else "order_women_only_denied"
+
+
+def created_message_key(order: Order) -> str:
+    """What the passenger is told once their order went out."""
+    if not order.women_only:
+        return "order_created"
+    return "order_created_women" if is_female_only(order) else "order_created_women_all"
 
 
 async def create_order(session: AsyncSession, bot_user: BotUser, data: dict) -> Order:
@@ -172,8 +186,19 @@ async def dispatch_order(
     many chats were reached."""
     sent = 0
     has_location = bool((order.pickup_lat is not None and order.pickup_lng is not None) or order.pickup_text)
-    targets = await groups_service.resolve_order_dispatch_targets(session, order.from_region, order.to_region)
     active_drivers = await _approved_active_drivers(session, order, exclude_driver_ids)
+    if is_female_only(order) and not active_drivers:
+        # No female driver serves this route — don't leave the passenger waiting for nobody.
+        order.opened_to_all_at = datetime.utcnow()
+        await session.commit()
+        active_drivers = await _approved_active_drivers(session, order, exclude_driver_ids)
+    # Driver groups are mixed, so a women-only order reaches them only once it is open to all —
+    # otherwise the passenger's name and phone would be shown to male drivers.
+    targets = (
+        []
+        if is_female_only(order)
+        else await groups_service.resolve_order_dispatch_targets(session, order.from_region, order.to_region)
+    )
 
     for group, thread_id in targets:
         lang = group.language or "uz"
@@ -229,6 +254,33 @@ async def dispatch_order(
 
     await session.commit()
     return sent
+
+
+async def open_expired_women_orders(bot: Bot, session: AsyncSession) -> list[Order]:
+    """Scheduled job: a women-only order no female driver took within WOMEN_FIRST_MINUTES is
+    opened to every driver (groups included); drivers who already got it in a DM are skipped.
+    Returns the opened orders so the caller can tell their passengers."""
+    cutoff = datetime.utcnow() - timedelta(minutes=WOMEN_FIRST_MINUTES)
+    result = await session.execute(
+        select(Order).where(
+            Order.women_only.is_(True),
+            Order.opened_to_all_at.is_(None),
+            Order.status == "OPEN",
+            Order.created_at <= cutoff,
+        )
+    )
+    opened = list(result.scalars())
+    for order in opened:
+        order.opened_to_all_at = datetime.utcnow()
+        await session.commit()
+        already = await session.execute(
+            select(DriverProfile.id)
+            .join(BotUser, DriverProfile.bot_user_id == BotUser.id)
+            .join(OrderDispatch, OrderDispatch.chat_id == BotUser.telegram_id)
+            .where(OrderDispatch.order_id == order.id, OrderDispatch.kind == "DRIVER_DM")
+        )
+        await dispatch_order(bot, session, order, exclude_driver_ids=set(already.scalars()))
+    return opened
 
 
 async def refresh_dispatch_labels(bot: Bot, session: AsyncSession) -> None:

@@ -3,7 +3,7 @@
   "fromPrice": "{{price}} dan",
   "items": {
     "standart": { "title": "Standart Taxi", "desc": "Qulay kundalik safarlar" },
-    "women": { "title": "Ayollar uchun", "desc": "Faqat ayol haydovchilar" },
+    "women": { "title": "Ayollar uchun", "desc": "Avval ayol haydovchilarga" },
     "family": { "title": "Oilaviy Taxi", "desc": "Katta oila uchun joy" },
     "minivan": { "title": "Minivan", "desc": "6–8 yo‘lovchi sig‘imi" },
     "cargo": { "title": "Yuk jo‘natish", "desc": "Tez va xavfsiz yetkazish" },
