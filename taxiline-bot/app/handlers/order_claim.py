@@ -29,6 +29,13 @@ async def claim(callback: CallbackQuery, session, bot_user) -> None:
         await callback.answer("Bu amal faqat tasdiqlangan haydovchilar uchun.", show_alert=True)
         return
 
+    # Women-only orders also land in mixed driver groups — only a female driver may take one.
+    target = await session.get(Order, order_id)
+    denied = trips_service.claim_denied_key(driver, target) if target is not None else None
+    if denied:
+        await callback.answer(t(denied, driver.language), show_alert=True)
+        return
+
     dispatch = await trips_service.get_dispatch_by_message(
         session, order_id, callback.message.chat.id, callback.message.message_id
     )

@@ -12,6 +12,7 @@ import { OFFER_LABEL, OFFER_TONE, ORDER_STATUS_LABEL, ORDER_STATUS_TONE } from '
 import { OfferEditModal } from '../components/listings/OfferEditModal'
 import { OrderEditModal } from '../components/listings/OrderEditModal'
 import type { BotOrderRow, CancellationStats, RideOfferRow } from '../types'
+import { OrderAudienceBadge } from '../components/listings/OrderAudienceBadge'
 
 type ListingRow = ({ kind: 'offer' } & RideOfferRow) | ({ kind: 'order' } & BotOrderRow)
 
@@ -134,7 +135,14 @@ export default function Listings() {
     {
       header: 'Turi',
       cell: (r) =>
-        r.kind === 'offer' ? <Badge tone="pink">Haydovchi eloni</Badge> : <Badge tone="gray">Yo‘lovchi eloni</Badge>,
+        r.kind === 'offer' ? (
+          <Badge tone="pink">Haydovchi eloni</Badge>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            <Badge tone="gray">Yo‘lovchi eloni</Badge>
+            <OrderAudienceBadge womenOnly={r.womenOnly} gender={r.passengerGender} />
+          </div>
+        ),
     },
     {
       header: 'Yo‘nalish',

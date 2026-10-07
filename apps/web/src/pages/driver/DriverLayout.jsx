@@ -39,13 +39,20 @@ function NewOrderBanner() {
 
   return (
     <div className="fixed inset-x-0 top-0 z-[60] px-3 pt-[max(10px,env(safe-area-inset-top))]">
-      <div className="mx-auto max-w-lg animate-[slideDown_.3s_ease-out] rounded-2xl bg-ink p-3 text-white shadow-2xl">
+      <div
+        className={`mx-auto max-w-lg animate-[slideDown_.3s_ease-out] rounded-2xl p-3 text-white shadow-2xl ${
+          order.womenOnly ? 'bg-gradient-to-br from-[#d6337f] to-[#f5559a]' : 'bg-ink'
+        }`}
+      >
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand">
-            <BellRing className="h-5 w-5" />
+          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${order.womenOnly ? 'bg-white/25' : 'bg-brand'}`}>
+            {order.womenOnly ? <span className="text-lg">🌸</span> : <BellRing className="h-5 w-5" />}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-extrabold">TaxiLine — yangi mijoz!{count > 1 ? ` (+${count - 1})` : ''}</p>
+            <p className="font-extrabold">
+              {order.womenOnly ? 'Ayollar uchun taxi — yangi buyurtma!' : 'TaxiLine — yangi mijoz!'}
+              {count > 1 ? ` (+${count - 1})` : ''}
+            </p>
             <p className="truncate text-sm text-white/80">
               {order.from} → {order.to}
             </p>
@@ -61,7 +68,7 @@ function NewOrderBanner() {
               dismiss()
               navigate(`/driver/orders/${order.id}`)
             }}
-            className="h-9 flex-1 rounded-xl bg-brand px-3 text-sm font-extrabold"
+            className={`h-9 flex-1 rounded-xl px-3 text-sm font-extrabold ${order.womenOnly ? 'bg-white text-[#d6337f]' : 'bg-brand'}`}
           >
             Ko‘rish
           </button>

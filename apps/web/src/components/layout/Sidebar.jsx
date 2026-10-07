@@ -7,11 +7,13 @@ import {
   HelpCircle,
   Home,
   Map,
+  MessageSquare,
   Package,
   Settings,
   Siren,
   Star,
   UserRound,
+  CircleUserRound,
   Wallet,
   Wrench,
 } from 'lucide-react'
@@ -23,6 +25,7 @@ import { useApp } from '../../context/AppContext'
 const items = [
   { to: '/', icon: Home, label: 'Bosh sahifa' },
   { to: '/history', icon: Star, label: 'Safarlarim' },
+  { to: '/messages', icon: MessageSquare, label: 'Xabarlar' },
   { to: '/cargo', icon: Package, label: 'Yetkazish' },
   { to: '/roadside', icon: Siren, label: 'Yo‘lda yordam' },
   { to: '/map', icon: Map, label: 'Smart xarita' },
@@ -34,6 +37,7 @@ const items = [
   { to: '/notifications', icon: Bell, label: 'Xabarnomalar', badge: 3 },
   { to: '/promo', icon: Gift, label: 'Promo kodlar' },
   { to: '/help', icon: HelpCircle, label: 'Yordam' },
+  { to: '/profile', icon: CircleUserRound, label: 'Profil' },
   { to: '/settings', icon: Settings, label: 'Sozlamalar' },
 ]
 

@@ -61,6 +61,8 @@ export interface DriverUser {
   avatarUrl?: string | null
   telegramId?: string | null
   balance?: number
+  // Decides who receives "Ayollar uchun taxi" (women-only) orders.
+  gender?: 'MALE' | 'FEMALE' | null
 }
 
 export type ChannelSource = 'WEBAPP' | 'BOT' | 'GROUP'

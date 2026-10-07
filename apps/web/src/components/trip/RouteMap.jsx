@@ -94,19 +94,17 @@ export function RouteMap({ from = 'Qarshi', to = 'Toshkent', className = '' }) {
   )
 }
 
+// Landing sahifadagi TaxiLine taksisi (shaffof fonli rasm) — ostida yengil soya bilan.
 export function CarArt() {
   return (
-    <svg viewBox="0 0 220 110" className="h-[92px] w-[180px] drop-shadow-md">
-      <ellipse cx="110" cy="96" rx="70" ry="8" fill="rgba(255,255,255,0.25)" />
-      <path d="M30 72 L48 48 C54 40 62 36 78 36 H142 C160 36 170 42 178 52 L196 72 V84 H30 Z" fill="#fff" />
-      <path d="M70 38 C78 26 90 20 110 20 C132 20 146 28 152 38" fill="#f8bbd0" />
-      <rect x="78" y="40" width="28" height="16" rx="3" fill="#e0f9fb" />
-      <rect x="112" y="40" width="28" height="16" rx="3" fill="#e0f9fb" />
-      <circle cx="62" cy="84" r="12" fill="#1c1c28" />
-      <circle cx="62" cy="84" r="6" fill="#d1d5db" />
-      <circle cx="164" cy="84" r="12" fill="#1c1c28" />
-      <circle cx="164" cy="84" r="6" fill="#d1d5db" />
-      <rect x="100" y="68" width="18" height="6" rx="2" fill="#00c7d4" />
-    </svg>
+    <div className="relative h-[92px] w-[200px]">
+      <span aria-hidden="true" className="absolute inset-x-6 bottom-1 h-3 rounded-full bg-black/20 blur-md" />
+      <img
+        src="/landing/taxi-car-sm.webp"
+        alt="TaxiLine taksisi"
+        draggable={false}
+        className="absolute inset-x-0 bottom-0 w-full select-none drop-shadow-[0_10px_12px_rgba(15,29,42,0.3)]"
+      />
+    </div>
   )
 }

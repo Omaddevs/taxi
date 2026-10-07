@@ -17,6 +17,7 @@ from app.keyboards.trip import (
     luggage_label,
     order_confirm_kb,
     order_edit_kb,
+    passenger_gender_kb,
     passengers_kb,
     seat_kb,
     seat_label,
@@ -26,7 +27,7 @@ from app.data.cars import CAR_BRANDS
 from app.scheduler import activity_tracker
 from app.services.phone import format_phone, normalize_phone
 from app.services.stats import TASHKENT
-from app.services.trips import create_order, dispatch_order
+from app.services.trips import create_order, dispatch_order, passenger_gender_line
 from app.states.trip import TripOrder
 
 router = Router(name="trip_flow")
@@ -55,9 +56,24 @@ router.callback_query.middleware(ActivityTouchMiddleware())
 
 @router.message(menu_text("menu_start_trip"))
 async def start_trip(message: Message, state: FSMContext, bot_user, lang: str) -> None:
+    await _begin_trip(message, state, bot_user, lang, women_only=False)
+
+
+@router.message(menu_text("menu_women_trip"))
+async def start_women_trip(message: Message, state: FSMContext, bot_user, lang: str) -> None:
+    """"Ayollar uchun taxi": the same order wizard, but the order is flagged women-only — it
+    goes to female drivers only and the "who travels" step is skipped (always a woman)."""
+    if bot_user is None:
+        return
+    await message.answer(t("women_trip_intro", lang))
+    await _begin_trip(message, state, bot_user, lang, women_only=True)
+
+
+async def _begin_trip(message: Message, state: FSMContext, bot_user, lang: str, *, women_only: bool) -> None:
     if bot_user is None:
         return
     await state.clear()
+    await state.update_data(women_only=women_only, passenger_gender="FEMALE" if women_only else None)
     phone = bot_user.phone or ""
     await message.answer(
         t("confirm_phone", lang, phone=format_phone(phone)),
@@ -198,6 +214,24 @@ async def pick_passengers(callback: CallbackQuery, state: FSMContext, lang: str)
     await callback.answer()
     if await _finish_edit(callback.message, state, lang, edit=True):
         return
+    if (await state.get_data()).get("women_only"):
+        await callback.message.edit_text(t("ask_luggage", lang), reply_markup=luggage_kb(lang))
+        await state.set_state(TripOrder.choosing_luggage)
+        return
+    await callback.message.edit_text(t("ask_passenger_gender", lang), reply_markup=passenger_gender_kb(lang))
+    await state.set_state(TripOrder.choosing_gender)
+
+
+@router.callback_query(TripOrder.choosing_gender, F.data.startswith("trip:pg:"))
+async def pick_passenger_gender(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
+    gender = callback.data.split(":")[-1]
+    if gender not in ("MALE", "FEMALE", "COUPLE"):
+        await callback.answer()
+        return
+    await state.update_data(passenger_gender=gender)
+    await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
     await callback.message.edit_text(t("ask_luggage", lang), reply_markup=luggage_kb(lang))
     await state.set_state(TripOrder.choosing_luggage)
 
@@ -241,6 +275,8 @@ async def _show_summary(message: Message, state: FSMContext, lang: str, *, edit:
     text = t(
         "order_summary",
         lang,
+        service_line=t("summary_women_line", lang) if data.get("women_only") else "",
+        gender_line=passenger_gender_line(data.get("passenger_gender"), lang),
         passenger_name=data["passenger_name"],
         passenger_phone=format_phone(data["passenger_phone"]),
         from_region=data["from_region"],
@@ -276,14 +312,15 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, session, bot
     if sent == 0:
         await callback.message.answer(t("no_group_for_region", lang))
     else:
-        await callback.message.answer(t("order_created", lang))
+        await callback.message.answer(t("order_created_women" if order.women_only else "order_created", lang))
     await send_main_menu(callback.message, session, bot_user, lang)
 
 
 @router.callback_query(TripOrder.confirming_order, F.data == "trip:edit")
-async def edit_order(callback: CallbackQuery, lang: str) -> None:
+async def edit_order(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     await callback.answer()
-    await callback.message.edit_text(t("ask_edit_field", lang), reply_markup=order_edit_kb(lang))
+    women_only = bool((await state.get_data()).get("women_only"))
+    await callback.message.edit_text(t("ask_edit_field", lang), reply_markup=order_edit_kb(lang, women_only))
 
 
 @router.callback_query(TripOrder.confirming_order, F.data == "trip:edit:back")
@@ -300,6 +337,7 @@ _EDIT_STEPS = {
     "car": ("ask_car_brand", lambda lang: car_brand_kb(), TripOrder.choosing_car),
     "seat": ("ask_seat", seat_kb, TripOrder.choosing_seat),
     "passengers": ("ask_passengers", lambda lang: passengers_kb(), TripOrder.choosing_passengers),
+    "gender": ("ask_passenger_gender", passenger_gender_kb, TripOrder.choosing_gender),
     "luggage": ("ask_luggage", luggage_kb, TripOrder.choosing_luggage),
     "time": ("ask_time", time_kb, TripOrder.entering_time),
 }

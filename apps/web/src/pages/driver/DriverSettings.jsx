@@ -33,6 +33,7 @@ import { avatarOrFallback } from '../../lib/adapters'
 import { driverCode, formatPhoneUz } from '../../lib/utils'
 import { LanguageRow } from '../../components/ui/LanguagePicker'
 import { Field, Input } from '../../components/ui/Input'
+import { PlateInput, isValidPlateUz } from '../../components/ui/PlateInput'
 import { UZ_REGIONS } from '../../data/regions'
 import { DriverHeader, DriverSheet, Toggle } from './ui'
 
@@ -352,7 +353,7 @@ function CarSheet({ user, onClose }) {
           saved={save.isSuccess}
           error={save.error?.message}
           onClick={() => save.mutate()}
-          disabled={!form.carModel.trim() || !form.plate.trim()}
+          disabled={!form.carModel.trim() || !isValidPlateUz(form.plate)}
         />
       }
     >
@@ -361,7 +362,7 @@ function CarSheet({ user, onClose }) {
           <Input value={form.carModel} onChange={(e) => setForm((f) => ({ ...f, carModel: e.target.value }))} placeholder="Chevrolet Cobalt" />
         </Field>
         <Field label="Davlat raqami">
-          <Input value={form.plate} onChange={(e) => setForm((f) => ({ ...f, plate: e.target.value.toUpperCase() }))} placeholder="E091GB" />
+          <PlateInput value={form.plate} onChange={(plate) => setForm((f) => ({ ...f, plate }))} />
         </Field>
       </div>
     </DriverSheet>

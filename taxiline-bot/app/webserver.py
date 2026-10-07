@@ -255,6 +255,8 @@ async def driver_reviewed(request: web.Request) -> web.Response:
             driver = await drivers_service.find_by_phone(session, normalize_phone(payload["phone"]) or payload["phone"])
         if driver is not None:
             driver = await drivers_service.get(session, driver.id)  # with bot_user loaded
+            if payload.get("gender") in ("MALE", "FEMALE") and driver.gender != payload["gender"]:
+                await drivers_service.update_gender(session, driver, payload["gender"])
 
         if driver is None:
             # Applied on the website only — no bot profile to flip, but still tell them on
@@ -301,6 +303,8 @@ def _serialize_order(order: Order) -> dict:
         "whenText": order.when_text,
         "status": order.status,
         "source": order.source,
+        "womenOnly": bool(order.women_only),
+        "passengerGender": order.passenger_gender,
         "contactNote": order.contact_note,
         "createdAt": order.created_at.isoformat() + "Z",
         "pickupLat": order.pickup_lat,
@@ -323,7 +327,34 @@ async def _resolve_active_driver(session, telegram_id: str) -> DriverProfile | N
 # Website search form values → the bot's own codes (see keyboards/trip.py).
 _WEB_SEATS = {"old": "front", "orqa-ong": "rear_right", "orqa-chap": "rear_left", "orqa-orta": "rear_middle"}
 _WEB_LUGGAGE = {"kichik": "S", "o'rta": "M", "o‘rta": "M", "katta": "L", "s": "S", "m": "M", "l": "L"}
-_WEB_GENDER = {"erkak": "Erkak", "ayol": "Ayol", "juft": "Er-xotin"}
+# Website "Kim boradi" values → Order.passenger_gender.
+_WEB_GENDER = {"erkak": "MALE", "ayol": "FEMALE", "juft": "COUPLE", "male": "MALE", "female": "FEMALE", "couple": "COUPLE"}
+
+
+@routes.post("/webapp/driver-gender")
+async def driver_gender(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    gender = payload.get("gender")
+    if gender not in ("MALE", "FEMALE", None):
+        return web.json_response({"error": "gender must be MALE, FEMALE or null"}, status=400)
+
+    async with session_scope() as session:
+        driver = None
+        if payload.get("telegramId"):
+            bot_user = await users_service.get_by_telegram_id(session, int(payload["telegramId"]))
+            driver = await drivers_service.get_by_bot_user(session, bot_user.id) if bot_user else None
+        if driver is None and payload.get("phone"):
+            driver = await drivers_service.find_by_phone(session, normalize_phone(payload["phone"]) or payload["phone"])
+        if driver is None:
+            return web.json_response({"ok": True, "driverProfile": False})
+        await drivers_service.update_gender(session, driver, gender)
+        return web.json_response({"ok": True, "driverProfile": True})
 
 
 @routes.post("/webapp/passenger-orders")
@@ -355,9 +386,8 @@ async def passenger_order_create(request: web.Request) -> web.Response:
             return web.json_response({"error": "bot_user_not_found"}, status=404)
 
         note_parts = []
-        gender = _WEB_GENDER.get(str(payload.get("gender") or "").lower())
-        if gender:
-            note_parts.append(f"Yo'lovchi: {gender}")
+        women_only = bool(payload.get("womenOnly"))
+        passenger_gender = "FEMALE" if women_only else _WEB_GENDER.get(str(payload.get("gender") or "").lower())
         if payload.get("note"):
             note_parts.append(str(payload["note"]).strip()[:300])
 
@@ -379,14 +409,17 @@ async def passenger_order_create(request: web.Request) -> web.Response:
                 "passengers": passengers,
                 "luggage_size": _WEB_LUGGAGE.get(str(payload.get("luggage") or "").lower(), "M"),
                 "when_text": (payload.get("whenText") or "").strip()[:60] or "Kelishiladi",
+                "women_only": women_only,
+                "passenger_gender": passenger_gender,
                 "source": "WEBAPP",
             },
         )
         sent = await trips_service.dispatch_order(bot, session, order)
 
         lang = bot_user.language or "uz"
+        created_key = "order_created_women" if women_only else "order_created"
         try:
-            await bot.send_message(bot_user.telegram_id, t("order_created" if sent else "no_group_for_region", lang))
+            await bot.send_message(bot_user.telegram_id, t(created_key if sent else "no_group_for_region", lang))
         except TelegramAPIError:
             pass
 
@@ -413,7 +446,7 @@ async def driver_orders(request: web.Request) -> web.Response:
         open_orders = [
             _serialize_order(o)
             for o in open_result.scalars()
-            if groups_service.driver_serves(driver, o.from_region, o.to_region)
+            if groups_service.driver_serves(driver, o.from_region, o.to_region) and trips_service.driver_can_see(driver, o)
         ]
 
         claimed_result = await session.execute(
@@ -425,6 +458,7 @@ async def driver_orders(request: web.Request) -> web.Response:
             {
                 "registered": True,
                 "region": driver.region,
+                "gender": driver.gender,
                 "openOrders": open_orders,
                 "claimedOrder": _serialize_order(claimed_order) if claimed_order else None,
             }
@@ -462,6 +496,10 @@ async def _driver_order_action(request: web.Request, perform) -> web.Response:
 @routes.post("/webapp/driver-orders/{order_id}/claim")
 async def driver_order_claim(request: web.Request) -> web.Response:
     async def perform(bot, session, order_id, driver):
+        target = await session.get(Order, order_id)
+        denied = trips_service.claim_denied_key(driver, target) if target is not None else None
+        if denied:
+            return web.json_response({"error": t(denied, driver.language)}, status=403)
         order = await trips_service.perform_claim(bot, session, order_id, driver)
         if order is None:
             return web.json_response({"error": "already_claimed"}, status=409)
@@ -570,7 +608,9 @@ async def passenger_orders(request: web.Request) -> web.Response:
 
 def _serialize_admin_order(order: Order, driver: DriverProfile | None, dispatch_count: int) -> dict:
     data = _serialize_order(order)
-    data["assignedDriver"] = {"name": driver.full_name, "phone": driver.phone} if driver else None
+    data["assignedDriver"] = (
+        {"name": driver.full_name, "phone": driver.phone, "gender": driver.gender} if driver else None
+    )
     data["dispatchCount"] = dispatch_count
     return data
 
@@ -597,11 +637,15 @@ async def admin_list_orders(request: web.Request) -> web.Response:
 
     status = request.query.get("status")
     q = request.query.get("q")
+    # "Ayol yo'lovchilar" in the admin panel: women-only orders plus any order where a woman travels.
+    women = request.query.get("women") in ("1", "true")
 
     async with session_scope() as session:
         stmt = select(Order).order_by(Order.created_at.desc()).limit(200)
         if status:
             stmt = stmt.where(Order.status == status)
+        if women:
+            stmt = stmt.where(Order.women_only.is_(True) | (Order.passenger_gender == "FEMALE"))
         if q:
             like = f"%{q}%"
             stmt = stmt.where(

@@ -54,7 +54,7 @@ function PlaceDetail({ place, onClose, onShare }) {
  * A map of admin-managed places. With `category` it shows just that kind (Yoqilg‘i, Moyka…);
  * without it, everything with a filter chip per category present (Smart xarita).
  */
-export function AdminPlacesMap({ category, title, hint, emptyText = 'Hozircha xaritada joylar yo‘q' }) {
+export function AdminPlacesMap({ category, title, hint, art, emptyText = 'Hozircha xaritada joylar yo‘q' }) {
   const { data = [], isLoading, isError } = useMapPlaces()
   const places = useMemo(() => (category ? data.filter((p) => p.category === category) : data), [data, category])
 
@@ -68,8 +68,7 @@ export function AdminPlacesMap({ category, title, hint, emptyText = 'Hozircha xa
     if (category) return []
     const present = new Set(places.map((p) => p.category))
     const chips = MAP_PLACE_CATEGORIES.filter((c) => present.has(c.id))
-    return chips.length > 1 ? [{ id: 'all', label: 'Barchasi' }, ...chips] : []
-  }, [places, category])
+    return chips.length > 1 ? [{ id: 'all', label: 'Barchasi' }, ...chips] : []  }, [places, category])
 
   return (
     <PlacesMap
@@ -80,7 +79,7 @@ export function AdminPlacesMap({ category, title, hint, emptyText = 'Hozircha xa
       filterMatch={(p, filter) => p.category === filter}
       pinColor={(p) => MAP_PLACE_CATEGORY[p.category]?.color || '#64748b'}
       mapLabel={(p) => p.mapLabel}
-      hideList
+      art={art}
       emptyText={isLoading ? 'Joylar yuklanmoqda…' : isError ? 'Joylarni yuklab bo‘lmadi' : emptyText}
       renderDetail={(p, h) => <PlaceDetail place={p} {...h} />}
     />
@@ -88,18 +87,18 @@ export function AdminPlacesMap({ category, title, hint, emptyText = 'Hozircha xa
 }
 
 export function SmartPlacesMap() {
-  return <AdminPlacesMap title="Smart xarita" hint="Barcha xizmatlar bir xaritada" />
+  return <AdminPlacesMap title="Smart xarita" hint="Barcha xizmatlar bir xaritada" art="/home/smart-map.png" />
 }
 
 export function FuelMap() {
   return (
-    <AdminPlacesMap category="FUEL" title="Yoqilg‘i shahobchalari" hint="Narxlar va manzillar" emptyText="Hozircha shahobchalar qo‘shilmagan" />
+    <AdminPlacesMap category="FUEL" title="Yoqilg‘i shahobchalari" hint="Narxlar va manzillar" art="/home/fuel.webp" emptyText="Hozircha shahobchalar qo‘shilmagan" />
   )
 }
 
 export function AutoServiceMap() {
   return (
-    <AdminPlacesMap category="SERVICE" title="Avtoservis" hint="Ustaxonalar va xizmatlar" emptyText="Hozircha avtoservislar qo‘shilmagan" />
+    <AdminPlacesMap category="SERVICE" title="Avtoservis" hint="Ustaxonalar va xizmatlar" art="/home/service.webp" emptyText="Hozircha avtoservislar qo‘shilmagan" />
   )
 }
 

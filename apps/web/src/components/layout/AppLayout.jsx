@@ -1,5 +1,4 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { BottomNav } from './BottomNav'
 import { MobileDrawer } from './MobileDrawer'
 import { Sidebar } from './Sidebar'
 import { TopHeader } from './TopHeader'
@@ -7,9 +6,9 @@ import { LocationPicker } from '../location/LocationPicker'
 import { useApp } from '../../context/AppContext'
 
 const fullBleed = ['/driver', '/sos']
-const hideTopMobile = ['/', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet']
+const hideTopMobile = ['/', '/taxi', '/women/taxi', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet']
 const flushMobile = ['/plus', '/fuel', '/map', '/wallet']
-const mapScreens = ['/fuel', '/map']
+const mapScreens = ['/fuel', '/map', '/taxi', '/women/taxi']
 
 function isHubMap(pathname) {
   return (
@@ -73,7 +72,6 @@ export function AppLayout() {
           </main>
         </div>
       </div>
-      {!hideChrome && !isChat(pathname) ? <BottomNav /> : null}
       <MobileDrawer />
       <LocationPicker />
     </div>

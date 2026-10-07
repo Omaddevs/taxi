@@ -6,6 +6,8 @@ import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../../lib/adapters'
 import { formatSom } from '../../lib/utils'
 import { Badge, Button, Card } from '../ui/Button'
 import { ONLINE_PAYMENTS } from '../../lib/features'
+import { REFERRAL_ENABLED, SOS_ENABLED } from '../../lib/features'
+import { SoonBadge } from '../ui/SoonBadge'
 
 export function RightPanel() {
   const { user } = useApp()
@@ -49,19 +51,27 @@ export function RightPanel() {
         </div>
       </Card>
 
-      <Card className="overflow-hidden bg-gradient-to-br from-brand-soft to-white p-5">
+      <Card className="overflow-hidden bg-gradient-to-br from-brand-soft to-white p-5" aria-disabled={!REFERRAL_ENABLED || undefined}>
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">🎁</div>
-          <div>
-            <p className="font-bold">Do‘stingizni taklif qiling</p>
-            <p className="text-xs text-muted">Har bir taklif uchun 20 000 so‘m</p>
+          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ${REFERRAL_ENABLED ? '' : 'grayscale'}`}>🎁</div>
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-1.5 font-bold">
+              Do‘stingizni taklif qiling {REFERRAL_ENABLED ? null : <SoonBadge />}
+            </p>
+            <p className="text-xs text-muted">{REFERRAL_ENABLED ? 'Har bir taklif uchun 20 000 so‘m' : 'Taklif bonuslari tez orada ishga tushadi'}</p>
           </div>
         </div>
-        <Link to="/promo">
-          <Button size="sm" className="mt-4 w-full">
-            Taklif qilish
-          </Button>
-        </Link>
+        {REFERRAL_ENABLED ? (
+          <Link to="/promo">
+            <Button size="sm" className="mt-4 w-full">
+              Taklif qilish
+            </Button>
+          </Link>
+        ) : (
+          <span className="mt-4 flex h-9 w-full cursor-not-allowed items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
+            Tez orada
+          </span>
+        )}
       </Card>
 
       <Card className="p-5">
@@ -85,20 +95,34 @@ export function RightPanel() {
         </div>
       </Card>
 
-      <Card className="flex items-center gap-4 p-5">
-        <Link
-          to="/sos"
-          className="sos-pulse flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-red-500 text-sm font-extrabold text-white"
-        >
-          SOS
-        </Link>
-        <div>
-          <p className="flex items-center gap-1 font-bold">
-            <Siren className="h-4 w-4 text-red-500" /> Favqulodda
-          </p>
-          <p className="text-xs text-muted">Xavfli vaziyatda yordam chaqiring. GPS va ishonchli kontaktlar yuboriladi.</p>
-        </div>
-      </Card>
+      {SOS_ENABLED ? (
+        <Card className="flex items-center gap-4 p-5">
+          <Link
+            to="/sos"
+            className="sos-pulse flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-red-500 text-sm font-extrabold text-white"
+          >
+            SOS
+          </Link>
+          <div>
+            <p className="flex items-center gap-1 font-bold">
+              <Siren className="h-4 w-4 text-red-500" /> Favqulodda
+            </p>
+            <p className="text-xs text-muted">Xavfli vaziyatda yordam chaqiring. GPS va ishonchli kontaktlar yuboriladi.</p>
+          </div>
+        </Card>
+      ) : (
+        <Card className="flex items-center gap-4 p-5" aria-disabled="true">
+          <span className="flex h-16 w-16 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-slate-200 text-sm font-extrabold text-slate-400">
+            SOS
+          </span>
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-1.5 font-bold text-ink/60">
+              <Siren className="h-4 w-4 text-slate-400" /> Favqulodda <SoonBadge />
+            </p>
+            <p className="text-xs text-muted">Favqulodda yordam xizmati tez orada ishga tushadi.</p>
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 gap-2 text-[11px] text-muted">
         {[

@@ -3,11 +3,12 @@ import { ConflictError, ForbiddenError, NotFoundError } from '../../errors/AppEr
 import { normalizePhone } from '../../lib/otp.js'
 import { writeAudit } from '../../lib/audit.js'
 import { notifyDriverReviewed } from '../../lib/botNotify.js'
+import { setBotDriverGender } from '../../lib/botBridge.js'
 import { startSubscriptionOnApproval } from '../subscriptions/subscriptions.lifecycle.js'
 
 export async function submitApplication(
   userId: string,
-  data: { fullName: string; phone: string; carModel: string; plate: string },
+  data: { fullName: string; phone: string; carModel: string; plate: string; gender: 'MALE' | 'FEMALE' },
 ) {
   const existing = await prisma.driverApplication.findUnique({ where: { userId } })
 
@@ -28,6 +29,9 @@ export async function submitApplication(
     reviewedAt: null,
     rejectionReason: null,
   }
+
+  // Gender lives on the User (no application column) — it decides who gets women-only orders.
+  await prisma.user.update({ where: { id: userId }, data: { gender: data.gender } })
 
   return prisma.driverApplication.upsert({
     where: { userId },
@@ -232,6 +236,7 @@ const DRIVER_USER_SELECT = {
   avatarUrl: true,
   telegramId: true,
   balance: true,
+  gender: true,
 } as const
 
 export async function listDrivers(filter: { online?: boolean; approved?: boolean; archived?: boolean }) {
@@ -316,9 +321,33 @@ export async function setApproved(driverId: string, approved: boolean) {
 
   if (approved && !driver.approved) {
     await startSubscriptionOnApproval(driverId)
-    await notifyDriverReviewed({ telegramId: updated.user.telegramId, phone: updated.user.phone, status: 'APPROVED' })
+    await notifyDriverReviewed({
+      telegramId: updated.user.telegramId,
+      phone: updated.user.phone,
+      status: 'APPROVED',
+      gender: updated.user.gender,
+    })
   }
   return updated
+}
+
+export async function setDriverGender(driverId: string, actorId: string, gender: 'MALE' | 'FEMALE' | null) {
+  const driver = await prisma.driver.findUnique({ where: { id: driverId } })
+  if (!driver) throw new NotFoundError('Haydovchi topilmadi')
+
+  const user = await prisma.user.update({
+    where: { id: driver.userId },
+    data: { gender },
+    select: { telegramId: true, phone: true },
+  })
+  // The bot decides who gets women-only orders from its own DriverProfile — keep it in step.
+  // Best-effort: a downed bot must not undo the admin's change here.
+  await setBotDriverGender({ telegramId: user.telegramId, phone: user.phone, gender }).catch((err) => {
+    console.error('setBotDriverGender failed:', err)
+  })
+  await writeAudit({ actorId, action: 'DRIVER_GENDER_SET', targetType: 'Driver', targetId: driverId, meta: { gender } })
+
+  return prisma.driver.findUnique({ where: { id: driverId }, include: { user: { select: DRIVER_USER_SELECT } } })
 }
 
 export async function archiveDriver(driverId: string, actorId: string, reason?: string) {
@@ -406,12 +435,13 @@ export async function reviewApplication(
 
   const user = await prisma.user.findUnique({
     where: { id: application.userId },
-    select: { telegramId: true, phone: true },
+    select: { telegramId: true, phone: true, gender: true },
   })
   if (user) {
     await notifyDriverReviewed({
       telegramId: user.telegramId,
       phone: user.phone,
+      gender: user.gender,
       status,
       rejectionReason: rejectionReason ?? null,
     })

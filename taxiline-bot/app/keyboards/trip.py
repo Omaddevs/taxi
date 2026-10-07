@@ -80,12 +80,14 @@ def order_confirm_kb(lang: str) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-EDIT_FIELDS = ("phone", "from", "to", "car", "seat", "passengers", "luggage", "time")
+EDIT_FIELDS = ("phone", "from", "to", "car", "seat", "passengers", "gender", "luggage", "time")
 
 
-def order_edit_kb(lang: str) -> InlineKeyboardMarkup:
+def order_edit_kb(lang: str, women_only: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for field in EDIT_FIELDS:
+        if field == "gender" and women_only:
+            continue  # a women-only order is always a woman travelling
         builder.button(text=t(f"edit_{field}", lang), callback_data=f"trip:edit:{field}")
     builder.button(text=t("back", lang), callback_data="trip:edit:back")
     builder.adjust(2)
@@ -134,3 +136,25 @@ def nudge_kb(lang: str) -> InlineKeyboardMarkup:
     builder.button(text=t("no", lang), callback_data="trip:nudge:no")
     builder.adjust(2)
     return builder.as_markup()
+
+
+def passenger_gender_kb(lang: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for code in ("MALE", "FEMALE", "COUPLE"):
+        builder.button(text=t(f"pg_btn_{code}", lang), callback_data=f"trip:pg:{code}")
+    builder.adjust(2, 1)
+    return builder.as_markup()
+
+
+def driver_gender_kb(lang: str, prefix: str) -> InlineKeyboardMarkup:
+    """`prefix` keeps the application wizard ("driverapp:g") and the approved driver's one-time
+    profile edit ("drivergender") apart — they run in different FSM contexts."""
+    builder = InlineKeyboardBuilder()
+    for code in ("MALE", "FEMALE"):
+        builder.button(text=t(f"driver_gender_{code}", lang), callback_data=f"{prefix}:{code}")
+    builder.adjust(2)
+    return builder.as_markup()
+
+
+def driver_gender_label(gender: str | None, lang: str) -> str:
+    return t(f"driver_gender_{gender}", lang) if gender in ("MALE", "FEMALE") else t("driver_gender_none", lang)

@@ -21,6 +21,24 @@ STALE_THRESHOLD_MIN = 30
 RELABEL_WINDOW = timedelta(hours=2)
 
 SOURCE_KEYS = {"BOT": "order_source_bot", "WEBAPP": "order_source_webapp", "GROUP": "order_source_group"}
+PASSENGER_GENDERS = ("MALE", "FEMALE", "COUPLE")
+
+
+def is_female_driver(driver: DriverProfile | None) -> bool:
+    return driver is not None and driver.gender == "FEMALE"
+
+
+def driver_can_see(driver: DriverProfile, order: Order) -> bool:
+    """Women-only orders are hidden from (and never dispatched to) anyone but female drivers."""
+    return not order.women_only or is_female_driver(driver)
+
+
+def claim_denied_key(driver: DriverProfile, order: Order) -> str | None:
+    """Translation key explaining why `driver` may not take `order`, or None if they may.
+    Shared by the Telegram claim button and the website bridge."""
+    if not order.women_only or is_female_driver(driver):
+        return None
+    return "order_women_gender_unknown" if driver.gender is None else "order_women_only_denied"
 
 
 async def create_order(session: AsyncSession, bot_user: BotUser, data: dict) -> Order:
@@ -42,6 +60,11 @@ async def create_order(session: AsyncSession, bot_user: BotUser, data: dict) -> 
         passengers=data["passengers"],
         luggage_size=data["luggage_size"],
         when_text=data["when_text"],
+        women_only=bool(data.get("women_only")),
+        # A women-only order is by definition a woman travelling.
+        passenger_gender="FEMALE" if data.get("women_only") else (
+            data.get("passenger_gender") if data.get("passenger_gender") in PASSENGER_GENDERS else None
+        ),
         source=data.get("source", "BOT"),
     )
     session.add(order)
@@ -73,12 +96,15 @@ def render_card(order: Order, lang: str) -> str:
         pickup_line = f"📌 {order.pickup_text}\n"
 
     contact_line = f"📝 {order.contact_note}\n" if order.contact_note else ""
+    source = t(SOURCE_KEYS.get(order.source, "order_source_bot"), lang)
+    header = t("card_header_women" if order.women_only else "card_header_regular", lang, source=source)
 
     return t(
         "dispatch_card",
         lang,
         status_label=status_label(order, lang),
-        source=t(SOURCE_KEYS.get(order.source, "order_source_bot"), lang),
+        header=header,
+        gender_line=passenger_gender_line(order.passenger_gender, lang),
         passenger_name=order.passenger_name,
         passenger_phone=order.passenger_phone,
         from_place=_place(order.from_region, order.from_district),
@@ -93,9 +119,13 @@ def render_card(order: Order, lang: str) -> str:
     )
 
 
+def passenger_gender_line(gender: str | None, lang: str) -> str:
+    return t(f"pg_line_{gender}", lang) if gender in PASSENGER_GENDERS else ""
+
+
 async def _send_voice(bot: Bot, chat_id: int, order: Order, lang: str, thread_id: int | None = None) -> None:
     text = t(
-        "dispatch_voice_summary",
+        "dispatch_voice_women" if order.women_only else "dispatch_voice_summary",
         lang,
         from_region=order.from_region,
         to_region=order.to_region,
@@ -122,7 +152,11 @@ async def _approved_active_drivers(
         .options(selectinload(DriverProfile.bot_user), selectinload(DriverProfile.subscription))
         .where(DriverProfile.status == "APPROVED", DriverProfile.blocked.is_(False))
     )
-    drivers = [d for d in result.scalars() if groups_service.driver_serves(d, order.from_region, order.to_region)]
+    drivers = [
+        d
+        for d in result.scalars()
+        if groups_service.driver_serves(d, order.from_region, order.to_region) and driver_can_see(d, order)
+    ]
     active = [d for d in drivers if d.subscription is not None and d.subscription.active]
     if exclude_driver_ids:
         active = [d for d in active if d.id not in exclude_driver_ids]
@@ -167,7 +201,12 @@ async def dispatch_order(
             # with the claim button, then the voice note.
             await bot.send_message(
                 driver.bot_user.telegram_id,
-                t("driver_new_order_alert", lang, from_region=order.from_region, to_region=order.to_region),
+                t(
+                    "driver_new_women_order_alert" if order.women_only else "driver_new_order_alert",
+                    lang,
+                    from_region=order.from_region,
+                    to_region=order.to_region,
+                ),
             )
             message = await bot.send_message(
                 driver.bot_user.telegram_id,
@@ -333,6 +372,9 @@ async def perform_claim(
     except_dispatch_id` lets the Telegram path skip re-editing the message the driver just
     tapped (it renders a different "you claimed this" view right after), while the webapp
     path passes None since there's no Telegram message of its own to skip."""
+    existing = await session.get(Order, order_id)
+    if existing is not None and claim_denied_key(driver, existing):
+        return None
     order = await claim_order(session, order_id, driver.id)
     if order is None:
         return None

@@ -50,6 +50,9 @@ export interface BotOrder {
   whenText: string
   status: string
   source: string
+  // "Ayollar uchun taxi" — female drivers only. passengerGender: MALE | FEMALE | COUPLE | null.
+  womenOnly: boolean
+  passengerGender: string | null
   createdAt: string
   pickupLat: number | null
   pickupLng: number | null
@@ -60,6 +63,7 @@ export interface BotOrder {
 export interface DriverOrdersResponse {
   registered: boolean
   region?: string
+  gender?: string | null
   openOrders?: BotOrder[]
   claimedOrder?: BotOrder | null
 }
@@ -109,6 +113,7 @@ export interface CreatePassengerOrderPayload {
   seat?: string
   luggage?: string
   gender?: string
+  womenOnly?: boolean
   carBrand?: string
   pickupText?: string
   note?: string
@@ -130,14 +135,15 @@ export async function getPassengerBotOrders(telegramId: string): Promise<{ order
 }
 
 export interface AdminBotOrder extends BotOrder {
-  assignedDriver: { name: string; phone: string } | null
+  assignedDriver: { name: string; phone: string; gender: string | null } | null
   dispatchCount: number
 }
 
-export async function getAdminBotOrders(params: { status?: string; q?: string }): Promise<AdminBotOrder[]> {
+export async function getAdminBotOrders(params: { status?: string; q?: string; women?: boolean }): Promise<AdminBotOrder[]> {
   const query = new URLSearchParams()
   if (params.status) query.set('status', params.status)
   if (params.q) query.set('q', params.q)
+  if (params.women) query.set('women', '1')
   const { orders } = await botFetch<{ orders: AdminBotOrder[] }>(`/webapp/admin/orders?${query.toString()}`)
   return orders
 }
@@ -185,6 +191,18 @@ export async function setAdminBotOrderStatus(
     body: JSON.stringify({ status }),
   })
   return order
+}
+
+/** An admin set a driver's gender on the website — mirror it onto the bot's DriverProfile. */
+export async function setBotDriverGender(payload: {
+  telegramId: string | null
+  phone: string
+  gender: 'MALE' | 'FEMALE' | null
+}): Promise<{ ok: true; driverProfile: boolean }> {
+  return botFetch<{ ok: true; driverProfile: boolean }>('/webapp/driver-gender', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }
 
 export async function deleteAdminBotOrder(orderId: number): Promise<{ ok: true }> {

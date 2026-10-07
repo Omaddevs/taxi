@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Phone, Plus, Share2, Trash2, Users } from 'lucide-re
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { googleMapsUrl } from '../lib/geo'
+import { SOS_ENABLED } from '../lib/features'
 
 const CONTACTS_KEY = 'taxiline-sos-contacts'
 
@@ -23,7 +24,33 @@ function loadContacts() {
   return []
 }
 
+function SosSoon() {
+  const navigate = useNavigate()
+  return (
+    <div className="flex min-h-svh flex-col bg-[#1a0b10] px-5 py-6 text-white">
+      <button type="button" onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10" aria-label="Orqaga">
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-300">Tez orada</span>
+        <h1 className="mt-4 text-2xl font-extrabold">Favqulodda yordam</h1>
+        <div className="mt-10 flex h-44 w-44 items-center justify-center rounded-full bg-white/10 text-4xl font-black tracking-widest text-white/30">SOS</div>
+        <p className="mt-8 max-w-xs text-sm text-white/70">
+          SOS xizmati hozircha ishlamaydi va tez orada ishga tushadi. Xavfli vaziyatda darhol <b className="text-white">112</b> raqamiga qo‘ng‘iroq qiling.
+        </p>
+        <a href="tel:112" className="mt-6 flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-[#1a0b10]">
+          <Phone className="h-4 w-4" /> 112 ga qo‘ng‘iroq
+        </a>
+      </div>
+    </div>
+  )
+}
+
 export default function SOS() {
+  return SOS_ENABLED ? <SosActive /> : <SosSoon />
+}
+
+function SosActive() {
   const navigate = useNavigate()
   const { gpsFix, gpsStatus, requestUserLocation, location } = useApp()
   const [phase, setPhase] = useState('idle')

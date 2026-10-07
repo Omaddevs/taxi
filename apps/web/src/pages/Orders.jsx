@@ -119,6 +119,7 @@ function fromBotOrder(o) {
     price: null,
     status: BOT_STATUS[o.status] || o.status,
     person: null,
+    womenOnly: Boolean(o.womenOnly),
   }
 }
 
@@ -189,7 +190,7 @@ function ActiveCard({ item, onCancel }) {
         <KindIcon kind={item.kind} large />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[16px] font-extrabold text-ink">{item.kind === 'taxi' ? 'Taxi' : 'Yetkazib berish'}</p>
+            <p className="text-[16px] font-extrabold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? '🌸 Ayollar uchun taxi' : 'Taxi') : 'Yetkazib berish'}</p>
             {price ? <p className="shrink-0 text-[16px] font-extrabold text-ink">{price}</p> : null}
           </div>
           <div className="mt-1 flex items-center justify-between gap-2">
@@ -286,7 +287,7 @@ function PastRow({ item, rated, onRate }) {
     <>
       <KindIcon kind={item.kind} />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-bold text-ink">{item.kind === 'taxi' ? 'Taxi' : 'Yetkazib berish'}</p>
+        <p className="text-[15px] font-bold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? '🌸 Ayollar uchun taxi' : 'Taxi') : 'Yetkazib berish'}</p>
         <p className="mt-0.5 truncate text-[13px] text-slate-600">
           {item.from} <span className="text-slate-400">→</span> {item.to}
         </p>

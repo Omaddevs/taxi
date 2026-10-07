@@ -35,6 +35,7 @@ import SmartMap from './pages/SmartMap'
 import { FuelMap as Fuel } from './pages/hubMaps'
 import TaxiLineAI from './pages/TaxiLineAI'
 import RideSearch from './pages/RideSearch'
+import TaxiMap from './pages/TaxiMap'
 import Plus from './pages/Plus'
 import { DriverLayout } from './pages/driver/DriverLayout'
 import DriverHome from './pages/driver/DriverHome'
@@ -125,6 +126,8 @@ export default function App() {
         <Route path="/fuel" element={<Fuel />} />
         <Route path="/ai" element={<TaxiLineAI />} />
         <Route path="/ride" element={<RideSearch />} />
+        <Route path="/taxi" element={<TaxiMap />} />
+        <Route path="/women/taxi" element={<TaxiMap women />} />
         <Route path="/plus" element={<Plus />} />
       </Route>
       <Route

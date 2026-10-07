@@ -33,6 +33,7 @@ import { faqs } from '../data/mock'
 import { api } from '../lib/api'
 import { homePathForRole } from '../lib/role'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
+import { REFERRAL_ENABLED } from '../lib/features'
 import { siteJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
 
@@ -901,6 +902,8 @@ const PROMOS = [
     ],
     terms: 'Do‘stingizni taklif qiling: u ro‘yxatdan o‘tib, birinchi buyurtmasini bajarsa, ikkalangiz ham bonus olasiz.',
     termsBold: 'Bonus 24 soat ichida balansga tushadi',
+    // Referal hali ishga tushmagan — tugma "Tez orada"
+    soon: !REFERRAL_ENABLED,
   },
 ]
 
@@ -950,16 +953,26 @@ function PromoCard({ promo, active, onSelect }) {
       </p>
 
       <div className="min-h-8 flex-1" />
-      <Link
-        to="/register"
-        tabIndex={active ? 0 : -1}
-        onClick={(e) => e.stopPropagation()}
-        className={`flex h-12 items-center justify-center rounded-full text-[12px] font-extrabold uppercase tracking-[0.04em] transition-colors duration-500 2xl:h-14 2xl:text-[14px] ${
-          active ? 'bg-[#1d2229] text-white hover:bg-black' : 'bg-white text-ink'
-        }`}
-      >
-        Ishtirok etish!
-      </Link>
+      {promo.soon ? (
+        <span
+          className={`flex h-12 cursor-not-allowed items-center justify-center rounded-full text-[12px] font-extrabold uppercase tracking-[0.04em] 2xl:h-14 2xl:text-[14px] ${
+            active ? 'bg-white/60 text-ink/60' : 'bg-white text-ink/50'
+          }`}
+        >
+          Tez orada
+        </span>
+      ) : (
+        <Link
+          to="/register"
+          tabIndex={active ? 0 : -1}
+          onClick={(e) => e.stopPropagation()}
+          className={`flex h-12 items-center justify-center rounded-full text-[12px] font-extrabold uppercase tracking-[0.04em] transition-colors duration-500 2xl:h-14 2xl:text-[14px] ${
+            active ? 'bg-[#1d2229] text-white hover:bg-black' : 'bg-white text-ink'
+          }`}
+        >
+          Ishtirok etish!
+        </Link>
+      )}
     </article>
   )
 }

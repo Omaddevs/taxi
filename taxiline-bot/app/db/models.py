@@ -50,6 +50,9 @@ class DriverProfile(Base):
     region: Mapped[str] = mapped_column(index=True)  # operating ("from") region — used for dispatch matching
     to_region: Mapped[str | None] = mapped_column(nullable=True)  # informational only, not used in matching
     language: Mapped[str] = mapped_column(default="uz")
+    # MALE | FEMALE | None (not stated yet — drivers who registered before this field existed).
+    # Only FEMALE drivers receive / may claim "Ayollar uchun taxi" (Order.women_only) orders.
+    gender: Mapped[str | None] = mapped_column(nullable=True, index=True)
 
     status: Mapped[str] = mapped_column(default="PENDING", index=True)  # PENDING | APPROVED | REJECTED
     rejection_reason: Mapped[str | None] = mapped_column(nullable=True)
@@ -163,6 +166,12 @@ class Order(Base):
     passengers: Mapped[int] = mapped_column()
     luggage_size: Mapped[str] = mapped_column()
     when_text: Mapped[str] = mapped_column()
+
+    # "Ayollar uchun taxi": dispatched to female drivers only and claimable only by them; every
+    # surface (group card, driver DM, website, admin panel) renders it in its own pink style.
+    women_only: Mapped[bool] = mapped_column(default=False, server_default="false", index=True)
+    # Who is travelling: MALE | FEMALE | COUPLE | None (unknown, e.g. older orders).
+    passenger_gender: Mapped[str | None] = mapped_column(nullable=True)
 
     source: Mapped[str] = mapped_column(default="BOT")  # BOT | WEBAPP | GROUP
     status: Mapped[str] = mapped_column(default="OPEN", index=True)  # OPEN | CLAIMED | CLOSED | CANCELLED

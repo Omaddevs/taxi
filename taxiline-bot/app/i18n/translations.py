@@ -82,6 +82,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": (
             "🚗 Mening profilim\n\n"
             "👤 {name}\n"
+            "⚧ Jinsi: {gender}\n"
             "📞 {phone}\n"
             "🚙 {car_brand} · {plate}\n"
             "📍 {route}\n"
@@ -91,6 +92,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ru": (
             "🚗 Мой профиль\n\n"
             "👤 {name}\n"
+            "⚧ Пол: {gender}\n"
             "📞 {phone}\n"
             "🚙 {car_brand} · {plate}\n"
             "📍 {route}\n"
@@ -100,6 +102,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": (
             "🚗 My profile\n\n"
             "👤 {name}\n"
+            "⚧ Gender: {gender}\n"
             "📞 {phone}\n"
             "🚙 {car_brand} · {plate}\n"
             "📍 {route}\n"
@@ -195,7 +198,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "order_summary": {
         "uz": (
             "📋 Buyurtma ma'lumotlari:\n\n"
+            "{service_line}"
             "👤 Yo'lovchi: {passenger_name} ({passenger_phone})\n"
+            "{gender_line}"
             "📍 Qayerdan: {from_region}, {from_district}\n"
             "🏁 Qayerga: {to_region}, {to_district}\n"
             "🚗 Avtomobil: {car_brand}\n"
@@ -207,7 +212,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "ru": (
             "📋 Детали заказа:\n\n"
+            "{service_line}"
             "👤 Пассажир: {passenger_name} ({passenger_phone})\n"
+            "{gender_line}"
             "📍 Откуда: {from_region}, {from_district}\n"
             "🏁 Куда: {to_region}, {to_district}\n"
             "🚗 Автомобиль: {car_brand}\n"
@@ -219,7 +226,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "en": (
             "📋 Order details:\n\n"
+            "{service_line}"
             "👤 Passenger: {passenger_name} ({passenger_phone})\n"
+            "{gender_line}"
             "📍 From: {from_region}, {from_district}\n"
             "🏁 To: {to_region}, {to_district}\n"
             "🚗 Car: {car_brand}\n"
@@ -306,6 +315,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": (
             "📋 Ariza ma'lumotlari:\n\n"
             "👤 Ism: {full_name}\n"
+            "⚧ Jinsi: {gender}\n"
             "📱 Telefon: {phone}\n"
             "🚙 Avtomobil: {car_model} · {plate}\n"
             "📍 Yo'nalish: {region} → {to_region}\n\n"
@@ -314,6 +324,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ru": (
             "📋 Данные заявки:\n\n"
             "👤 Имя: {full_name}\n"
+            "⚧ Пол: {gender}\n"
             "📱 Телефон: {phone}\n"
             "🚙 Автомобиль: {car_model} · {plate}\n"
             "📍 Маршрут: {region} → {to_region}\n\n"
@@ -322,6 +333,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": (
             "📋 Application details:\n\n"
             "👤 Name: {full_name}\n"
+            "⚧ Gender: {gender}\n"
             "📱 Phone: {phone}\n"
             "🚙 Car: {car_model} · {plate}\n"
             "📍 Route: {region} → {to_region}\n\n"
@@ -530,8 +542,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dispatch_card": {
         "uz": (
             "{status_label}\n\n"
-            "🚕 Yangi buyurtma ({source})\n\n"
+            "{header}\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
+            "{gender_line}"
             "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} yo'lovchi · 🧳 {luggage_size}\n"
@@ -541,8 +554,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "ru": (
             "{status_label}\n\n"
-            "🚕 Новый заказ ({source})\n\n"
+            "{header}\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
+            "{gender_line}"
             "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} пассажир(ов) · 🧳 {luggage_size}\n"
@@ -552,8 +566,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
         "en": (
             "{status_label}\n\n"
-            "🚕 New order ({source})\n\n"
+            "{header}\n\n"
             "👤 {passenger_name} — {passenger_phone}\n"
+            "{gender_line}"
             "📍 {from_place} → {to_place}\n"
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} passenger(s) · 🧳 {luggage_size}\n"
@@ -861,6 +876,80 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "⚠️ Bu Telegram akkaunt boshqa telefon raqami bilan ro'yxatdan o'tgan. Bitta akkaunt — bitta ishtirok.",
         "ru": "⚠️ Этот Telegram-аккаунт уже зарегистрирован с другим номером. Один аккаунт — одно участие.",
         "en": "⚠️ This Telegram account is already registered with another phone number. One account — one entry.",
+    },
+    # ── Ayollar uchun taxi (women-only orders) + passenger/driver gender ───────────────────
+    "menu_women_trip": {"uz": "🌸 Ayollar uchun taxi", "ru": "🌸 Такси для женщин", "en": "🌸 Women's taxi"},
+    "women_trip_intro": {
+        "uz": (
+            "🌸 Ayollar uchun taxi\n\n"
+            "Buyurtmangiz faqat tasdiqlangan ayol haydovchilarga yuboriladi va faqat ular qabul qila oladi."
+        ),
+        "ru": (
+            "🌸 Такси для женщин\n\n"
+            "Ваш заказ увидят и смогут принять только проверенные женщины-водители."
+        ),
+        "en": (
+            "🌸 Women's taxi\n\n"
+            "Your order goes only to verified female drivers, and only they can accept it."
+        ),
+    },
+    "ask_passenger_gender": {"uz": "Kim yo'lga chiqadi?", "ru": "Кто едет?", "en": "Who is travelling?"},
+    "pg_btn_MALE": {"uz": "👨 Erkak", "ru": "👨 Мужчина", "en": "👨 Man"},
+    "pg_btn_FEMALE": {"uz": "👩 Ayol", "ru": "👩 Женщина", "en": "👩 Woman"},
+    "pg_btn_COUPLE": {"uz": "👫 Er-xotin / oila", "ru": "👫 Пара / семья", "en": "👫 Couple / family"},
+    "pg_line_MALE": {"uz": "👨 Erkak yo'lovchi\n", "ru": "👨 Пассажир — мужчина\n", "en": "👨 Male passenger\n"},
+    "pg_line_FEMALE": {"uz": "👩 Ayol yo'lovchi\n", "ru": "👩 Пассажир — женщина\n", "en": "👩 Female passenger\n"},
+    "pg_line_COUPLE": {"uz": "👫 Er-xotin / oila\n", "ru": "👫 Пара / семья\n", "en": "👫 Couple / family\n"},
+    "edit_gender": {"uz": "👤 Kim boradi", "ru": "👤 Кто едет", "en": "👤 Who travels"},
+    "summary_women_line": {
+        "uz": "🌸 Ayollar uchun taxi — faqat ayol haydovchilar\n",
+        "ru": "🌸 Такси для женщин — только женщины-водители\n",
+        "en": "🌸 Women's taxi — female drivers only\n",
+    },
+    "card_header_regular": {
+        "uz": "🚕 Yangi buyurtma ({source})",
+        "ru": "🚕 Новый заказ ({source})",
+        "en": "🚕 New order ({source})",
+    },
+    "card_header_women": {
+        "uz": "🌸🌸 AYOLLAR UCHUN TAXI 🌸🌸\n👩 Faqat ayol haydovchilar qabul qiladi · {source}",
+        "ru": "🌸🌸 ТАКСИ ДЛЯ ЖЕНЩИН 🌸🌸\n👩 Принимают только женщины-водители · {source}",
+        "en": "🌸🌸 WOMEN'S TAXI 🌸🌸\n👩 Female drivers only · {source}",
+    },
+    "driver_new_women_order_alert": {
+        "uz": "🌸 TaxiLine — ayollar uchun yangi buyurtma!\n{from_region} → {to_region}\n\nBuyurtma pastda. Uni \"📥 Ochiq buyurtmalar\" bo'limida ham ko'rishingiz mumkin.",
+        "ru": "🌸 TaxiLine — новый заказ «Такси для женщин»!\n{from_region} → {to_region}\n\nЗаказ ниже. Его также можно найти в разделе \"📥 Открытые заказы\".",
+        "en": "🌸 TaxiLine — new women's taxi order!\n{from_region} → {to_region}\n\nThe order is below. You can also find it under \"📥 Open orders\".",
+    },
+    "dispatch_voice_women": {
+        "uz": "Haydovchi, ayollar uchun yangi buyurtma! {from_region} dan {to_region} ga. {passengers} yo'lovchi. Vaqti: {when_text}.",
+        "ru": "Водитель, новый заказ такси для женщин! Из {from_region} в {to_region}. {passengers} пассажир(ов). Время: {when_text}.",
+        "en": "Driver, new women's taxi order! From {from_region} to {to_region}. {passengers} passenger(s). Time: {when_text}.",
+    },
+    "order_women_only_denied": {
+        "uz": "🌸 Bu buyurtma faqat ayol haydovchilar uchun.",
+        "ru": "🌸 Этот заказ только для женщин-водителей.",
+        "en": "🌸 This order is for female drivers only.",
+    },
+    "order_women_gender_unknown": {
+        "uz": "🌸 Bu buyurtma faqat ayol haydovchilar uchun. Profilingizda jinsingiz ko'rsatilmagan — \"🚗 Mening profilim\" bo'limida belgilang.",
+        "ru": "🌸 Этот заказ только для женщин-водителей. В вашем профиле не указан пол — укажите его в разделе \"🚗 Мой профиль\".",
+        "en": "🌸 This order is for female drivers only. Your profile has no gender set — set it under \"🚗 My profile\".",
+    },
+    "order_created_women": {
+        "uz": "✅ Buyurtmangiz qabul qilindi! 🌸 U faqat ayol haydovchilarga yuborildi — tez orada siz bilan bog'lanishadi.",
+        "ru": "✅ Ваш заказ принят! 🌸 Он отправлен только женщинам-водителям — скоро с вами свяжутся.",
+        "en": "✅ Your order has been placed! 🌸 It went to female drivers only — they will contact you shortly.",
+    },
+    "ask_driver_gender": {"uz": "Jinsingizni tanlang:", "ru": "Укажите ваш пол:", "en": "Select your gender:"},
+    "driver_gender_MALE": {"uz": "👨 Erkak", "ru": "👨 Мужчина", "en": "👨 Male"},
+    "driver_gender_FEMALE": {"uz": "👩 Ayol", "ru": "👩 Женщина", "en": "👩 Female"},
+    "driver_gender_none": {"uz": "ko'rsatilmagan", "ru": "не указан", "en": "not set"},
+    "driver_edit_gender": {"uz": "⚧ Jinsini belgilash", "ru": "⚧ Указать пол", "en": "⚧ Set gender"},
+    "driver_gender_locked": {
+        "uz": "Jins bir marta belgilanadi. O'zgartirish uchun 🆘 Yordam orqali adminga yozing.",
+        "ru": "Пол указывается один раз. Чтобы изменить, напишите администратору через 🆘 Поддержка.",
+        "en": "Gender can be set only once. To change it, contact an admin via 🆘 Support.",
     },
 }
 

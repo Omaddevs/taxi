@@ -12,6 +12,7 @@ class TripOrder(StatesGroup):
     choosing_car = State()
     choosing_seat = State()
     choosing_passengers = State()
+    choosing_gender = State()
     choosing_luggage = State()
     entering_time = State()
     confirming_order = State()

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ecosystem } from '../../data/ecosystem'
+import { SOS_ENABLED } from '../../lib/features'
 import { EcosystemIcon } from '../icons/EcosystemIcon'
 
 export function EcosystemGrid() {
@@ -15,7 +16,23 @@ export function EcosystemGrid() {
         </Link>
       </div>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-8">
-        {ecosystem.map((item) => (
+        {ecosystem.map((item) =>
+          item.id === 'sos' && !SOS_ENABLED ? (
+            <div
+              key={item.id}
+              aria-disabled="true"
+              title="Tez orada"
+              className="relative flex cursor-not-allowed flex-col items-center rounded-2xl bg-white px-1 py-3 text-center opacity-60 shadow-[0_6px_20px_rgba(28,28,40,0.04)]"
+            >
+              <span className="absolute -top-1.5 right-1 rounded-full bg-amber-50 px-1.5 py-[1px] text-[9px] font-bold text-amber-600 ring-1 ring-amber-100">
+                Tez orada
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center text-slate-400">
+                <EcosystemIcon id={item.id} className="h-6 w-6" />
+              </span>
+              <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-tight">{item.title}</span>
+            </div>
+          ) : (
           <Link
             key={item.id}
             to={item.to}
@@ -26,7 +43,8 @@ export function EcosystemGrid() {
             </span>
             <span className="mt-1.5 line-clamp-2 text-[11px] font-semibold leading-tight">{item.title}</span>
           </Link>
-        ))}
+          ),
+        )}
       </div>
     </section>
   )

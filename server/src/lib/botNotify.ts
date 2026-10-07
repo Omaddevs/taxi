@@ -119,6 +119,7 @@ export interface DriverReviewedPayload {
   phone: string
   status: 'APPROVED' | 'REJECTED'
   rejectionReason?: string | null
+  gender?: 'MALE' | 'FEMALE' | null
 }
 
 // Best-effort push so a review done in the admin panel reaches the bot too: the bot flips its

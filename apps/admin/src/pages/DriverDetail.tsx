@@ -49,6 +49,14 @@ export default function DriverDetail() {
     },
   })
 
+  const setGender = useMutation({
+    mutationFn: (gender: 'MALE' | 'FEMALE' | null) => api.patch(`/admin/drivers/${id}/gender`, { gender }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-driver', id] })
+      queryClient.invalidateQueries({ queryKey: ['admin-drivers'] })
+    },
+  })
+
   const renew = useMutation({
     mutationFn: () =>
       api.post(`/admin/driver-subscriptions/${id}/renew`, {
@@ -161,6 +169,40 @@ export default function DriverDetail() {
               <p className="font-bold text-ink">{displayName(driver.user)}</p>
               <p className="text-sm text-muted">{driver.user.phone}</p>
             </div>
+          </div>
+          <div className="mb-4 rounded-xl bg-canvas p-3">
+            <p className="text-xs font-semibold text-muted">Jinsi</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {(
+                [
+                  ['MALE', '👨 Erkak'],
+                  ['FEMALE', '👩 Ayol'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  disabled={setGender.isPending}
+                  onClick={() => setGender.mutate(driver.user.gender === value ? null : value)}
+                  className={`h-9 rounded-lg text-sm font-bold transition disabled:opacity-60 ${
+                    driver.user.gender === value
+                      ? value === 'FEMALE'
+                        ? 'bg-[#f5559a] text-white'
+                        : 'bg-ink text-white'
+                      : 'bg-white text-ink hover:bg-white/70'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] leading-snug text-muted">
+              {driver.user.gender === 'FEMALE'
+                ? '🌸 «Ayollar uchun taxi» buyurtmalari bu haydovchiga keladi.'
+                : driver.user.gender
+                  ? '«Ayollar uchun taxi» buyurtmalari bu haydovchiga kelmaydi.'
+                  : 'Belgilanmagan — «Ayollar uchun taxi» buyurtmalari kelmaydi.'}
+            </p>
           </div>
           <dl className="space-y-2.5 text-sm">
             <Row label="Onlayn" value={driver.online ? 'Ha' : 'Yo‘q'} />

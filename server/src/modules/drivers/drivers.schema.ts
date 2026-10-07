@@ -5,6 +5,7 @@ export const createApplicationSchema = z.object({
   phone: z.string().min(7, 'Telefon raqami noto‘g‘ri'),
   carModel: z.string().min(1, 'Avtomobil modeli kiritilishi kerak'),
   plate: z.string().min(1, 'Davlat raqami kiritilishi kerak'),
+  gender: z.enum(['MALE', 'FEMALE'], { message: 'Jinsingizni tanlang' }),
 })
 
 export const setOnlineStatusSchema = z.object({
@@ -61,6 +62,10 @@ export const driverIdParamSchema = z.object({
 
 export const setApprovedSchema = z.object({
   approved: z.boolean(),
+})
+
+export const setDriverGenderSchema = z.object({
+  gender: z.enum(['MALE', 'FEMALE']).nullable(),
 })
 
 export const archiveDriverSchema = z.object({

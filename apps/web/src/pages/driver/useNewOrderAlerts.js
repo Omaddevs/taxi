@@ -114,7 +114,7 @@ export function useNewOrderAlerts() {
 
     if (document.hidden && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       try {
-        const n = new Notification('TaxiLine — yangi mijoz!', {
+        const n = new Notification(newest.womenOnly ? '🌸 Ayollar uchun taxi — yangi buyurtma!' : 'TaxiLine — yangi mijoz!', {
           body: `${newest.from} → ${newest.to}${fresh.length > 1 ? ` (+${fresh.length - 1})` : ''}`,
           icon: '/logo.png',
           tag: 'taxiline-new-order',

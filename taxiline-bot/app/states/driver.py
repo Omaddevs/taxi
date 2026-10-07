@@ -3,6 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 class DriverApplication(StatesGroup):
     entering_name = State()
+    choosing_gender = State()
     entering_phone = State()
     choosing_car = State()
     entering_plate = State()

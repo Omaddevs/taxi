@@ -38,6 +38,7 @@ async def create_application(
     plate: str,
     region: str,
     to_region: str | None = None,
+    gender: str | None = None,
 ) -> DriverProfile:
     # bot_users.id is unique on driver_profiles, so a driver re-applying after a rejection
     # reuses their old row instead of inserting a second one.
@@ -51,6 +52,8 @@ async def create_application(
     driver.plate = normalize_plate(plate)
     driver.region = region
     driver.to_region = to_region
+    if gender in ("MALE", "FEMALE"):
+        driver.gender = gender
     driver.language = bot_user.language
     driver.status = "PENDING"
     driver.rejection_reason = None
@@ -126,6 +129,11 @@ async def update_car_model(session: AsyncSession, driver: DriverProfile, car_mod
     await session.commit()
 
 
+async def update_gender(session: AsyncSession, driver: DriverProfile, gender: str | None) -> None:
+    driver.gender = gender if gender in ("MALE", "FEMALE") else None
+    await session.commit()
+
+
 async def update_plate(session: AsyncSession, driver: DriverProfile, plate: str) -> None:
     driver.plate = normalize_plate(plate)
     await session.commit()
@@ -153,8 +161,11 @@ async def render_driver_card(session: AsyncSession, driver: DriverProfile) -> st
     if driver.blocked:
         status_line += " · 🚫 BLOKLANGAN"
 
+    gender_line = {"MALE": "👨 Erkak", "FEMALE": "👩 Ayol"}.get(driver.gender or "", "⚧ ko'rsatilmagan")
+
     return (
         f"🚗 #{driver.id} {driver.full_name} — {format_phone(driver.phone)}\n"
+        f"Jinsi: {gender_line}\n"
         f"🚙 {driver.car_model} · {driver.plate}\n"
         f"📍 {route}\n"
         f"{group_line}\n"

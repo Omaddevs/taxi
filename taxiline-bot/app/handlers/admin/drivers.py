@@ -37,10 +37,20 @@ def _nav_buttons(builder: InlineKeyboardBuilder, filter_key: str, index: int, to
         builder.button(text="Keyingi ➡️", callback_data=f"admindriverlist:{filter_key}:{index + 1}")
 
 
-def _pending_kb(driver_id: int, index: int, total: int):
+_GENDER_NEXT = {None: "FEMALE", "FEMALE": "MALE", "MALE": "FEMALE"}
+_GENDER_BTN = {"FEMALE": "⚧ Jinsi → 👩 Ayol", "MALE": "⚧ Jinsi → 👨 Erkak"}
+
+
+def _gender_button(builder: InlineKeyboardBuilder, driver, filter_key: str, index: int) -> None:
+    target = _GENDER_NEXT[driver.gender if driver.gender in ("MALE", "FEMALE") else None]
+    builder.button(text=_GENDER_BTN[target], callback_data=f"admindrivergender:{driver.id}:{target}:{filter_key}:{index}")
+
+
+def _pending_kb(driver, index: int, total: int):
     builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Tasdiqlash", callback_data=f"admindriver:approve:{driver_id}:{index}")
-    builder.button(text="❌ Rad etish", callback_data=f"admindriver:reject:{driver_id}:{index}")
+    builder.button(text="✅ Tasdiqlash", callback_data=f"admindriver:approve:{driver.id}:{index}")
+    builder.button(text="❌ Rad etish", callback_data=f"admindriver:reject:{driver.id}:{index}")
+    _gender_button(builder, driver, "pending", index)
     _nav_buttons(builder, "pending", index, total)
     builder.adjust(2)
     return builder.as_markup()
@@ -51,6 +61,7 @@ def _approved_kb(driver, index: int, total: int):
     builder.button(text="🚫 Bloklash", callback_data=f"admindriverblock:{driver.id}:1:approved:{index}")
     builder.button(text="📞 Qo'ng'iroq qilish", url=f"tel:{driver.phone}")
     builder.button(text="🔀 Boshqa guruhga o'tkazish", callback_data=f"admindrivermove:{driver.id}:approved:{index}")
+    _gender_button(builder, driver, "approved", index)
     _nav_buttons(builder, "approved", index, total)
     builder.adjust(2)
     return builder.as_markup()
@@ -60,6 +71,7 @@ def _blocked_kb(driver, index: int, total: int):
     builder = InlineKeyboardBuilder()
     builder.button(text="✅ Blokdan chiqarish", callback_data=f"admindriverblock:{driver.id}:0:blocked:{index}")
     builder.button(text="📞 Qo'ng'iroq qilish", url=f"tel:{driver.phone}")
+    _gender_button(builder, driver, "blocked", index)
     _nav_buttons(builder, "blocked", index, total)
     builder.adjust(2)
     return builder.as_markup()
@@ -67,7 +79,7 @@ def _blocked_kb(driver, index: int, total: int):
 
 def _kb_for(filter_key: str, driver, index: int, total: int):
     if filter_key == "pending":
-        return _pending_kb(driver.id, index, total)
+        return _pending_kb(driver, index, total)
     if filter_key == "approved":
         return _approved_kb(driver, index, total)
     return _blocked_kb(driver, index, total)
@@ -228,6 +240,33 @@ async def toggle_block(callback: CallbackQuery, session, bot_user) -> None:
     # Blocking moves the driver out of "approved" into "blocked" (and vice versa), so re-render
     # from whichever tab they were just looking at — the item at this index is now whatever
     # took its place there.
+    await _render_list(callback, session, filter_key, int(index_str))
+
+
+@router.callback_query(F.data.startswith("admindrivergender:"))
+async def set_gender(callback: CallbackQuery, session, bot_user) -> None:
+    if bot_user is None or not bot_user.is_admin:
+        await callback.answer()
+        return
+
+    _, driver_id_str, gender, filter_key, index_str = callback.data.split(":")
+    driver = await drivers_service.get(session, int(driver_id_str))
+    if driver is None or gender not in ("MALE", "FEMALE"):
+        await callback.answer("Topilmadi", show_alert=True)
+        return
+
+    await drivers_service.update_gender(session, driver, gender)
+    await backend_client.sync_driver(
+        phone=driver.phone,
+        telegram_id=driver.bot_user.telegram_id,
+        name=driver.full_name,
+        car_model=driver.car_model,
+        plate=driver.plate,
+        approved=driver.status == "APPROVED",
+        status=driver.status,
+        gender=gender,
+    )
+    await callback.answer("Yangilandi ✅")
     await _render_list(callback, session, filter_key, int(index_str))
 
 

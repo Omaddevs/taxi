@@ -8,6 +8,7 @@ import { formatSom } from '../../lib/utils'
 import { useApp } from '../../context/AppContext'
 import { DriverHeader, DriverSheet, DriverTabs, StatusBadge, RouteStops, SeatChips, remainingSeconds, formatMmSs, timeHm } from './ui'
 import { mergeDriverOrders, isActiveStatus, filterByWorkRegions, isToday } from './orders'
+import { OrderAudience, WOMEN_CARD_CLASS } from '../../components/trip/OrderAudience'
 
 const TABS = [
   { id: 'all', label: 'Barchasi' },
@@ -221,8 +222,11 @@ function OrderCard({ order, onDetails, onAccept, onReject, busy }) {
           onDetails()
         }
       }}
-      className="cursor-pointer rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(28,28,40,0.04)] outline-none ring-brand/20 focus-visible:ring-2"
+      className={`cursor-pointer rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(28,28,40,0.04)] outline-none ring-brand/20 focus-visible:ring-2 ${
+        order.womenOnly ? WOMEN_CARD_CLASS : ''
+      }`}
     >
+      <OrderAudience order={order} className="mb-3" />
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-extrabold">#{order.code}</p>
         <div className="flex items-center gap-1.5">

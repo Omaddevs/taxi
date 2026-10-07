@@ -10,6 +10,7 @@ import { formatDateTime, formatPhoneUz } from '../lib/utils'
 import { CHANNEL_LABEL, ORDER_STATUS_LABEL, ORDER_STATUS_TONE } from '../lib/labels'
 import { OrderEditModal } from '../components/listings/OrderEditModal'
 import type { BotOrderRow } from '../types'
+import { OrderAudienceBadge, PASSENGER_GENDER_LABEL } from '../components/listings/OrderAudienceBadge'
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -57,6 +58,7 @@ export default function OrderDetail() {
         onBack={() => navigate('/listings')}
         action={
           <div className="flex items-center gap-2">
+            <OrderAudienceBadge womenOnly={order.womenOnly} gender={order.passengerGender} />
             <Badge tone={ORDER_STATUS_TONE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>
             <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
               <Pencil className="h-3.5 w-3.5" /> Tahrirlash
@@ -70,6 +72,8 @@ export default function OrderDetail() {
           <h2 className="mb-3 text-sm font-bold text-ink">Buyurtma</h2>
           <dl className="space-y-2 text-sm">
             <Row label="Yo‘lovchi" value={order.passengerName} />
+            <Row label="Xizmat" value={order.womenOnly ? '🌸 Ayollar uchun taxi' : 'Oddiy taxi'} />
+            <Row label="Kim boradi" value={PASSENGER_GENDER_LABEL[order.passengerGender ?? ''] ?? '—'} />
             <Row label="Telefon" value={formatPhoneUz(order.passengerPhone)} />
             <Row label="Avtomobil turi" value={order.carBrand} />
             <Row label="Yo‘lovchilar" value={String(order.passengers)} />

@@ -80,6 +80,7 @@ export async function syncDriver(input: {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   newApplication?: boolean
   rejectionReason?: string
+  gender?: 'MALE' | 'FEMALE'
 }) {
   const status = input.status ?? (input.approved ? 'APPROVED' : 'PENDING')
 
@@ -93,6 +94,10 @@ export async function syncDriver(input: {
     name: input.name,
     role: status === 'APPROVED' ? 'DRIVER' : undefined,
   })
+
+  if (input.gender && user.gender !== input.gender) {
+    await prisma.user.update({ where: { id: user.id }, data: { gender: input.gender } })
+  }
 
   const existingDriver = await prisma.driver.findUnique({ where: { userId: user.id } })
   // The bot re-syncs on every menu render. A PENDING there must never revoke an approval granted

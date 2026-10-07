@@ -102,6 +102,11 @@ export default function TripHistory() {
                     <p className="min-w-0 flex-1 font-bold leading-snug">
                       {item.from} → {item.to}
                     </p>
+                    {item.womenOnly ? (
+                      <span className="mt-0.5 shrink-0 rounded-full bg-[#fde7f1] px-2 py-0.5 text-[10px] font-bold text-[#c2185b]">
+                        🌸 Ayollar uchun
+                      </span>
+                    ) : null}
                     {item.source === 'bot' ? (
                       <span className="mt-0.5 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted">
                         Bot

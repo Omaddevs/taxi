@@ -18,6 +18,8 @@ export const createPassengerOrderSchema = z.object({
   seat: text(20),
   luggage: text(20),
   gender: text(20),
+  // "Ayollar uchun taxi": dispatched to (and claimable by) female drivers only.
+  womenOnly: z.boolean().optional(),
   carBrand: text(60),
   pickupText: text(200),
   note: text(300),

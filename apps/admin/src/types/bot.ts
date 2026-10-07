@@ -20,12 +20,15 @@ export interface BotOrderRow {
   whenText: string
   status: OrderStatus
   source: 'BOT' | 'WEBAPP' | 'GROUP'
+  // "Ayollar uchun taxi" — reaches and can be taken by female drivers only.
+  womenOnly: boolean
+  passengerGender: 'MALE' | 'FEMALE' | 'COUPLE' | null
   createdAt: string
   pickupLat: number | null
   pickupLng: number | null
   pickupText: string | null
   confirmed: boolean
-  assignedDriver: { name: string; phone: string } | null
+  assignedDriver: { name: string; phone: string; gender?: 'MALE' | 'FEMALE' | null } | null
   dispatchCount: number
 }
 

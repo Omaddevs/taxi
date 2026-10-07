@@ -74,6 +74,7 @@ class BackendClient:
         status: str | None = None,
         new_application: bool = False,
         rejection_reason: str | None = None,
+        gender: str | None = None,
     ) -> dict | None:
         """Promote the core User to DRIVER and upsert the Driver row the webapp dashboard needs.
         Best-effort: a downed server must never block bot registration/approval."""
@@ -91,6 +92,8 @@ class BackendClient:
             payload["status"] = status
         if rejection_reason:
             payload["rejectionReason"] = rejection_reason
+        if gender in ("MALE", "FEMALE"):
+            payload["gender"] = gender
         try:
             resp = await self._client.post("/bot/sync-driver", json=payload)
             resp.raise_for_status()

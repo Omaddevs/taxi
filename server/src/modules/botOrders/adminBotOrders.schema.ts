@@ -7,6 +7,8 @@ export const adminOrderIdParamSchema = z.object({
 export const listAdminOrdersQuerySchema = z.object({
   status: z.enum(['OPEN', 'CLAIMED', 'COMPLETED', 'CLOSED', 'CANCELLED']).optional(),
   q: z.string().optional(),
+  // "Ayol yo'lovchilar": women-only orders plus any order with a female passenger.
+  women: z.enum(['1', 'true']).optional(),
 })
 
 export const adminUpdateOrderSchema = z.object({

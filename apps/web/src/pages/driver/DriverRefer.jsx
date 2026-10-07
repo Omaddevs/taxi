@@ -19,13 +19,37 @@ import { useApp } from '../../context/AppContext'
 import { formatSom, inviteCode } from '../../lib/utils'
 import { sharePlace } from '../../lib/geo'
 import { DriverHeader, DriverSheet } from './ui'
+import { REFERRAL_ENABLED } from '../../lib/features'
 
 const BONUS = 20000
 const TELEGRAM_BOT_URL = `https://t.me/${import.meta.env.VITE_TELEGRAM_BOT || 'taxilines_bot'}`
 const TELEGRAM_CHANNEL_URL = 'https://t.me/taxiline_uzbekistan'
 const INSTAGRAM_URL = 'https://www.instagram.com/'
 
+function ReferSoon() {
+  return (
+    <div className="min-h-svh overflow-x-clip bg-canvas">
+      <DriverHeader title="Do‘stingizni taklif qiling" />
+      <div className="flex flex-col items-center px-6 pt-16 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white text-slate-400 shadow-sm">
+          <Gift className="h-9 w-9" />
+        </span>
+        <span className="mt-6 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-600">Tez orada</span>
+        <h1 className="mt-3 text-xl font-extrabold">Taklif bonuslari tez orada</h1>
+        <p className="mt-2 max-w-xs text-sm text-muted">Do‘stlaringizni taklif qilib bonus olish imkoniyati tez orada ishga tushadi.</p>
+        <Link to="/driver" className="mt-6 flex h-11 items-center rounded-full bg-brand px-6 text-sm font-bold text-ink">
+          Bosh sahifaga
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 export default function DriverRefer() {
+  return REFERRAL_ENABLED ? <DriverReferActive /> : <ReferSoon />
+}
+
+function DriverReferActive() {
   const { user } = useApp()
   const [copied, setCopied] = useState(false)
   const [telegramOpen, setTelegramOpen] = useState(false)

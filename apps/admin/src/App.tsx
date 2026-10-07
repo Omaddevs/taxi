@@ -21,6 +21,7 @@ import Offers from './pages/Offers'
 import OfferDetail from './pages/OfferDetail'
 import OrderDetail from './pages/OrderDetail'
 import Listings from './pages/Listings'
+import WomenOrders from './pages/WomenOrders'
 import Services from './pages/Services'
 import Cars from './pages/Cars'
 import MapPlaces from './pages/MapPlaces'
@@ -167,6 +168,14 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <Listings />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/women-orders"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <WomenOrders />
             </RequireRole>
           }
         />

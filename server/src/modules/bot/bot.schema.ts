@@ -28,6 +28,8 @@ export const syncDriverSchema = z.object({
   // True only when the driver has just submitted (or re-submitted) the application in the bot.
   newApplication: z.boolean().optional(),
   rejectionReason: z.string().max(500).optional(),
+  // Set in the bot's application wizard / by an admin — women-only orders depend on it.
+  gender: z.enum(['MALE', 'FEMALE']).optional(),
 })
 
 export const telegramLoginTokenSchema = z.object({

@@ -26,6 +26,8 @@ import { Toggle, RouteStops, remainingSeconds, formatMmSs } from './ui'
 import { mergeDriverOrders, isActiveStatus, latestPendingOrder, filterByWorkRegions } from './orders'
 import { ONLINE_PAYMENTS } from '../../lib/features'
 import { SoonBadge } from '../../components/ui/SoonBadge'
+import { REFERRAL_ENABLED } from '../../lib/features'
+import { OrderAudience, WOMEN_CARD_CLASS } from '../../components/trip/OrderAudience'
 
 export default function DriverHome() {
   const { user, gpsFix, watchUserLocation, stopWatchingLocation, autoAccept, workRegions, notifsEnabled } = useApp()
@@ -284,19 +286,32 @@ export default function DriverHome() {
           ))}
         </div>
 
-        <Link
-          to="/driver/refer"
-          className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3"
-        >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-            <Gift className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold">Do‘stingizni taklif qiling</p>
-            <p className="text-[11px] text-muted">Har bir tasdiqlangan do‘st uchun bonus oling</p>
+        {REFERRAL_ENABLED ? (
+          <Link
+            to="/driver/refer"
+            className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+              <Gift className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-extrabold">Do‘stingizni taklif qiling</p>
+              <p className="text-[11px] text-muted">Har bir tasdiqlangan do‘st uchun bonus oling</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-amber-500" />
+          </Link>
+        ) : (
+          <div aria-disabled="true" className="flex cursor-not-allowed items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 opacity-80">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+              <Gift className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-extrabold text-ink/60">Do‘stingizni taklif qiling</p>
+              <p className="text-[11px] text-muted">Taklif bonuslari tez orada ishga tushadi</p>
+            </div>
+            <SoonBadge />
           </div>
-          <ChevronRight className="h-4 w-4 text-amber-500" />
-        </Link>
+        )}
 
         <button
           type="button"
@@ -326,7 +341,7 @@ export default function DriverHome() {
                 { to: '/driver/cargo', label: 'Yuklar', icon: Box },
                 { to: '/driver/stats', label: 'Statistika', icon: BarChart3 },
                 { to: '/driver/rating', label: 'Reyting', icon: Star },
-                { to: '/driver/refer', label: 'Do‘st taklif qilish', icon: Gift },
+                ...(REFERRAL_ENABLED ? [{ to: '/driver/refer', label: 'Do‘st taklif qilish', icon: Gift }] : []),
                 { to: '/driver/notifications', label: 'Bildirishnomalar', icon: Bell },
                 { to: '/driver/settings', label: 'Sozlamalar', icon: Settings },
               ].map((item) => (
@@ -365,8 +380,11 @@ function NearbyCard({ order, extraCount = 0, driverPos, onOpen, onAccept, accept
           onOpen()
         }
       }}
-      className="cursor-pointer rounded-2xl bg-white p-4 text-left shadow-[0_8px_30px_rgba(28,28,40,0.04)] outline-none ring-brand/20 focus-visible:ring-2"
+      className={`cursor-pointer rounded-2xl bg-white p-4 text-left shadow-[0_8px_30px_rgba(28,28,40,0.04)] outline-none ring-brand/20 focus-visible:ring-2 ${
+        order.womenOnly ? WOMEN_CARD_CLASS : ''
+      }`}
     >
+      <OrderAudience order={order} className="mb-2" />
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-extrabold">Yaqin buyurtma</p>
         <span className="animate-pulse rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand">Yangi</span>

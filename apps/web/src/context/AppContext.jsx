@@ -62,6 +62,18 @@ function loadPlusPlan() {
   return null
 }
 
+const pad2 = (n) => String(n).padStart(2, '0')
+
+function todayIso() {
+  const d = new Date()
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+}
+
+function nowHHMM() {
+  const d = new Date()
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+}
+
 function loadSavedLocation() {
   try {
     const raw = localStorage.getItem(LOCATION_KEY)
@@ -140,14 +152,14 @@ export function AppProvider({ children }) {
 
   const [search, setSearch] = useState({
     mode: 'passenger',
-    from: 'Samarqand, Samarqand shahri',
-    fromRegion: 'Samarqand',
-    fromPlace: 'Samarqand shahri',
-    to: 'Toshkent shahri, Yunusobod',
-    toRegion: 'Toshkent shahri',
-    toPlace: 'Yunusobod',
-    date: '2026-05-22',
-    time: '18:00',
+    from: '',
+    fromRegion: '',
+    fromPlace: '',
+    to: '',
+    toRegion: '',
+    toPlace: '',
+    date: todayIso(),
+    time: nowHHMM(),
     passengers: 1,
     luggage: "O'rta",
     gender: '',

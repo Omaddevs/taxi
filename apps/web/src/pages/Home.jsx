@@ -1,7 +1,6 @@
 import { Headset, Shield, Sparkles, Wallet } from 'lucide-react'
 import { SearchHero } from '../components/home/SearchHero'
 import { EcosystemGrid } from '../components/home/EcosystemGrid'
-import { ServiceTypes } from '../components/home/ServiceTypes'
 import { PopularTrips } from '../components/home/PopularTrips'
 import { RightPanel } from '../components/home/RightPanel'
 import { MobileHome } from '../components/home/MobileHome'
@@ -20,7 +19,6 @@ export default function Home() {
         <div className="relative z-20 space-y-6">
           <SearchHero />
           <EcosystemGrid />
-          <ServiceTypes />
           <PopularTrips trips={trips.slice(0, 4)} />
           <div className="grid grid-cols-4 gap-3 rounded-2xl bg-white p-4 text-xs text-muted">
             {[

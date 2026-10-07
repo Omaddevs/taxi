@@ -5,6 +5,7 @@ import { CheckCircle2, Send } from 'lucide-react'
 import { api, ApiError } from '../../lib/api'
 import { CARS } from '../ui/SearchPickers'
 import { Button } from '../ui/Button'
+import { WomenOrderRibbon } from './OrderAudience'
 
 /**
  * "Mashina qidiryapman" — turns the home search form into a request that drivers receive in
@@ -12,6 +13,8 @@ import { Button } from '../ui/Button'
  */
 export function RideRequestCard({ search, prominent = false }) {
   const queryClient = useQueryClient()
+  // Opened from "Ayollar uchun Taxi": the request goes to (and can be taken by) female drivers only.
+  const womenOnly = search.service === 'women'
   const [note, setNote] = useState('')
   const [result, setResult] = useState(null)
 
@@ -27,7 +30,8 @@ export function RideRequestCard({ search, prominent = false }) {
         passengers: Number(search.passengers) || 1,
         seat: search.seat || undefined,
         luggage: search.luggage || undefined,
-        gender: search.gender || undefined,
+        gender: womenOnly ? 'ayol' : search.gender || undefined,
+        womenOnly: womenOnly || undefined,
         carBrand: CARS.find((c) => c.id === search.car)?.title,
         note: note.trim() || undefined,
       }),
@@ -44,9 +48,13 @@ export function RideRequestCard({ search, prominent = false }) {
           <CheckCircle2 className="h-5 w-5" /> So‘rovingiz yuborildi
         </p>
         <p className="mt-1 text-sm text-emerald-800">
-          {result.sent > 0
-            ? 'Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
-            : 'So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'}
+          {womenOnly
+            ? result.sent > 0
+              ? 'So‘rovingiz faqat ayol haydovchilarga yuborildi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
+              : 'So‘rovingiz saqlandi — bu yo‘nalishdagi ayol haydovchi qabul qilishi bilan sizga xabar beramiz.'
+            : result.sent > 0
+              ? 'Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
+              : 'So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'}
         </p>
         <Link to="/orders" className="mt-3 inline-block text-sm font-bold text-brand">
           Buyurtmalarimni ko‘rish →
@@ -59,11 +67,20 @@ export function RideRequestCard({ search, prominent = false }) {
   const ready = Boolean(search.fromRegion && search.toRegion)
 
   return (
-    <div className={`rounded-2xl bg-white p-4 ${prominent ? 'border-2 border-brand/30 shadow-sm' : 'border border-line'}`}>
+    <div
+      className={`rounded-2xl p-4 ${
+        womenOnly
+          ? 'border-2 border-[#f5559a]/40 bg-gradient-to-b from-[#fff0f6] to-white shadow-sm'
+          : prominent
+            ? 'border-2 border-brand/30 bg-white shadow-sm'
+            : 'border border-line bg-white'
+      }`}
+    >
+      {womenOnly ? <WomenOrderRibbon className="mb-3" /> : null}
       <p className="font-extrabold text-ink">{prominent ? 'Mos reys topilmadi' : 'Mos reys yo‘qmi?'}</p>
       <p className="mt-1 text-sm text-muted">
-        So‘rov yuboring — {search.fromRegion || '…'} → {search.toRegion || '…'} yo‘nalishidagi haydovchilar ko‘radi va
-        qabul qilgan haydovchi o‘zi bog‘lanadi.
+        So‘rov yuboring — {search.fromRegion || '…'} → {search.toRegion || '…'} yo‘nalishidagi{' '}
+        {womenOnly ? 'ayol haydovchilar' : 'haydovchilar'} ko‘radi va qabul qilgan haydovchi o‘zi bog‘lanadi.
       </p>
       <input
         value={note}
@@ -73,9 +90,13 @@ export function RideRequestCard({ search, prominent = false }) {
         className="mt-3 h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-brand"
       />
       {error ? <p className="mt-2 text-sm font-semibold text-red-500">{error}</p> : null}
-      <Button className="mt-3 w-full" onClick={() => send.mutate()} disabled={!ready || send.isPending}>
+      <Button
+        className={`mt-3 w-full ${womenOnly ? 'bg-[#f5559a]! hover:bg-[#d6337f]!' : ''}`}
+        onClick={() => send.mutate()}
+        disabled={!ready || send.isPending}
+      >
         <Send className="h-4 w-4" />
-        {send.isPending ? 'Yuborilmoqda…' : 'Haydovchilarga so‘rov yuborish'}
+        {send.isPending ? 'Yuborilmoqda…' : womenOnly ? 'Ayol haydovchilarga so‘rov yuborish' : 'Haydovchilarga so‘rov yuborish'}
       </Button>
     </div>
   )

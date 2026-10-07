@@ -1,5 +1,5 @@
-import { Bell, Crown, Menu, MessageCircle } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { ArrowLeft, Bell, Crown, Menu, MessageCircle } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 
 const titles = {
@@ -16,6 +16,8 @@ const titles = {
   '/results': { title: 'Safar natijalari', subtitle: 'Mavjud haydovchilar' },
   '/profile': { title: 'Profil', subtitle: 'Shaxsiy ma’lumotlar' },
   '/women': { title: 'Ayollar uchun', subtitle: 'Xavfsiz taksi xizmati' },
+  '/women/taxi': { title: 'Ayollar uchun Taxi', subtitle: 'Faqat ayol haydovchilar' },
+  '/taxi': { title: 'Taxi', subtitle: 'Olib ketish joyini tanlang' },
   '/cars': { title: 'Avtomobil turlari', subtitle: 'Klassni tanlang' },
   '/payment': { title: 'To‘lov', subtitle: 'To‘lov usulini tanlang' },
   '/messages': { title: 'Xabarlar', subtitle: 'Haydovchi va yordam' },
@@ -28,6 +30,9 @@ const titles = {
   '/plus': { title: 'TaxiLine Plus', subtitle: '3 ta tarif, bitta hisob' },
 }
 
+// Mobilda menyu o‘rniga "orqaga" tugmasi chiqadigan sahifalar.
+const backOnMobile = ['/cargo', '/women', '/become-driver']
+
 function headerMeta(pathname) {
   if (titles[pathname]) return titles[pathname]
   if (pathname.startsWith('/trip/')) return { title: 'Safar tafsilotlari', subtitle: 'Haydovchi va marshrut' }
@@ -39,18 +44,31 @@ function headerMeta(pathname) {
 export function TopHeader() {
   const { user, setDrawerOpen } = useApp()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const meta = headerMeta(pathname)
+  const showBack = backOnMobile.includes(pathname)
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas lg:hidden"
-          onClick={() => setDrawerOpen(true)}
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        {showBack ? (
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas lg:hidden"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+            aria-label="Orqaga"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas lg:hidden"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
         <div className="min-w-0">
           <h1 className="truncate text-lg font-extrabold tracking-tight lg:text-[22px]">{meta.title}</h1>
           {meta.subtitle ? <p className="hidden truncate text-sm text-muted sm:block">{meta.subtitle}</p> : null}

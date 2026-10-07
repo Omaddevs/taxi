@@ -12,6 +12,7 @@ import {
   listDriversQuerySchema,
   reviewApplicationSchema,
   setApprovedSchema,
+  setDriverGenderSchema,
   setOnlineStatusSchema,
   updateLocationSchema,
   updateDriverMeSchema,
@@ -85,6 +86,14 @@ adminDriversRouter.patch(
   requireRole('ADMIN'),
   validate({ params: driverIdParamSchema, body: setApprovedSchema }),
   asyncRoute(driversController.setApproved),
+)
+// Women-only ("Ayollar uchun taxi") orders reach — and may be taken by — female drivers only.
+adminDriversRouter.patch(
+  '/:id/gender',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ params: driverIdParamSchema, body: setDriverGenderSchema }),
+  asyncRoute(driversController.setGender),
 )
 adminDriversRouter.delete(
   '/:id',

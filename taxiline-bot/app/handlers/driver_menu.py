@@ -12,7 +12,7 @@ from app.db.models import Order
 from app.i18n.translations import t
 from app.keyboards.common import menu_text, share_phone_kb
 from app.keyboards.regions import driver_region_kb
-from app.keyboards.trip import driver_car_kb, order_claim_kb
+from app.keyboards.trip import driver_car_kb, driver_gender_kb, driver_gender_label, order_claim_kb
 from app.services import drivers as drivers_service
 from app.services import groups as groups_service
 from app.services import trips as trips_service
@@ -32,8 +32,11 @@ async def _get_approved_driver(session, bot_user):
     return driver
 
 
-def _driver_edit_kb(lang: str):
+def _driver_edit_kb(lang: str, gender: str | None = None):
     builder = InlineKeyboardBuilder()
+    if gender is None:
+        # Only offered while unset — afterwards an admin changes it (women-only orders depend on it).
+        builder.button(text=t("driver_edit_gender", lang), callback_data="driveredit:gender")
     builder.button(text=t("driver_edit_name", lang), callback_data="driveredit:name")
     builder.button(text=t("driver_edit_phone", lang), callback_data="driveredit:phone")
     builder.button(text=t("driver_edit_car", lang), callback_data="driveredit:car")
@@ -55,6 +58,7 @@ async def _sync_driver_to_backend(driver, telegram_id: int) -> None:
         plate=driver.plate,
         approved=driver.status == "APPROVED",
         status=driver.status,
+        gender=driver.gender,
     )
 
 
@@ -82,6 +86,7 @@ async def driver_profile(message: Message, session, bot_user, lang: str) -> None
             "driver_profile_view",
             lang,
             name=driver.full_name,
+            gender=driver_gender_label(driver.gender, lang),
             phone=format_phone(driver.phone),
             car_brand=driver.car_model,
             plate=driver.plate,
@@ -90,7 +95,36 @@ async def driver_profile(message: Message, session, bot_user, lang: str) -> None
             subscription=subscription_text,
         )
     )
-    await message.answer(t("profile_edit_hint", lang), reply_markup=_driver_edit_kb(lang))
+    await message.answer(t("profile_edit_hint", lang), reply_markup=_driver_edit_kb(lang, driver.gender))
+
+
+@router.callback_query(F.data == "driveredit:gender")
+async def start_edit_gender(callback: CallbackQuery, session, bot_user, lang: str) -> None:
+    driver = await _get_approved_driver(session, bot_user)
+    if driver is None:
+        await callback.answer()
+        return
+    await callback.answer()
+    if driver.gender is not None:
+        await callback.message.answer(t("driver_gender_locked", lang))
+        return
+    await callback.message.answer(t("ask_driver_gender", lang), reply_markup=driver_gender_kb(lang, "drivergender"))
+
+
+@router.callback_query(F.data.startswith("drivergender:"))
+async def save_edit_gender(callback: CallbackQuery, session, bot_user, lang: str) -> None:
+    driver = await _get_approved_driver(session, bot_user)
+    gender = callback.data.split(":")[-1]
+    if driver is None or gender not in ("MALE", "FEMALE"):
+        await callback.answer()
+        return
+    if driver.gender is not None:
+        await callback.answer(t("driver_gender_locked", lang), show_alert=True)
+        return
+    await drivers_service.update_gender(session, driver, gender)
+    await _sync_driver_to_backend(driver, bot_user.telegram_id)
+    await callback.answer()
+    await callback.message.edit_text(t("saved_ok", lang))
 
 
 @router.callback_query(F.data == "driveredit:name")
@@ -246,7 +280,11 @@ async def driver_open_orders(message: Message, session, bot_user, lang: str) -> 
 
     # Same rule as dispatch: orders from the driver's region and the return leg of their route.
     result = await session.execute(select(Order).where(Order.status == "OPEN").order_by(Order.created_at.desc()))
-    orders = [o for o in result.scalars() if groups_service.driver_serves(driver, o.from_region, o.to_region)]
+    orders = [
+        o
+        for o in result.scalars()
+        if groups_service.driver_serves(driver, o.from_region, o.to_region) and trips_service.driver_can_see(driver, o)
+    ]
 
     if not orders:
         await message.answer(t("driver_open_orders_empty", lang))

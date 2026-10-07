@@ -10,7 +10,7 @@ from app.handlers.start import send_main_menu
 from app.i18n.translations import t
 from app.keyboards.common import menu_text, share_phone_kb
 from app.keyboards.regions import driver_region_kb
-from app.keyboards.trip import driver_car_kb
+from app.keyboards.trip import driver_car_kb, driver_gender_kb, driver_gender_label
 from app.services import drivers as drivers_service
 from app.services import users as users_service
 from app.services.backend_client import backend_client
@@ -39,6 +39,7 @@ def _application_confirm_kb(lang: str):
 
 _EDIT_FIELD_LABELS = {
     "name": "driver_edit_name",
+    "gender": "driver_edit_gender",
     "phone": "driver_edit_phone",
     "car": "driver_edit_car",
     "plate": "driver_edit_plate",
@@ -80,7 +81,22 @@ async def enter_driver_name(message: Message, state: FSMContext, lang: str) -> N
     await state.update_data(full_name=message.text.strip())
     if await _finish_edit(message, state, lang, edit=False):
         return
-    await message.answer(t("ask_driver_phone", lang), reply_markup=share_phone_kb(lang))
+    await message.answer(t("ask_driver_gender", lang), reply_markup=driver_gender_kb(lang, "driverapp:g"))
+    await state.set_state(DriverApplication.choosing_gender)
+
+
+@router.callback_query(DriverApplication.choosing_gender, F.data.startswith("driverapp:g:"))
+async def pick_driver_gender(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
+    gender = callback.data.split(":")[-1]
+    if gender not in ("MALE", "FEMALE"):
+        await callback.answer()
+        return
+    await state.update_data(gender=gender)
+    await callback.answer()
+    if await _finish_edit(callback.message, state, lang, edit=True):
+        return
+    await callback.message.edit_text(t(f"driver_gender_{gender}", lang))
+    await callback.message.answer(t("ask_driver_phone", lang), reply_markup=share_phone_kb(lang))
     await state.set_state(DriverApplication.entering_phone)
 
 
@@ -164,6 +180,7 @@ async def _show_summary(message: Message, state: FSMContext, lang: str, *, edit:
         "driver_application_summary",
         lang,
         full_name=data["full_name"],
+        gender=driver_gender_label(data.get("gender"), lang),
         phone=format_phone(data["phone"]),
         car_model=data["car_model"],
         plate=data["plate"],
@@ -199,6 +216,9 @@ async def edit_application_field(callback: CallbackQuery, state: FSMContext, lan
         await callback.message.edit_reply_markup()
         await callback.message.answer(t("ask_driver_name", lang))
         await state.set_state(DriverApplication.entering_name)
+    elif field == "gender":
+        await callback.message.edit_text(t("ask_driver_gender", lang), reply_markup=driver_gender_kb(lang, "driverapp:g"))
+        await state.set_state(DriverApplication.choosing_gender)
     elif field == "phone":
         await callback.message.edit_reply_markup()
         await callback.message.answer(t("ask_driver_phone", lang), reply_markup=share_phone_kb(lang))
@@ -240,6 +260,7 @@ async def submit_application(callback: CallbackQuery, state: FSMContext, session
         plate=data["plate"],
         region=data["region"],
         to_region=data["to_region"],
+        gender=data.get("gender"),
     )
     await backend_client.sync_driver(
         phone=driver.phone,
@@ -250,6 +271,7 @@ async def submit_application(callback: CallbackQuery, state: FSMContext, session
         approved=False,
         status="PENDING",
         new_application=True,
+        gender=driver.gender,
     )
     await state.clear()
     await callback.answer()
@@ -259,6 +281,7 @@ async def submit_application(callback: CallbackQuery, state: FSMContext, session
     summary = (
         f"🚗 Yangi haydovchi arizasi #{driver.id}\n\n"
         f"👤 {driver.full_name} — {format_phone(driver.phone)}\n"
+        f"⚧ {driver_gender_label(driver.gender, 'uz')}\n"
         f"🚙 {driver.car_model} · {driver.plate}\n"
         f"📍 {driver.region} → {driver.to_region}"
     )

@@ -12,6 +12,7 @@ import { googleMapsDirUrl, haversineKm, yandexMapsDirUrl } from '../../lib/geo'
 import { findCity } from '../../data/uzCities'
 import { DriverHeader, RouteStops, SeatChips } from './ui'
 import { bookingToDriverOrder, mergeDriverOrders } from './orders'
+import { OrderAudience } from '../../components/trip/OrderAudience'
 
 const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
 
@@ -264,6 +265,8 @@ export default function DriverOrder() {
           <Navigation className="h-4 w-4" /> Yo‘lda — yo‘lovchiga xabar berildi
         </div>
       ) : null}
+
+      <OrderAudience order={order} className="mx-4 mb-3" />
 
       <div className="grid grid-cols-4 gap-2 px-4">
         <Metric icon={Wallet} color="bg-brand-soft text-brand" label="Yo‘l haqi" value={order.price != null ? formatSom(order.price) : '—'} />

@@ -99,6 +99,7 @@ export function botOrderToHistoryItem(order) {
     driver: '—',
     plate: '—',
     source: 'bot',
+    womenOnly: Boolean(order.womenOnly),
   }
 }
 

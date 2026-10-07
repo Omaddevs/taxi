@@ -94,6 +94,9 @@ export function botToDriverOrder(o) {
     pickupLat: o.pickupLat,
     pickupLng: o.pickupLng,
     confirmed: o.confirmed,
+    // "Ayollar uchun taxi" (female drivers only) and who travels: MALE | FEMALE | COUPLE.
+    womenOnly: Boolean(o.womenOnly),
+    passengerGender: o.passengerGender || null,
   }
 }
 

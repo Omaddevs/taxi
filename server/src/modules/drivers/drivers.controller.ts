@@ -72,6 +72,10 @@ export async function setApproved(req: Request, res: Response) {
   res.json(await driversService.setApproved(req.params.id, req.body.approved))
 }
 
+export async function setGender(req: Request, res: Response) {
+  res.json(await driversService.setDriverGender(req.params.id, req.user!.id, req.body.gender))
+}
+
 export async function archiveDriver(req: Request, res: Response) {
   res.json(await driversService.archiveDriver(req.params.id, req.user!.id, req.body.reason))
 }

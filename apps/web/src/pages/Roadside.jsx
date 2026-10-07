@@ -6,6 +6,7 @@ import { Button, Card } from '../components/ui/Button'
 import { roadside } from '../data/ecosystem'
 import { DriverHeader } from './driver/ui'
 import { cn } from '../lib/utils'
+import { SOS_ENABLED } from '../lib/features'
 
 const ICONS = {
   usta: Wrench,
@@ -42,8 +43,14 @@ export default function Roadside() {
             <AlertTriangle className="h-[18px] w-[18px]" />
           </span>
           <div className="min-w-0 pt-0.5">
-            <p className="text-[15px] font-bold leading-snug text-red-600">Favqulodda holatda SOS ni bosing</p>
-            <p className="mt-1 text-[13px] leading-5 text-muted">YTH yoki xavf bo‘lsa joylashuv ishonchli kontaktlarga yuboriladi.</p>
+            <p className="text-[15px] font-bold leading-snug text-red-600">
+              {SOS_ENABLED ? 'Favqulodda holatda SOS ni bosing' : 'Favqulodda holatda 112 ga qo‘ng‘iroq qiling'}
+            </p>
+            <p className="mt-1 text-[13px] leading-5 text-muted">
+              {SOS_ENABLED
+                ? 'YTH yoki xavf bo‘lsa joylashuv ishonchli kontaktlarga yuboriladi.'
+                : 'YTH yoki xavf bo‘lsa darhol 112 yagona xizmatiga murojaat qiling. SOS tugmasi tez orada qo‘shiladi.'}
+            </p>
           </div>
         </Card>
 
