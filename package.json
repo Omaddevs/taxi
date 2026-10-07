@@ -15,7 +15,12 @@
     "build:web": "npm run build -w web",
     "build:admin": "npm run build -w admin",
     "build:server": "npm run build -w server",
-    "lint:web": "npm run lint -w web"
+    "lint:web": "npm run lint -w web",
+    "lint:admin": "npm run lint -w admin",
+    "lint:server": "npm run lint -w server",
+    "test:web": "npm run test -w web",
+    "test:admin": "npm run test -w admin",
+    "test:server": "npm run test -w server"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
