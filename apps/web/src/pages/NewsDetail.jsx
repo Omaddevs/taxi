@@ -7,6 +7,8 @@ import { CategoryChip, Meta, NewsCard, NewsCover } from '../components/news/news
 import DOMPurify from 'dompurify'
 import { NewsBody } from '../components/news/NewsBody'
 import { api } from '../lib/api'
+import { OG_IMAGE, SITE_NAME, SITE_URL, absoluteUrl } from '../seo/pages'
+import { useJsonLd, useSeo } from '../seo/useSeo'
 
 // Admin muharriridan kelgan HTML (server'da ham tozalangan) — brauzerda yana bir bor tozalanadi.
 function ArticleBody({ body }) {
@@ -57,11 +59,36 @@ export default function NewsDetail() {
   })
 
   useEffect(() => {
-    document.title = post ? `${post.title} — TaxiLine` : 'Yangiliklar — TaxiLine'
     window.scrollTo(0, 0)
   }, [post])
 
   const notFound = isError && error?.status === 404
+  const url = absoluteUrl(`/news/${slug}`)
+  // Muqova data: URI bo‘lishi mumkin (admin yuklagan) — ijtimoiy tarmoqlar uni ko‘rmaydi, umumiy rasm qo‘yamiz.
+  const image = /^https?:\/\//.test(post?.coverUrl || '') ? post.coverUrl : OG_IMAGE
+  useSeo('/news', {
+    title: post ? `${post.title} — TaxiLine` : undefined,
+    description: post?.excerpt || undefined,
+    url,
+    image,
+    type: post ? 'article' : 'website',
+    noindex: notFound,
+  })
+  useJsonLd(
+    'article',
+    post && {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: post.title,
+      description: post.excerpt,
+      image: [image],
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt || post.publishedAt,
+      mainEntityOfPage: url,
+      author: { '@type': 'Organization', name: SITE_NAME, url: `${SITE_URL}/` },
+      publisher: { '@id': `${SITE_URL}/#organization`, '@type': 'Organization', name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
+    },
+  )
 
   return (
     <div className="min-h-svh bg-[#f6f7f9] text-ink">

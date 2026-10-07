@@ -36,6 +36,8 @@ const schema = z.object({
   // Origin of the admin SPA — where the Instagram OAuth callback redirects the browser back to
   // after connecting. Falls back to the first CORS_ORIGINS entry when unset.
   ADMIN_PANEL_URL: z.string().optional().default(''),
+  // Ommaviy sayt manzili — sitemap.xml dagi havolalar shu domen bilan yoziladi.
+  PUBLIC_SITE_URL: z.string().url().default('https://taxiline.uz'),
   // Off until a real Click/Payme provider is wired in: with the mock provider every top-up
   // "succeeds", so leaving this on would let anyone mint balance. Cash rides still work.
   ONLINE_PAYMENTS_ENABLED: z

@@ -1,0 +1,20 @@
+# TaxiLine — https://taxiline.uz
+User-agent: *
+Allow: /
+# Shaxsiy (login talab qiladigan) bo‘limlar — qidiruvda ko‘rinmasin.
+Disallow: /admin
+Disallow: /driver
+Disallow: /profile
+Disallow: /wallet
+Disallow: /payment
+Disallow: /history
+Disallow: /messages
+Disallow: /favorites
+Disallow: /settings
+Disallow: /notifications
+Disallow: /promo
+Disallow: /trip/
+Disallow: /results
+Disallow: /welcome
+
+Sitemap: https://taxiline.uz/sitemap.xml

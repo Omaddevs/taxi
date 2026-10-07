@@ -5,12 +5,14 @@ import { AuthChrome, GoogleMark, TELEGRAM_BOT, TelegramMark } from '../component
 import { FlagUz } from '../components/ui/Flags'
 import { useAuth } from '../context/AuthContext'
 import { homePathForRole } from '../lib/role'
+import { useSeo } from '../seo/useSeo'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
 
 const POLL_INTERVAL_MS = 2000
 
 export default function Login() {
   const { requestOtp, verifyOtp, pollOtp, status, authUser } = useAuth()
+  useSeo('/login')
   const navigate = useNavigate()
   const phoneInputRef = useRef(null)
   const [step, setStep] = useState('phone')

@@ -2,11 +2,17 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaxiLine — Yo‘l, avtomobil va kundalik xizmatlar</title>
+    <!-- Sarlavha, tavsif, canonical, Open Graph va JSON-LD build paytida seo-plugin.js tomonidan
+         har bir ommaviy sahifa uchun alohida yoziladi (ro‘yxat: src/seo/pages.js). -->
+    <!--seo-head--><!--/seo-head-->
+    <meta name="theme-color" content="#00C7D4" />
+    <meta name="application-name" content="TaxiLine" />
+    <meta name="apple-mobile-web-app-title" content="TaxiLine" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,7 +21,7 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><!--seo-body--><!--/seo-body--></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

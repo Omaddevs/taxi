@@ -36,6 +36,7 @@ import { adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPl
 import { adminGiveawayRouter, botGiveawayRouter, giveawayRouter } from './modules/giveaway/giveaway.routes.js'
 import { adminNewsRouter, newsRouter } from './modules/news/news.routes.js'
 import { publicStatsRouter } from './modules/publicStats/publicStats.routes.js'
+import { seoRouter } from './modules/seo/seo.routes.js'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -66,6 +67,9 @@ export function createApp() {
   app.get('/health', (_req, res) => {
     res.json({ ok: true })
   })
+
+  // /sitemap.xml — sayt domenidan Caddy orqali keladi (deploy/Caddyfile).
+  app.use(seoRouter)
 
   app.use('/auth', authRouter)
   app.use('/admin/auth', adminAuthRouter)

@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { ArrowRight, Newspaper, RefreshCw, Send } from 'lucide-react'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { CategoryChip, Meta, NEWS_CATEGORIES, NewsCard, NewsCardSkeleton, NewsCover } from '../components/news/newsUi'
 import { api } from '../lib/api'
+import { useSeo } from '../seo/useSeo'
 
 const PAGE_SIZE = 9
 
@@ -37,9 +37,7 @@ export default function News() {
   const [params, setParams] = useSearchParams()
   const category = params.get('category') || ''
 
-  useEffect(() => {
-    document.title = 'Yangiliklar — TaxiLine'
-  }, [])
+  useSeo('/news')
 
   const query = useInfiniteQuery({
     queryKey: ['news', category],

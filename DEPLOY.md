@@ -97,3 +97,22 @@ Buni cron orqali har kuni ishga tushirib, nusxalarni boshqa joyda saqlash tavsiy
 | Saytda "Network error" | `API_DOMAIN` noto‘g‘ri yoki `server` ishlamayapti: `docker compose logs server` |
 | `Environment validation failed` | `.env`da majburiy qiymat bo‘sh qolgan, xatoda qaysi biri ekani yozilgan |
 | Bot javob bermayapti | `BOT_TOKEN` noto‘g‘ri yoki bot boshqa joyda ham ishlab turibdi (bitta token = bitta jarayon) |
+
+## SEO va Google
+
+- Ommaviy sahifalar ro‘yxati: `apps/web/src/seo/pages.js`. Build ularning har biri uchun alohida
+  HTML yozadi (`apps/web/seo-plugin.js`) — title, description, canonical, Open Graph, JSON-LD.
+- `https://taxiline.uz/sitemap.xml` — API yaratadi (statik sahifalar + barcha e’lon qilingan
+  yangiliklar). Yangi ommaviy sahifa qo‘shsangiz, `server/src/modules/seo/seo.routes.ts` dagi
+  ro‘yxatni ham yangilang. Domen: `PUBLIC_SITE_URL` (standart `https://taxiline.uz`).
+- `robots.txt` — `apps/web/public/robots.txt` (shaxsiy bo‘limlar yopilgan).
+
+Deploydan keyin bir marta:
+
+1. https://search.google.com/search-console da `taxiline.uz` ni **Domain** sifatida qo‘shing
+   (DNS TXT yozuvi bilan tasdiqlanadi).
+2. **Sitemaps** bo‘limida `sitemap.xml` ni yuboring.
+3. **URL Inspection** da `/`, `/haydovchi-bolish`, `/aksiyalar`, `/biznes`, `/savollar`, `/news`
+   uchun "Request indexing" bosing.
+4. Xarita, manzil, telefon va reyting paneli uchun https://business.google.com da
+   Google Business Profile oching va saytni `https://taxiline.uz` deb ko‘rsating.

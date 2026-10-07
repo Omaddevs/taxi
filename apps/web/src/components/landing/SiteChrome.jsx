@@ -4,11 +4,13 @@ import { ArrowUp, Bot, Gift, LogIn, Menu, Phone, X } from 'lucide-react'
 import { Logo, Wordmark } from '../ui/Logo'
 
 // Landing'dan tashqaridagi ochiq sahifalar (Yangiliklar) uchun umumiy header va footer.
-// Bo‘lim havolalari `/#…` ko‘rinishida — landing ichida ham, boshqa sahifadan ham ishlaydi.
+// Har bir band — alohida ommaviy sahifa (src/seo/pages.js). Google sitelinks shu havolalardan tanlanadi.
 const SITE_NAV = [
-  { to: '/#join', label: 'Haydovchi bo‘lish' },
-  { to: '/news', label: 'Yangiliklar', route: true },
-  { to: '/#promos', label: 'Aksiyalar' },
+  { to: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
+  { to: '/news', label: 'Yangiliklar' },
+  { to: '/aksiyalar', label: 'Aksiyalar' },
+  { to: '/biznes', label: 'Biznes' },
+  { to: '/savollar', label: 'Savol-javob' },
 ]
 
 // `floating` — landing'da: sahifa `showAfter` px dan pastga aylantirilganda tepada qotib
@@ -56,24 +58,18 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
           <Wordmark className="text-[20px] sm:text-[23px]" />
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-7 lg:flex">
-          {SITE_NAV.map((item) =>
-            item.route ? (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]' : ''}`}>
-                {item.label}
-              </NavLink>
-            ) : (
-              <a key={item.to} href={item.to} className={link}>
-                {item.label}
-              </a>
-            ),
-          )}
-          <a
-            href="/#random"
+        <nav className="ml-auto hidden items-center gap-5 xl:gap-7 lg:flex">
+          {SITE_NAV.map((item) => (
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]' : ''}`}>
+              {item.label}
+            </NavLink>
+          ))}
+          <Link
+            to="/aksiyalar#random"
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-1.5 text-[14px] font-bold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-ink 2xl:text-[16px]"
           >
             <Gift className="h-4 w-4" /> Random mijoz
-          </a>
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -98,13 +94,13 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       {open ? (
         <div className="border-t border-line bg-white px-4 pb-4 pt-2 lg:hidden">
           {SITE_NAV.map((item) => (
-            <a key={item.to} href={item.to} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-[15px] font-bold text-ink hover:bg-canvas">
+            <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-[15px] font-bold text-ink hover:bg-canvas">
               {item.label}
-            </a>
+            </Link>
           ))}
-          <a href="/#random" className="flex items-center gap-2 rounded-xl px-3 py-3 text-[15px] font-bold text-brand-dark hover:bg-canvas">
+          <Link to="/aksiyalar#random" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-3 text-[15px] font-bold text-brand-dark hover:bg-canvas">
             <Gift className="h-4 w-4" /> Random mijoz
-          </a>
+          </Link>
         </div>
       ) : null}
     </header>
@@ -141,17 +137,17 @@ const FOOTER_COLUMNS = [
     links: [
       { label: 'Nega biz?', href: '/#why' },
       { label: 'Yangiliklar', href: '/news' },
-      { label: 'Ko‘p so‘raladigan savollar', href: '/#faq' },
-      { label: 'Aksiyalar', href: '/#promos' },
-      { label: 'Random mijoz', href: '/#random' },
+      { label: 'Ko‘p so‘raladigan savollar', href: '/savollar' },
+      { label: 'Aksiyalar', href: '/aksiyalar' },
+      { label: 'Random mijoz', href: '/aksiyalar#random' },
     ],
   },
   {
     title: 'Ish',
     links: [
-      { label: 'Haydovchi bo‘lish', href: '/#join' },
-      { label: 'Kuryer bo‘lish', href: '/#earn' },
-      { label: 'Biznes uchun', href: '/#business' },
+      { label: 'Haydovchi bo‘lish', href: '/haydovchi-bolish' },
+      { label: 'Kuryer bo‘lish', href: '/haydovchi-bolish#earn' },
+      { label: 'Biznes uchun', href: '/biznes' },
     ],
   },
 ]

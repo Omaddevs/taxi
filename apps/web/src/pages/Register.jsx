@@ -8,6 +8,7 @@ import { LANGUAGES } from '../data/languages'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { homePathForRole } from '../lib/role'
+import { useSeo } from '../seo/useSeo'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
 
 const POLL_INTERVAL_MS = 2000
@@ -21,6 +22,7 @@ function cleanName(raw) {
 export default function Register() {
   const { requestOtp, verifyOtp, pollOtp, status, authUser } = useAuth()
   const { language, setLanguage } = useApp()
+  useSeo('/register')
   const navigate = useNavigate()
   const location = useLocation()
   const nameInputRef = useRef(null)

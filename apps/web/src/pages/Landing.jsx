@@ -33,12 +33,14 @@ import { faqs } from '../data/mock'
 import { api } from '../lib/api'
 import { homePathForRole } from '../lib/role'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
+import { siteJsonLd } from '../seo/pages'
+import { useJsonLd, useSeo } from '../seo/useSeo'
 
 // `highlight` — ajralib turadigan band.
 const NAV = [
-  { href: '#join', label: 'Haydovchi bo‘lish' },
+  { href: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
   { href: '/news', label: 'Yangiliklar' },
-  { href: '#promos', label: 'Aksiyalar' },
+  { href: '/aksiyalar', label: 'Aksiyalar' },
   { href: '#random', label: 'Random mijoz', highlight: true },
 ]
 
@@ -679,7 +681,7 @@ function RoadBand() {
   )
 }
 
-function Join() {
+export function Join() {
   return (
     <section id="join" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="grid grid-cols-[minmax(0,1fr)] gap-10 px-2 sm:px-6 lg:grid-cols-[1fr_minmax(0,460px)] lg:gap-14 lg:px-14 2xl:grid-cols-[1fr_minmax(0,560px)] 2xl:px-20">
@@ -706,7 +708,7 @@ function ScreenPhone({ src, alt, className = '' }) {
   )
 }
 
-function Earn() {
+export function Earn() {
   return (
     <section id="earn" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-16 sm:px-6">
       <div className="relative -mt-1 overflow-hidden rounded-[32px] bg-[#1d2229] text-white sm:rounded-[40px]">
@@ -843,7 +845,7 @@ function PhotoArt() {
   )
 }
 
-function Business() {
+export function Business() {
   return (
     <section id="business" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="grid gap-5 px-2 sm:px-6 lg:grid-cols-[1.08fr_1fr] lg:gap-6 lg:px-14 2xl:px-20">
@@ -976,7 +978,7 @@ function usePrefersReducedMotion() {
   return reduced
 }
 
-function Promotions() {
+export function Promotions() {
   const [filter, setFilter] = useState('all')
   const [menuOpen, setMenuOpen] = useState(false)
   const list = filter === 'all' ? PROMOS : PROMOS.filter((p) => p.period === filter)
@@ -1246,7 +1248,7 @@ function StatusRow({ done, title, hint, action }) {
   )
 }
 
-function RandomClient() {
+export function RandomClient() {
   const [settings, setSettings] = useState(null)
   const [token, setToken] = useState(readGwToken)
   const [status, setStatus] = useState(null)
@@ -1572,7 +1574,7 @@ function FaqItem({ item, open, onToggle, id }) {
   )
 }
 
-function Faq() {
+export function Faq() {
   const [open, setOpen] = useState(0)
   return (
     <section id="faq" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
@@ -1593,6 +1595,8 @@ function Faq() {
 export default function Landing() {
   const { status, authUser } = useAuth()
   const { hash } = useLocation()
+  useSeo('/')
+  useJsonLd('site', siteJsonLd())
 
   // Boshqa sahifadan /#bo‘lim havolasi bilan kelinganda — bo‘lim chizilgach unga aylantiramiz.
   useEffect(() => {

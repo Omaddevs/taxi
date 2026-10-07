@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
+import { BusinessPage, DriverPage, FaqPage, PromosPage } from './pages/PublicPages'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import TripDetails from './pages/TripDetails'
@@ -84,6 +85,11 @@ export default function App() {
       <Route path="/welcome" element={<WelcomeRedirect />} />
       <Route path="/news" element={<News />} />
       <Route path="/news/:slug" element={<NewsDetail />} />
+      {/* Ommaviy SEO sahifalar — ro‘yxat: src/seo/pages.js */}
+      <Route path="/haydovchi-bolish" element={<DriverPage />} />
+      <Route path="/aksiyalar" element={<PromosPage />} />
+      <Route path="/biznes" element={<BusinessPage />} />
+      <Route path="/savollar" element={<FaqPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
