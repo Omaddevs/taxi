@@ -82,12 +82,26 @@ docker compose up -d --build
 
 ## 8. Zaxira nusxa (backup)
 
+`deploy/backup.sh` ikkala bazani (`taxiline` va `taxiline_bot`) `/root/backups/daily-*.sql.gz` fayliga yozadi, nusxa to‘liqligini tekshiradi va 14 kundan eskilarini o‘chiradi. Har kuni soat 03:00 da ishlashi uchun:
+
 ```bash
-docker compose exec -T postgres pg_dump -U taxiline taxiline | gzip > backup-$(date +%F).sql.gz
-docker compose exec -T postgres pg_dump -U taxiline taxiline_bot | gzip > backup-bot-$(date +%F).sql.gz
+chmod +x /opt/taxiline/deploy/backup.sh
+(crontab -l 2>/dev/null; echo '0 3 * * * /opt/taxiline/deploy/backup.sh >> /var/log/taxiline-backup.log 2>&1') | crontab -
 ```
 
-Buni cron orqali har kuni ishga tushirib, nusxalarni boshqa joyda saqlash tavsiya etiladi.
+Natija: `tail /var/log/taxiline-backup.log`. Deploydan oldin qo‘lda ham ishga tushirish mumkin: `/opt/taxiline/deploy/backup.sh`.
+
+Tiklash faqat **bo‘sh** bazaga qilinadi (yangi server yoki yangi `pgdata` volume). Ma'lumoti bor bazaga tiklansa, qatorlar ikki marta yoziladi:
+
+```bash
+docker compose up -d postgres          # faqat baza; server va bot hali o‘chiq
+zcat daily-YYYYMMDD-HHMM.sql.gz | docker compose exec -T postgres psql -U taxiline -d postgres
+docker compose up -d                   # qolgan servislar
+```
+
+`database "taxiline" already exists` va `role "taxiline" already exists` xatolari normal — ular postgres o‘zi yaratgan baza va foydalanuvchi.
+
+Nusxalar shu serverda turadi — server ishdan chiqsa ular ham yo‘qoladi. Vaqti-vaqti bilan boshqa joyga ko‘chiring, masalan o‘z kompyuteringizga: `scp root@SERVER:/root/backups/daily-*.sql.gz .`
 
 ## Muammolar
 
