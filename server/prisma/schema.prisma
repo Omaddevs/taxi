@@ -344,9 +344,20 @@ model DriverApplication {
   reviewedBy      String?
   reviewedAt      DateTime?
   rejectionReason String?
+  // Where the application came from — "WEBAPP" (website form), "BOT" (Telegram wizard) or
+  // "PANEL" (typed in by an admin/operator).
+  source          String                  @default("WEBAPP")
+  region          String? // where the driver works from (bot wizard)
+  toRegion        String? // usual destination region (bot wizard)
+  // Blocked applicants/drivers: kept on file, but their Driver row is archived (no orders) and
+  // the bot's DriverProfile.blocked mirrors it.
+  blocked         Boolean                 @default(false)
+  blockedReason   String?
   createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @default(now()) @updatedAt
 
   @@index([status])
+  @@index([blocked])
 }
 
 enum MapPlaceCategory {

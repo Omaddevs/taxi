@@ -272,6 +272,8 @@ async def submit_application(callback: CallbackQuery, state: FSMContext, session
         status="PENDING",
         new_application=True,
         gender=driver.gender,
+        region=driver.region,
+        to_region=driver.to_region,
     )
     await state.clear()
     await callback.answer()

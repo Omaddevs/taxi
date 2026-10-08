@@ -134,6 +134,30 @@ async def update_gender(session: AsyncSession, driver: DriverProfile, gender: st
     await session.commit()
 
 
+async def update_from_panel(
+    session: AsyncSession,
+    driver: DriverProfile,
+    *,
+    full_name: str | None,
+    car_model: str | None,
+    plate: str | None,
+    region: str | None,
+    to_region: str | None,
+) -> None:
+    """An admin/operator corrected the application in the admin panel."""
+    if full_name:
+        driver.full_name = full_name
+    if car_model:
+        driver.car_model = car_model
+    if plate:
+        driver.plate = normalize_plate(plate)
+    if region:
+        driver.region = region
+    if to_region is not None:
+        driver.to_region = to_region or None
+    await session.commit()
+
+
 async def update_plate(session: AsyncSession, driver: DriverProfile, plate: str) -> None:
     driver.plate = normalize_plate(plate)
     await session.commit()

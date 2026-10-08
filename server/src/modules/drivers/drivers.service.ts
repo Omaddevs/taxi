@@ -12,6 +12,9 @@ export async function submitApplication(
 ) {
   const existing = await prisma.driverApplication.findUnique({ where: { userId } })
 
+  if (existing?.blocked) {
+    throw new ForbiddenError('Haydovchi bo‘lish uchun ariza bera olmaysiz. Qo‘llab-quvvatlash xizmatiga murojaat qiling')
+  }
   if (existing?.status === 'PENDING') {
     throw new ConflictError('Arizangiz allaqachon ko‘rib chiqilmoqda')
   }
@@ -221,14 +224,6 @@ export async function getStats(userId: string) {
   }
 }
 
-export async function listApplications(status?: 'PENDING' | 'APPROVED' | 'REJECTED') {
-  return prisma.driverApplication.findMany({
-    where: status ? { status } : undefined,
-    orderBy: { createdAt: 'desc' },
-    include: { user: { select: { id: true, phone: true, name: true } } },
-  })
-}
-
 const DRIVER_USER_SELECT = {
   id: true,
   phone: true,
@@ -394,60 +389,6 @@ export async function restoreDriver(driverId: string, actorId: string) {
   await writeAudit({ actorId, action: 'DRIVER_RESTORED', targetType: 'Driver', targetId: driverId })
 
   return updated
-}
-
-export async function reviewApplication(
-  applicationId: string,
-  adminUserId: string,
-  status: 'APPROVED' | 'REJECTED',
-  rejectionReason?: string,
-) {
-  const application = await prisma.driverApplication.findUnique({ where: { id: applicationId } })
-  if (!application) throw new NotFoundError('Application not found')
-  if (application.status !== 'PENDING') throw new ConflictError('Application already reviewed')
-
-  const { reviewed, approvedDriverId } = await prisma.$transaction(async (tx) => {
-    const updated = await tx.driverApplication.update({
-      where: { id: applicationId },
-      data: { status, reviewedBy: adminUserId, reviewedAt: new Date(), rejectionReason: rejectionReason ?? null },
-    })
-
-    let approvedDriverId: string | null = null
-    if (status === 'APPROVED') {
-      const driver = await tx.driver.upsert({
-        where: { userId: application.userId },
-        update: { carModel: application.carModel, plate: application.plate, approved: true },
-        create: {
-          userId: application.userId,
-          carModel: application.carModel,
-          plate: application.plate,
-          approved: true,
-        },
-      })
-      approvedDriverId = driver.id
-      await tx.user.update({ where: { id: application.userId }, data: { role: 'DRIVER' } })
-    }
-
-    return { reviewed: updated, approvedDriverId }
-  })
-
-  if (approvedDriverId) await startSubscriptionOnApproval(approvedDriverId)
-
-  const user = await prisma.user.findUnique({
-    where: { id: application.userId },
-    select: { telegramId: true, phone: true, gender: true },
-  })
-  if (user) {
-    await notifyDriverReviewed({
-      telegramId: user.telegramId,
-      phone: user.phone,
-      gender: user.gender,
-      status,
-      rejectionReason: rejectionReason ?? null,
-    })
-  }
-
-  return reviewed
 }
 
 // Public-facing driver directory: approved, not archived, best rated first. No phone or plate.

@@ -311,3 +311,31 @@ export async function checkChatMembers(chats: string[], telegramIds: string[]): 
     timeoutMs: 60_000,
   })
 }
+
+// Driver applications managed in the admin panel — mirrored onto the bot's DriverProfile.
+export async function setBotDriverBlocked(payload: {
+  telegramId: string | null
+  phone: string
+  blocked: boolean
+}): Promise<{ ok: true; driverProfile: boolean }> {
+  return botFetch<{ ok: true; driverProfile: boolean }>('/webapp/driver-blocked', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateBotDriverProfile(payload: {
+  telegramId: string | null
+  phone: string
+  fullName: string
+  carModel: string
+  plate: string
+  region: string | null
+  toRegion: string | null
+  gender: 'MALE' | 'FEMALE' | null
+}): Promise<{ ok: true; driverProfile: boolean }> {
+  return botFetch<{ ok: true; driverProfile: boolean }>('/webapp/driver-update', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}

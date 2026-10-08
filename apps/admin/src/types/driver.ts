@@ -82,6 +82,19 @@ export interface DriverApplicationRow {
   reviewedBy: string | null
   reviewedAt: string | null
   rejectionReason: string | null
+  source?: 'WEBAPP' | 'BOT' | 'PANEL'
+  region?: string | null
+  toRegion?: string | null
+  blocked?: boolean
+  blockedReason?: string | null
   createdAt: string
-  user: { id: string; phone: string; name: string | null }
+  updatedAt?: string
+  user: {
+    id: string
+    phone: string
+    name: string | null
+    telegramId?: string | null
+    telegramUsername?: string | null
+    gender?: 'MALE' | 'FEMALE' | null
+  }
 }

@@ -287,6 +287,66 @@ async def driver_reviewed(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "driverProfile": True})
 
 
+async def _find_driver_profile(session, payload: dict):
+    """The bot DriverProfile behind a server user: by Telegram id first, then by phone."""
+    bot_user = None
+    if payload.get("telegramId"):
+        bot_user = await users_service.get_by_telegram_id(session, int(payload["telegramId"]))
+    driver = await drivers_service.get_by_bot_user(session, bot_user.id) if bot_user else None
+    if driver is None and payload.get("phone"):
+        driver = await drivers_service.find_by_phone(session, normalize_phone(payload["phone"]) or payload["phone"])
+    return driver
+
+
+@routes.post("/webapp/driver-blocked")
+async def driver_blocked(request: web.Request) -> web.Response:
+    """An admin/operator (un)blocked a driver application in the admin panel."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    if not isinstance(payload.get("blocked"), bool):
+        return web.json_response({"error": "blocked must be a boolean"}, status=400)
+
+    async with session_scope() as session:
+        driver = await _find_driver_profile(session, payload)
+        if driver is None:
+            return web.json_response({"ok": True, "driverProfile": False})
+        if driver.blocked != payload["blocked"]:
+            await drivers_service.set_blocked(session, driver, payload["blocked"])
+    return web.json_response({"ok": True, "driverProfile": True})
+
+
+@routes.post("/webapp/driver-update")
+async def driver_update(request: web.Request) -> web.Response:
+    """An admin/operator corrected a driver application's details in the admin panel."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+
+    async with session_scope() as session:
+        driver = await _find_driver_profile(session, payload)
+        if driver is None:
+            return web.json_response({"ok": True, "driverProfile": False})
+        await drivers_service.update_from_panel(
+            session,
+            driver,
+            full_name=(payload.get("fullName") or "").strip() or None,
+            car_model=(payload.get("carModel") or "").strip() or None,
+            plate=(payload.get("plate") or "").strip() or None,
+            region=(payload.get("region") or "").strip() or None,
+            to_region=payload.get("toRegion") if "toRegion" in payload else None,
+        )
+        if payload.get("gender") in ("MALE", "FEMALE") and driver.gender != payload["gender"]:
+            await drivers_service.update_gender(session, driver, payload["gender"])
+    return web.json_response({"ok": True, "driverProfile": True})
+
+
 def _serialize_order(order: Order) -> dict:
     return {
         "id": order.id,

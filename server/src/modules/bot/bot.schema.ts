@@ -30,6 +30,11 @@ export const syncDriverSchema = z.object({
   rejectionReason: z.string().max(500).optional(),
   // Set in the bot's application wizard / by an admin — women-only orders depend on it.
   gender: z.enum(['MALE', 'FEMALE']).optional(),
+  // Wizard answers, shown on the admin panel's application card.
+  region: z.string().max(80).optional(),
+  toRegion: z.string().max(80).optional(),
+  // Sent only when a bot admin (un)blocks the driver — mirrored onto the application.
+  blocked: z.boolean().optional(),
 })
 
 export const telegramLoginTokenSchema = z.object({

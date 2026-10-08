@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { prisma } from '../../lib/prisma.js'
+import { setApplicationBlocked } from '../drivers/applications.service.js'
 import { normalizePhone } from '../../lib/otp.js'
 import { NotFoundError } from '../../errors/AppError.js'
 import { markChannel } from '../people/people.service.js'
@@ -81,6 +82,9 @@ export async function syncDriver(input: {
   newApplication?: boolean
   rejectionReason?: string
   gender?: 'MALE' | 'FEMALE'
+  region?: string
+  toRegion?: string
+  blocked?: boolean
 }) {
   const status = input.status ?? (input.approved ? 'APPROVED' : 'PENDING')
 
@@ -128,12 +132,15 @@ export async function syncDriver(input: {
     phone: user.phone,
     carModel: input.carModel,
     plate: input.plate,
+    ...(input.region ? { region: input.region } : {}),
+    ...(input.toRegion ? { toRegion: input.toRegion } : {}),
   }
   const application = await prisma.driverApplication.findUnique({ where: { userId: user.id } })
+  const created = { source: 'BOT' }
 
   if (status === 'PENDING') {
     if (!application) {
-      await prisma.driverApplication.create({ data: { userId: user.id, ...fields } })
+      await prisma.driverApplication.create({ data: { userId: user.id, ...fields, ...created } })
     } else if (input.newApplication) {
       await prisma.driverApplication.update({
         where: { id: application.id },
@@ -152,7 +159,7 @@ export async function syncDriver(input: {
   } else if (status === 'APPROVED') {
     if (!application) {
       await prisma.driverApplication.create({
-        data: { userId: user.id, ...fields, status: 'APPROVED', reviewedAt: new Date() },
+        data: { userId: user.id, ...fields, ...created, status: 'APPROVED', reviewedAt: new Date() },
       })
     } else if (application.status !== 'APPROVED') {
       await prisma.driverApplication.update({
@@ -163,10 +170,15 @@ export async function syncDriver(input: {
   } else {
     const rejection = { status: 'REJECTED' as const, reviewedAt: new Date(), rejectionReason: input.rejectionReason ?? null }
     if (!application) {
-      await prisma.driverApplication.create({ data: { userId: user.id, ...fields, ...rejection } })
+      await prisma.driverApplication.create({ data: { userId: user.id, ...fields, ...created, ...rejection } })
     } else if (application.status !== 'REJECTED') {
       await prisma.driverApplication.update({ where: { id: application.id }, data: rejection })
     }
+  }
+
+  if (input.blocked !== undefined) {
+    const row = await prisma.driverApplication.findUnique({ where: { userId: user.id } })
+    if (row) await setApplicationBlocked(row.id, input.blocked, null, undefined, { fromBot: true })
   }
 
   return result

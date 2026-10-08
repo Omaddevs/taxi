@@ -236,6 +236,16 @@ async def toggle_block(callback: CallbackQuery, session, bot_user) -> None:
         return
 
     await drivers_service.set_blocked(session, driver, flag == "1")
+    await backend_client.sync_driver(
+        phone=driver.phone or driver.bot_user.phone,
+        telegram_id=driver.bot_user.telegram_id,
+        name=driver.full_name or driver.bot_user.name,
+        car_model=driver.car_model,
+        plate=driver.plate,
+        approved=driver.status == "APPROVED",
+        status=driver.status,
+        blocked=flag == "1",
+    )
     await callback.answer("Yangilandi ✅")
     # Blocking moves the driver out of "approved" into "blocked" (and vice versa), so re-render
     # from whichever tab they were just looking at — the item at this index is now whatever

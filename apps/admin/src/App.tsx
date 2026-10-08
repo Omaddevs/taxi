@@ -135,7 +135,7 @@ export default function App() {
         <Route
           path="/drivers/applications"
           element={
-            <RequireRole roles={['ADMIN']}>
+            <RequireRole roles={['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR']}>
               <DriverApplications />
             </RequireRole>
           }

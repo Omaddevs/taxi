@@ -48,8 +48,8 @@ def _driver_edit_kb(lang: str, gender: str | None = None):
 
 
 async def _sync_driver_to_backend(driver, telegram_id: int) -> None:
-    """Best-effort push of the fields the webapp/admin dashboard cares about (server/'s Driver
-    row has no region columns, so region/to_region edits stay bot-local)."""
+    """Best-effort push of the fields the webapp/admin dashboard cares about, region and
+    destination included (they show on the admin panel's application card)."""
     await backend_client.sync_driver(
         phone=driver.phone,
         telegram_id=telegram_id,
@@ -59,6 +59,8 @@ async def _sync_driver_to_backend(driver, telegram_id: int) -> None:
         approved=driver.status == "APPROVED",
         status=driver.status,
         gender=driver.gender,
+        region=driver.region,
+        to_region=driver.to_region,
     )
 
 

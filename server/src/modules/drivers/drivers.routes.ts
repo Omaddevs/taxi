@@ -11,6 +11,9 @@ import {
   listApplicationsQuerySchema,
   listDriversQuerySchema,
   reviewApplicationSchema,
+  updateApplicationSchema,
+  createApplicationAdminSchema,
+  blockApplicationSchema,
   setApprovedSchema,
   setDriverGenderSchema,
   setOnlineStatusSchema,
@@ -58,19 +61,49 @@ adminDriversRouter.get(
   validate({ query: listDriversQuerySchema }),
   asyncRoute(driversController.listDrivers),
 )
+// Driver applications (website, bot, typed in by staff): admins and both operator kinds.
+const panelStaff = requireRole('ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR')
 adminDriversRouter.get(
   '/applications',
   requireAuth,
-  requireRole('ADMIN'),
+  panelStaff,
   validate({ query: listApplicationsQuerySchema }),
   asyncRoute(driversController.listApplications),
+)
+adminDriversRouter.post(
+  '/applications',
+  requireAuth,
+  panelStaff,
+  validate({ body: createApplicationAdminSchema }),
+  asyncRoute(driversController.createApplicationAdmin),
 )
 adminDriversRouter.patch(
   '/applications/:id',
   requireAuth,
-  requireRole('ADMIN'),
+  panelStaff,
   validate({ params: applicationIdParamSchema, body: reviewApplicationSchema }),
   asyncRoute(driversController.reviewApplication),
+)
+adminDriversRouter.patch(
+  '/applications/:id/details',
+  requireAuth,
+  panelStaff,
+  validate({ params: applicationIdParamSchema, body: updateApplicationSchema }),
+  asyncRoute(driversController.updateApplication),
+)
+adminDriversRouter.post(
+  '/applications/:id/block',
+  requireAuth,
+  panelStaff,
+  validate({ params: applicationIdParamSchema, body: blockApplicationSchema }),
+  asyncRoute(driversController.blockApplication),
+)
+adminDriversRouter.delete(
+  '/applications/:id',
+  requireAuth,
+  panelStaff,
+  validate({ params: applicationIdParamSchema }),
+  asyncRoute(driversController.deleteApplication),
 )
 adminDriversRouter.get('/live', requireAuth, requireRole('ADMIN'), asyncRoute(driversController.listLiveDrivers))
 adminDriversRouter.get(

@@ -75,6 +75,9 @@ class BackendClient:
         new_application: bool = False,
         rejection_reason: str | None = None,
         gender: str | None = None,
+        region: str | None = None,
+        to_region: str | None = None,
+        blocked: bool | None = None,
     ) -> dict | None:
         """Promote the core User to DRIVER and upsert the Driver row the webapp dashboard needs.
         Best-effort: a downed server must never block bot registration/approval."""
@@ -94,6 +97,14 @@ class BackendClient:
             payload["rejectionReason"] = rejection_reason
         if gender in ("MALE", "FEMALE"):
             payload["gender"] = gender
+        if region:
+            payload["region"] = region
+        if to_region:
+            payload["toRegion"] = to_region
+        # Only an explicit (un)block by a bot admin sends this — a routine re-sync must never
+        # undo a block set from the admin panel.
+        if blocked is not None:
+            payload["blocked"] = blocked
         try:
             resp = await self._client.post("/bot/sync-driver", json=payload)
             resp.raise_for_status()
