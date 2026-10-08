@@ -116,9 +116,9 @@ function CarModal({ open, editing, onClose }: { open: boolean; editing: CarRow |
     setImageBusy(true)
     setError('')
     try {
-      setImageUrl(await fileToImageDataUrl(file))
-    } catch {
-      setError('Rasmni yuklab bo‘lmadi')
+      setImageUrl(await fileToImageDataUrl(file, 480, 0.82, { keepAlpha: true }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Rasmni yuklab bo‘lmadi')
     } finally {
       setImageBusy(false)
     }

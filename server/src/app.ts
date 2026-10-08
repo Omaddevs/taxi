@@ -32,7 +32,7 @@ import { adminBotGroupsRouter } from './modules/botGroups/adminBotGroups.routes.
 import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter } from './modules/instagram/instagram.routes.js'
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
 import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
-import { adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPlaces.routes.js'
+import { adminGeoRouter, adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPlaces.routes.js'
 import { adminRentalsRouter, rentalsRouter } from './modules/rentals/rentals.routes.js'
 import { adminGiveawayRouter, botGiveawayRouter, giveawayRouter } from './modules/giveaway/giveaway.routes.js'
 import { adminNewsRouter, newsRouter } from './modules/news/news.routes.js'
@@ -58,7 +58,7 @@ export function createApp() {
   app.use(
     express.json({
       // Admin image uploads (car catalog) travel as data: URIs — the 100kb default rejects them.
-      limit: '6mb',
+      limit: '10mb',
       verify: (req, _res, buf) => {
         ;(req as express.Request).rawBody = buf
       },
@@ -100,6 +100,7 @@ export function createApp() {
   app.use('/admin/cars', adminCarsRouter)
   app.use('/places', mapPlacesRouter)
   app.use('/admin/places', adminMapPlacesRouter)
+  app.use('/admin/geo', adminGeoRouter)
   app.use('/rentals', rentalsRouter)
   app.use('/admin/rentals', adminRentalsRouter)
   app.use('/admin/subscription-plans', adminSubscriptionPlansRouter)

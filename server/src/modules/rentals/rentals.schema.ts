@@ -4,10 +4,10 @@ export const rentalVehicleTypeSchema = z.enum(['SCOOTER', 'E_SCOOTER', 'BICYCLE'
 export const rentalOwnerTypeSchema = z.enum(['COMPANY', 'PERSON'])
 export const rentalStatusSchema = z.enum(['PENDING', 'APPROVED', 'REJECTED'])
 
-// data: URIs from the uploaders (≈720px webp) stay well under this; anything bigger is a mistake.
+// data: URIs from the uploaders — they shrink every photo under ~700 KB before sending.
 const photoSchema = z
   .string()
-  .max(900_000, 'Rasm juda katta')
+  .max(1_200_000, 'Rasm juda katta (1 MB dan oshmasin). Boshqa rasm tanlang yoki kichikroq qilib qayta yuklang')
   .refine((v) => v.startsWith('data:image/') || /^https?:\/\//.test(v), 'Rasm manzili noto‘g‘ri')
 
 const optionalText = (max: number) => z.string().trim().max(max).optional()

@@ -91,8 +91,8 @@ function FormBody({ editing, onBack, onDone }) {
     try {
       const urls = await Promise.all(files.map((f) => fileToImageDataUrl(f)))
       setPhotos((list) => [...list, ...urls].slice(0, MAX_PHOTOS))
-    } catch {
-      setError('Rasmni yuklab bo‘lmadi, boshqa rasm tanlang')
+    } catch (err) {
+      setError(err?.message || 'Rasmni yuklab bo‘lmadi, boshqa rasm tanlang')
     } finally {
       setImageBusy(false)
     }

@@ -6,6 +6,7 @@ import { Button } from './Button'
 import { inputClass } from './Chart'
 import { DEFAULT_CENTER, parseCoordinates } from '../../lib/mapPlaces'
 import { pinIcon } from '../../lib/mapPin'
+import { api } from '../../lib/api'
 
 export function Tiles() {
   return <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} />
@@ -50,6 +51,7 @@ export function CoordinatePicker({
   const [lngText, setLngText] = useState(value ? String(value[1]) : '')
   const [link, setLink] = useState('')
   const [linkError, setLinkError] = useState('')
+  const [resolving, setResolving] = useState(false)
 
   function setCoords(lat: number, lng: number) {
     const next: [number, number] = [round(lat), round(lng)]
@@ -68,15 +70,32 @@ export function CoordinatePicker({
     }
   }
 
-  function applyLink() {
-    const coords = parseCoordinates(link)
-    if (!coords) {
+  async function applyLink() {
+    const text = link.trim()
+    if (!text) return
+    setLinkError('')
+    const coords = parseCoordinates(text)
+    if (coords) {
+      setLink('')
+      setCoords(coords[0], coords[1])
+      return
+    }
+    if (!/^https?:\/\//i.test(text)) {
       setLinkError('Koordinata topilmadi. Google/Yandex xarita havolasini yoki "41.31, 69.27" ko‘rinishini kiriting.')
       return
     }
-    setLinkError('')
-    setLink('')
-    setCoords(coords[0], coords[1])
+    // Short share links (yandex.uz/maps/-/…, maps.app.goo.gl/…) carry no coordinates —
+    // the server follows the redirect and reads them from where it lands.
+    setResolving(true)
+    try {
+      const point = await api.get<{ lat: number; lng: number }>(`/admin/geo/resolve?url=${encodeURIComponent(text)}`)
+      setLink('')
+      setCoords(point.lat, point.lng)
+    } catch (err) {
+      setLinkError(err instanceof Error ? err.message : 'Havoladan joylashuv aniqlanmadi')
+    } finally {
+      setResolving(false)
+    }
   }
 
   return (
@@ -112,10 +131,10 @@ export function CoordinatePicker({
             }
           }}
           className={inputClass}
-          placeholder="Google yoki Yandex xarita havolasi, yoki 41.3111, 69.2797"
+          placeholder="Yandex/Google havolasi (qisqasi ham bo‘ladi) yoki 41.3111, 69.2797"
         />
-        <Button type="button" variant="outline" onClick={applyLink} disabled={!link.trim()}>
-          Qo‘llash
+        <Button type="button" variant="outline" onClick={applyLink} disabled={!link.trim() || resolving}>
+          {resolving ? 'Aniqlanmoqda…' : 'Qo‘llash'}
         </Button>
       </div>
       {linkError ? <p className="text-xs font-semibold text-red-500">{linkError}</p> : null}

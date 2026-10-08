@@ -311,8 +311,8 @@ function PlaceModal({
     setError('')
     try {
       setImageUrl(await fileToImageDataUrl(file, 720))
-    } catch {
-      setError('Rasmni yuklab bo‘lmadi')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Rasmni yuklab bo‘lmadi')
     } finally {
       setImageBusy(false)
     }

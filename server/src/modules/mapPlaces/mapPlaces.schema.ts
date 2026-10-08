@@ -40,3 +40,7 @@ export const listMapPlacesQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
   status: z.enum(['active', 'hidden']).optional(),
 })
+
+export const resolveLinkQuerySchema = z.object({
+  url: z.string().trim().min(5).max(2000),
+})

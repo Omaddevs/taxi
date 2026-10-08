@@ -37,11 +37,21 @@ function valid(lat: number, lng: number): [number, number] | null {
  * ?pt=69.27,41.31 — Yandex puts longitude first). Returns null if nothing usable is found.
  */
 export function parseCoordinates(input: string): [number, number] | null {
-  const text = decodeURIComponent(input.trim())
+  let text = input.trim()
+  try {
+    text = decodeURIComponent(text)
+  } catch {
+    // A stray "%" in pasted text — read it as is.
+  }
   if (!text) return null
 
-  const yandex = text.match(/[?&](?:ll|pt|whatshere%5Bpoint%5D|whatshere\[point\])=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
-  if (yandex && /yandex/i.test(text)) return valid(Number(yandex[2]), Number(yandex[1]))
+  // Yandex (any domain, ya.ru included), most precise first: the dropped pin (whatshere[point],
+  // pt), then the viewport centre (ll, sll). Yandex writes "lng,lat".
+  for (const key of ['whatshere\\[point\\]', 'pt', 'll', 'sll']) {
+    const m = text.match(new RegExp(`[?&]${key}=(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)`))
+    const point = m && valid(Number(m[2]), Number(m[1]))
+    if (point) return point
+  }
 
   const google3d = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
   if (google3d) return valid(Number(google3d[1]), Number(google3d[2]))

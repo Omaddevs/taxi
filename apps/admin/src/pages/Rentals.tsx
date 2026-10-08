@@ -435,8 +435,8 @@ function RentalForm({ editing, onDone }: { editing: RentalDetail | null; onDone:
     try {
       const urls = await Promise.all(files.map((f) => fileToImageDataUrl(f, 960)))
       setPhotos((list) => [...list, ...urls].slice(0, MAX_PHOTOS))
-    } catch {
-      setError('Rasmni yuklab bo‘lmadi')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Rasmni yuklab bo‘lmadi')
     } finally {
       setImageBusy(false)
     }
