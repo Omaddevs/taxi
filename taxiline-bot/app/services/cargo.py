@@ -98,60 +98,71 @@ def done_kb(cargo_order_id: str) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-async def _drivers_for(session: AsyncSession, from_region: str | None, to_region: str | None) -> list[DriverProfile]:
-    """Approved, unblocked, subscribed drivers whose work route covers this cargo."""
+async def _active_drivers(session: AsyncSession) -> list[DriverProfile]:
+    """Approved, unblocked drivers with a running subscription."""
     result = await session.execute(
         select(DriverProfile)
         .options(selectinload(DriverProfile.bot_user), selectinload(DriverProfile.subscription))
         .where(DriverProfile.status == "APPROVED", DriverProfile.blocked.is_(False))
     )
-    return [
-        d
-        for d in result.scalars()
-        if groups_service.driver_serves(d, from_region, to_region) and d.subscription is not None and d.subscription.active
-    ]
+    return [d for d in result.scalars() if d.subscription is not None and d.subscription.active]
+
+
+async def _send(bot: Bot, session: AsyncSession, cargo_id: str, chat_id: int, card: str, kind: str, thread_id=None) -> bool:
+    try:
+        message = await bot.send_message(chat_id, card, reply_markup=claim_kb(cargo_id), message_thread_id=thread_id, parse_mode="HTML")
+    except TelegramAPIError:
+        logger.warning("cargo %s: could not send to %s %s", cargo_id, kind, chat_id)
+        return False
+    session.add(CargoDispatch(cargo_order_id=cargo_id, chat_id=chat_id, message_id=message.message_id, kind=kind, card=card))
+    return True
 
 
 async def dispatch(bot: Bot, session: AsyncSession, payload: dict) -> dict:
-    """Posts a new cargo order to its driver group(s) and to every matching driver's DM."""
+    """Posts a new cargo order to its driver group(s) and to every driver serving the route.
+
+    If nobody covers the route (no corridor group, no driver working it) the order still has to
+    reach someone: it then goes to every closed driver group and every active driver, marked as
+    outside their usual route."""
     cargo_id = str(payload.get("cargoOrderId") or "")
     if not cargo_id:
-        return {"groups": 0, "drivers": 0}
+        return {"groups": 0, "drivers": 0, "fallback": False}
     # The website says "Andijon", the bot "Andijon viloyati".
     from_region = groups_service.canonical_region(payload.get("fromRegion"), REGION_NAMES)
     to_region = groups_service.canonical_region(payload.get("toRegion"), REGION_NAMES)
     card = render_public_card(payload)
 
-    groups = 0
-    reached: set[int] = set()
-    for group, thread_id in await groups_service.resolve_order_dispatch_targets(session, from_region, to_region):
-        try:
-            message = await bot.send_message(
-                group.chat_id, card, reply_markup=claim_kb(cargo_id), message_thread_id=thread_id, parse_mode="HTML"
-            )
-        except TelegramAPIError:
-            logger.warning("cargo %s: could not post to group %s", cargo_id, group.chat_id)
-            continue
-        session.add(CargoDispatch(cargo_order_id=cargo_id, chat_id=group.chat_id, message_id=message.message_id, kind="GROUP", card=card))
-        reached.add(group.chat_id)
-        groups += 1
+    targets = await groups_service.resolve_order_dispatch_targets(session, from_region, to_region)
+    active = await _active_drivers(session)
+    drivers = [d for d in active if groups_service.driver_serves(d, from_region, to_region)]
+    fallback = not targets and not drivers
+    if fallback:
+        targets = [(g, None) for g in await groups_service.list_by_kind(session, "CLOSED")]
+        drivers = active
+        card = "ℹ️ <i>Bu yo'nalish bo'yicha guruh yo'q — barcha haydovchilarga yuborildi</i>\n\n" + card
 
-    drivers = 0
-    for driver in await _drivers_for(session, from_region, to_region):
+    groups_sent = 0
+    reached: set[int] = set()
+    for group, thread_id in targets:
+        if group.chat_id in reached:
+            continue
+        if await _send(bot, session, cargo_id, group.chat_id, card, "GROUP", thread_id):
+            reached.add(group.chat_id)
+            groups_sent += 1
+
+    drivers_sent = 0
+    for driver in drivers:
         chat_id = driver.bot_user.telegram_id
         if chat_id in reached:
             continue
-        try:
-            message = await bot.send_message(chat_id, card, reply_markup=claim_kb(cargo_id), parse_mode="HTML")
-        except TelegramAPIError:
-            continue
-        session.add(CargoDispatch(cargo_order_id=cargo_id, chat_id=chat_id, message_id=message.message_id, kind="DRIVER_DM", card=card))
-        drivers += 1
+        if await _send(bot, session, cargo_id, chat_id, card, "DRIVER_DM"):
+            reached.add(chat_id)
+            drivers_sent += 1
 
     await session.commit()
-    if not groups and not drivers:
-        logger.warning("cargo %s (%s → %s): no driver group or driver serves this route", cargo_id, from_region, to_region)
-    return {"groups": groups, "drivers": drivers}
+    if not groups_sent and not drivers_sent:
+        logger.warning("cargo %s (%s → %s): reached no driver group or driver", cargo_id, from_region, to_region)
+    return {"groups": groups_sent, "drivers": drivers_sent, "fallback": fallback}
 
 
 async def set_status(
