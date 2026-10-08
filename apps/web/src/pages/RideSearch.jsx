@@ -3,6 +3,7 @@ import { PopularTrips } from '../components/home/PopularTrips'
 import { useOffersSearch } from '../lib/queries'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { WomenOrderRibbon } from '../components/trip/OrderAudience'
+import { PopularTripsEmpty, RideDesktop } from '../components/ride/RideDesktop'
 import { useApp } from '../context/AppContext'
 
 export default function RideSearch() {
@@ -13,7 +14,9 @@ export default function RideSearch() {
   return (
     <div>
       <ScreenHeader title="Taxi chaqirish" subtitle="Qayerdan — qayerga" />
-      <div className="lg:pt-0">
+
+      {/* Telefon va planshet: avvalgi forma */}
+      <div className="lg:hidden">
         <PageTitle title="Taxi chaqirish" subtitle="Shahar ichida va viloyatlararo" />
         {women ? (
           <div className="mb-4 space-y-2">
@@ -30,6 +33,19 @@ export default function RideSearch() {
         <SearchHero />
         <div className="mt-5">
           <PopularTrips trips={trips.slice(0, 3)} />
+        </div>
+      </div>
+
+      {/* Laptop va desktop */}
+      <div className="hidden space-y-6 lg:block">
+        <RideDesktop />
+        <div className="mx-auto max-w-[1180px]">
+          {trips.length ? <PopularTrips trips={trips.slice(0, 4)} /> : (
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Mashhur yo‘nalishlar</h2>
+              <PopularTripsEmpty />
+            </section>
+          )}
         </div>
       </div>
     </div>
