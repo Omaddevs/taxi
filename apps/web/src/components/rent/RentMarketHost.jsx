@@ -153,28 +153,42 @@ export function RentMarketHost() {
         <div className={cn('relative min-h-0 flex-1', showTabs ? 'overflow-y-auto' : 'overflow-hidden')}>{screen}</div>
 
         {showTabs ? (
-          <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2">
+          // Every tab — the "Joylash" action included — stays inside the bar: nothing pokes up over
+          // the scrolling content, all icons sit on one line and each target is ≥ 48px tall.
+          <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white/95 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur">
             {TABS.map((t) => {
               const active = activeTab === t.view
-              if (t.primary) {
-                return (
-                  <button key={t.view} type="button" onClick={() => nav.go({ ijara: t.view })} className="flex flex-col items-center gap-0.5">
-                    <span className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(140deg,#00d2de,#00a3ae)] text-white shadow-[0_8px_20px_rgba(0,163,174,0.45)] ring-4 ring-white transition active:scale-90">
-                      <t.icon className="h-6 w-6" strokeWidth={3} />
-                    </span>
-                    <span className="text-[11px] font-bold text-brand-dark">{t.label}</span>
-                  </button>
-                )
-              }
+              const go = () => (t.primary ? nav.go({ ijara: t.view }) : nav.go({ ijara: t.view }, { replace: true }))
               return (
                 <button
                   key={t.view}
                   type="button"
-                  onClick={() => nav.go({ ijara: t.view }, { replace: true })}
-                  className={cn('flex flex-col items-center gap-1 py-1 transition', active ? 'text-ink' : 'text-muted')}
+                  onClick={go}
+                  aria-current={active ? 'page' : undefined}
+                  className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl transition active:scale-95"
                 >
-                  <t.icon className={cn('h-6 w-6', active && t.view === 'saqlangan' && 'fill-ink')} strokeWidth={active ? 2.4 : 2} />
-                  <span className={cn('text-[11px]', active ? 'font-bold' : 'font-semibold')}>{t.label}</span>
+                  {t.primary ? (
+                    <span className="flex h-8 w-12 items-center justify-center rounded-full bg-brand text-white shadow-[0_4px_12px_rgba(0,199,212,0.35)]">
+                      <t.icon className="h-5 w-5" strokeWidth={3} />
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        'flex h-8 w-12 items-center justify-center rounded-full transition-colors',
+                        active ? 'bg-brand-soft text-brand-dark' : 'text-muted',
+                      )}
+                    >
+                      <t.icon className={cn('h-[22px] w-[22px]', active && t.view === 'saqlangan' && 'fill-current')} strokeWidth={active ? 2.4 : 2} />
+                    </span>
+                  )}
+                  <span
+                    className={cn(
+                      'text-[11px] leading-none',
+                      t.primary ? 'font-bold text-brand-dark' : active ? 'font-bold text-ink' : 'font-semibold text-muted',
+                    )}
+                  >
+                    {t.label}
+                  </span>
                 </button>
               )
             })}
