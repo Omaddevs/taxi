@@ -9,7 +9,6 @@ from aiogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
     InputTextMessageContent,
-    SwitchInlineQueryChosenChat,
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -29,24 +28,28 @@ _GATE_COOLDOWN_SECONDS = 30
 
 def _gate_text(count: int) -> str:
     return (
-        "👋 Bu guruhda yozish uchun kamida "
-        f"{groups_service.REQUIRED_INVITES} kishi taklif qilishingiz kerak "
+        "👋 Bu guruhda yozish uchun kontaktlaringizdan kamida "
+        f"{groups_service.REQUIRED_INVITES} kishini guruhga qo'shing "
         f"({count}/{groups_service.REQUIRED_INVITES} qo'shilgan).\n\n"
-        "Quyidagi \"➕ Odam qo'shish\" tugmasi orqali odam taklif qiling, so'ng "
-        "\"✅ Qo'shdim\" tugmasini bosing:"
+        "Guruh nomini bosing → \"➕ Odam qo'shish\" → kontaktlaringizdan tanlang. "
+        "So'ng \"✅ Qo'shdim\" tugmasini bosing."
     )
+
+
+# Telegram has no bot button that opens a group's "Add Members" screen, so the button explains
+# the two taps instead. (It used to share a personal invite link, which meant forwarding a
+# message to people rather than adding them.) Alert text is capped at 200 characters.
+_HOW_TO_ADD = (
+    "1) Guruh nomini bosing\n"
+    "2) \"Odam qo'shish\" (Add Members)\n"
+    "3) Kontaktlaringizdan {n} kishini belgilab, \"Qo'shish\"ni bosing\n\n"
+    "So'ng \"✅ Qo'shdim\" tugmasini bosing."
+)
 
 
 def _gate_kb(group_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(
-        text="➕ Odam qo'shish",
-        switch_inline_query_chosen_chat=SwitchInlineQueryChosenChat(
-            query=f"invite:{group_id}",
-            allow_user_chats=True,
-            allow_group_chats=True,
-        ),
-    )
+    builder.button(text="➕ Odam qo'shish", callback_data=f"groupinvite:how:{group_id}")
     builder.button(text="✅ Qo'shdim", callback_data=f"groupinvite:check:{group_id}")
     builder.adjust(1)
     return builder.as_markup()
@@ -82,16 +85,26 @@ async def handle_chat_member_update(update: ChatMemberUpdated, session) -> None:
     left = old_status in MEMBER_STATUSES and new_status in NOT_MEMBER_STATUSES
 
     if joined:
+        referrer_id = None
         link = update.invite_link
+        adder = update.from_user
         if link is not None:
+            # Came in through someone's personal invite link (cards posted before contacts-adding).
             invite_row = await groups_service.get_invite_link_by_url(session, link.invite_link)
             if invite_row is not None:
-                await groups_service.record_invite_join(
-                    session,
-                    group_id=group.id,
-                    referrer_telegram_id=invite_row.referrer_telegram_id,
-                    joined_telegram_id=member_id,
-                )
+                referrer_id = invite_row.referrer_telegram_id
+        elif adder is not None and adder.id != member_id and not adder.is_bot:
+            # Added straight from someone's contacts ("Add Members"): Telegram reports the adder
+            # as from_user. Someone joining on their own shows up as their own from_user.
+            referrer_id = adder.id
+
+        if referrer_id is not None and not update.new_chat_member.user.is_bot:
+            await groups_service.record_invite_join(
+                session,
+                group_id=group.id,
+                referrer_telegram_id=referrer_id,
+                joined_telegram_id=member_id,
+            )
 
         if not update.new_chat_member.user.is_bot and not await groups_service.has_met_invite_requirement(
             session, group.id, member_id
@@ -99,6 +112,11 @@ async def handle_chat_member_update(update: ChatMemberUpdated, session) -> None:
             await send_invite_gate(update.bot, session, update.chat.id, group.id, member_id)
     elif left:
         await groups_service.record_invite_leave(session, group_id=group.id, joined_telegram_id=member_id)
+
+
+@router.callback_query(F.data.startswith("groupinvite:how:"))
+async def how_to_add(callback: CallbackQuery) -> None:
+    await callback.answer(_HOW_TO_ADD.format(n=groups_service.REQUIRED_INVITES), show_alert=True)
 
 
 @router.callback_query(F.data.startswith("groupinvite:check:"))
@@ -121,6 +139,7 @@ async def check_invites(callback: CallbackQuery, session) -> None:
         )
 
 
+# Kept only so "Odam qo'shish" buttons on gate cards posted before contacts-adding keep working.
 @router.inline_query()
 async def share_invite_link(inline_query: InlineQuery, session) -> None:
     payload = inline_query.query or ""
