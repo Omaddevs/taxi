@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import * as cargoController from '../cargo/cargo.controller.js'
+import { botCargoActionSchema } from '../cargo/cargo.schema.js'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { validate } from '../../middleware/validate.js'
 import { requireBotSecret } from './bot.middleware.js'
@@ -35,3 +37,6 @@ botRouter.post(
   asyncRoute(botController.otpConfirmById),
 )
 botRouter.post('/rate', validate({ body: rateViaBotSchema }), asyncRoute(botController.rateViaBot))
+// Cargo "✅ Qabul qilish" / "✅ Yetkazildi" buttons in Telegram.
+botRouter.post('/cargo-claim', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.claimViaBot))
+botRouter.post('/cargo-complete', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.completeViaBot))

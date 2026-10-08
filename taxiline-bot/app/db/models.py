@@ -203,6 +203,22 @@ class OrderDispatch(Base):
     language: Mapped[str] = mapped_column(default="uz")
 
 
+class CargoDispatch(Base):
+    """One Telegram copy of a website cargo order ("Yetkazib berish"): a closed-group post or a
+    driver DM. The order itself lives on server/ (string cuid id); `card` is the public text we
+    posted, reused when the order is taken, delivered or cancelled."""
+
+    __tablename__ = "cargo_dispatches"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cargo_order_id: Mapped[str] = mapped_column(index=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger)
+    message_id: Mapped[int] = mapped_column(BigInteger)
+    kind: Mapped[str] = mapped_column()  # GROUP | DRIVER_DM
+    card: Mapped[str] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, server_default=func.now())
+
+
 class Complaint(Base):
     __tablename__ = "complaints"
 

@@ -113,6 +113,22 @@ class BackendClient:
             logger.exception("sync_driver failed for phone=%s telegram_id=%s", phone, telegram_id)
             return None
 
+    async def cargo_action(self, action: str, cargo_order_id: str, telegram_id: int) -> tuple[int, dict | None]:
+        """Claim ("claim") or finish ("complete") a website cargo order for this Telegram
+        driver. Returns the HTTP status and the JSON body (the order, or {"error": {...}})."""
+        try:
+            resp = await self._client.post(
+                f"/bot/cargo-{action}", json={"cargoOrderId": cargo_order_id, "telegramId": str(telegram_id)}
+            )
+        except Exception:
+            logger.exception("cargo %s failed for %s", action, cargo_order_id)
+            return 503, None
+        try:
+            body = resp.json()
+        except ValueError:
+            body = None
+        return resp.status_code, body
+
     async def telegram_login_token(self, telegram_id: int) -> str | None:
         resp = await self._client.post("/bot/telegram-login-token", json={"telegramId": str(telegram_id)})
         if resp.status_code == 404:

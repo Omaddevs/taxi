@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRateSheet } from '../components/ui/RateSheet'
+import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
 import { useMyBookings } from '../lib/queries'
 import { api } from '../lib/api'
 import { avatarOrFallback } from '../lib/adapters'
@@ -178,15 +179,23 @@ function SectionHeader({ title, onSeeAll }) {
   )
 }
 
-function ActiveCard({ item, onCancel }) {
+function ActiveCard({ item, onCancel, onOpen }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const canCancel = item.source === 'webapp' && (item.status === 'PENDING' || item.status === 'ACCEPTED')
   const label = ACTIVE_LABEL[item.kind][item.status]
   const price = formatPrice(item.price)
+  // Cargo orders open their detail sheet (progress, driver, cancel).
+  const openable = item.kind === 'cargo' && onOpen
 
   return (
     <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_30px_rgba(16,42,67,0.06)]">
-      <div className="flex gap-3">
+      <div
+        className={openable ? 'flex cursor-pointer gap-3' : 'flex gap-3'}
+        onClick={openable ? () => onOpen(item) : undefined}
+        role={openable ? 'button' : undefined}
+        tabIndex={openable ? 0 : undefined}
+        onKeyDown={openable ? (e) => e.key === 'Enter' && onOpen(item) : undefined}
+      >
         <KindIcon kind={item.kind} large />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -279,7 +288,7 @@ function ActiveCard({ item, onCancel }) {
   )
 }
 
-function PastRow({ item, rated, onRate }) {
+function PastRow({ item, rated, onRate, onOpen }) {
   const badge = PAST_BADGE[item.status]
   const price = formatPrice(item.price)
   const canRate = item.kind === 'taxi' && item.status === 'COMPLETED' && !rated
@@ -308,6 +317,13 @@ function PastRow({ item, rated, onRate }) {
   )
   const className =
     'flex w-full items-center gap-3 rounded-[20px] bg-white p-3 text-left shadow-[0_6px_24px_rgba(16,42,67,0.05)]'
+  if (item.kind === 'cargo' && onOpen) {
+    return (
+      <button type="button" onClick={() => onOpen(item)} className={className}>
+        {content}
+      </button>
+    )
+  }
   return canRate ? (
     <button type="button" onClick={() => onRate(item)} className={className}>
       {content}
@@ -391,6 +407,7 @@ export default function Orders() {
   })
 
   const { openRating, sheet } = useRateSheet()
+  const [cargoId, setCargoId] = useState(null)
   const rate = useMutation({
     mutationFn: ({ item, stars, tags, comment }) =>
       item.source === 'bot'
@@ -502,7 +519,7 @@ export default function Orders() {
           {active.length ? (
             <div className="space-y-3">
               {active.map((item) => (
-                <ActiveCard key={item.key} item={item} onCancel={handleCancel} />
+                <ActiveCard key={item.key} item={item} onCancel={handleCancel} onOpen={(i) => setCargoId(i.id)} />
               ))}
             </div>
           ) : (
@@ -520,7 +537,7 @@ export default function Orders() {
           {pastList.length ? (
             <div className="space-y-2.5">
               {pastList.map((item) => (
-                <PastRow key={item.key} item={item} rated={ratedKeys.has(item.key)} onRate={handleRate} />
+                <PastRow key={item.key} item={item} rated={ratedKeys.has(item.key)} onRate={handleRate} onOpen={(i) => setCargoId(i.id)} />
               ))}
             </div>
           ) : (
@@ -530,6 +547,7 @@ export default function Orders() {
       ) : null}
 
       {sheet}
+      <CargoDetailSheet orderId={cargoId} onClose={() => setCargoId(null)} />
     </div>
   )
 }

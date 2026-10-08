@@ -26,6 +26,7 @@ from app.data.regions import REGION_NAMES
 from app.db.base import session_scope
 from app.db.models import BotUser, DriverProfile, Group, Order, OrderDispatch
 from app.i18n.translations import t
+from app.services import cargo as cargo_service
 from app.services import drivers as drivers_service
 from app.services import groups as groups_service
 from app.services import trips as trips_service
@@ -145,54 +146,70 @@ async def offer_posted(request: web.Request) -> web.Response:
 
 @routes.post("/webapp/cargo-posted")
 async def cargo_posted(request: web.Request) -> web.Response:
+    """A website cargo order: post it to its driver group(s) and to matching drivers' DMs, each
+    with a "✅ Qabul qilish" button (services/cargo.py)."""
     if not _authorized(request):
         return web.json_response({"error": "unauthorized"}, status=401)
-
     try:
         payload = await request.json()
     except ValueError:
         return web.json_response({"error": "invalid json"}, status=400)
 
+    bot: Bot = request.app["bot"]
     async with session_scope() as session:
-        # Same group-resolution priority as offer_posted: a ROUTE group for this exact
-        # direction wins over the generic per-region CLOSED group.
-        route_match = await groups_service.get_route_group_fuzzy(
-            session, payload.get("fromRegion"), payload.get("toRegion")
+        reached = await cargo_service.dispatch(bot, session, payload)
+    return web.json_response({"ok": True, "posted": bool(reached["groups"] or reached["drivers"]), **reached})
+
+
+@routes.post("/webapp/cargo-status")
+async def cargo_status(request: web.Request) -> web.Response:
+    """A cargo order was taken / released / delivered / cancelled (website or bot) — relabel
+    every Telegram copy so nobody acts on a stale card."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    status = payload.get("status")
+    cargo_id = payload.get("cargoOrderId")
+    if status not in ("NEW", "CLAIMED", "DELIVERED", "CANCELLED") or not cargo_id:
+        return web.json_response({"error": "cargoOrderId and a valid status are required"}, status=400)
+
+    skip = payload.get("driverTelegramId")
+    bot: Bot = request.app["bot"]
+    async with session_scope() as session:
+        edited = await cargo_service.set_status(
+            bot,
+            session,
+            str(cargo_id),
+            status,
+            driver_name=payload.get("driverName"),
+            skip_chat_id=int(skip) if skip else None,
         )
-        if route_match is not None:
-            group, route = route_match
-            message_thread_id = route.get("message_thread_id")
-        else:
-            group = await groups_service.resolve_closed_dispatch_group(
-                session, payload.get("fromRegion"), payload.get("toRegion")
-            )
-            message_thread_id = None
+    return web.json_response({"ok": True, "edited": edited})
 
-    if group is None:
-        # No CLOSED driver group registered yet (not even a catch-all) — nothing to post to.
-        return web.json_response({"ok": True, "posted": False})
 
-    lang = group.language or "uz"
-    text = t(
-        "webapp_cargo_posted",
-        lang,
-        cargo_type=payload.get("cargoType", ""),
-        weight_label=payload.get("weightLabel", ""),
-        from_label=payload.get("fromLabel", ""),
-        to_label=payload.get("toLabel", ""),
-        recipient_name=payload.get("recipientName", ""),
-        recipient_phone=payload.get("recipientPhone", ""),
-        price=payload.get("price", ""),
-    )
+@routes.post("/webapp/notify-user")
+async def notify_user(request: web.Request) -> web.Response:
+    """Plain text to one Telegram user (cargo updates for senders and drivers)."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    telegram_id = payload.get("telegramId")
+    text = (payload.get("text") or "").strip()
+    if not telegram_id or not text:
+        return web.json_response({"error": "telegramId and text are required"}, status=400)
 
     bot: Bot = request.app["bot"]
     try:
-        await bot.send_message(group.chat_id, text, message_thread_id=message_thread_id)
-    except Exception:
-        logger.warning("Failed to post cargo order %s to group %s", payload.get("cargoOrderId"), group.chat_id)
-        return web.json_response({"ok": True, "posted": False})
-
-    return web.json_response({"ok": True, "posted": True})
+        await bot.send_message(int(telegram_id), text[:4000])
+    except (TelegramAPIError, ValueError):
+        return web.json_response({"ok": True, "sent": False})
+    return web.json_response({"ok": True, "sent": True})
 
 
 @routes.post("/webapp/otp-code")

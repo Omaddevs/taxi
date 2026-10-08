@@ -74,6 +74,8 @@ export interface CargoPostedPayload {
   recipientName: string
   recipientPhone: string
   price: number
+  note?: string | null
+  vehicle?: string | null
 }
 
 // Best-effort push to taxiline-bot so a newly posted cargo job also lands in the driver's
@@ -136,4 +138,39 @@ export async function notifyDriverReviewed(payload: DriverReviewedPayload): Prom
   } catch (err) {
     console.error('notifyDriverReviewed failed:', err)
   }
+}
+
+async function postToBot(path: string, payload: unknown, label: string): Promise<void> {
+  try {
+    await fetch(`${env.BOT_HTTP_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Bot-Secret': env.BOT_API_SECRET },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(8000),
+    })
+  } catch (err) {
+    console.error(`${label} failed:`, err)
+  }
+}
+
+export type CargoStatusForBot = 'NEW' | 'CLAIMED' | 'DELIVERED' | 'CANCELLED'
+
+/**
+ * A cargo order changed outside Telegram (website claim, release, delivery, rider cancel) —
+ * the bot rewrites every group/DM copy so nobody taps "Qabul qilish" on a taken order.
+ */
+export async function notifyCargoStatus(payload: {
+  cargoOrderId: string
+  status: CargoStatusForBot
+  driverName?: string | null
+  // The claiming driver's own DM is turned into the full card by the bot — leave it alone.
+  driverTelegramId?: string | null
+}) {
+  await postToBot('/webapp/cargo-status', payload, 'notifyCargoStatus')
+}
+
+/** Plain Telegram message to one user (rider/driver updates). No-op without a linked account. */
+export async function notifyUserViaBot(telegramId: string | null | undefined, text: string) {
+  if (!telegramId) return
+  await postToBot('/webapp/notify-user', { telegramId, text }, 'notifyUserViaBot')
 }

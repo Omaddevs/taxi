@@ -9,7 +9,8 @@ import { useApp } from '../context/AppContext'
 import { cargoTypes, cargoVehicles } from '../data/mock'
 import { formatPlace, isRegionActive, matchRegion } from '../data/uzbekistan'
 import { api } from '../lib/api'
-import { MONTHS, cn, formatSom } from '../lib/utils'
+import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
+import { MONTHS, cn, formatSom, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
 
 function formatAmount(n) {
   if (!n) return ''
@@ -107,13 +108,14 @@ function ChoiceCard({ item, active, onClick, className, imageClassName = 'w-14' 
   )
 }
 
-function RecentOrder({ order }) {
+function RecentOrder({ order, onOpen }) {
   const type = typeById[order.cargoType]
   const status = STATUS[order.status] || STATUS.NEW
   return (
-    <Link
-      to="/history?tab=cargo"
-      className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_4px_16px_rgba(28,28,40,0.04)]"
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-[0_4px_16px_rgba(28,28,40,0.04)]"
     >
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-canvas text-[28px]" aria-hidden>
         {type?.image ? (
@@ -133,7 +135,7 @@ function RecentOrder({ order }) {
         <span className="mt-0.5 text-[15px] font-extrabold text-ink">{formatSom(order.price)}</span>
       </span>
       <ChevronRight className="h-5 w-5 shrink-0 text-brand" />
-    </Link>
+    </button>
   )
 }
 
@@ -204,7 +206,9 @@ export default function Cargo() {
   const [weight, setWeight] = useState('5 kg')
   const [amount, setAmount] = useState(0)
   const [recipientName, setRecipientName] = useState('')
-  const [recipientPhone, setRecipientPhone] = useState('+998 ')
+  // Local 9 digits only ("87 735 36 36"); +998 is fixed in front of the input.
+  const [recipientPhone, setRecipientPhone] = useState('')
+  const [detailId, setDetailId] = useState(null)
   const [note, setNote] = useState('')
   const [ok, setOk] = useState(false)
 
@@ -244,13 +248,14 @@ export default function Cargo() {
         vehicleType: vehicle,
         weightLabel: weight,
         recipientName: recipientName.trim(),
-        recipientPhone: recipientPhone.trim(),
+        recipientPhone: toE164Uz(recipientPhone),
         note: note.trim() || undefined,
         price: amount,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cargo-orders', 'mine'] })
       setSheetOpen(false)
+      setRecipientPhone('')
       setOk(true)
       setTimeout(() => setOk(false), 3000)
     },
@@ -289,8 +294,8 @@ export default function Cargo() {
     setSheetOpen(true)
   }
 
-  const phoneDigits = recipientPhone.replace(/\D/g, '')
-  const canSubmit = from && to && amount >= 1000 && recipientName.trim() && phoneDigits.length >= 9 && !submit.isPending
+  const phoneOk = isCompletePhoneUz(recipientPhone)
+  const canSubmit = from && to && amount >= 1000 && recipientName.trim() && phoneOk && !submit.isPending
 
   const visibleTypes = showAllTypes ? cargoTypes : cargoTypes.slice(0, 5)
 
@@ -414,13 +419,14 @@ export default function Cargo() {
           <SectionTitle title="So‘nggi buyurtmalar" action="Barchasi" onAction={() => navigate('/history?tab=cargo')} />
           <div className="space-y-2">
             {recent.map((order) => (
-              <RecentOrder key={order.id} order={order} />
+              <RecentOrder key={order.id} order={order} onOpen={() => setDetailId(order.id)} />
             ))}
           </div>
         </>
       ) : null}
 
       <PromoBanner />
+      <CargoDetailSheet orderId={detailId} onClose={() => setDetailId(null)} />
 
       <OrderSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
         <div className="space-y-4">
@@ -474,12 +480,26 @@ export default function Cargo() {
             <Input placeholder="Ism familiya" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
           </Field>
           <Field label="Qabul qiluvchi telefoni">
-            <Input
-              placeholder="+998"
-              inputMode="tel"
-              value={recipientPhone}
-              onChange={(e) => setRecipientPhone(e.target.value)}
-            />
+            <div
+              className={cn(
+                'flex h-12 items-center gap-2 rounded-2xl border bg-white px-4 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15',
+                recipientPhone && !phoneOk ? 'border-amber-300' : 'border-line',
+              )}
+            >
+              <span className="flex shrink-0 items-center gap-1.5 text-[15px] font-bold text-ink">🇺🇿 +998</span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                placeholder="87 735 36 36"
+                value={maskLocalPhoneUz(recipientPhone)}
+                onChange={(e) => setRecipientPhone(localPhoneDigitsUz(e.target.value))}
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-muted"
+              />
+            </div>
+            {recipientPhone && !phoneOk ? (
+              <p className="mt-1 text-[12px] font-semibold text-amber-600">Raqamni to‘liq kiriting: 9 ta raqam</p>
+            ) : null}
           </Field>
           <Field label="Izoh">
             <Input placeholder="Yuk haqida qisqacha" value={note} onChange={(e) => setNote(e.target.value)} />
