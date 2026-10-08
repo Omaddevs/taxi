@@ -46,11 +46,14 @@ export function TopHeader() {
   const { user, setDrawerOpen } = useApp()
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const meta = headerMeta(pathname)
+  const firstName = (user.firstName || user.name || '').trim().split(/\s+/)[0]
+  const baseMeta = headerMeta(pathname)
+  // Home greets by name once we know it.
+  const meta = pathname === '/' && firstName ? { ...baseMeta, title: `Xush kelibsiz, ${firstName}! 👋` } : baseMeta
   const showBack = backOnMobile.includes(pathname)
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:px-8">
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:px-[max(2rem,calc((100%-1180px)/2))]">
       <div className="flex min-w-0 items-center gap-3">
         {/* Desktop: no sidebar any more — the menu lives in the drawer, opened from here. */}
         <button
@@ -105,9 +108,13 @@ export function TopHeader() {
         <Link to="/messages" className="hidden h-10 w-10 items-center justify-center rounded-full bg-canvas sm:flex">
           <MessageCircle className="h-5 w-5 text-ink" />
         </Link>
-        <Link to="/profile" className="ml-1 flex items-center gap-2 rounded-full bg-canvas py-1 pl-1 pr-3">
+        <Link
+          to="/profile"
+          aria-label="Profil"
+          className={`ml-1 flex items-center gap-2 rounded-full bg-canvas py-1 pl-1 transition hover:bg-brand-soft ${firstName ? 'sm:pr-3' : 'pr-1'}`}
+        >
           <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
-          <span className="hidden text-sm font-semibold sm:block">{user.firstName}</span>
+          {firstName ? <span className="hidden max-w-[120px] truncate text-sm font-semibold sm:block">{firstName}</span> : null}
         </Link>
       </div>
     </header>

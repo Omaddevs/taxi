@@ -40,7 +40,7 @@ export function AppLayout() {
 
   return (
     <div className={`min-h-svh overflow-x-clip ${mobileHome ? 'bg-white lg:bg-canvas' : 'bg-canvas'}`}>
-      <div className="mx-auto flex min-h-svh max-w-[1440px]">
+      <div className="flex min-h-svh">
         <div className="flex min-w-0 flex-1 flex-col">
           {!hideChrome ? (
             <div className={hideHeaderMobile ? 'hidden lg:block' : ''}>
@@ -54,12 +54,12 @@ export function AppLayout() {
                 : isChat(pathname)
                   ? ''
                   : mapScreen
-                    ? 'lg:px-8 lg:pb-8 lg:pt-6'
+                    ? 'lg:px-[max(2rem,calc((100%-1180px)/2))] lg:pb-8 lg:pt-6'
                     : mobileHome
-                      ? 'lg:px-8 lg:pb-8 lg:pt-6'
+                      ? 'lg:px-[max(2rem,calc((100%-1180px)/2))] lg:pb-8 lg:pt-6'
                       : flush
-                        ? 'pb-24 lg:px-8 lg:pb-8 lg:pt-6'
-                        : 'px-4 pb-24 pt-4 lg:px-8 lg:pb-8 lg:pt-6'
+                        ? 'pb-24 lg:px-[max(2rem,calc((100%-1180px)/2))] lg:pb-8 lg:pt-6'
+                        : 'px-4 pb-24 pt-4 lg:px-[max(2rem,calc((100%-1180px)/2))] lg:pb-8 lg:pt-6'
             }`}
           >
             <Outlet />
