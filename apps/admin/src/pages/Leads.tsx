@@ -6,6 +6,7 @@ import {
   BellRing,
   Camera,
   Check,
+  CheckSquare,
   Globe,
   GripVertical,
   MessageCircle,
@@ -83,6 +84,9 @@ export default function Leads() {
   const [dragId, setDragId] = useState<string | null>(null)
   const [overColumn, setOverColumn] = useState<LeadStatus | null>(null)
   const [error, setError] = useState('')
+  // "Tanlash" mode: cards get checkboxes and a bottom bar deletes the selection in one go.
+  const [selecting, setSelecting] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
 
   const listKey = ['leads', q, leadType] as const
   const { data, isLoading } = useQuery({
@@ -114,8 +118,57 @@ export default function Leads() {
 
   const remove = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/leads/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
+    onError: (err) => setError(err instanceof Error ? err.message : 'O‘chirib bo‘lmadi'),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['leads'] }),
   })
+
+  // No bulk endpoint: one DELETE per lead, and whatever the server refuses (an operator's
+  // lead that isn't theirs) is reported instead of silently skipped.
+  const removeMany = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const results = await Promise.allSettled(ids.map((id) => api.delete(`/admin/leads/${id}`)))
+      return results.filter((r) => r.status === 'rejected').length
+    },
+    onSuccess: (failed, ids) => {
+      setSelected(new Set())
+      setSelecting(false)
+      if (failed) setError(`${ids.length - failed} ta o‘chirildi, ${failed} tasini o‘chirib bo‘lmadi`)
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['leads'] }),
+  })
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleColumn(list: LeadRow[]) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      const all = list.every((l) => next.has(l.id))
+      for (const l of list) {
+        if (all) next.delete(l.id)
+        else next.add(l.id)
+      }
+      return next
+    })
+  }
+
+  function exitSelecting() {
+    setSelecting(false)
+    setSelected(new Set())
+  }
+
+  function onDeleteSelected() {
+    const ids = [...selected]
+    if (!ids.length) return
+    if (!window.confirm(`${ids.length} ta lidni o‘chirasizmi? Bu amalni qaytarib bo‘lmaydi.`)) return
+    removeMany.mutate(ids)
+  }
 
   const leads = useMemo(() => {
     const all = data ?? []
@@ -180,7 +233,7 @@ export default function Leads() {
   }
 
   function onDelete(lead: LeadRow) {
-    if (!window.confirm(`“${leadTitle(lead)}” lidini o‘chirasizmi?`)) return
+    if (!window.confirm(`“${leadTitle(lead)}” lidini o‘chirasizmi? Bu amalni qaytarib bo‘lmaydi.`)) return
     remove.mutate(lead.id)
     if (openId === lead.id) setOpenId(null)
   }
@@ -248,6 +301,19 @@ export default function Leads() {
             <span className="rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{stats.due}</span>
           ) : null}
         </button>
+        {data?.length ? (
+          <button
+            type="button"
+            onClick={() => (selecting ? exitSelecting() : setSelecting(true))}
+            className={cn(
+              'inline-flex h-10 items-center gap-2 rounded-xl px-3.5 text-xs font-bold ring-1 transition-colors sm:ml-auto',
+              selecting ? 'bg-ink text-white ring-ink' : 'bg-white text-muted ring-line hover:text-ink',
+            )}
+          >
+            <CheckSquare className="h-4 w-4" />
+            {selecting ? 'Tanlashni yakunlash' : 'Tanlash'}
+          </button>
+        ) : null}
       </div>
 
       {error ? (
@@ -284,6 +350,15 @@ export default function Leads() {
                 <header className="flex items-center gap-2 rounded-t-2xl border-t-[3px] px-3 pb-2 pt-3" style={{ borderColor: LEAD_STAGE_COLOR[status] }}>
                   <span className="h-2 w-2 rounded-full" style={{ background: LEAD_STAGE_COLOR[status] }} />
                   <p className="flex-1 truncate text-xs font-extrabold uppercase tracking-wide text-ink">{LEAD_STATUS_LABEL[status]}</p>
+                  {selecting && list.length ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleColumn(list)}
+                      className="text-[11px] font-bold text-brand-dark hover:underline"
+                    >
+                      {list.every((l) => selected.has(l.id)) ? 'Bekor' : 'Hammasi'}
+                    </button>
+                  ) : null}
                   <span
                     className="min-w-6 rounded-full px-2 py-0.5 text-center text-[11px] font-bold"
                     style={{ background: `${LEAD_STAGE_COLOR[status]}1a`, color: LEAD_STAGE_COLOR[status] }}
@@ -299,6 +374,10 @@ export default function Leads() {
                       lead={lead}
                       showOwner={user?.role === 'ADMIN'}
                       dragging={dragId === lead.id}
+                      selecting={selecting}
+                      selected={selected.has(lead.id)}
+                      onToggleSelect={() => toggleSelected(lead.id)}
+                      onDelete={() => onDelete(lead)}
                       onDragStart={(e) => {
                         e.dataTransfer.setData(DRAG_MIME, lead.id)
                         e.dataTransfer.effectAllowed = 'move'
@@ -332,6 +411,26 @@ export default function Leads() {
           })}
         </div>
       )}
+
+      {selecting ? (
+        <div className="fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+          <div className="flex items-center gap-3 rounded-2xl bg-ink py-2.5 pl-5 pr-2.5 text-white shadow-2xl">
+            <span className="text-sm font-bold">{selected.size} ta tanlandi</span>
+            <button type="button" onClick={exitSelecting} className="rounded-xl px-3 py-2 text-sm font-semibold text-white/70 hover:text-white">
+              Bekor qilish
+            </button>
+            <button
+              type="button"
+              onClick={onDeleteSelected}
+              disabled={!selected.size || removeMany.isPending}
+              className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-40"
+            >
+              <Trash2 className="h-4 w-4" />
+              {removeMany.isPending ? 'O‘chirilmoqda…' : 'O‘chirish'}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <LeadDrawer
         lead={openLead}
@@ -397,6 +496,10 @@ function LeadCard({
   lead,
   showOwner,
   dragging,
+  selecting,
+  selected,
+  onToggleSelect,
+  onDelete,
   onDragStart,
   onDragEnd,
   onOpen,
@@ -405,6 +508,10 @@ function LeadCard({
   lead: LeadRow
   showOwner: boolean
   dragging: boolean
+  selecting: boolean
+  selected: boolean
+  onToggleSelect: () => void
+  onDelete: () => void
   onDragStart: (e: DragEvent) => void
   onDragEnd: () => void
   onOpen: () => void
@@ -414,22 +521,38 @@ function LeadCard({
   const digits = phoneDigits(lead.phone)
   return (
     <article
-      draggable
+      draggable={!selecting}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      onClick={onOpen}
+      onClick={selecting ? onToggleSelect : onOpen}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpen()
+        if (e.key === 'Enter') (selecting ? onToggleSelect : onOpen)()
       }}
       tabIndex={0}
+      aria-selected={selecting ? selected : undefined}
       className={cn(
-        'group relative cursor-grab rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(16,42,67,0.06)] ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(16,42,67,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing',
+        'group relative rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(16,42,67,0.06)] ring-1 ring-line transition hover:shadow-[0_8px_20px_rgba(16,42,67,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+        selecting ? 'cursor-pointer' : 'cursor-grab hover:-translate-y-0.5 active:cursor-grabbing',
+        selected && 'bg-red-50/40 ring-2 ring-red-400',
         dragging && 'rotate-1 opacity-40',
       )}
     >
-      <GripVertical className="absolute right-1.5 top-3 h-4 w-4 text-line opacity-0 transition-opacity group-hover:opacity-100" />
+      {selecting ? null : (
+        <GripVertical className="absolute right-1.5 top-3 h-4 w-4 text-line opacity-0 transition-opacity group-hover:opacity-100" />
+      )}
       <div className="flex items-start gap-2.5 pr-4">
-        <Avatar name={lead.name || lead.igUsername} size="sm" />
+        {selecting ? (
+          <span
+            className={cn(
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+              selected ? 'border-red-500 bg-red-500 text-white' : 'border-line bg-white text-transparent',
+            )}
+          >
+            <Check className="h-4 w-4" strokeWidth={3} />
+          </span>
+        ) : (
+          <Avatar name={lead.name || lead.igUsername} size="sm" />
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-ink" title={leadTitle(lead)}>
             {leadTitle(lead)}
@@ -457,7 +580,7 @@ function LeadCard({
       </div>
 
       {/* Quick actions — also the way to move a card without a mouse (touch, keyboard). */}
-      <div className="mt-2 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+      <div className={cn('mt-2 flex gap-1.5', selecting && 'hidden')} onClick={(e) => e.stopPropagation()}>
         {digits ? (
           <a
             href={`tel:+${digits}`}
@@ -488,6 +611,15 @@ function LeadCard({
             {LEAD_STATUS_LABEL[next]} <ArrowRight className="h-3 w-3" />
           </button>
         ) : null}
+        <button
+          type="button"
+          onClick={onDelete}
+          title="O‘chirish"
+          aria-label="Lidni o‘chirish"
+          className="flex h-7 w-8 shrink-0 items-center justify-center rounded-lg bg-canvas text-muted hover:bg-red-50 hover:text-red-500"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </div>
     </article>
   )
@@ -699,8 +831,12 @@ function DrawerBody({
       </div>
 
       <footer className="flex items-center gap-2 border-t border-line p-4">
-        <button type="button" onClick={onDelete} className="flex h-11 w-11 items-center justify-center rounded-2xl text-muted hover:bg-red-50 hover:text-red-500" title="O‘chirish">
-          <Trash2 className="h-4 w-4" />
+        <button
+          type="button"
+          onClick={onDelete}
+          className="inline-flex h-11 items-center gap-1.5 rounded-2xl px-3.5 text-sm font-bold text-red-500 ring-1 ring-red-200 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4" /> O‘chirish
         </button>
         <Button type="submit" disabled={!dirty} className="flex-1">
           {dirty ? 'O‘zgarishlarni saqlash' : 'Saqlangan'}
