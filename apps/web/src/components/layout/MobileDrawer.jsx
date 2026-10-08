@@ -16,7 +16,7 @@ export function MobileDrawer() {
   const close = () => setDrawerOpen(false)
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <div className="fixed inset-0 z-50">
       <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Yopish" onClick={close} />
       <div className="relative flex h-full w-[86%] max-w-[340px] flex-col overflow-y-auto bg-white pt-[max(56px,calc(env(safe-area-inset-top)+40px))] shadow-2xl">
         <Link to="/profile" onClick={close} className="flex items-center gap-3.5 px-4 pb-5">

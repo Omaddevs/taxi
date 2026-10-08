@@ -1,6 +1,7 @@
 import { ArrowLeft, Bell, Crown, Menu, MessageCircle } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import { Logo, Wordmark } from '../ui/Logo'
 
 const titles = {
   '/': { title: 'Xush kelibsiz! 👋', subtitle: 'Qayerga yo‘l olmoqchisiz?' },
@@ -51,6 +52,20 @@ export function TopHeader() {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
+        {/* Desktop: no sidebar any more — the menu lives in the drawer, opened from here. */}
+        <button
+          type="button"
+          className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas transition hover:bg-brand-soft lg:flex"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Menyu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <Link to="/" className="hidden shrink-0 items-center gap-1.5 lg:flex" aria-label="Bosh sahifa">
+          <Logo size={34} />
+          <Wordmark className="text-[24px]" />
+        </Link>
+        <span className="hidden h-8 w-px shrink-0 bg-line lg:block" aria-hidden />
         {showBack ? (
           <button
             type="button"

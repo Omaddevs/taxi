@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { MobileDrawer } from './MobileDrawer'
-import { Sidebar } from './Sidebar'
 import { TopHeader } from './TopHeader'
 import { LocationPicker } from '../location/LocationPicker'
 import { RentMarketHost } from '../rent/RentMarketHost'
@@ -42,12 +41,6 @@ export function AppLayout() {
   return (
     <div className={`min-h-svh overflow-x-clip ${mobileHome ? 'bg-white lg:bg-canvas' : 'bg-canvas'}`}>
       <div className="mx-auto flex min-h-svh max-w-[1440px]">
-        {!hideChrome ? (
-          <div className="sticky top-0 hidden h-svh lg:block">
-            <Sidebar />
-          </div>
-        ) : null}
-
         <div className="flex min-w-0 flex-1 flex-col">
           {!hideChrome ? (
             <div className={hideHeaderMobile ? 'hidden lg:block' : ''}>
