@@ -131,7 +131,7 @@ export function RentMarketHost() {
       <div
         className={cn(
           'absolute inset-x-0 bottom-0 top-[max(10px,env(safe-area-inset-top))] flex flex-col overflow-hidden rounded-t-[30px] bg-white shadow-[0_-16px_50px_rgba(16,42,67,0.28)]',
-          'lg:inset-x-auto lg:bottom-6 lg:left-1/2 lg:top-6 lg:w-[480px] lg:-translate-x-1/2 lg:rounded-[30px]',
+          'lg:inset-x-auto lg:bottom-[4vh] lg:left-1/2 lg:top-[4vh] lg:w-[min(1180px,94vw)] lg:-translate-x-1/2 lg:rounded-[30px]',
           drag ? '' : 'transition-[translate] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
           shown ? 'translate-y-0' : 'translate-y-[110%]',
         )}
@@ -143,7 +143,7 @@ export function RentMarketHost() {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
-            className="absolute left-1/2 top-0 z-30 flex h-7 w-32 -translate-x-1/2 cursor-grab touch-none justify-center pt-2.5"
+            className="absolute left-1/2 top-0 z-30 flex h-7 w-32 -translate-x-1/2 cursor-grab touch-none justify-center pt-2.5 lg:hidden"
             aria-hidden
           >
             <span className="h-1.5 w-11 rounded-full bg-black/20" />
@@ -155,7 +155,7 @@ export function RentMarketHost() {
         {showTabs ? (
           // Every tab — the "Joylash" action included — stays inside the bar: nothing pokes up over
           // the scrolling content, all icons sit on one line and each target is ≥ 48px tall.
-          <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white/95 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur">
+          <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white/95 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur lg:px-[max(8px,calc(50%-300px))] lg:pb-2">
             {TABS.map((t) => {
               const active = activeTab === t.view
               const go = () => (t.primary ? nav.go({ ijara: t.view }) : nav.go({ ijara: t.view }, { replace: true }))

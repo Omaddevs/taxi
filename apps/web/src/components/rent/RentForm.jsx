@@ -184,7 +184,7 @@ function FormBody({ editing, onBack, onDone }) {
 
   return (
     <form onSubmit={submit} className="relative flex h-full flex-col">
-      <header className="flex items-center gap-3 border-b border-line px-4 pb-3 pt-4">
+      <header className="flex items-center gap-3 border-b border-line px-4 pb-3 pt-4 lg:px-8 lg:pt-6">
         <button type="button" onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas" aria-label="Orqaga">
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -194,7 +194,7 @@ function FormBody({ editing, onBack, onDone }) {
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-canvas px-4 pb-32 pt-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-canvas px-4 pb-32 pt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-8 lg:pt-6">
         {editing?.status === 'REJECTED' && editing.rejectionReason ? (
           <p className="rounded-[18px] bg-red-50 px-3.5 py-3 text-[13px] font-semibold text-red-600">
             Rad etilish sababi: {editing.rejectionReason}
@@ -374,7 +374,7 @@ function FormBody({ editing, onBack, onDone }) {
         </Card>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 border-t border-line bg-white px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3">
+      <div className="absolute inset-x-0 bottom-0 border-t border-line bg-white px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 lg:px-[max(32px,calc(50%-280px))]">
         {error ? <p className="mb-2 text-center text-[13px] font-semibold text-red-500">{error}</p> : null}
         <button
           type="submit"

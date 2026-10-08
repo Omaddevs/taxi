@@ -15,7 +15,7 @@ function statusOf(l) {
 
 function ScreenTitle({ title, hint }) {
   return (
-    <header className="px-4 pb-2 pt-8">
+    <header className="px-4 pb-2 pt-8 lg:px-8">
       <h2 className="text-[26px] font-black tracking-tight text-ink">{title}</h2>
       {hint ? <p className="text-[13px] text-muted">{hint}</p> : null}
     </header>
@@ -51,7 +51,7 @@ export function RentMine() {
           ))}
         </div>
       ) : data.length ? (
-        <ul className="space-y-3 px-4 pt-2">
+        <ul className="space-y-3 px-4 pt-2 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:px-8">
           {data.map((l) => {
             const st = statusOf(l)
             const price = mainPrice(l)
@@ -139,7 +139,7 @@ export function RentSaved() {
     <div className="pb-6">
       <ScreenTitle title="Saqlanganlar" hint="Yoqqan e’lonlar shu qurilmada saqlanadi" />
       {saved.length ? (
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-5 px-4">
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-5 px-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5 lg:px-8 xl:grid-cols-5">
           {saved.map((l) => (
             <ListingCard
               key={l.id}

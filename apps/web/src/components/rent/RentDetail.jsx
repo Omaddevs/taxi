@@ -81,9 +81,9 @@ export function RentDetail({ id, onBack }) {
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto pb-28">
-        {/* ── Galereya ── */}
-        <div className="relative bg-canvas">
+      <div className="min-h-0 flex-1 overflow-y-auto pb-28 lg:grid lg:grid-cols-[1.05fr_1fr] lg:items-start lg:pb-24">
+        {/* ── Galereya ── (desktop: chap ustunda, yopishqoq) */}
+        <div className="relative bg-canvas lg:sticky lg:top-0 lg:m-6 lg:overflow-hidden lg:rounded-[28px]">
           <div onScroll={onScroll} className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto">
             {photos.map((src, i) => (
               <Cover key={i} src={src} className="aspect-[4/3] w-full shrink-0 snap-center" iconClass="h-16 w-16" />
@@ -114,7 +114,7 @@ export function RentDetail({ id, onBack }) {
           ) : null}
         </div>
 
-        <div className="relative -mt-6 rounded-t-[28px] bg-white px-4 pt-5">
+        <div className="relative -mt-6 rounded-t-[28px] bg-white px-4 pt-5 lg:mt-0 lg:px-8 lg:pt-8">
           <div className="flex flex-wrap items-center gap-1.5">
             {type ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[12px] font-bold text-brand-dark">
@@ -251,7 +251,7 @@ export function RentDetail({ id, onBack }) {
       </div>
 
       {/* ── Bog‘lanish ── */}
-      <div className="absolute inset-x-0 bottom-0 flex gap-2 border-t border-line bg-white px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3">
+      <div className="absolute inset-x-0 bottom-0 flex gap-2 border-t border-line bg-white px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 lg:left-[51%] lg:border-l lg:px-8">
         {telegram ? (
           <a
             href={telegram}

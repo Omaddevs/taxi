@@ -47,7 +47,7 @@ export function RentCatalog({ onClose }) {
   return (
     <div className="pb-6">
       {/* ── Brend sarlavha: qidiruv va TOP e’lonlar ── */}
-      <header className="relative overflow-hidden rounded-b-[30px] bg-[linear-gradient(150deg,#00d2de_0%,#00b5c2_55%,#0098a6_100%)] px-4 pb-4 pt-8 text-white">
+      <header className="relative overflow-hidden rounded-b-[30px] bg-[linear-gradient(150deg,#00d2de_0%,#00b5c2_55%,#0098a6_100%)] px-4 pb-4 pt-8 text-white lg:rounded-b-[36px] lg:px-8 lg:pb-7 lg:pt-7">
         <span aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10" />
         <span aria-hidden className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-white/10" />
         <div className="relative flex items-center gap-3">
@@ -68,7 +68,7 @@ export function RentCatalog({ onClose }) {
           </button>
         </div>
 
-        <div className="relative mt-4 flex items-center gap-2">
+        <div className="relative mt-4 flex items-center gap-2 lg:max-w-2xl">
           <button
             type="button"
             onClick={() => go({ ijara: 'xarita' })}
@@ -94,7 +94,7 @@ export function RentCatalog({ onClose }) {
         </div>
 
         {highlights.length ? (
-          <div className="relative mt-4 flex items-center gap-3">
+          <div className="relative mt-4 flex items-center gap-3 lg:max-w-xl">
             <button type="button" onClick={() => setSort('cheap')} className="min-w-0 flex-1 text-left">
               <p className="text-[17px] font-black uppercase italic leading-[1.05] tracking-tight">
                 {highlights.some((l) => l.featured) ? 'Top takliflar' : 'Eng arzon ijara'}
@@ -123,7 +123,7 @@ export function RentCatalog({ onClose }) {
       </header>
 
       {/* ── Turlar ── */}
-      <nav className="no-scrollbar sticky top-0 z-10 flex gap-2 overflow-x-auto bg-white px-4 pb-3 pt-7">
+      <nav className="no-scrollbar sticky top-0 z-10 flex gap-2 overflow-x-auto bg-white px-4 pb-3 pt-7 lg:flex-wrap lg:px-8 lg:pt-5">
         {[{ id: 'all', label: 'Barchasi' }, ...VEHICLE_TYPES].map((t) => (
           <button
             key={t.id}
@@ -141,7 +141,7 @@ export function RentCatalog({ onClose }) {
       </nav>
 
       {/* ── Bannerlar ── */}
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
+      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 lg:grid lg:grid-cols-2 lg:gap-5 lg:overflow-visible lg:px-8">
         <Banner
           tone="bg-[linear-gradient(120deg,#1a2b3c,#24465e)]"
           title="Transportingizni ijaraga bering"
@@ -161,7 +161,7 @@ export function RentCatalog({ onClose }) {
       </div>
 
       {/* ── Saralash ── */}
-      <div className="mt-4 flex items-center justify-between px-4">
+      <div className="mt-4 flex items-center justify-between px-4 lg:mt-6 lg:px-8">
         <p className="text-[19px] font-extrabold tracking-tight text-ink">
           {type === 'all' ? 'Siz uchun' : VEHICLE_TYPES.find((t) => t.id === type)?.label}
           <span className="ml-1.5 text-[13px] font-bold text-muted">{shown.length}</span>
@@ -184,7 +184,7 @@ export function RentCatalog({ onClose }) {
       </div>
 
       {isLoading ? (
-        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5 px-4">
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5 px-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-7 lg:px-8 xl:grid-cols-5">
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i}>
               <div className="aspect-[4/5] animate-pulse rounded-[22px] bg-canvas" />
@@ -204,7 +204,7 @@ export function RentCatalog({ onClose }) {
           }
         />
       ) : shown.length ? (
-        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5 px-4">
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5 px-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-7 lg:px-8 xl:grid-cols-5">
           {shown.map((l) => (
             <ListingCard
               key={l.id}
@@ -251,18 +251,18 @@ function Banner({ tone, title, text, cta, img, onClick }) {
       type="button"
       onClick={onClick}
       className={cn(
-        'relative flex h-[148px] w-[86%] shrink-0 snap-center overflow-hidden rounded-[24px] p-4 text-left text-white',
+        'relative flex h-[148px] w-[86%] shrink-0 snap-center overflow-hidden rounded-[24px] p-4 text-left text-white lg:h-[180px] lg:w-auto lg:p-6',
         tone,
       )}
     >
-      <span className="relative z-10 flex max-w-[58%] flex-col">
+      <span className="relative z-10 flex max-w-[58%] flex-col lg:max-w-[50%]">
         <span className="text-[19px] font-black uppercase leading-[1.05] tracking-tight">{title}</span>
         <span className="mt-1.5 text-[11px] font-medium leading-snug text-white/80">{text}</span>
         <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-extrabold text-ink">
           {cta} <ChevronRight className="h-3.5 w-3.5" />
         </span>
       </span>
-      <img src={img} alt="" className="pointer-events-none absolute -right-6 bottom-1 w-[58%] max-w-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]" />
+      <img src={img} alt="" className="pointer-events-none absolute -right-6 bottom-1 w-[58%] max-w-none lg:-right-2 lg:w-[46%] drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]" />
     </button>
   )
 }
