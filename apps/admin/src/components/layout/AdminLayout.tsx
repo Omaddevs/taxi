@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import {
   Bike,
+  ChevronsLeft,
+  ChevronsRight,
   CalendarClock,
   Car,
   CarFront,
@@ -39,6 +41,7 @@ import { useAuth } from '../../context/AuthContext'
 import { api } from '../../lib/api'
 import { cn } from '../../lib/utils'
 import { Logo } from '../ui/Logo'
+import logoMark from '../../assets/logo.png'
 import type { AnalyticsSummary, StaffDetail } from '../../types'
 import type { PanelRole } from '../../lib/tokens'
 
@@ -70,7 +73,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/leads', label: 'Lidlar', icon: UserPlus, badge: 'newLeads', roles: ['ADMIN', 'SALES_OPERATOR'] },
       { to: '/giveaway', label: 'Random mijozlar', icon: Gift, roles: ['ADMIN'] },
       { to: '/drivers', label: 'Haydovchilar', icon: Car, end: true, roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
-      { to: '/drivers/applications', label: 'Arizalar', icon: ClipboardCheck, badge: 'pending', roles: ['ADMIN'] },
+      { to: '/drivers/applications', label: 'Arizalar', icon: ClipboardCheck, badge: 'pending', roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
     ],
   },
   {
@@ -113,27 +116,50 @@ const ROLE_BADGE: Record<PanelRole, string> = {
   SUPPORT_OPERATOR: 'Texnik',
 }
 
+// Hover label for the collapsed rail. Rendered `fixed` so the nav's own scroll box can't clip it.
+function RailTooltip({ tip }: { tip: { label: string; top: number } | null }) {
+  if (!tip) return null
+  return (
+    <span
+      className="pointer-events-none fixed left-[84px] z-50 -translate-y-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg"
+      style={{ top: tip.top }}
+    >
+      {tip.label}
+    </span>
+  )
+}
+
 function SidebarNav({
   role,
   pending,
   newLeads,
   pendingRentals,
+  collapsed,
   onNavigate,
 }: {
   role: PanelRole
   pending: number
   newLeads: number
   pendingRentals: number
+  collapsed: boolean
   onNavigate?: () => void
 }) {
+  const [tip, setTip] = useState<{ label: string; top: number } | null>(null)
+  const counts = { pending, newLeads, rentals: pendingRentals }
   return (
-    <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2">
+    <nav className={cn('flex-1 overflow-y-auto overflow-x-hidden py-2', collapsed ? 'space-y-3 px-3 lg:px-2.5' : 'space-y-5 px-3')}>
+      <RailTooltip tip={collapsed ? tip : null} />
       {NAV.map((group) => {
         const items = group.items.filter((item) => item.roles.includes(role))
         if (!items.length) return null
         return (
           <div key={group.label}>
-            <p className="mb-1.5 px-3 text-[10px] font-bold tracking-[0.14em] text-white/35 uppercase">{group.label}</p>
+            {collapsed ? (
+              <div className="mx-auto mb-2 hidden h-px w-8 bg-white/10 lg:block" />
+            ) : null}
+            <p className={cn('mb-1.5 px-3 text-[10px] font-bold tracking-[0.14em] text-white/35 uppercase', collapsed && 'lg:hidden')}>
+              {group.label}
+            </p>
             <div className="space-y-0.5">
               {items.map((item) => (
                 <NavLink
@@ -141,26 +167,36 @@ function SidebarNav({
                   to={item.to}
                   end={item.end}
                   onClick={onNavigate}
+                  aria-label={item.label}
+                  onMouseEnter={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect()
+                    setTip({ label: item.label, top: r.top + r.height / 2 })
+                  }}
+                  onMouseLeave={() => setTip(null)}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+                      'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+                      collapsed && 'lg:justify-center lg:px-0',
                       isActive ? 'bg-brand text-ink font-semibold' : 'text-white/70 hover:bg-white/5 hover:text-white',
                     )
                   }
                 >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {item.badge === 'pending' && pending > 0 ? (
+                  <item.icon className={cn('shrink-0', collapsed ? 'h-4 w-4 lg:h-5 lg:w-5' : 'h-4 w-4')} />
+                  {collapsed && item.badge && counts[item.badge] > 0 ? (
+                    <span className="absolute right-1.5 top-1.5 hidden h-2 w-2 rounded-full bg-amber-400 ring-2 ring-sidebar lg:block" />
+                  ) : null}
+                  <span className={cn('flex-1 truncate', collapsed && 'lg:hidden')}>{item.label}</span>
+                  {collapsed ? null : item.badge === 'pending' && pending > 0 ? (
                     <span className="min-w-5 rounded-full bg-white/20 px-1.5 text-center text-[11px] font-bold">
                       {pending}
                     </span>
                   ) : null}
-                  {item.badge === 'rentals' && pendingRentals > 0 ? (
+                  {collapsed ? null : item.badge === 'rentals' && pendingRentals > 0 ? (
                     <span className="min-w-5 rounded-full bg-amber-400 px-1.5 text-center text-[11px] font-bold text-ink" title="Moderatsiyada">
                       {pendingRentals}
                     </span>
                   ) : null}
-                  {item.badge === 'newLeads' && newLeads > 0 ? (
+                  {collapsed ? null : item.badge === 'newLeads' && newLeads > 0 ? (
                     <span className="min-w-5 rounded-full bg-brand px-1.5 text-center text-[11px] font-bold text-ink" title="Yangi arizalar">
                       {newLeads}
                     </span>
@@ -175,7 +211,7 @@ function SidebarNav({
   )
 }
 
-function BusyToggle() {
+function BusyToggle({ compact = false }: { compact?: boolean }) {
   const qc = useQueryClient()
   const { data } = useQuery({
     queryKey: ['staff-me'],
@@ -194,26 +230,67 @@ function BusyToggle() {
       type="button"
       onClick={() => toggle.mutate(!busy)}
       disabled={toggle.isPending}
+      title={busy ? 'Band — bosib Faol qiling' : 'Faol — bosib Band qiling'}
       className={cn(
         'flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors',
+        compact && 'lg:justify-center lg:px-0',
         busy ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300',
       )}
     >
-      <span className={cn('h-2 w-2 rounded-full', busy ? 'bg-amber-400' : 'bg-emerald-400')} />
-      {busy ? 'Band' : 'Faol'}
+      <span className={cn('h-2 w-2 shrink-0 rounded-full', busy ? 'bg-amber-400' : 'bg-emerald-400')} />
+      <span className={cn(compact && 'lg:hidden')}>{busy ? 'Band' : 'Faol'}</span>
     </button>
   )
+}
+
+const COLLAPSE_KEY = 'admin:sidebar-collapsed'
+
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
 export function AdminLayout() {
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
+  // Desktop only: the sidebar folds into an icon rail (remembered per browser). Ctrl/⌘+B toggles.
+  const [collapsed, setCollapsed] = useState(readCollapsed)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0')
+    } catch {
+      // storage blocked — the toggle still works for this tab
+    }
+  }, [collapsed])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault()
+        setCollapsed((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const { data } = useQuery({
     queryKey: ['analytics-summary', 'badges'],
     queryFn: () => api.get<AnalyticsSummary>('/admin/analytics/summary'),
     refetchInterval: 30_000,
     enabled: user?.role === 'ADMIN',
+  })
+
+  // Arizalar yonidagi raqam operatorlar uchun: analytics/summary faqat adminga ochiq.
+  const { data: pendingApps } = useQuery({
+    queryKey: ['admin-driver-applications', 'pending-badge'],
+    queryFn: () => api.get<{ id: string }[]>('/admin/drivers/applications?status=PENDING&blocked=false'),
+    refetchInterval: 30_000,
+    enabled: Boolean(user) && user?.role !== 'ADMIN',
   })
 
   // Lidlar yonidagi raqam: sayt formasi va boshqa manbalardan kelgan, hali ishlanmagan (NEW) arizalar.
@@ -244,7 +321,7 @@ export function AdminLayout() {
 
   if (!user) return <Navigate to="/login" replace />
 
-  const pending = data?.pendingApplications ?? 0
+  const pending = (user.role === 'ADMIN' ? data?.pendingApplications : pendingApps?.length) ?? 0
   const newLeads = leadsBadge?.length ?? 0
   const pendingRentals = rentalsBadge?.length ?? 0
 
@@ -261,33 +338,57 @@ export function AdminLayout() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-sidebar transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-sidebar transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          collapsed && 'lg:w-[76px]',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex items-center justify-between px-5 py-5">
-          <div className="flex items-center gap-2">
+        <div className={cn('relative flex items-center justify-between px-5 py-5', collapsed && 'lg:justify-center lg:px-0')}>
+          <div className={cn('flex items-center gap-2', collapsed && 'lg:hidden')}>
             <Logo light />
             <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white/70 uppercase">
               {ROLE_BADGE[user.role]}
             </span>
           </div>
+          {collapsed ? <img src={logoMark} alt="TaxiLine" className="hidden h-9 w-9 object-contain lg:block" /> : null}
           <button type="button" className="rounded-lg p-1 text-white/70 lg:hidden" onClick={() => setOpen(false)}>
             <X className="h-5 w-5" />
           </button>
+          {/* Desktop fold/unfold handle on the sidebar's edge. */}
+          <button
+            type="button"
+            onClick={() => setCollapsed((v) => !v)}
+            title={collapsed ? 'Menyuni ochish (Ctrl+B)' : 'Menyuni yig‘ish (Ctrl+B)'}
+            aria-label={collapsed ? 'Menyuni ochish' : 'Menyuni yig‘ish'}
+            aria-expanded={!collapsed}
+            className="absolute -right-3.5 top-6 hidden h-7 w-7 items-center justify-center rounded-full border border-line bg-white text-ink shadow-md transition hover:scale-110 hover:bg-brand lg:flex"
+          >
+            {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+          </button>
         </div>
-        <SidebarNav role={user.role} pending={pending} newLeads={newLeads} pendingRentals={pendingRentals} onNavigate={() => setOpen(false)} />
-        <div className="border-t border-white/10 px-3 py-4">
-          <div className="mb-2 truncate px-3 text-xs font-semibold text-white/50">{user.name || user.phone}</div>
+        <SidebarNav
+          role={user.role}
+          pending={pending}
+          newLeads={newLeads}
+          pendingRentals={pendingRentals}
+          collapsed={collapsed}
+          onNavigate={() => setOpen(false)}
+        />
+        <div className={cn('border-t border-white/10 px-3 py-4', collapsed && 'lg:px-2.5')}>
+          <div className={cn('mb-2 truncate px-3 text-xs font-semibold text-white/50', collapsed && 'lg:hidden')}>{user.name || user.phone}</div>
           <div className="mb-2">
-            <BusyToggle />
+            <BusyToggle compact={collapsed} />
           </div>
           <button
             onClick={logout}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-300 hover:bg-white/5"
+            title="Chiqish"
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-300 hover:bg-white/5',
+              collapsed && 'lg:justify-center lg:px-0',
+            )}
           >
-            <LogOut className="h-4 w-4" />
-            Chiqish
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className={cn(collapsed && 'lg:hidden')}>Chiqish</span>
           </button>
         </div>
       </aside>
