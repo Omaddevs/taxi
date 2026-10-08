@@ -45,6 +45,7 @@ def share_location_kb(lang: str) -> ReplyKeyboardMarkup:
 def main_menu_kb(lang: str, webapp_code: str | None, is_admin: bool) -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
     builder.button(text=t("menu_start_trip", lang))
+    builder.button(text=t("menu_rent", lang))
     builder.button(text=t("menu_women_trip", lang))
     webapp_url = f"{settings.webapp_url}?tgc={webapp_code}" if webapp_code else settings.webapp_url
     if webapp_url.startswith("https://"):
@@ -63,7 +64,7 @@ def main_menu_kb(lang: str, webapp_code: str | None, is_admin: bool) -> ReplyKey
     builder.button(text=t("menu_settings", lang))
     if is_admin:
         builder.button(text=t("menu_admin", lang))
-    builder.adjust(2, 2, 2, 2, 1)
+    builder.adjust(2, 2, 2, 2, 2)
     return builder.as_markup(resize_keyboard=True)
 
 

@@ -58,6 +58,41 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     # Main menu
     "menu_start_trip": {"uz": "🚕 Safarni boshlash", "ru": "🚕 Начать поездку", "en": "🚕 Start a trip"},
+    "menu_rent": {"uz": "🛵 Skuter ijara", "ru": "🛵 Аренда скутеров", "en": "🛵 Scooter rental"},
+    "rent_intro": {
+        "uz": (
+            "🛵 <b>Skuter ijara</b>\n\n"
+            "Skuter, elektr samokat, velosiped va mototsikl ijarasi.\n\n"
+            "📍 Joylashuvingizni yuboring — sizga eng yaqin e'lon va ijara nuqtalarini ko'rsatamiz. "
+            "Yoki pastdagi tugmalar orqali hammasini ko'ring."
+        ),
+        "ru": (
+            "🛵 <b>Аренда скутеров</b>\n\n"
+            "Скутеры, электросамокаты, велосипеды и мотоциклы.\n\n"
+            "📍 Отправьте геолокацию — покажем ближайшие объявления и пункты проката. "
+            "Или посмотрите все кнопками ниже."
+        ),
+        "en": (
+            "🛵 <b>Scooter rental</b>\n\n"
+            "Scooters, e-scooters, bicycles and motorbikes.\n\n"
+            "📍 Send your location and we'll show the nearest listings and rental points. "
+            "Or browse everything with the buttons below."
+        ),
+    },
+    "rent_send_location": {"uz": "📍 Joylashuvni yuborish", "ru": "📍 Отправить геолокацию", "en": "📍 Send location"},
+    "rent_listings": {"uz": "📋 E'lonlar", "ru": "📋 Объявления", "en": "📋 Listings"},
+    "rent_points": {"uz": "🏢 Ijara nuqtalari", "ru": "🏢 Пункты проката", "en": "🏢 Rental points"},
+    "rent_location_ok": {
+        "uz": "📍 Joylashuv qabul qilindi. Eng yaqinlari birinchi:",
+        "ru": "📍 Геолокация получена. Сначала ближайшие:",
+        "en": "📍 Location received. Nearest first:",
+    },
+    "rent_empty": {
+        "uz": "Hozircha bu bo'limda e'lon yo'q. Tez orada qo'shiladi!",
+        "ru": "Пока здесь нет объявлений. Скоро появятся!",
+        "en": "Nothing here yet. Coming soon!",
+    },
+    "rent_no_contact": {"uz": "Aloqa ma'lumoti ko'rsatilmagan.", "ru": "Контакт не указан.", "en": "No contact provided."},
     "menu_webapp": {"uz": "🌐 TaxiLine", "ru": "🌐 TaxiLine", "en": "🌐 TaxiLine"},
     "menu_support": {"uz": "🆘 Yordam", "ru": "🆘 Поддержка", "en": "🆘 Support"},
     "menu_become_driver": {"uz": "🚗 Haydovchi bo'lish", "ru": "🚗 Стать водителем", "en": "🚗 Become a driver"},

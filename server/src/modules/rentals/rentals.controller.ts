@@ -46,3 +46,7 @@ export async function deleteAdmin(req: Request, res: Response) {
   await rentalsService.deleteAdmin(req.params.id, req.user!.id)
   res.status(204).end()
 }
+
+export async function browse(req: Request, res: Response) {
+  res.json(await rentalsService.browse(req.query as unknown as Parameters<typeof rentalsService.browse>[0]))
+}

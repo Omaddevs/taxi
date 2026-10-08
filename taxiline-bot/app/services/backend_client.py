@@ -129,6 +129,20 @@ class BackendClient:
             body = None
         return resp.status_code, body
 
+    async def rent_browse(self, kind: str, index: int, lat: float | None, lng: float | None) -> dict | None:
+        """One "Skuter ijara" card (listing or rental point), nearest first when a location is
+        given. None if the server can't be reached."""
+        params: dict = {"kind": kind, "index": index}
+        if lat is not None and lng is not None:
+            params.update(lat=lat, lng=lng)
+        try:
+            resp = await self._client.get("/rentals/browse", params=params)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception:
+            logger.exception("rent_browse failed")
+            return None
+
     async def telegram_login_token(self, telegram_id: int) -> str | None:
         resp = await self._client.post("/bot/telegram-login-token", json={"telegramId": str(telegram_id)})
         if resp.status_code == 404:

@@ -8,6 +8,7 @@ import {
   adminCreateRentalSchema,
   adminListRentalsQuerySchema,
   adminUpdateRentalSchema,
+  browseRentalsQuerySchema,
   createRentalSchema,
   listRentalsQuerySchema,
   rentalIdParamSchema,
@@ -21,6 +22,8 @@ const owner = [requireAuth, requireRole('PASSENGER', 'DRIVER')]
 
 rentalsRouter.get('/', validate({ query: listRentalsQuerySchema }), asyncRoute(rentalsController.listPublic))
 rentalsRouter.get('/mine', ...owner, asyncRoute(rentalsController.listMine))
+// Telegram bot browsing (public data, one card per call).
+rentalsRouter.get('/browse', validate({ query: browseRentalsQuerySchema }), asyncRoute(rentalsController.browse))
 rentalsRouter.get('/:id', validate({ params: rentalIdParamSchema }), asyncRoute(rentalsController.getPublic))
 rentalsRouter.post(
   '/',

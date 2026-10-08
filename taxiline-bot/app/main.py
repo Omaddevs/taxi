@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand, BotCommandScopeAllChatAdministrators, ErrorEvent
 
 from app.config import settings
-from app.handlers import cargo_claim, driver_flow, driver_menu, giveaway, group_commands, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
+from app.handlers import cargo_claim, driver_flow, rent, driver_menu, giveaway, group_commands, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
 from app.handlers.admin import admins as admin_admins
 from app.handlers.admin import broadcast as admin_broadcast
 from app.handlers.admin import complaints as admin_complaints
@@ -58,6 +58,7 @@ def build_dispatcher() -> Dispatcher:
         start.router,
         giveaway.router,
         trip_flow.router,
+        rent.router,
         order_claim.router,
         cargo_claim.router,
         otp_confirm.router,

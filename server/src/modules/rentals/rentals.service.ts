@@ -209,3 +209,138 @@ export async function deleteAdmin(id: string, actorId: string) {
   await prisma.rentalListing.delete({ where: { id } })
   await writeAudit({ actorId, action: 'RENTAL_DELETED', targetType: 'RentalListing', targetId: id, meta: { title: existing.title } })
 }
+
+// ---------------------------------------------------------------------------------------------
+// Telegram bot — one card at a time
+// ---------------------------------------------------------------------------------------------
+
+const VEHICLE_LABELS: Record<RentalVehicleType, string> = {
+  SCOOTER: 'Skuter',
+  E_SCOOTER: 'Elektr samokat',
+  BICYCLE: 'Velosiped',
+  E_BIKE: 'Elektr velosiped',
+  MOTORCYCLE: 'Mototsikl',
+}
+
+function som(n: number) {
+  return `${new Intl.NumberFormat('ru-RU').format(n).replace(/ /g, ' ')} so'm`
+}
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
+
+export interface BrowseCard {
+  id: string
+  kind: 'listing' | 'point'
+  title: string
+  badge: string
+  owner: string | null
+  price: string | null
+  deposit: string | null
+  specs: string | null
+  hours: string | null
+  address: string | null
+  description: string | null
+  phone: string | null
+  telegram: string | null
+  lat: number | null
+  lng: number | null
+  photo: string | null
+  featured: boolean
+}
+
+async function browseCards(kind: 'listing' | 'point'): Promise<(BrowseCard & { createdAt: Date })[]> {
+  if (kind === 'point') {
+    const places = await prisma.mapPlace.findMany({ where: { active: true, category: 'SCOOTER' }, orderBy: { updatedAt: 'desc' } })
+    return places.map((p) => {
+      const prices = Array.isArray(p.prices) ? (p.prices as { title: string; price: number }[]) : []
+      return {
+        id: p.id,
+        kind,
+        title: p.name,
+        badge: 'Ijara nuqtasi',
+        owner: p.brand,
+        price: prices.length ? prices.slice(0, 4).map((r) => `${r.title}: ${som(r.price)}`).join(' · ') : null,
+        deposit: null,
+        specs: null,
+        hours: p.hours,
+        address: p.address,
+        description: p.description ? p.description.slice(0, 400) : null,
+        phone: p.phone,
+        telegram: null,
+        lat: p.lat,
+        lng: p.lng,
+        photo: p.imageUrl,
+        featured: false,
+        createdAt: p.createdAt,
+      }
+    })
+  }
+
+  const rows = await prisma.rentalListing.findMany({
+    where: { status: 'APPROVED', active: true },
+    orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }],
+    take: 300,
+  })
+  return rows.map((l) => {
+    const prices = [
+      l.pricePerHour ? `${som(l.pricePerHour)}/soat` : null,
+      l.pricePerDay ? `${som(l.pricePerDay)}/kun` : null,
+      l.pricePerWeek ? `${som(l.pricePerWeek)}/hafta` : null,
+    ].filter(Boolean)
+    const specs = [
+      l.maxSpeed ? `${l.maxSpeed} km/soat` : null,
+      l.rangeKm ? `${l.rangeKm} km zaryad` : null,
+      l.licenseRequired ? 'guvohnoma kerak' : null,
+    ].filter(Boolean)
+    const photos = photosOf(l)
+    return {
+      id: l.id,
+      kind,
+      title: l.title,
+      badge: VEHICLE_LABELS[l.vehicleType],
+      owner: l.ownerType === 'COMPANY' ? l.companyName : l.contactName,
+      price: prices.join(' · ') || null,
+      deposit: l.deposit ? som(l.deposit) : null,
+      specs: specs.join(' · ') || null,
+      hours: null,
+      address: l.address,
+      description: l.description ? l.description.slice(0, 400) : null,
+      phone: l.phone,
+      telegram: l.telegram,
+      lat: l.lat,
+      lng: l.lng,
+      photo: photos[0] ?? null,
+      featured: l.featured,
+      createdAt: l.createdAt,
+    }
+  })
+}
+
+/**
+ * The bot shows one listing (or rental point) per message with ◀️ / ▶️. With the user's
+ * location the nearest come first (ones without a pin go last); otherwise TOP, then newest.
+ * `index` wraps around, so "next" on the last card shows the first.
+ */
+export async function browse(q: { kind: 'listing' | 'point'; lat?: number; lng?: number; index: number }) {
+  const cards = await browseCards(q.kind)
+  const origin = q.lat != null && q.lng != null ? { lat: q.lat, lng: q.lng } : null
+  const withKm = cards.map((c) => ({
+    ...c,
+    distanceKm: origin && c.lat != null && c.lng != null ? haversineKm(origin, { lat: c.lat, lng: c.lng }) : null,
+  }))
+  if (origin) {
+    withKm.sort((a, b) => (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY))
+  }
+
+  const total = withKm.length
+  if (!total) return { kind: q.kind, total: 0, index: 0, item: null }
+  const index = ((q.index % total) + total) % total
+  const { createdAt: _createdAt, ...item } = withKm[index]
+  return { kind: q.kind, total, index, item }
+}

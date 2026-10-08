@@ -88,3 +88,11 @@ export type CreateRentalInput = z.infer<typeof createRentalSchema>
 export type UpdateRentalInput = z.infer<typeof updateRentalSchema>
 export type AdminCreateRentalInput = z.infer<typeof adminCreateRentalSchema>
 export type AdminUpdateRentalInput = z.infer<typeof adminUpdateRentalSchema>
+
+// Telegram bot "🛵 Skuter ijara": one card at a time, nearest first.
+export const browseRentalsQuerySchema = z.object({
+  kind: z.enum(['listing', 'point']).default('listing'),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  index: z.coerce.number().int().min(-100000).max(100000).default(0),
+})
