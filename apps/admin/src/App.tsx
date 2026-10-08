@@ -25,6 +25,7 @@ import WomenOrders from './pages/WomenOrders'
 import Services from './pages/Services'
 import Cars from './pages/Cars'
 import MapPlaces from './pages/MapPlaces'
+import Rentals from './pages/Rentals'
 import SubscriptionPlans from './pages/SubscriptionPlans'
 import Promo from './pages/Promo'
 import Finance from './pages/Finance'
@@ -272,6 +273,14 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <MapPlaces />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/rentals"
+          element={
+            <RequireRole roles={['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR']}>
+              <Rentals />
             </RequireRole>
           }
         />

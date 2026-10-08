@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff, MapPin, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react'
-import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api, ApiError } from '../lib/api'
@@ -11,26 +12,14 @@ import { Field, inputClass } from '../components/ui/Chart'
 import { FilterPills } from '../components/ui/Filters'
 import { EmptyState, SkeletonTable } from '../components/ui/EmptyState'
 import { Modal } from '../components/ui/Modal'
+import { CoordinatePicker, Tiles } from '../components/ui/CoordinatePicker'
+import { pinIcon } from '../lib/mapPin'
 import { fileToImageDataUrl } from '../lib/image'
-import { CATEGORY_COLOR, CATEGORY_LABEL, DEFAULT_CENTER, PLACE_CATEGORIES, parseCoordinates } from '../lib/mapPlaces'
+import { CATEGORY_COLOR, CATEGORY_LABEL, DEFAULT_CENTER, PLACE_CATEGORIES } from '../lib/mapPlaces'
 import { formatDateTime } from '../lib/utils'
 import type { MapPlaceCategory, MapPlacePrice, MapPlaceRow } from '../types'
 
 const QUERY_KEY = ['admin-map-places']
-
-function pinIcon(color: string, selected = false) {
-  const size = selected ? 22 : 16
-  return L.divIcon({
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:9999px;background:${color};border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)"></span>`,
-  })
-}
-
-function Tiles() {
-  return <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} />
-}
 
 // ---------------------------------------------------------------------------------------------
 // Page
@@ -38,7 +27,9 @@ function Tiles() {
 
 export default function MapPlaces() {
   const queryClient = useQueryClient()
-  const [category, setCategory] = useState('')
+  const [searchParams] = useSearchParams()
+  // "Skuter ijara" sahifasidagi "Ijara nuqtalari" tugmasi ?category=SCOOTER bilan ochadi.
+  const [category, setCategory] = useState(searchParams.get('category') ?? '')
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
@@ -235,7 +226,13 @@ export default function MapPlaces() {
         </Card>
       )}
 
-      <PlaceModal key={editing?.id ?? 'new'} open={modalOpen} editing={editing} onClose={() => setModalOpen(false)} />
+      <PlaceModal
+        key={editing?.id ?? `new-${category}`}
+        open={modalOpen}
+        editing={editing}
+        defaultCategory={(category || undefined) as MapPlaceCategory | undefined}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   )
 }
@@ -276,33 +273,21 @@ function OverviewMap({ places, onSelect }: { places: MapPlaceRow[]; onSelect: (p
 // Create / edit modal
 // ---------------------------------------------------------------------------------------------
 
-function ClickToPick({ onPick }: { onPick: (lat: number, lng: number) => void }) {
-  useMapEvents({ click: (e) => onPick(e.latlng.lat, e.latlng.lng) })
-  return null
-}
-
-function FollowPoint({ point }: { point: [number, number] | null }) {
-  const map = useMap()
-  useEffect(() => {
-    // The modal mounts the map before its box has its final size.
-    const t = setTimeout(() => map.invalidateSize(), 120)
-    return () => clearTimeout(t)
-  }, [map])
-  useEffect(() => {
-    if (point) map.setView(point, Math.max(map.getZoom(), 15))
-  }, [point, map])
-  return null
-}
-
-function round(n: number) {
-  return Math.round(n * 1e6) / 1e6
-}
-
 type PriceDraft = { title: string; price: string }
 
-function PlaceModal({ open, editing, onClose }: { open: boolean; editing: MapPlaceRow | null; onClose: () => void }) {
+function PlaceModal({
+  open,
+  editing,
+  defaultCategory,
+  onClose,
+}: {
+  open: boolean
+  editing: MapPlaceRow | null
+  defaultCategory?: MapPlaceCategory
+  onClose: () => void
+}) {
   const queryClient = useQueryClient()
-  const [category, setCategory] = useState<MapPlaceCategory>(editing?.category ?? 'FUEL')
+  const [category, setCategory] = useState<MapPlaceCategory>(editing?.category ?? defaultCategory ?? 'FUEL')
   const [name, setName] = useState(editing?.name ?? '')
   const [brand, setBrand] = useState(editing?.brand ?? '')
   const [address, setAddress] = useState(editing?.address ?? '')
@@ -312,43 +297,11 @@ function PlaceModal({ open, editing, onClose }: { open: boolean; editing: MapPla
   const [imageUrl, setImageUrl] = useState(editing?.imageUrl ?? '')
   const [active, setActive] = useState(editing?.active ?? true)
   const [point, setPoint] = useState<[number, number] | null>(editing ? [editing.lat, editing.lng] : null)
-  const [latText, setLatText] = useState(editing ? String(editing.lat) : '')
-  const [lngText, setLngText] = useState(editing ? String(editing.lng) : '')
-  const [link, setLink] = useState('')
-  const [linkError, setLinkError] = useState('')
   const [prices, setPrices] = useState<PriceDraft[]>(
     (editing?.prices ?? []).map((p) => ({ title: p.title, price: String(p.price) })),
   )
   const [error, setError] = useState('')
   const [imageBusy, setImageBusy] = useState(false)
-
-  function setCoords(lat: number, lng: number) {
-    const next: [number, number] = [round(lat), round(lng)]
-    setPoint(next)
-    setLatText(String(next[0]))
-    setLngText(String(next[1]))
-  }
-
-  function onCoordInput(which: 'lat' | 'lng', value: string) {
-    if (which === 'lat') setLatText(value)
-    else setLngText(value)
-    const lat = Number(which === 'lat' ? value : latText)
-    const lng = Number(which === 'lng' ? value : lngText)
-    if (value.trim() && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
-      setPoint([lat, lng])
-    }
-  }
-
-  function applyLink() {
-    const coords = parseCoordinates(link)
-    if (!coords) {
-      setLinkError('Koordinata topilmadi. Google/Yandex xarita havolasini yoki "41.31, 69.27" ko‘rinishini kiriting.')
-      return
-    }
-    setLinkError('')
-    setLink('')
-    setCoords(coords[0], coords[1])
-  }
 
   async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -438,50 +391,7 @@ function PlaceModal({ open, editing, onClose }: { open: boolean; editing: MapPla
         </div>
 
         <Field label="Joylashuv * — xaritani bosing yoki nuqtani suring">
-          <div className="space-y-2">
-            <div className="isolate h-[260px] overflow-hidden rounded-xl border border-line">
-              <MapContainer center={point ?? DEFAULT_CENTER} zoom={point ? 16 : 12} className="h-full w-full" attributionControl={false}>
-                <Tiles />
-                <ClickToPick onPick={setCoords} />
-                <FollowPoint point={point} />
-                {point ? (
-                  <Marker
-                    position={point}
-                    draggable
-                    icon={pinIcon(CATEGORY_COLOR[category], true)}
-                    eventHandlers={{
-                      dragend: (e) => {
-                        const ll = (e.target as L.Marker).getLatLng()
-                        setCoords(ll.lat, ll.lng)
-                      },
-                    }}
-                  />
-                ) : null}
-              </MapContainer>
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    applyLink()
-                  }
-                }}
-                className={inputClass}
-                placeholder="Google yoki Yandex xarita havolasi, yoki 41.3111, 69.2797"
-              />
-              <Button type="button" variant="outline" onClick={applyLink} disabled={!link.trim()}>
-                Qo‘llash
-              </Button>
-            </div>
-            {linkError ? <p className="text-xs font-semibold text-red-500">{linkError}</p> : null}
-            <div className="grid grid-cols-2 gap-2">
-              <input value={latText} onChange={(e) => onCoordInput('lat', e.target.value)} className={inputClass} placeholder="Kenglik (lat)" inputMode="decimal" />
-              <input value={lngText} onChange={(e) => onCoordInput('lng', e.target.value)} className={inputClass} placeholder="Uzunlik (lng)" inputMode="decimal" />
-            </div>
-          </div>
+          <CoordinatePicker value={point} onChange={setPoint} color={CATEGORY_COLOR[category]} />
         </Field>
 
         <Field label="Tavsif (ixtiyoriy)">

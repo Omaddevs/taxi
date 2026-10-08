@@ -33,6 +33,7 @@ import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter }
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
 import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
 import { adminMapPlacesRouter, mapPlacesRouter } from './modules/mapPlaces/mapPlaces.routes.js'
+import { adminRentalsRouter, rentalsRouter } from './modules/rentals/rentals.routes.js'
 import { adminGiveawayRouter, botGiveawayRouter, giveawayRouter } from './modules/giveaway/giveaway.routes.js'
 import { adminNewsRouter, newsRouter } from './modules/news/news.routes.js'
 import { publicStatsRouter } from './modules/publicStats/publicStats.routes.js'
@@ -99,6 +100,8 @@ export function createApp() {
   app.use('/admin/cars', adminCarsRouter)
   app.use('/places', mapPlacesRouter)
   app.use('/admin/places', adminMapPlacesRouter)
+  app.use('/rentals', rentalsRouter)
+  app.use('/admin/rentals', adminRentalsRouter)
   app.use('/admin/subscription-plans', adminSubscriptionPlansRouter)
   app.use('/admin/driver-subscriptions', adminDriverSubscriptionsRouter)
   app.use('/admin/analytics', adminAnalyticsRouter)

@@ -7,6 +7,7 @@ export const MAP_PLACE_CATEGORIES = [
   { id: 'EV', label: 'EV zaryad', color: '#7c3aed' },
   { id: 'FOOD', label: 'Oshxona', color: '#e11d48' },
   { id: 'HELP', label: 'Yordam', color: '#64748b' },
+  { id: 'SCOOTER', label: 'Skuter ijara', color: '#00b5c2' },
   { id: 'OTHER', label: 'Boshqa', color: '#2563eb' },
 ]
 

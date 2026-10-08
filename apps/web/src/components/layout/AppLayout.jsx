@@ -3,6 +3,7 @@ import { MobileDrawer } from './MobileDrawer'
 import { Sidebar } from './Sidebar'
 import { TopHeader } from './TopHeader'
 import { LocationPicker } from '../location/LocationPicker'
+import { RentMarketHost } from '../rent/RentMarketHost'
 import { useApp } from '../../context/AppContext'
 
 const fullBleed = ['/driver', '/sos']
@@ -74,6 +75,7 @@ export function AppLayout() {
       </div>
       <MobileDrawer />
       <LocationPicker />
+      <RentMarketHost />
     </div>
   )
 }

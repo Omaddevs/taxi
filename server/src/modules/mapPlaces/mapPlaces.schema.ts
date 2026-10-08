@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const mapPlaceCategorySchema = z.enum(['FUEL', 'SERVICE', 'WASH', 'PARKING', 'EV', 'FOOD', 'HELP', 'OTHER'])
+export const mapPlaceCategorySchema = z.enum(['FUEL', 'SERVICE', 'WASH', 'PARKING', 'EV', 'FOOD', 'HELP', 'SCOOTER', 'OTHER'])
 
 // data: URIs from the admin uploader (≈480px webp) stay well under this; anything bigger is a mistake.
 const imageUrlSchema = z

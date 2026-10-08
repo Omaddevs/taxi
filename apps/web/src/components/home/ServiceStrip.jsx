@@ -5,7 +5,9 @@ import { Link } from 'react-router-dom'
 const SERVICES = [
   { to: '/cargo', label: 'Yetkazish', img: '/home/parcel.webp' },
   { to: '/fuel', label: 'Yoqilg‘i', img: '/home/fuel.webp' },
-  { to: '/hub/auto-service', label: 'Avtoservis', img: '/home/service.webp', badge: 'Yangi' },
+  // ?ijara=1 opens the Skuter ijara sheet over this page (components/rent/RentMarketHost.jsx).
+  { to: '?ijara=1', label: 'Skuter ijara', img: '/home/scooter-rent.webp', badge: 'Yangi' },
+  { to: '/hub/auto-service', label: 'Avtoservis', img: '/home/service.webp' },
   { to: '/roadside', label: 'Yo‘lda yordam', img: '/cars/tow.png', wide: true },
   { to: '/map', label: 'Smart xarita', img: '/home/smart-map.png' },
   { to: '/promo', label: 'Promo kodlar', img: '/home/promo.webp' },

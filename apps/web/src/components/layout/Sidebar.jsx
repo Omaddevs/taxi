@@ -1,4 +1,5 @@
 import {
+  Bike,
   Bell,
   Fuel,
   Gift,
@@ -30,6 +31,7 @@ const items = [
   { to: '/roadside', icon: Siren, label: 'Yo‘lda yordam' },
   { to: '/map', icon: Map, label: 'Smart xarita' },
   { to: '/fuel', icon: Fuel, label: 'Yoqilg‘i' },
+  { to: '?ijara=1', icon: Bike, label: 'Skuter ijara', sheet: true },
   { to: '/hub/auto-service', icon: Wrench, label: 'Avtoservis' },
   { to: '/drivers', icon: UserRound, label: 'Haydovchilar' },
   { to: '/favorites', icon: Heart, label: 'Sevimlilar' },
@@ -57,7 +59,7 @@ export function Sidebar({ embedded = false }) {
             onClick={() => setDrawerOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                isActive ? 'bg-brand text-white shadow-sm shadow-brand/20' : 'text-slate-600 hover:bg-canvas'
+                isActive && !item.sheet ? 'bg-brand text-white shadow-sm shadow-brand/20' : 'text-slate-600 hover:bg-canvas'
               }`
             }
           >
@@ -66,7 +68,7 @@ export function Sidebar({ embedded = false }) {
                 <item.icon className="h-[18px] w-[18px]" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge ? (
-                  <span className={`rounded-full px-1.5 text-[10px] font-bold ${isActive ? 'bg-white text-brand' : 'bg-red-500 text-white'}`}>
+                  <span className={`rounded-full px-1.5 text-[10px] font-bold ${isActive && !item.sheet ? 'bg-white text-brand' : 'bg-red-500 text-white'}`}>
                     {item.badge}
                   </span>
                 ) : null}

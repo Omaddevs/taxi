@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import {
+  Bike,
   CalendarClock,
   Car,
   CarFront,
@@ -46,7 +47,7 @@ type NavItem = {
   label: string
   icon: LucideIcon
   end?: boolean
-  badge?: 'pending' | 'newLeads'
+  badge?: 'pending' | 'newLeads' | 'rentals'
   roles: PanelRole[]
 }
 
@@ -80,6 +81,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/listings', label: 'Elonlar', icon: Radio, roles: ['ADMIN'] },
       { to: '/women-orders', label: 'Ayol yo‘lovchilar', icon: Flower2, roles: ['ADMIN'] },
       { to: '/ratings', label: 'Reytinglar', icon: Star, roles: ['ADMIN'] },
+      { to: '/rentals', label: 'Skuter ijara', icon: Bike, badge: 'rentals', roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
     ],
   },
   {
@@ -115,11 +117,13 @@ function SidebarNav({
   role,
   pending,
   newLeads,
+  pendingRentals,
   onNavigate,
 }: {
   role: PanelRole
   pending: number
   newLeads: number
+  pendingRentals: number
   onNavigate?: () => void
 }) {
   return (
@@ -149,6 +153,11 @@ function SidebarNav({
                   {item.badge === 'pending' && pending > 0 ? (
                     <span className="min-w-5 rounded-full bg-white/20 px-1.5 text-center text-[11px] font-bold">
                       {pending}
+                    </span>
+                  ) : null}
+                  {item.badge === 'rentals' && pendingRentals > 0 ? (
+                    <span className="min-w-5 rounded-full bg-amber-400 px-1.5 text-center text-[11px] font-bold text-ink" title="Moderatsiyada">
+                      {pendingRentals}
                     </span>
                   ) : null}
                   {item.badge === 'newLeads' && newLeads > 0 ? (
@@ -215,6 +224,14 @@ export function AdminLayout() {
     enabled: user?.role === 'ADMIN' || user?.role === 'SALES_OPERATOR',
   })
 
+  // Skuter ijara yonidagi raqam: saytdan kelgan, moderatsiyani kutayotgan e’lonlar.
+  const { data: rentalsBadge } = useQuery({
+    queryKey: ['admin-rentals', 'pending-badge'],
+    queryFn: () => api.get<{ id: string }[]>('/admin/rentals?status=PENDING'),
+    refetchInterval: 60_000,
+    enabled: Boolean(user),
+  })
+
   // Cheap presence signal: ping every 30s while the panel tab is open so teammates see this
   // account as "online" in the Operators list (see staff.service's 90s online window).
   useEffect(() => {
@@ -229,6 +246,7 @@ export function AdminLayout() {
 
   const pending = data?.pendingApplications ?? 0
   const newLeads = leadsBadge?.length ?? 0
+  const pendingRentals = rentalsBadge?.length ?? 0
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -258,7 +276,7 @@ export function AdminLayout() {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <SidebarNav role={user.role} pending={pending} newLeads={newLeads} onNavigate={() => setOpen(false)} />
+        <SidebarNav role={user.role} pending={pending} newLeads={newLeads} pendingRentals={pendingRentals} onNavigate={() => setOpen(false)} />
         <div className="border-t border-white/10 px-3 py-4">
           <div className="mb-2 truncate px-3 text-xs font-semibold text-white/50">{user.name || user.phone}</div>
           <div className="mb-2">

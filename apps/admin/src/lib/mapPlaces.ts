@@ -9,6 +9,7 @@ export const PLACE_CATEGORIES: { value: MapPlaceCategory; label: string; color: 
   { value: 'EV', label: 'EV zaryad', color: '#7c3aed' },
   { value: 'FOOD', label: 'Oshxona', color: '#e11d48' },
   { value: 'HELP', label: 'Yordam', color: '#64748b' },
+  { value: 'SCOOTER', label: 'Skuter ijara', color: '#00b5c2' },
   { value: 'OTHER', label: 'Boshqa', color: '#2563eb' },
 ]
 

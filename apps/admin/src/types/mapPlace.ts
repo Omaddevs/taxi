@@ -1,4 +1,4 @@
-export type MapPlaceCategory = 'FUEL' | 'SERVICE' | 'WASH' | 'PARKING' | 'EV' | 'FOOD' | 'HELP' | 'OTHER'
+export type MapPlaceCategory = 'FUEL' | 'SERVICE' | 'WASH' | 'PARKING' | 'EV' | 'FOOD' | 'HELP' | 'SCOOTER' | 'OTHER'
 
 export interface MapPlacePrice {
   title: string

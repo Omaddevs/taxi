@@ -70,6 +70,8 @@ export function PlacesMap({
   emptyText,
   art,
   onBack,
+  // Fill the parent box (e.g. inside the Skuter ijara sheet) instead of sizing to the viewport.
+  fill = false,
 }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -117,8 +119,8 @@ export function PlacesMap({
 
   return (
     <div
-      className={`relative isolate overflow-hidden bg-canvas lg:h-[calc(100svh-7rem)] lg:rounded-2xl ${
-        inDriver ? 'h-[calc(100svh-4.5rem)]' : 'h-svh'
+      className={`relative isolate overflow-hidden bg-canvas ${
+        fill ? 'h-full' : `lg:h-[calc(100svh-7rem)] lg:rounded-2xl ${inDriver ? 'h-[calc(100svh-4.5rem)]' : 'h-svh'}`
       }`}
     >
       <div className="absolute inset-0">
