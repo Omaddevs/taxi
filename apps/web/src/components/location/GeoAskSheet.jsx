@@ -59,7 +59,8 @@ export function useMapGeo(enabled = true) {
   }
 }
 
-export function GeoAskSheet({ open, status, onAllow, onSkip }) {
+// `text` swaps the default (places-map) explanation for a screen-specific one, e.g. taxi pickup.
+export function GeoAskSheet({ open, status, onAllow, onSkip, text }) {
   if (!open) return null
 
   const pending = status === 'pending'
@@ -97,10 +98,10 @@ export function GeoAskSheet({ open, status, onAllow, onSkip }) {
                 ? 'Xaritadan saqlangan manzil atrofini ko‘rsatamiz. Manzilni qo‘lda tanlashingiz mumkin.'
                 : error
                   ? 'Signal zaif bo‘lishi mumkin. Qayta urinib ko‘ring yoki saqlangan manzildan davom eting.'
-                  : 'Yaqin shahobcha, moyka, parking va oshxonani xaritada to‘g‘ri belgilash uchun geolokatsiya kerak.'}
+                  : text || 'Yaqin shahobcha, moyka, parking va oshxonani xaritada to‘g‘ri belgilash uchun geolokatsiya kerak.'}
         </p>
 
-        {!pending && !denied && !error && !unsupported ? (
+        {!text && !pending && !denied && !error && !unsupported ? (
           <ul className="mt-4 space-y-2.5 rounded-2xl bg-canvas px-4 py-3 text-sm font-semibold">
             <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-brand" /> Yaqinlar yashil, uzoqlar alohida rangda

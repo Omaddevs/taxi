@@ -1,19 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ChevronRight, Heart, Loader2, MapPin, Navigation, PersonStanding, Search, ShieldCheck } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MapContainer, useMap, useMapEvents } from 'react-leaflet'
+import { Circle, MapContainer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useApp } from '../context/AppContext'
 import { useRecentTrips } from '../lib/queries'
 import { DEFAULT_LOCATION, extractCity, formatAddress, reverseGeocode } from '../lib/geocode'
 import { formatPlace, matchRegion } from '../data/uzbekistan'
 import { BaseTiles } from '../components/map/BaseTiles'
+import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
+import { haversineKm } from '../lib/geo'
 import { RegionPicker } from '../components/ui/SearchPickers'
 
 // Xarita surilib to‘xtaganda markazdagi nuqtani "olib ketish" manzili qilib olamiz.
-function CenterWatcher({ onMoveStart, onMoveEnd }) {
+function CenterWatcher({ onMoveStart, onMoveEnd, onDragStart }) {
   const map = useMapEvents({
     movestart: onMoveStart,
+    dragstart: onDragStart,
     moveend: () => onMoveEnd(map.getCenter()),
   })
   useEffect(() => {
@@ -34,19 +38,31 @@ function FlyTo({ target }) {
 
 // `women` — "Ayollar uchun Taxi": xuddi shu xarita, lekin pushti rangda va qidiruv ayol haydovchilarga cheklanadi.
 const ACCENTS = {
-  brand: { solid: 'bg-brand', dot: 'bg-brand ring-4 ring-brand/20' },
-  women: { solid: 'bg-[#f5559a]', dot: 'bg-[#f5559a] ring-4 ring-[#f5559a]/20' },
+  brand: { solid: 'bg-brand', dot: 'bg-brand ring-4 ring-brand/20', hex: '#00c7d4' },
+  women: { solid: 'bg-[#f5559a]', dot: 'bg-[#f5559a] ring-4 ring-[#f5559a]/20', hex: '#f5559a' },
 }
+
+// The pickup pin is free to move; this marks where the passenger really is. Once the pin is
+// dragged away it gets a "Siz shu yerdasiz" tag, so the two are never confused.
+function meIcon(color, tagged) {
+  return L.divIcon({
+    className: 'me-marker',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    html: `<span class="me-wrap" style="--me:${color}">${tagged ? '<span class="me-label">Siz shu yerdasiz</span>' : ''}<span class="me-puck"></span></span>`,
+  })
+}
+
+// Pin counts as "on me" within this many metres of the GPS fix.
+const ON_ME_M = 30
 
 export default function TaxiMap({ women = false }) {
   const accent = women ? ACCENTS.women : ACCENTS.brand
-  const { gpsFix, location, requestUserLocation, search, setSearch } = useApp()
+  const { gpsFix, gpsStatus, location, requestUserLocation, search, setSearch } = useApp()
   const navigate = useNavigate()
   const { data: recentTrips = [] } = useRecentTrips(10)
 
   const hasGps = gpsFix && !gpsFix.error && Number.isFinite(gpsFix.lat)
-  const hasLocation =
-    Boolean(location?.label) && !(location.lat === DEFAULT_LOCATION.lat && location.lng === DEFAULT_LOCATION.lng)
   // Faqat birinchi renderdagi markaz — keyin xaritani foydalanuvchi o‘zi suradi.
   const [initialCenter] = useState(() =>
     hasGps ? [gpsFix.lat, gpsFix.lng] : [location.lat ?? DEFAULT_LOCATION.lat, location.lng ?? DEFAULT_LOCATION.lng],
@@ -58,7 +74,14 @@ export default function TaxiMap({ women = false }) {
   const [locating, setLocating] = useState(false)
   const [notice, setNotice] = useState('')
   const [picker, setPicker] = useState(null)
+  const [center, setCenter] = useState(null)
   const requestId = useRef(0)
+  // Asks for location every time the taxi map opens (with our own explainer first), then keeps
+  // watching so a coarse first fix sharpens as GPS locks on.
+  const geo = useMapGeo()
+  // Once the passenger drags the map themselves, GPS updates stop moving it.
+  const userDragged = useRef(false)
+  const lastFly = useRef(null)
 
   const update = (patch) => setSearch((s) => ({ ...s, ...patch }))
 
@@ -67,21 +90,19 @@ export default function TaxiMap({ women = false }) {
     setSearch((s) => ({ ...s, service: women ? 'women' : 'all' }))
   }, [women, setSearch])
 
-  // GPS hali olinmagan bo‘lsa — sahifa ochilganda bir marta so‘raymiz.
+  // Follow the GPS until the passenger takes over: fly on the first fix, then again whenever a
+  // clearly sharper or moved fix arrives (first fixes are often cell-tower guesses, ±500 m+).
   useEffect(() => {
-    if (!hasGps && !hasLocation) requestUserLocation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // GPS keyinroq kelsa — xaritani yo‘lovchi turgan joyga olib boramiz.
-  const gpsKey = hasGps ? `${gpsFix.lat},${gpsFix.lng}` : ''
-  const flewToGps = useRef(false)
-  useEffect(() => {
-    if (!gpsKey || flewToGps.current) return
-    flewToGps.current = true
+    if (!hasGps || userDragged.current) return
+    const prev = lastFly.current
+    if (prev) {
+      const movedM = haversineKm(prev, gpsFix) * 1000
+      const sharper = gpsFix.accuracy && prev.accuracy && gpsFix.accuracy < prev.accuracy * 0.7
+      if (!sharper && movedM < 40) return
+    }
+    lastFly.current = { lat: gpsFix.lat, lng: gpsFix.lng, accuracy: gpsFix.accuracy }
     setFlyTarget({ center: [gpsFix.lat, gpsFix.lng], at: Date.now() })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gpsKey])
+  }, [hasGps, gpsFix])
 
   useEffect(() => {
     if (!notice) return
@@ -91,6 +112,7 @@ export default function TaxiMap({ women = false }) {
 
   const resolvePickup = async ({ lat, lng }) => {
     setMoving(false)
+    setCenter({ lat, lng })
     const id = ++requestId.current
     setResolving(true)
     try {
@@ -112,6 +134,14 @@ export default function TaxiMap({ women = false }) {
 
   const showMyLocation = async () => {
     if (locating) return
+    userDragged.current = false
+    // No permission yet (or it failed) — show the explainer, whose button triggers the browser prompt.
+    if (!hasGps && gpsStatus !== 'pending') {
+      geo.reopen()
+      return
+    }
+    if (hasGps) setFlyTarget({ center: [gpsFix.lat, gpsFix.lng], at: Date.now() })
+    lastFly.current = null
     setLocating(true)
     const result = await requestUserLocation()
     setLocating(false)
@@ -124,13 +154,11 @@ export default function TaxiMap({ women = false }) {
     }
   }
 
-  // requestUserLocation gpsFix'ni yangilaydi — "joriy joylashuv" bosilganda shunga uchamiz.
-  const lastFixAt = useRef(gpsFix?.at)
-  useEffect(() => {
-    if (!hasGps || gpsFix.at === lastFixAt.current) return
-    lastFixAt.current = gpsFix.at
-    if (flewToGps.current) setFlyTarget({ center: [gpsFix.lat, gpsFix.lng], at: gpsFix.at })
-  }, [hasGps, gpsFix])
+  const offMeM = hasGps && center ? haversineKm(center, gpsFix) * 1000 : Number.POSITIVE_INFINITY
+  const onMe = offMeM <= ON_ME_M
+  const meMarkerIcon = useMemo(() => meIcon(accent.hex, hasGps && !onMe), [accent.hex, hasGps, onMe])
+  // Only nag while the pin still sits on the fuzzy fix — once moved, the passenger has chosen.
+  const roughFix = hasGps && gpsFix.accuracy > 100 && onMe
 
   const destinations = useMemo(() => {
     const seen = new Set()
@@ -167,28 +195,54 @@ export default function TaxiMap({ women = false }) {
           className="home-map h-full w-full"
         >
           <BaseTiles />
-          <CenterWatcher onMoveStart={() => setMoving(true)} onMoveEnd={resolvePickup} />
+          <CenterWatcher
+            onMoveStart={() => setMoving(true)}
+            onMoveEnd={resolvePickup}
+            onDragStart={() => {
+              userDragged.current = true
+            }}
+          />
           <FlyTo target={flyTarget} />
+          {hasGps ? (
+            <>
+              {gpsFix.accuracy > 15 ? (
+                <Circle
+                  center={[gpsFix.lat, gpsFix.lng]}
+                  radius={Math.min(gpsFix.accuracy, 1500)}
+                  interactive={false}
+                  pathOptions={{ color: accent.hex, weight: 1, opacity: 0.35, fillColor: accent.hex, fillOpacity: 0.1 }}
+                />
+              ) : null}
+              <Marker position={[gpsFix.lat, gpsFix.lng]} icon={meMarkerIcon} interactive={false} />
+            </>
+          ) : null}
         </MapContainer>
       </div>
 
-      {/* Markazdagi "olib ketish" belgisi — xarita uning ostida suriladi. */}
-      <div className="pointer-events-none absolute left-1/2 top-[calc(50%-110px)] z-[500] flex -translate-x-1/2 flex-col items-center">
+      {/* Markazdagi "olib ketish" belgisi — xarita uning ostida suriladi. Pastki nuqta aynan xarita
+          markazida turadi: manzil ham, buyurtma ham shu nuqtadan olinadi. */}
+      <div className="pointer-events-none absolute bottom-1/2 left-1/2 z-[500] flex -translate-x-1/2 translate-y-[5px] flex-col items-center">
         <div
-          className={`flex items-center gap-2 rounded-2xl bg-white py-1.5 pl-1.5 pr-3.5 shadow-[0_8px_24px_rgba(16,42,67,0.18)] transition-transform ${
-            moving ? '-translate-y-2' : ''
+          className={`flex items-center gap-2.5 rounded-[18px] bg-white py-1.5 pl-1.5 pr-4 shadow-[0_10px_28px_rgba(16,42,67,0.22)] transition-transform duration-200 ${
+            moving ? '-translate-y-3' : ''
           }`}
         >
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${accent.solid}`}>
+          <span className={`flex h-11 w-11 items-center justify-center rounded-[14px] text-white ${accent.solid}`}>
             <PersonStanding className="h-6 w-6" strokeWidth={2.4} />
           </span>
           <span className="leading-tight">
-            <span className="block text-[12px] text-muted">Olib ketish</span>
-            <span className="block text-[15px] font-bold text-ink">Shu yerdan</span>
+            <span className="block text-[13px] font-semibold text-muted">Olib ketish</span>
+            <span className="block whitespace-nowrap text-[16px] font-extrabold text-ink">
+              {moving || resolving ? 'Aniqlanmoqda…' : onMe ? 'Turgan joyingiz' : 'Shu yerdan'}
+            </span>
           </span>
         </div>
-        <span className={`h-6 w-0.5 bg-ink transition-transform ${moving ? '-translate-y-2' : ''}`} />
-        <span className="h-2 w-2 rounded-full bg-ink/40" />
+        <span className={`h-7 w-[3px] rounded-full bg-ink transition-transform duration-200 ${moving ? '-translate-y-3' : ''}`} />
+        <span
+          className={`h-2.5 w-2.5 rounded-full border-2 border-white bg-ink shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-all duration-200 ${
+            moving ? 'scale-75 opacity-60' : ''
+          }`}
+        />
       </div>
 
       <header className="absolute inset-x-0 top-0 z-[600] flex justify-center px-16 pt-[max(14px,env(safe-area-inset-top))]">
@@ -202,6 +256,20 @@ export default function TaxiMap({ women = false }) {
           <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
         </button>
       </header>
+
+      {!notice && (gpsStatus === 'pending' || roughFix) ? (
+        <div className="pointer-events-none absolute inset-x-0 top-[calc(max(14px,env(safe-area-inset-top))+56px)] z-[600] flex justify-center px-4">
+          <p className="flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-center text-[12px] font-semibold text-ink shadow-md">
+            {gpsStatus === 'pending' ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" /> Joylashuv aniqlanmoqda…
+              </>
+            ) : (
+              <>Joylashuv taxminiy (±{Math.round(gpsFix.accuracy)} m). Pinni aniq joyga suring</>
+            )}
+          </p>
+        </div>
+      ) : null}
 
       {notice ? (
         <div
@@ -229,7 +297,11 @@ export default function TaxiMap({ women = false }) {
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
             aria-label="Joriy joylashuv"
           >
-            {locating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" strokeWidth={2.2} />}
+            {locating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Navigation className={`h-5 w-5 ${hasGps && onMe ? 'fill-brand text-brand' : ''}`} strokeWidth={2.2} />
+            )}
           </button>
         </div>
 
@@ -309,6 +381,14 @@ export default function TaxiMap({ women = false }) {
         open={picker === 'to'}
         onToggle={() => setPicker((cur) => (cur === 'to' ? null : 'to'))}
         onClose={() => setPicker(null)}
+      />
+
+      <GeoAskSheet
+        open={geo.open}
+        status={geo.status}
+        onAllow={geo.allow}
+        onSkip={geo.skip}
+        text="Haydovchi sizni aynan turgan joyingizdan olib ketishi uchun joylashuvingiz kerak. U faqat buyurtma uchun ishlatiladi."
       />
     </div>
   )
