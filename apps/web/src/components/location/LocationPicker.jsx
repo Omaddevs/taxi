@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Circle, CircleMarker, MapContainer, useMap, useMapEvents } from 'react-leaflet'
+import { Circle, MapContainer, Marker, useMap, useMapEvents } from 'react-leaflet'
+import { meLocationIcon } from '../../lib/meMarker'
 import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, Search, X } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode, searchPlaces } from '../../lib/geocode'
@@ -38,6 +39,8 @@ function MapController({ focus, onDragging, onIdle }) {
   return null
 }
 
+const ME_ICON = meLocationIcon()
+
 function GpsLayer({ gps }) {
   if (!gps?.lat || !gps?.lng) return null
   const radius = Math.min(Math.max(gps.accuracy || 40, 22), 160)
@@ -48,11 +51,7 @@ function GpsLayer({ gps }) {
         radius={radius}
         pathOptions={{ color: '#00c7d4', fillColor: '#00c7d4', fillOpacity: 0.14, weight: 1 }}
       />
-      <CircleMarker
-        center={[gps.lat, gps.lng]}
-        radius={7}
-        pathOptions={{ color: '#fff', weight: 3, fillColor: '#00c7d4', fillOpacity: 1 }}
-      />
+      <Marker position={[gps.lat, gps.lng]} icon={ME_ICON} interactive={false} />
     </>
   )
 }

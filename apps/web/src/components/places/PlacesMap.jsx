@@ -10,6 +10,7 @@ import { googleMapsUrl } from '../../lib/geo'
 import { BaseTiles } from '../map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from '../location/GeoAskSheet'
 import { useShare } from '../ui/ShareSheet'
+import { meLocationIcon } from '../../lib/meMarker'
 import 'leaflet/dist/leaflet.css'
 
 function MapReady({ origin, selected }) {
@@ -91,6 +92,10 @@ export function PlacesMap({
     return DEFAULT_LOCATION
   }, [gpsFix, location])
 
+  const hasGps = Boolean(gpsFix && !gpsFix.error && typeof gpsFix.lat === 'number')
+  // Without a GPS fix the marker stands on the saved address, so say that rather than "you are here".
+  const meIcon = useMemo(() => meLocationIcon({ label: hasGps ? 'Siz shu yerdasiz' : 'Saqlangan manzil' }), [hasGps])
+
   const all = useMemo(() => items(origin), [items, origin])
   const shown = useMemo(() => {
     if (filter === 'all') return all
@@ -133,15 +138,7 @@ export function PlacesMap({
         >
           <BaseTiles />
           <MapReady origin={origin} selected={selected} />
-          <Marker
-            position={[origin.lat, origin.lng]}
-            icon={L.divIcon({
-              className: 'fuel-user',
-              iconSize: [16, 16],
-              iconAnchor: [8, 8],
-              html: '<span class="fuel-user-dot"></span>',
-            })}
-          />
+          <Marker position={[origin.lat, origin.lng]} icon={meIcon} interactive={false} zIndexOffset={1000} />
           {shown.map((p) => (
             <Marker
               key={p.id}

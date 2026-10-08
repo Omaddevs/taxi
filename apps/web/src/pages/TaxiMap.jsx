@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ChevronRight, Heart, Loader2, MapPin, Navigation, PersonStanding, Search, ShieldCheck } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Circle, MapContainer, Marker, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useApp } from '../context/AppContext'
 import { useRecentTrips } from '../lib/queries'
@@ -11,6 +10,7 @@ import { formatPlace, matchRegion } from '../data/uzbekistan'
 import { BaseTiles } from '../components/map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
 import { haversineKm } from '../lib/geo'
+import { meLocationIcon } from '../lib/meMarker'
 import { RegionPicker } from '../components/ui/SearchPickers'
 
 // Xarita surilib to‘xtaganda markazdagi nuqtani "olib ketish" manzili qilib olamiz.
@@ -40,17 +40,6 @@ function FlyTo({ target }) {
 const ACCENTS = {
   brand: { solid: 'bg-brand', dot: 'bg-brand ring-4 ring-brand/20', hex: '#00c7d4' },
   women: { solid: 'bg-[#f5559a]', dot: 'bg-[#f5559a] ring-4 ring-[#f5559a]/20', hex: '#f5559a' },
-}
-
-// The pickup pin is free to move; this marks where the passenger really is. Once the pin is
-// dragged away it gets a "Siz shu yerdasiz" tag, so the two are never confused.
-function meIcon(color, tagged) {
-  return L.divIcon({
-    className: 'me-marker',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    html: `<span class="me-wrap" style="--me:${color}">${tagged ? '<span class="me-label">Siz shu yerdasiz</span>' : ''}<span class="me-puck"></span></span>`,
-  })
 }
 
 // Pin counts as "on me" within this many metres of the GPS fix.
@@ -156,7 +145,7 @@ export default function TaxiMap({ women = false }) {
 
   const offMeM = hasGps && center ? haversineKm(center, gpsFix) * 1000 : Number.POSITIVE_INFINITY
   const onMe = offMeM <= ON_ME_M
-  const meMarkerIcon = useMemo(() => meIcon(accent.hex, hasGps && !onMe), [accent.hex, hasGps, onMe])
+  const meMarkerIcon = useMemo(() => meLocationIcon({ color: accent.hex }), [accent.hex])
   // Only nag while the pin still sits on the fuzzy fix — once moved, the passenger has chosen.
   const roughFix = hasGps && gpsFix.accuracy > 100 && onMe
 
@@ -213,7 +202,8 @@ export default function TaxiMap({ women = false }) {
                   pathOptions={{ color: accent.hex, weight: 1, opacity: 0.35, fillColor: accent.hex, fillOpacity: 0.1 }}
                 />
               ) : null}
-              <Marker position={[gpsFix.lat, gpsFix.lng]} icon={meMarkerIcon} interactive={false} />
+              {/* While the pickup pin stands on the passenger it already says so — no second card. */}
+              {onMe ? null : <Marker position={[gpsFix.lat, gpsFix.lng]} icon={meMarkerIcon} interactive={false} />}
             </>
           ) : null}
         </MapContainer>
