@@ -1,24 +1,57 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type DragEvent, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlarmClock, Camera, Globe, MessageCircle, Phone, Send, Trash2, UserPlus } from 'lucide-react'
+import {
+  AlarmClock,
+  ArrowRight,
+  BellRing,
+  Camera,
+  Check,
+  Globe,
+  GripVertical,
+  MessageCircle,
+  Phone,
+  Send,
+  Target,
+  Trash2,
+  TrendingUp,
+  UserPlus,
+  Users,
+  X,
+} from 'lucide-react'
 import { api } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Badge, Button, Card } from '../components/ui/Button'
+import { Badge, Button } from '../components/ui/Button'
 import { SearchInput } from '../components/ui/Filters'
 import { Field, inputClass } from '../components/ui/Chart'
 import { Modal } from '../components/ui/Modal'
+import { StatCard } from '../components/ui/StatCard'
+import { Avatar } from '../components/ui/Avatar'
 import { EmptyState, SkeletonGrid } from '../components/ui/EmptyState'
 import { cn, formatDateTime, isCompletePhoneUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
-import { LEAD_CHANNEL_LABEL, LEAD_STATUS_LABEL, LEAD_STATUS_TONE, LEAD_TYPE_LABEL } from '../lib/labels'
+import { LEAD_CHANNEL_LABEL, LEAD_STATUS_LABEL, LEAD_TYPE_LABEL } from '../lib/labels'
+import {
+  FOLLOW_UP_PRESETS,
+  LEAD_COLUMNS,
+  LEAD_STAGE_COLOR,
+  LOST_REASONS,
+  conversionRate,
+  createdWithinDays,
+  followUpState,
+  phoneDigits,
+  presetFollowUp,
+  relativeAge,
+  withLostReason,
+} from '../lib/leads'
 import { useAuth } from '../context/AuthContext'
 import type { LeadMessageRow, LeadRow, LeadStatus, LeadType } from '../types'
 
-const COLUMNS: LeadStatus[] = ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'LOST']
 const TYPE_TABS: { value: LeadType | 'all'; label: string }[] = [
   { value: 'all', label: 'Barchasi' },
   { value: 'PASSENGER', label: 'Yo‘lovchi' },
   { value: 'DRIVER', label: 'Haydovchi' },
 ]
+
+const DRAG_MIME = 'application/x-taxiline-lead'
 
 function toDatetimeLocal(iso: string | null) {
   if (!iso) return ''
@@ -27,16 +60,33 @@ function toDatetimeLocal(iso: string | null) {
   return d.toISOString().slice(0, 16)
 }
 
+function leadTitle(lead: LeadRow) {
+  return lead.name || (lead.igUsername ? `@${lead.igUsername}` : null) || lead.phone || 'Ism kiritilmagan'
+}
+
+function nextStage(status: LeadStatus): LeadStatus | null {
+  const i = LEAD_COLUMNS.indexOf(status)
+  // CONVERTED and LOST are outcomes — there is no "next" after them.
+  return i >= 0 && i < LEAD_COLUMNS.indexOf('CONVERTED') ? LEAD_COLUMNS[i + 1] : null
+}
+
 export default function Leads() {
   const { user } = useAuth()
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [leadType, setLeadType] = useState<LeadType | 'all'>('all')
+  const [remindersOnly, setRemindersOnly] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [threadLead, setThreadLead] = useState<LeadRow | null>(null)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [losing, setLosing] = useState<LeadRow | null>(null)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overColumn, setOverColumn] = useState<LeadStatus | null>(null)
+  const [error, setError] = useState('')
 
+  const listKey = ['leads', q, leadType] as const
   const { data, isLoading } = useQuery({
-    queryKey: ['leads', q, leadType],
+    queryKey: listKey,
     queryFn: () => {
       const params = new URLSearchParams()
       if (q) params.set('q', q)
@@ -45,17 +95,21 @@ export default function Leads() {
     },
   })
 
-  const { data: dueLeads } = useQuery({
-    queryKey: ['leads', 'due'],
-    queryFn: () => api.get<LeadRow[]>('/admin/leads?dueOnly=true'),
-    refetchInterval: 60_000,
-  })
-
+  // Moving a card shows instantly; the server catches up, and a failure puts the card back.
   const update = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) => api.patch(`/admin/leads/${id}`, patch),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['leads'] })
+    mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) => api.patch<LeadRow>(`/admin/leads/${id}`, patch),
+    onMutate: async ({ id, patch }) => {
+      setError('')
+      await qc.cancelQueries({ queryKey: listKey })
+      const previous = qc.getQueryData<LeadRow[]>(listKey)
+      qc.setQueryData<LeadRow[]>(listKey, (rows) => rows?.map((l) => (l.id === id ? { ...l, ...patch } : l)))
+      return { previous }
     },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(listKey, ctx.previous)
+      setError(err instanceof Error ? err.message : 'Saqlab bo‘lmadi')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['leads'] }),
   })
 
   const remove = useMutation({
@@ -63,17 +117,79 @@ export default function Leads() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['leads'] }),
   })
 
+  const leads = useMemo(() => {
+    const all = data ?? []
+    if (!remindersOnly) return all
+    return all.filter((l) => {
+      const s = followUpState(l.followUpAt)
+      return s === 'overdue' || s === 'today'
+    })
+  }, [data, remindersOnly])
+
   const byStatus = useMemo(() => {
-    const map = new Map<LeadStatus, LeadRow[]>(COLUMNS.map((s) => [s, []]))
-    for (const lead of data ?? []) map.get(lead.status)?.push(lead)
+    const map = new Map<LeadStatus, LeadRow[]>(LEAD_COLUMNS.map((s) => [s, []]))
+    for (const lead of leads) map.get(lead.status)?.push(lead)
+    // Missed reminders float to the top of their column, then the freshest leads.
+    for (const list of map.values()) {
+      list.sort((a, b) => {
+        const ao = followUpState(a.followUpAt) === 'overdue' ? 0 : 1
+        const bo = followUpState(b.followUpAt) === 'overdue' ? 0 : 1
+        return ao - bo || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+    }
     return map
+  }, [leads])
+
+  const stats = useMemo(() => {
+    const all = data ?? []
+    let due = 0
+    let overdue = 0
+    for (const l of all) {
+      const s = followUpState(l.followUpAt)
+      if (s === 'overdue') overdue += 1
+      if (s === 'overdue' || s === 'today') due += 1
+    }
+    return {
+      total: all.length,
+      week: createdWithinDays(all, 7),
+      conversion: conversionRate(all),
+      due,
+      overdue,
+    }
   }, [data])
+
+  const openLead = openId ? (data ?? []).find((l) => l.id === openId) ?? null : null
+
+  function moveTo(lead: LeadRow, status: LeadStatus) {
+    if (lead.status === status) return
+    if (status === 'LOST') {
+      setLosing(lead)
+      return
+    }
+    // A closed lead needs no more reminders — otherwise it keeps showing up as "overdue".
+    update.mutate({ id: lead.id, patch: status === 'CONVERTED' ? { status, followUpAt: null } : { status } })
+  }
+
+  function onDrop(e: DragEvent, status: LeadStatus) {
+    e.preventDefault()
+    setOverColumn(null)
+    const id = e.dataTransfer.getData(DRAG_MIME) || dragId
+    setDragId(null)
+    const lead = (data ?? []).find((l) => l.id === id)
+    if (lead) moveTo(lead, status)
+  }
+
+  function onDelete(lead: LeadRow) {
+    if (!window.confirm(`“${leadTitle(lead)}” lidini o‘chirasizmi?`)) return
+    remove.mutate(lead.id)
+    if (openId === lead.id) setOpenId(null)
+  }
 
   return (
     <div>
       <PageHeader
         title="Lidlar"
-        subtitle="Qo‘ng‘iroq, tavsiya va Instagram orqali kelgan potentsial mijozlar bosqichlari"
+        subtitle="Kartani sudrab keyingi bosqichga o‘tkazing. Bosilsa, to‘liq ma’lumot ochiladi"
         action={
           <Button onClick={() => setCreateOpen(true)}>
             <UserPlus className="h-4 w-4" />
@@ -82,25 +198,27 @@ export default function Leads() {
         }
       />
 
-      {dueLeads?.length ? (
-        <Card className="mb-6 border-amber-200 bg-amber-50/60 p-4">
-          <div className="mb-2 flex items-center gap-2 text-sm font-bold text-amber-700">
-            <AlarmClock className="h-4 w-4" />
-            Bugungi eslatmalar ({dueLeads.length})
-          </div>
-          <ul className="space-y-1.5">
-            {dueLeads.map((lead) => (
-              <li key={lead.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-ink">{lead.name || lead.phone || 'Instagram foydalanuvchi'}</span>
-                <span className="text-xs text-amber-700">{formatDateTime(lead.followUpAt)}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={Users} label="Jami lidlar" value={String(stats.total)} hint={`${stats.week} tasi oxirgi 7 kunda`} />
+        <StatCard icon={TrendingUp} label="Konversiya" value={`${stats.conversion}%`} hint="Mijozga aylanganlar ulushi" tone="success" />
+        <StatCard
+          icon={BellRing}
+          label="Bugungi eslatmalar"
+          value={String(stats.due)}
+          hint={stats.overdue ? `${stats.overdue} tasi muddati o‘tgan` : 'Muddati o‘tgani yo‘q'}
+          tone="amber"
+        />
+        <StatCard
+          icon={Target}
+          label="Ishlanmoqda"
+          value={String((byStatus.get('CONTACTED')?.length ?? 0) + (byStatus.get('QUALIFIED')?.length ?? 0))}
+          hint="Bog‘lanilgan va malakali"
+          tone="slate"
+        />
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex rounded-xl bg-canvas p-1">
+        <div className="flex rounded-xl bg-white p-1 shadow-sm ring-1 ring-line">
           {TYPE_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -108,7 +226,7 @@ export default function Leads() {
               onClick={() => setLeadType(tab.value)}
               className={cn(
                 'rounded-lg px-3 py-1.5 text-xs font-bold transition-colors',
-                leadType === tab.value ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink',
+                leadType === tab.value ? 'bg-ink text-white' : 'text-muted hover:text-ink',
               )}
             >
               {tab.label}
@@ -116,103 +234,535 @@ export default function Leads() {
           ))}
         </div>
         <SearchInput value={q} onChange={setQ} placeholder="Ism yoki telefon" className="sm:w-72" />
+        <button
+          type="button"
+          onClick={() => setRemindersOnly((v) => !v)}
+          className={cn(
+            'inline-flex h-10 items-center gap-2 rounded-xl px-3.5 text-xs font-bold ring-1 transition-colors',
+            remindersOnly ? 'bg-amber-50 text-amber-700 ring-amber-300' : 'bg-white text-muted ring-line hover:text-ink',
+          )}
+        >
+          <AlarmClock className="h-4 w-4" />
+          Bugungi eslatmalar
+          {stats.due ? (
+            <span className="rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{stats.due}</span>
+          ) : null}
+        </button>
       </div>
+
+      {error ? (
+        <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>
+      ) : null}
 
       {isLoading ? (
         <SkeletonGrid count={5} />
       ) : !data?.length ? (
         <EmptyState icon={UserPlus} title="Lid yo‘q" text="Qo‘ng‘iroq, tavsiya yoki Instagram orqali kelgan mijozlarni shu yerda kuzating." />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-5">
-          {COLUMNS.map((status) => (
-            <div key={status} className="min-w-0">
-              <div className="mb-2 flex items-center justify-between px-1">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted">{LEAD_STATUS_LABEL[status]}</p>
-                <Badge tone={LEAD_STATUS_TONE[status]}>{byStatus.get(status)?.length ?? 0}</Badge>
-              </div>
-              <div className="space-y-2.5">
-                {(byStatus.get(status) ?? []).map((lead) => (
-                  <Card key={lead.id} className="space-y-2 p-3.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-ink">
-                          {lead.name || lead.igUsername || lead.phone || 'Ism kiritilmagan'}
-                        </p>
-                        {lead.phone ? (
-                          <p className="flex items-center gap-1 text-xs text-muted">
-                            <Phone className="h-3 w-3" /> {lead.phone}
-                          </p>
-                        ) : null}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => remove.mutate(lead.id)}
-                        className="shrink-0 rounded-lg p-1 text-muted hover:bg-canvas hover:text-red-500"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+        <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-4">
+          {LEAD_COLUMNS.map((status) => {
+            const list = byStatus.get(status) ?? []
+            const isOver = overColumn === status && dragId != null
+            return (
+              <section
+                key={status}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                  if (overColumn !== status) setOverColumn(status)
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOverColumn(null)
+                }}
+                onDrop={(e) => onDrop(e, status)}
+                className={cn(
+                  'flex w-[280px] shrink-0 flex-col rounded-2xl bg-white/60 ring-1 ring-line transition-colors xl:w-auto xl:min-w-[196px] xl:flex-1',
+                  isOver && 'bg-white ring-2',
+                )}
+                style={isOver ? { boxShadow: `0 0 0 2px ${LEAD_STAGE_COLOR[status]}` } : undefined}
+              >
+                <header className="flex items-center gap-2 rounded-t-2xl border-t-[3px] px-3 pb-2 pt-3" style={{ borderColor: LEAD_STAGE_COLOR[status] }}>
+                  <span className="h-2 w-2 rounded-full" style={{ background: LEAD_STAGE_COLOR[status] }} />
+                  <p className="flex-1 truncate text-xs font-extrabold uppercase tracking-wide text-ink">{LEAD_STATUS_LABEL[status]}</p>
+                  <span
+                    className="min-w-6 rounded-full px-2 py-0.5 text-center text-[11px] font-bold"
+                    style={{ background: `${LEAD_STAGE_COLOR[status]}1a`, color: LEAD_STAGE_COLOR[status] }}
+                  >
+                    {list.length}
+                  </span>
+                </header>
 
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge tone={lead.leadType === 'DRIVER' ? 'amber' : 'gray'}>{LEAD_TYPE_LABEL[lead.leadType]}</Badge>
-                      {lead.channel !== 'MANUAL' ? (
-                        <Badge tone={lead.channel === 'WEBSITE' ? 'green' : 'pink'} className="gap-1">
-                          {lead.channel === 'WEBSITE' ? <Globe className="h-3 w-3" /> : <Camera className="h-3 w-3" />}{' '}
-                          {LEAD_CHANNEL_LABEL[lead.channel]}
-                        </Badge>
-                      ) : null}
-                    </div>
-
-                    {lead.adName ? <p className="text-xs text-muted">Reklama: {lead.adName}</p> : null}
-                    {lead.note ? <p className="text-xs text-muted">{lead.note}</p> : null}
-                    {user?.role === 'ADMIN' ? (
-                      <p className="text-[11px] text-muted">Egasi: {lead.owner.name || lead.owner.phone}</p>
-                    ) : null}
-
-                    {lead.channel === 'INSTAGRAM_DM' ? (
-                      <button
-                        type="button"
-                        onClick={() => setThreadLead(lead)}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line py-1.5 text-xs font-bold text-brand-dark hover:bg-brand-soft"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        Yozishmalar
-                      </button>
-                    ) : null}
-
-                    <input
-                      type="datetime-local"
-                      value={toDatetimeLocal(lead.followUpAt)}
-                      onChange={(e) =>
-                        update.mutate({
-                          id: lead.id,
-                          patch: { followUpAt: e.target.value ? new Date(e.target.value).toISOString() : null },
-                        })
-                      }
-                      className="h-8 w-full rounded-lg border border-line bg-canvas px-2 text-xs outline-none focus:border-brand"
+                <div className="flex min-h-[440px] flex-1 flex-col gap-2.5 p-2">
+                  {list.map((lead) => (
+                    <LeadCard
+                      key={lead.id}
+                      lead={lead}
+                      showOwner={user?.role === 'ADMIN'}
+                      dragging={dragId === lead.id}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(DRAG_MIME, lead.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        setDragId(lead.id)
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null)
+                        setOverColumn(null)
+                      }}
+                      onOpen={() => setOpenId(lead.id)}
+                      onAdvance={() => {
+                        const next = nextStage(lead.status)
+                        if (next) moveTo(lead, next)
+                      }}
                     />
-                    <select
-                      value={lead.status}
-                      onChange={(e) => update.mutate({ id: lead.id, patch: { status: e.target.value } })}
-                      className="h-8 w-full rounded-lg border border-line bg-white px-2 text-xs font-semibold outline-none focus:border-brand"
+                  ))}
+                  {!list.length || isOver ? (
+                    <div
+                      className={cn(
+                        'flex flex-1 items-center justify-center rounded-xl border-2 border-dashed p-4 text-center text-xs font-semibold transition-colors',
+                        isOver ? 'min-h-24 border-current text-ink' : 'min-h-24 border-line text-muted',
+                      )}
+                      style={isOver ? { color: LEAD_STAGE_COLOR[status] } : undefined}
                     >
-                      {COLUMNS.map((s) => (
-                        <option key={s} value={s}>
-                          {LEAD_STATUS_LABEL[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
+                      {isOver ? 'Shu yerga tashlang' : 'Bo‘sh — kartani shu yerga sudrang'}
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+            )
+          })}
         </div>
       )}
 
+      <LeadDrawer
+        lead={openLead}
+        onClose={() => setOpenId(null)}
+        onSave={(patch) => openLead && update.mutate({ id: openLead.id, patch })}
+        onMove={(status) => openLead && moveTo(openLead, status)}
+        onDelete={() => openLead && onDelete(openLead)}
+        onThread={() => openLead && setThreadLead(openLead)}
+      />
+      <LostReasonModal
+        key={losing?.id ?? 'none'}
+        lead={losing}
+        onClose={() => setLosing(null)}
+        onConfirm={(reason) => {
+          if (!losing) return
+          update.mutate({
+            id: losing.id,
+            patch: { status: 'LOST', followUpAt: null, ...(reason ? { note: withLostReason(losing.note, reason) } : {}) },
+          })
+          setLosing(null)
+        }}
+      />
       <CreateLeadModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => setCreateOpen(false)} />
       <LeadThreadModal lead={threadLead} onClose={() => setThreadLead(null)} />
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------
+// Card
+// ---------------------------------------------------------------------------------------------
+
+function ChannelBadge({ lead }: { lead: LeadRow }) {
+  if (lead.channel === 'MANUAL') return lead.source ? <Badge tone="gray">{lead.source}</Badge> : null
+  return (
+    <Badge tone={lead.channel === 'WEBSITE' ? 'green' : 'pink'} className="gap-1">
+      {lead.channel === 'WEBSITE' ? <Globe className="h-3 w-3" /> : <Camera className="h-3 w-3" />}
+      {LEAD_CHANNEL_LABEL[lead.channel]}
+    </Badge>
+  )
+}
+
+function FollowUpChip({ iso }: { iso: string | null }) {
+  const state = followUpState(iso)
+  if (!state) return <span className="text-[11px] text-muted">Eslatma yo‘q</span>
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold',
+        state === 'overdue' && 'bg-red-50 text-red-600',
+        state === 'today' && 'bg-amber-50 text-amber-700',
+        state === 'later' && 'bg-canvas text-muted',
+      )}
+    >
+      <AlarmClock className="h-3 w-3" />
+      {state === 'overdue' ? 'Kechikdi · ' : ''}
+      {formatDateTime(iso)}
+    </span>
+  )
+}
+
+function LeadCard({
+  lead,
+  showOwner,
+  dragging,
+  onDragStart,
+  onDragEnd,
+  onOpen,
+  onAdvance,
+}: {
+  lead: LeadRow
+  showOwner: boolean
+  dragging: boolean
+  onDragStart: (e: DragEvent) => void
+  onDragEnd: () => void
+  onOpen: () => void
+  onAdvance: () => void
+}) {
+  const next = nextStage(lead.status)
+  const digits = phoneDigits(lead.phone)
+  return (
+    <article
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onOpen()
+      }}
+      tabIndex={0}
+      className={cn(
+        'group relative cursor-grab rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(16,42,67,0.06)] ring-1 ring-line transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(16,42,67,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand active:cursor-grabbing',
+        dragging && 'rotate-1 opacity-40',
+      )}
+    >
+      <GripVertical className="absolute right-1.5 top-3 h-4 w-4 text-line opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="flex items-start gap-2.5 pr-4">
+        <Avatar name={lead.name || lead.igUsername} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold text-ink" title={leadTitle(lead)}>
+            {leadTitle(lead)}
+          </p>
+          <p className="truncate text-xs text-muted" title={formatDateTime(lead.createdAt)}>
+            {[lead.phone, relativeAge(lead.createdAt)].filter(Boolean).join(' · ')}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <Badge tone={lead.leadType === 'DRIVER' ? 'amber' : 'gray'}>{LEAD_TYPE_LABEL[lead.leadType]}</Badge>
+        <ChannelBadge lead={lead} />
+      </div>
+
+      {lead.note ? <p className="mt-2 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-muted">{lead.note}</p> : null}
+
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5">
+        <FollowUpChip iso={lead.followUpAt} />
+        {showOwner && lead.owner.name ? (
+          <span title={`Egasi: ${lead.owner.name}`} className="shrink-0">
+            <Avatar name={lead.owner.name} size="sm" />
+          </span>
+        ) : null}
+      </div>
+
+      {/* Quick actions — also the way to move a card without a mouse (touch, keyboard). */}
+      <div className="mt-2 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+        {digits ? (
+          <a
+            href={`tel:+${digits}`}
+            title="Qo‘ng‘iroq qilish"
+            className="flex h-7 flex-1 items-center justify-center rounded-lg bg-canvas text-muted hover:bg-brand-soft hover:text-brand-dark"
+          >
+            <Phone className="h-3.5 w-3.5" />
+          </a>
+        ) : null}
+        {digits ? (
+          <a
+            href={`https://t.me/+${digits}`}
+            target="_blank"
+            rel="noreferrer"
+            title="Telegramda yozish"
+            className="flex h-7 flex-1 items-center justify-center rounded-lg bg-canvas text-muted hover:bg-sky-50 hover:text-sky-600"
+          >
+            <Send className="h-3.5 w-3.5" />
+          </a>
+        ) : null}
+        {next ? (
+          <button
+            type="button"
+            onClick={onAdvance}
+            title={`${LEAD_STATUS_LABEL[next]} bosqichiga o‘tkazish`}
+            className="flex h-7 flex-[2] items-center justify-center gap-1 rounded-lg bg-canvas text-[11px] font-bold text-muted hover:bg-ink hover:text-white"
+          >
+            {LEAD_STATUS_LABEL[next]} <ArrowRight className="h-3 w-3" />
+          </button>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------
+// Detail drawer
+// ---------------------------------------------------------------------------------------------
+
+function LeadDrawer({
+  lead,
+  onClose,
+  onSave,
+  onMove,
+  onDelete,
+  onThread,
+}: {
+  lead: LeadRow | null
+  onClose: () => void
+  onSave: (patch: Record<string, unknown>) => void
+  onMove: (status: LeadStatus) => void
+  onDelete: () => void
+  onThread: () => void
+}) {
+  if (!lead) return null
+  return (
+    <div className="fixed inset-0 z-50">
+      <button type="button" aria-label="Yopish" onClick={onClose} className="absolute inset-0 bg-black/30" />
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl">
+        <DrawerBody key={lead.id} lead={lead} onClose={onClose} onSave={onSave} onMove={onMove} onDelete={onDelete} onThread={onThread} />
+      </aside>
+    </div>
+  )
+}
+
+function DrawerBody({
+  lead,
+  onClose,
+  onSave,
+  onMove,
+  onDelete,
+  onThread,
+}: {
+  lead: LeadRow
+  onClose: () => void
+  onSave: (patch: Record<string, unknown>) => void
+  onMove: (status: LeadStatus) => void
+  onDelete: () => void
+  onThread: () => void
+}) {
+  const [name, setName] = useState(lead.name ?? '')
+  const [leadType, setLeadType] = useState<LeadType>(lead.leadType)
+  const [source, setSource] = useState(lead.source ?? '')
+  const [note, setNote] = useState(lead.note ?? '')
+  const [followUp, setFollowUp] = useState(toDatetimeLocal(lead.followUpAt))
+  const digits = phoneDigits(lead.phone)
+
+  const patch: Record<string, unknown> = {}
+  if (name.trim() !== (lead.name ?? '')) patch.name = name.trim()
+  if (leadType !== lead.leadType) patch.leadType = leadType
+  if (source.trim() !== (lead.source ?? '')) patch.source = source.trim()
+  if (note.trim() !== (lead.note ?? '')) patch.note = note.trim()
+  if (followUp !== toDatetimeLocal(lead.followUpAt)) patch.followUpAt = followUp ? new Date(followUp).toISOString() : null
+  const dirty = Object.keys(patch).length > 0
+
+  function submit(e: FormEvent) {
+    e.preventDefault()
+    if (dirty) onSave(patch)
+  }
+
+  return (
+    <form onSubmit={submit} className="flex h-full flex-col">
+      <header className="flex items-start gap-3 border-b border-line p-5">
+        <Avatar name={lead.name || lead.igUsername} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-lg font-extrabold text-ink">{leadTitle(lead)}</p>
+          <p className="text-xs text-muted">
+            {LEAD_CHANNEL_LABEL[lead.channel]} · {formatDateTime(lead.createdAt)}
+          </p>
+        </div>
+        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink" aria-label="Yopish">
+          <X className="h-5 w-5" />
+        </button>
+      </header>
+
+      <div className="flex-1 space-y-5 overflow-y-auto p-5">
+        <div className="grid grid-cols-2 gap-2">
+          <a
+            href={digits ? `tel:+${digits}` : undefined}
+            className={cn(
+              'flex h-10 items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-ink',
+              !digits && 'pointer-events-none opacity-40',
+            )}
+          >
+            <Phone className="h-4 w-4" /> Qo‘ng‘iroq
+          </a>
+          {lead.channel === 'INSTAGRAM_DM' ? (
+            <button type="button" onClick={onThread} className="flex h-10 items-center justify-center gap-2 rounded-xl bg-pink-50 text-sm font-bold text-pink-600">
+              <MessageCircle className="h-4 w-4" /> Yozishmalar
+            </button>
+          ) : (
+            <a
+              href={digits ? `https://t.me/+${digits}` : undefined}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(
+                'flex h-10 items-center justify-center gap-2 rounded-xl bg-sky-50 text-sm font-bold text-sky-600',
+                !digits && 'pointer-events-none opacity-40',
+              )}
+            >
+              <Send className="h-4 w-4" /> Telegram
+            </a>
+          )}
+        </div>
+
+        <DrawerSection title="Bosqich">
+          <div className="grid grid-cols-5 gap-1">
+            {LEAD_COLUMNS.map((s) => {
+              const active = lead.status === s
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => onMove(s)}
+                  className={cn(
+                    'flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold leading-tight transition-colors',
+                    active ? 'text-white' : 'bg-canvas text-muted hover:text-ink',
+                  )}
+                  style={active ? { background: LEAD_STAGE_COLOR[s] } : undefined}
+                >
+                  {active ? <Check className="h-3.5 w-3.5" /> : <span className="h-3.5 w-3.5 rounded-full border-2" style={{ borderColor: LEAD_STAGE_COLOR[s] }} />}
+                  {LEAD_STATUS_LABEL[s]}
+                </button>
+              )
+            })}
+          </div>
+        </DrawerSection>
+
+        <DrawerSection title="Eslatma">
+          <input type="datetime-local" value={followUp} onChange={(e) => setFollowUp(e.target.value)} className={inputClass} />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {FOLLOW_UP_PRESETS.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => setFollowUp(toDatetimeLocal(presetFollowUp(p.value).toISOString()))}
+                className="rounded-full border border-line px-2.5 py-1 text-xs font-semibold text-ink hover:bg-canvas"
+              >
+                {p.label}
+              </button>
+            ))}
+            {followUp ? (
+              <button type="button" onClick={() => setFollowUp('')} className="rounded-full px-2.5 py-1 text-xs font-semibold text-muted hover:text-red-500">
+                Olib tashlash
+              </button>
+            ) : null}
+          </div>
+        </DrawerSection>
+
+        <DrawerSection title="Ma’lumotlar">
+          <div className="space-y-3">
+            <Field label="Ism">
+              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Ism kiritilmagan" />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Turi">
+                <select value={leadType} onChange={(e) => setLeadType(e.target.value as LeadType)} className={inputClass}>
+                  <option value="PASSENGER">Yo‘lovchi</option>
+                  <option value="DRIVER">Haydovchi</option>
+                </select>
+              </Field>
+              <Field label="Manba">
+                <input value={source} onChange={(e) => setSource(e.target.value)} className={inputClass} placeholder="Qo‘ng‘iroq, tavsiya…" />
+              </Field>
+            </div>
+            <Field label="Izoh">
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={4}
+                maxLength={2000}
+                className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand"
+                placeholder="Suhbat natijasi, kelishuvlar…"
+              />
+            </Field>
+          </div>
+        </DrawerSection>
+
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-canvas p-3 text-xs">
+          <dt className="text-muted">Telefon</dt>
+          <dd className="font-semibold text-ink">{lead.phone || '—'}</dd>
+          {lead.igUsername ? (
+            <>
+              <dt className="text-muted">Instagram</dt>
+              <dd className="font-semibold text-ink">@{lead.igUsername}</dd>
+            </>
+          ) : null}
+          {lead.adName ? (
+            <>
+              <dt className="text-muted">Reklama</dt>
+              <dd className="font-semibold text-ink">{lead.adName}</dd>
+            </>
+          ) : null}
+          <dt className="text-muted">Egasi</dt>
+          <dd className="font-semibold text-ink">{lead.owner.name || lead.owner.phone}</dd>
+          <dt className="text-muted">Yangilangan</dt>
+          <dd className="font-semibold text-ink">{formatDateTime(lead.updatedAt)}</dd>
+        </dl>
+      </div>
+
+      <footer className="flex items-center gap-2 border-t border-line p-4">
+        <button type="button" onClick={onDelete} className="flex h-11 w-11 items-center justify-center rounded-2xl text-muted hover:bg-red-50 hover:text-red-500" title="O‘chirish">
+          <Trash2 className="h-4 w-4" />
+        </button>
+        <Button type="submit" disabled={!dirty} className="flex-1">
+          {dirty ? 'O‘zgarishlarni saqlash' : 'Saqlangan'}
+        </Button>
+      </footer>
+    </form>
+  )
+}
+
+function DrawerSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-muted">{title}</p>
+      {children}
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------
+// Lost reason
+// ---------------------------------------------------------------------------------------------
+
+function LostReasonModal({
+  lead,
+  onClose,
+  onConfirm,
+}: {
+  lead: LeadRow | null
+  onClose: () => void
+  onConfirm: (reason: string) => void
+}) {
+  const [reason, setReason] = useState('')
+  return (
+    <Modal open={Boolean(lead)} title="Nega yo‘qotildi?" onClose={onClose}>
+      <p className="mb-3 text-sm text-muted">
+        “{lead ? leadTitle(lead) : ''}”. Sabab izohga yoziladi. Keyinchalik qaysi sababdan ko‘p mijoz yo‘qotilayotganini ko‘rasiz.
+      </p>
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {LOST_REASONS.map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setReason(r)}
+            className={cn(
+              'rounded-full border px-2.5 py-1 text-xs font-semibold',
+              reason === r ? 'border-rose-400 bg-rose-50 text-rose-600' : 'border-line text-ink hover:bg-canvas',
+            )}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+      <input value={reason} onChange={(e) => setReason(e.target.value)} className={inputClass} placeholder="Yoki o‘zingiz yozing" maxLength={200} />
+      <div className="mt-4 flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={() => onConfirm('')}>
+          Sababsiz
+        </Button>
+        <Button variant="danger" className="flex-1" onClick={() => onConfirm(reason.trim())} disabled={!reason.trim()}>
+          Yo‘qotildi deb belgilash
+        </Button>
+      </div>
+    </Modal>
   )
 }
 
