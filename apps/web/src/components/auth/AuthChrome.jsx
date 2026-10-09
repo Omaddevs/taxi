@@ -195,10 +195,11 @@ function useGoogleEnabled() {
   return enabled
 }
 
-// "Google orqali kirish / ro‘yxatdan o‘tish": an account already linked to this Google logs in
-// straight away; a new one continues on /google to confirm a phone number once. Until Google
-// keys are configured on the server the button (and its divider) isn't shown at all.
-export function GoogleAuthButton({ label = 'Google orqali kirish', className = '', divider = false }) {
+// "Google orqali kirish / ro‘yxatdan o‘tish". A Google account linked to TaxiLine signs in at
+// once, from either page, with no code. Not linked yet: from the login page the person is told
+// the account wasn't found and sent on to Google registration (/google); from the register page
+// they go there directly. Until Google keys are configured the button (and divider) is hidden.
+export function GoogleAuthButton({ label = 'Google orqali kirish', className = '', divider = false, intent = 'login' }) {
   const { googleSignIn } = useAuth()
   const navigate = useNavigate()
   const enabled = useGoogleEnabled()
@@ -216,8 +217,9 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
         navigate(homePathForRole(result.user), { replace: true })
         return
       }
-      savePendingGoogle({ ticket: result.ticket, profile: result.profile })
-      navigate('/google', { state: { ticket: result.ticket, profile: result.profile } })
+      const pending = { ticket: result.ticket, profile: result.profile, notFound: intent === 'login' }
+      savePendingGoogle(pending)
+      navigate('/google', { state: pending })
     } catch (err) {
       if (!(err instanceof GoogleCancelled)) setError(err?.message || 'Google orqali kirib bo‘lmadi')
     } finally {

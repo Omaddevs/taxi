@@ -82,16 +82,7 @@ export async function googleSignIn(req: Request, res: Response) {
   res.json(result)
 }
 
-export async function googleRequestOtp(req: Request, res: Response) {
-  res.json(await authService.googleRequestOtp(req.body.ticket, req.body.phone))
-}
-
-export async function googleComplete(req: Request, res: Response) {
-  const { user, accessToken, refreshToken } = await authService.googleComplete(
-    req.body.ticket,
-    req.body.phone,
-    req.body.code,
-    sessionMeta(req),
-  )
+export async function googleRegister(req: Request, res: Response) {
+  const { user, accessToken, refreshToken } = await authService.googleRegister(req.body.ticket, req.body.phone, sessionMeta(req))
   res.json({ user: serializeUser(user), accessToken, refreshToken })
 }

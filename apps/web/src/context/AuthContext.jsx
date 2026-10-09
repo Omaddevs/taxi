@@ -102,19 +102,17 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  // Google popup code → { status: 'ok', user } (logged in) or { status: 'need_phone', ticket, profile }.
+  // Google popup code → { status: 'ok', user } (logged in, no code asked) or
+  // { status: 'not_registered', ticket, profile } (no account with this Google yet).
   async function googleSignIn(code) {
     const data = await api.post('/auth/google', { code })
     if (data.status === 'ok') return { status: 'ok', user: applySession(data) }
     return data
   }
 
-  async function googleRequestOtp(ticket, phone) {
-    return api.post('/auth/google/otp', { ticket, phone })
-  }
-
-  async function googleComplete(ticket, phone, code) {
-    return applySession(await api.post('/auth/google/complete', { ticket, phone, code }))
+  // Google registration: name/email/photo come from Google, only the phone is asked — no code.
+  async function googleRegister(ticket, phone) {
+    return applySession(await api.post('/auth/google/register', { ticket, phone }))
   }
 
   function logout() {
@@ -126,7 +124,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ authUser, status, requestOtp, verifyOtp, pollOtp, googleSignIn, googleRequestOtp, googleComplete, logout }}
+      value={{ authUser, status, requestOtp, verifyOtp, pollOtp, googleSignIn, googleRegister, logout }}
     >
       {children}
     </AuthContext.Provider>

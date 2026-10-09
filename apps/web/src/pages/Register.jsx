@@ -222,7 +222,7 @@ export default function Register() {
             <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali ro‘yxatdan o‘tish</span>
             <ChevronRight className="h-4 w-4 text-slate-300" />
           </a>
-          <GoogleAuthButton label="Google orqali ro‘yxatdan o‘tish" className="mt-2 lg:mt-3" />
+          <GoogleAuthButton label="Google orqali ro‘yxatdan o‘tish" className="mt-2 lg:mt-3" intent="register" />
 
           <p className="mt-auto pt-5 text-center text-[13px] text-muted">
             Hisobingiz bormi?{' '}

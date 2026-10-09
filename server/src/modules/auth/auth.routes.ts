@@ -5,8 +5,7 @@ import * as authController from './auth.controller.js'
 import { rateLimit } from '../../middleware/rateLimit.js'
 import {
   adminLoginSchema,
-  googleCompleteSchema,
-  googleOtpSchema,
+  googleRegisterSchema,
   googleSignInSchema,
   logoutSchema,
   otpPollSchema,
@@ -36,8 +35,7 @@ authRouter.post(
 // Google orqali kirish / ro‘yxatdan o‘tish (see auth.service — Google section).
 authRouter.get('/google/config', authController.googleConfig)
 authRouter.post('/google', rateLimit(30, 10 * 60_000), validate({ body: googleSignInSchema }), asyncRoute(authController.googleSignIn))
-authRouter.post('/google/otp', rateLimit(20, 10 * 60_000), validate({ body: googleOtpSchema }), asyncRoute(authController.googleRequestOtp))
-authRouter.post('/google/complete', rateLimit(30, 10 * 60_000), validate({ body: googleCompleteSchema }), asyncRoute(authController.googleComplete))
+authRouter.post('/google/register', rateLimit(20, 10 * 60_000), validate({ body: googleRegisterSchema }), asyncRoute(authController.googleRegister))
 
 export const adminAuthRouter = Router()
 adminAuthRouter.post('/login', validate({ body: adminLoginSchema }), asyncRoute(authController.adminLogin))
