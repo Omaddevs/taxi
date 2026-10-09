@@ -76,6 +76,19 @@ export const SEO_PAGES = {
     h1: 'TaxiLine’da ro‘yxatdan o‘tish',
     label: 'Ro‘yxatdan o‘tish',
   },
+  '/privacy': {
+    title: 'Maxfiylik siyosati — TaxiLine',
+    description:
+      'TaxiLine qanday shaxsiy ma’lumotlarni yig‘adi, ulardan qanday foydalanadi, kimga beradi va siz ularni qanday o‘chirishingiz mumkin.',
+    h1: 'Maxfiylik siyosati',
+    label: 'Maxfiylik siyosati',
+  },
+  '/terms': {
+    title: 'Foydalanish shartlari — TaxiLine',
+    description: 'TaxiLine sayti, ilovasi va Telegram botlaridan foydalanish shartlari: yo‘lovchi, haydovchi va TaxiLine o‘rtasidagi qoidalar.',
+    h1: 'Foydalanish shartlari',
+    label: 'Foydalanish shartlari',
+  },
 }
 
 // Sayt bo‘ylab asosiy havolalar (header/footer va build'dagi statik HTML uchun) — sitelinks shulardan tanlanadi.

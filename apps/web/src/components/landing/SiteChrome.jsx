@@ -219,7 +219,13 @@ export function SiteFooter({ attached = false }) {
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between 2xl:text-[14px]">
           <span>© {new Date().getFullYear()} TaxiLine. Barcha huquqlar himoyalangan.</span>
-          <span className="flex gap-5">
+          <span className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link to="/privacy" className="transition hover:text-white">
+              Maxfiylik siyosati
+            </Link>
+            <Link to="/terms" className="transition hover:text-white">
+              Foydalanish shartlari
+            </Link>
             <Link to="/login" className="transition hover:text-white">
               Kirish
             </Link>

@@ -8,7 +8,7 @@ import GoogleFinish from './pages/GoogleFinish'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
-import { BusinessPage, DriverPage, FaqPage, PromosPage } from './pages/PublicPages'
+import { BusinessPage, DriverPage, FaqPage, PrivacyPage, PromosPage, TermsPage } from './pages/PublicPages'
 import ScooterRent from './pages/ScooterRent'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
@@ -94,6 +94,8 @@ export default function App() {
       <Route path="/skuter-ijara" element={<ScooterRent />} />
       <Route path="/biznes" element={<BusinessPage />} />
       <Route path="/savollar" element={<FaqPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/google" element={<GoogleFinish />} />
