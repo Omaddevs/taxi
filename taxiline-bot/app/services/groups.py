@@ -14,6 +14,7 @@ DEFAULT_SETTINGS = {
     "rate_limit_enabled": False,
     "restrict_non_admin_posts": False,
     "require_invites": False,
+    "format_ads": False,
 }
 
 # Number of real, still-present invited members a non-admin must bring into a

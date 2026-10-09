@@ -19,6 +19,7 @@ SETTING_LABELS = {
     "rate_limit_enabled": "⏱ 1 daqiqada 1 xabar limiti",
     "restrict_non_admin_posts": "🔒 Faqat adminlar yoza oladi",
     "require_invites": "➕ Yozish uchun kamida 2 kishi taklif qilish talabi",
+    "format_ads": "🧾 E'lonlarni yagona shablonga solish",
 }
 
 
