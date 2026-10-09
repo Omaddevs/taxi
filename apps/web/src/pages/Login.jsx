@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react'
-import { AuthChrome, GoogleMark, KirishBotButton, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
+import { AuthChrome, GoogleMark, KirishBotButton } from '../components/auth/AuthChrome'
 import { FlagUz } from '../components/ui/Flags'
 import { useAuth } from '../context/AuthContext'
 import { homePathForRole } from '../lib/role'
@@ -159,20 +159,10 @@ export default function Login() {
             <span className="h-px flex-1 bg-line" />
           </div>
 
-          <a
-            href={`https://t.me/${TELEGRAM_BOT}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-12 items-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:h-14 lg:px-4"
-          >
-            <TelegramMark />
-            <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali kirish</span>
-            <ChevronRight className="h-4 w-4 text-slate-300" />
-          </a>
           <button
             type="button"
-            onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon yoki Telegram ishlating.')}
-            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:mt-3 lg:h-14 lg:px-4"
+            onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon raqam bilan kiring.')}
+            className="flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:h-14 lg:px-4"
           >
             <GoogleMark />
             <span className="min-w-0 flex-1 text-left text-[14px] font-bold">Google orqali kirish</span>
