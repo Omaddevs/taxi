@@ -132,12 +132,14 @@ async def phone_via_text(message: Message, state: FSMContext, session) -> None:
 
 
 async def _handle_otp_deep_link(message: Message, otp_request_id: str, lang: str) -> None:
-    tg = message.from_user
-    phone = await backend_client.confirm_otp_by_request_id(otp_request_id, tg.id, tg.username)
-    if phone is None:
-        await message.answer(t("otp_confirm_failed", lang))
-        return
-    await message.answer(t("otp_confirmed", lang))
+    # Sign-in codes moved to @taxiline_kirish_bot; this bot no longer confirms or sends them.
+    # Old links (cached pages, bookmarks) land here — point them over.
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🔐 @taxiline_kirish_bot", url="https://t.me/taxiline_kirish_bot?start=kirish")
+    await message.answer(
+        "🔐 Saytga kirish kodi endi @taxiline_kirish_bot orqali beriladi. Tugmani bosib, kodni oling.",
+        reply_markup=builder.as_markup(),
+    )
 
 
 async def _handle_phone(message: Message, state: FSMContext, session, raw_phone: str) -> None:

@@ -22,6 +22,7 @@ from app.handlers.admin import subscriptions as admin_subscriptions
 from app.handlers.admin import support as admin_support
 from app.handlers.admin import users as admin_users
 from app.i18n.translations import t
+from app.kirish.bot import build_kirish_dispatcher, setup_kirish_bot
 from app.middlewares.db_session import DbSessionMiddleware
 from app.middlewares.group_guard import GroupGuardMiddleware
 from app.middlewares.mandatory_sub import MandatorySubMiddleware
@@ -135,18 +136,31 @@ async def main() -> None:
         await bot_config.load(session)
     await _register_commands(bot)
 
+    # @taxiline_kirish_bot — website sign-in codes — polls alongside the main bot.
+    kirish_bot = Bot(token=settings.kirish_bot_token) if settings.kirish_bot_token else None
+    if kirish_bot is not None:
+        await setup_kirish_bot(kirish_bot)
+
     scheduler = setup_scheduler(bot)
     scheduler.start()
 
-    web_runner = await run_webserver(bot, settings.bot_http_port)
+    web_runner = await run_webserver(bot, settings.bot_http_port, kirish_bot)
 
     try:
-        await dp.start_polling(bot)
+        if kirish_bot is None:
+            await dp.start_polling(bot)
+        else:
+            await asyncio.gather(
+                dp.start_polling(bot),
+                build_kirish_dispatcher().start_polling(kirish_bot, handle_signals=False),
+            )
     finally:
         await web_runner.cleanup()
         scheduler.shutdown(wait=False)
         await backend_client.aclose()
         await bot.session.close()
+        if kirish_bot is not None:
+            await kirish_bot.session.close()
 
 
 if __name__ == "__main__":

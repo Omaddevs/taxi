@@ -178,25 +178,135 @@ export async function requestOtp(input: {
     throw new ValidationError('Bu raqam ro‘yxatdan o‘tmagan. Avval ro‘yxatdan o‘ting')
   }
 
-  const code = generateOtpCode()
-  const codeHash = await hashOtpCode(code)
+  const { otp, code, reused } = await issueOtpCode(phone, { intent, name, language })
 
-  const otp = await prisma.otpCode.create({
-    data: { phone, codeHash, expiresAt: new Date(Date.now() + OTP_TTL_MS) },
-  })
-
-  await getSmsProvider().send(phone, `TaxiLine tasdiqlash kodi: ${code}`)
-  cacheOtpCode(otp.id, code, otp.expiresAt)
-  storeOtpProfile(otp.id, phone, { intent, name, language })
-
-  // If this phone is linked to a Telegram account, also push the code there — the bot adds a
-  // "✅ Tasdiqlash va kirish" button that confirms it with one tap (handled by
-  // confirmOtpViaBot below), no typing required.
-  if (existing?.telegramId) {
-    await notifyOtpViaBot({ telegramId: existing.telegramId, language: existing.language, code, phone })
+  // A fresh code also goes to the linked Telegram account through @taxiline_kirish_bot. A
+  // reused one (the person already asked the bot for it) isn't pushed a second time.
+  if (!reused && existing?.telegramId) {
+    await notifyOtpViaBot({ telegramId: existing.telegramId, language: existing.language, code, phone, intent })
   }
 
   return { phone, otpRequestId: otp.id }
+}
+
+// The website and @taxiline_kirish_bot hand out the same code: whichever asks first creates it,
+// the other reuses it while it is still valid — so "open the bot, then type your number on the
+// site" works as well as the other way round. `fresh` (the bot's «🔄 Yangi kod») forces a new
+// one, but not more often than every RESEND_MIN_MS.
+const RESEND_MIN_MS = 30 * 1000
+
+async function issueOtpCode(phone: string, profile: OtpProfile, { fresh = false }: { fresh?: boolean } = {}) {
+  const pending = await prisma.otpCode.findFirst({
+    where: { phone, consumed: false, expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: 'desc' },
+  })
+  const cached = pending ? peekCachedOtpCode(pending.id) : null
+  const tooSoon = pending ? Date.now() - pending.createdAt.getTime() < RESEND_MIN_MS : false
+  if (pending && cached && pending.attempts < OTP_MAX_ATTEMPTS && (!fresh || tooSoon)) {
+    // Keep what the earlier request knew (e.g. the Telegram id from the bot) unless overridden.
+    const previous = otpProfileById.get(pending.id)
+    storeOtpProfile(pending.id, phone, {
+      ...previous,
+      ...Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== undefined)),
+    } as OtpProfile)
+    return { otp: pending, code: cached, reused: true }
+  }
+
+  const code = generateOtpCode()
+  const codeHash = await hashOtpCode(code)
+  const otp = await prisma.otpCode.create({
+    data: { phone, codeHash, expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+  })
+  await getSmsProvider().send(phone, `TaxiLine tasdiqlash kodi: ${code}`)
+  cacheOtpCode(otp.id, code, otp.expiresAt)
+  storeOtpProfile(otp.id, phone, profile)
+  return { otp, code, reused: false }
+}
+
+// ── @taxiline_kirish_bot ──────────────────────────────────────────────────────────────────
+// The bot identifies people by Telegram id; a number they shared through Telegram's own
+// "share contact" button (checked by the bot to be their own) links the two.
+
+type KirishIdentity = {
+  telegramId: string
+  telegramUsername?: string
+  name?: string
+  language?: string
+  // From Telegram's contact button, already verified by the bot to belong to this account.
+  phone?: string
+}
+
+async function userForTelegram(identity: KirishIdentity) {
+  const byTelegram = await prisma.user.findUnique({ where: { telegramId: identity.telegramId } })
+  if (byTelegram) return byTelegram
+  if (!identity.phone) return null
+  const byPhone = await prisma.user.findUnique({ where: { phone: normalizePhone(identity.phone) } })
+  // Telegram's contact button proves the number belongs to this Telegram account (the bot
+  // checks contact.user_id), so an unlinked account is linked right away — the same way the
+  // main bot links on a shared contact. One already linked to someone else is left alone.
+  if (byPhone && !byPhone.telegramId) {
+    return prisma.user.update({
+      where: { id: byPhone.id },
+      data: { telegramId: identity.telegramId, telegramUsername: identity.telegramUsername ?? byPhone.telegramUsername },
+    })
+  }
+  return byPhone
+}
+
+export async function kirishIssueCode(identity: KirishIdentity & { intent: OtpIntent; fresh?: boolean }) {
+  const user = await userForTelegram(identity)
+  const phone = user?.phone ?? (identity.phone ? normalizePhone(identity.phone) : null)
+  if (!phone) return { status: 'need_phone' as const }
+
+  if (!user && identity.intent === 'login') return { status: 'not_registered' as const, phone }
+  const intent: OtpIntent = user ? 'login' : 'register'
+  const name = normalizeName(identity.name)
+  if (intent === 'register' && !name) throw new ValidationError('Ism kiritilishi shart')
+
+  const telegramId = await unclaimedTelegramId(identity.telegramId, phone)
+  const { otp, code } = await issueOtpCode(
+    phone,
+    {
+      intent,
+      name: intent === 'register' ? name : undefined,
+      language: identity.language,
+      telegramId,
+      telegramUsername: telegramId ? identity.telegramUsername : undefined,
+    },
+    { fresh: identity.fresh },
+  )
+  return {
+    status: 'ok' as const,
+    intent,
+    // Asked for registration but already has an account — the bot says so and gives a login code.
+    alreadyRegistered: Boolean(user) && identity.intent === 'register',
+    code,
+    phone,
+    expiresAt: otp.expiresAt.toISOString(),
+  }
+}
+
+export async function kirishProfile(identity: KirishIdentity) {
+  const user = await userForTelegram(identity)
+  if (!user) return { linked: false as const }
+  const role = await appRoleForUser(user)
+  return {
+    linked: true as const,
+    name: user.name,
+    phone: user.phone,
+    role,
+    otpAutofill: user.otpAutofill,
+    telegramLinked: user.telegramId === identity.telegramId,
+  }
+}
+
+export async function kirishSetAutofill(identity: KirishIdentity & { enabled: boolean }) {
+  const user = await userForTelegram(identity)
+  if (!user) return { linked: false as const }
+  // Only the Telegram account linked to this user may change it (a shared contact alone isn't enough).
+  if (user.telegramId !== identity.telegramId) return { linked: false as const }
+  const updated = await prisma.user.update({ where: { id: user.id }, data: { otpAutofill: identity.enabled } })
+  return { linked: true as const, otpAutofill: updated.otpAutofill }
 }
 
 // Shared by verifyOtp (typed-in code) and confirmOtpViaBot (Telegram tap) — both are just
@@ -277,13 +387,15 @@ export async function confirmOtpByRequestId(
 // Polled by the webapp while showing the code-entry screen. Keyed on the unguessable
 // OtpCode id (not the phone number) returned from requestOtp — that's what stops a third
 // party from polling someone else's phone number and racing a legitimately typed-in verify.
-// While still pending, also hands back the plaintext code (from the short-lived cache above)
-// so the webapp can autofill the input the moment it's available — the same code the SMS (and,
-// if linked, the Telegram DM) already delivered, so this isn't a new disclosure.
+// While still pending, hands back the plaintext code (from the short-lived cache above) so the
+// webapp can fill the input by itself — but only for people who switched that on in
+// @taxiline_kirish_bot → Sozlamalar ("avto-to'ldirish"); by default the code must be typed in.
 export async function pollOtp(otpRequestId: string, meta?: SessionMeta) {
   const otp = await prisma.otpCode.findUnique({ where: { id: otpRequestId } })
   if (!otp || !otp.consumed) {
-    return { pending: true as const, code: peekCachedOtpCode(otpRequestId) }
+    if (!otp) return { pending: true as const, code: null }
+    const owner = await prisma.user.findUnique({ where: { phone: otp.phone }, select: { otpAutofill: true } })
+    return { pending: true as const, code: owner?.otpAutofill ? peekCachedOtpCode(otpRequestId) : null }
   }
 
   const user = await finalizeVerifiedPhone(otp.phone, takeOtpProfile(otp.id, otp.phone))

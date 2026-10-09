@@ -195,6 +195,8 @@ model User {
   points           Int           @default(0)
   coins            Int           @default(0)
   telegramId       String?       @unique // linked from taxiline-bot on phone match/registration
+  // @taxiline_kirish_bot → Sozlamalar: when on, the login page fills the code in by itself.
+  otpAutofill      Boolean       @default(false)
   telegramUsername String?
   language         String? // 'uz' | 'ru' | 'en', set by taxiline-bot
   signupSource     ChannelSource @default(WEBAPP)

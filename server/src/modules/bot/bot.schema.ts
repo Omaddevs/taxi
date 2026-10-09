@@ -66,3 +66,21 @@ export const rateViaBotSchema = z.object({
   tags: z.array(z.string().min(1).max(40)).max(6).optional(),
   comment: z.string().max(500).optional(),
 })
+
+// @taxiline_kirish_bot — `phone` only ever comes from Telegram's contact button, verified by the bot.
+const kirishIdentitySchema = z.object({
+  telegramId: z.string().regex(/^\d+$/),
+  telegramUsername: z.string().max(64).optional(),
+  name: z.string().trim().max(120).optional(),
+  language: z.enum(['uz', 'ru', 'en']).optional(),
+  phone: z.string().max(20).optional(),
+})
+
+export const kirishCodeSchema = kirishIdentitySchema.extend({
+  intent: z.enum(['login', 'register']),
+  fresh: z.boolean().optional(),
+})
+
+export const kirishProfileSchema = kirishIdentitySchema
+
+export const kirishAutofillSchema = kirishIdentitySchema.extend({ enabled: z.boolean() })

@@ -5,6 +5,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     bot_token: str
+    # @taxiline_kirish_bot (website sign-in codes). Empty → that bot isn't started.
+    kirish_bot_token: str = ""
     bot_database_url: str
 
     server_api_url: str = "http://localhost:4000"

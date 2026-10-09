@@ -4,6 +4,8 @@ import { Logo, LogoPin, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
 
 export const TELEGRAM_BOT = import.meta.env.VITE_TELEGRAM_BOT || 'taxilines_bot'
+// Sign-in / registration codes come from this bot (not the main one).
+export const KIRISH_BOT = import.meta.env.VITE_KIRISH_BOT || 'taxiline_kirish_bot'
 
 const AUTH_PERKS = [
   { icon: Send, text: 'Telegram orqali tezkor tasdiqlash' },
@@ -141,6 +143,25 @@ export function TelegramMark() {
         d="M17.6 7.3 15.4 16c-.2.8-.6 1-1.2.6l-3.3-2.4-1.6 1.5c-.2.2-.3.3-.6.3l.2-3.4 6.2-5.6c.3-.2-.1-.4-.4-.2l-7.6 4.8-3.3-1c-.7-.2-.7-.7.2-1.1l12.8-4.9c.6-.2 1.1.1.8.7Z"
       />
     </svg>
+  )
+}
+
+// "Get the code from @taxiline_kirish_bot" — shown on the code-entry step of login/register.
+export function KirishBotButton({ start = 'kirish' }) {
+  return (
+    <a
+      href={`https://t.me/${KIRISH_BOT}?start=${start}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-4 flex items-center gap-3 rounded-[16px] border border-[#2AABEE]/30 bg-[#f2faff] px-3 py-3 transition hover:border-[#2AABEE]/60 lg:px-4"
+    >
+      <TelegramMark />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[14px] font-extrabold text-ink">Kodni Telegram botdan oling</span>
+        <span className="block truncate text-[12px] font-semibold text-muted">@{KIRISH_BOT} → /kirish</span>
+      </span>
+      <span className="rounded-full bg-[#2AABEE] px-3 py-1.5 text-[12px] font-extrabold text-white">Ochish</span>
+    </a>
   )
 }
 

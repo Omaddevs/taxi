@@ -6,6 +6,9 @@ import { validate } from '../../middleware/validate.js'
 import { requireBotSecret } from './bot.middleware.js'
 import * as botController from './bot.controller.js'
 import {
+  kirishAutofillSchema,
+  kirishCodeSchema,
+  kirishProfileSchema,
   linkUserSchema,
   otpConfirmByIdSchema,
   otpConfirmSchema,
@@ -36,6 +39,10 @@ botRouter.post(
   validate({ body: otpConfirmByIdSchema }),
   asyncRoute(botController.otpConfirmById),
 )
+// @taxiline_kirish_bot: sign-in codes, profile, autofill switch.
+botRouter.post('/kirish/code', validate({ body: kirishCodeSchema }), asyncRoute(botController.kirishCode))
+botRouter.post('/kirish/profile', validate({ body: kirishProfileSchema }), asyncRoute(botController.kirishGetProfile))
+botRouter.post('/kirish/autofill', validate({ body: kirishAutofillSchema }), asyncRoute(botController.kirishAutofill))
 botRouter.post('/rate', validate({ body: rateViaBotSchema }), asyncRoute(botController.rateViaBot))
 // Cargo "✅ Qabul qilish" / "✅ Yetkazildi" buttons in Telegram.
 botRouter.post('/cargo-claim', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.claimViaBot))

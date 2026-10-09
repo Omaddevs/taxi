@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import * as botService from './bot.service.js'
-import { confirmOtpByRequestId, confirmOtpViaBot } from '../auth/auth.service.js'
+import { confirmOtpByRequestId, confirmOtpViaBot, kirishIssueCode, kirishProfile, kirishSetAutofill } from '../auth/auth.service.js'
 
 function serializeUser(user: {
   id: string
@@ -67,4 +67,17 @@ export async function touchChannel(req: Request, res: Response) {
 export async function rateViaBot(req: Request, res: Response) {
   await botService.rateViaBot(req.body)
   res.json({ ok: true })
+}
+
+// @taxiline_kirish_bot
+export async function kirishCode(req: Request, res: Response) {
+  res.json(await kirishIssueCode(req.body))
+}
+
+export async function kirishGetProfile(req: Request, res: Response) {
+  res.json(await kirishProfile(req.body))
+}
+
+export async function kirishAutofill(req: Request, res: Response) {
+  res.json(await kirishSetAutofill(req.body))
 }

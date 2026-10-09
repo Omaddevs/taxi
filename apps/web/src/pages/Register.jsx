@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react'
-import { AuthChrome, GoogleMark, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
+import { AuthChrome, GoogleMark, KirishBotButton, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
 import { LanguageFlag } from '../components/ui/LanguagePicker'
 import { FlagUz } from '../components/ui/Flags'
 import { LANGUAGES } from '../data/languages'
@@ -84,11 +84,8 @@ export default function Register() {
     try {
       const data = await requestOtp(toE164Uz(phone), profilePayload())
       setOtpRequestId(data.otpRequestId)
+      // The code itself comes from @taxiline_kirish_bot (button on the next step).
       setStep('code')
-      // Bot delivers the code the instant "Start" is tapped on this deep link — the
-      // otpRequestId payload alone confirms it (see taxiline-bot handlers/start.py), and the
-      // poll below then picks up the confirmed code automatically, same as typing it in would.
-      window.open(`https://t.me/${TELEGRAM_BOT}?start=otp_${data.otpRequestId}`, '_blank', 'noopener,noreferrer')
     } catch (err) {
       setError(err.message || 'Kod yuborilmadi')
     } finally {
@@ -255,8 +252,9 @@ export default function Register() {
           </button>
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
           <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
-            {cleanName(name)}, SMS yoki Telegram orqali kelgan 6 xonali kodni kiriting.
+            {cleanName(name)}, 6 xonali kodni Telegram’dagi kirish botimizdan (/royxatdan_otish) oling va shu yerga kiriting.
           </p>
+          <KirishBotButton start="royxat" />
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}

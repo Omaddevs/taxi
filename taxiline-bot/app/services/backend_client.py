@@ -159,6 +159,27 @@ class BackendClient:
         resp.raise_for_status()
         return True
 
+    async def _kirish(self, path: str, payload: dict) -> dict | None:
+        """@taxiline_kirish_bot calls; None when the server can't be reached or refuses."""
+        try:
+            resp = await self._client.post(f"/bot/kirish/{path}", json=payload)
+            if resp.status_code >= 400:
+                logger.warning("kirish %s -> %s %s", path, resp.status_code, resp.text[:200])
+                return None
+            return resp.json()
+        except Exception:
+            logger.exception("kirish %s failed", path)
+            return None
+
+    async def kirish_code(self, payload: dict) -> dict | None:
+        return await self._kirish("code", payload)
+
+    async def kirish_profile(self, payload: dict) -> dict | None:
+        return await self._kirish("profile", payload)
+
+    async def kirish_autofill(self, payload: dict) -> dict | None:
+        return await self._kirish("autofill", payload)
+
     async def confirm_otp_by_request_id(
         self, otp_request_id: str, telegram_id: int, username: str | None = None
     ) -> str | None:

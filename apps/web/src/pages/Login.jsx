@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react'
-import { AuthChrome, GoogleMark, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
+import { AuthChrome, GoogleMark, KirishBotButton, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
 import { FlagUz } from '../components/ui/Flags'
 import { useAuth } from '../context/AuthContext'
 import { homePathForRole } from '../lib/role'
@@ -37,6 +37,7 @@ export default function Login() {
           navigate(homePathForRole(result.user), { replace: true })
           return
         }
+        // Only sent for accounts that switched on autofill in the kirish bot's Sozlamalar.
         if (result.code) {
           setCode((prev) => prev || result.code)
         }
@@ -197,8 +198,9 @@ export default function Login() {
           </button>
           <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
           <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
-            SMS yoki Telegram orqali kelgan 6 xonali kodni kiriting. Telegramdagi “Tasdiqlash va kirish” ham ishlaydi.
+            6 xonali kodni Telegram’dagi kirish botimizdan oling va shu yerga kiriting.
           </p>
+          <KirishBotButton start="kirish" />
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}

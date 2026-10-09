@@ -102,10 +102,11 @@ export interface OtpNotifyPayload {
 }
 
 // Same best-effort pattern — the SMS send already happened, so a failure here must never
-// fail requestOtp; the user just won't see the Telegram fast-path this one time.
-export async function notifyOtpViaBot(payload: OtpNotifyPayload): Promise<void> {
+// fail requestOtp. Delivered by @taxiline_kirish_bot (the main bot no longer sends codes); it
+// only reaches people who have opened that bot at least once — the rest ask it for the code.
+export async function notifyOtpViaBot(payload: OtpNotifyPayload & { intent: 'login' | 'register' }): Promise<void> {
   try {
-    await fetch(`${env.BOT_HTTP_URL}/webapp/otp-code`, {
+    await fetch(`${env.BOT_HTTP_URL}/webapp/kirish/push-code`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Bot-Secret': env.BOT_API_SECRET },
       body: JSON.stringify(payload),

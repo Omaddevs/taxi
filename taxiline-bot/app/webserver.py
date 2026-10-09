@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiohttp import web
 from sqlalchemy import delete, func, select
 
@@ -27,6 +26,7 @@ from app.db.base import session_scope
 from app.db.models import BotUser, DriverProfile, Group, GroupAd, Order, OrderDispatch
 from app.handlers.admin.groups import SETTING_LABELS
 from app.i18n.translations import t
+from app.kirish.handlers import push_code as kirish_push
 from app.services import bot_config
 from app.services import calls as calls_service
 from app.services import cargo as cargo_service
@@ -216,11 +216,12 @@ async def notify_user(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "sent": True})
 
 
-@routes.post("/webapp/otp-code")
-async def otp_code(request: web.Request) -> web.Response:
+@routes.post("/webapp/kirish/push-code")
+async def kirish_push_code(request: web.Request) -> web.Response:
+    """server/ requestOtp → a fresh website sign-in code for a Telegram-linked account. Sent by
+    @taxiline_kirish_bot (never the main bot); fails quietly for people who never opened it."""
     if not _authorized(request):
         return web.json_response({"error": "unauthorized"}, status=401)
-
     try:
         payload = await request.json()
     except ValueError:
@@ -232,21 +233,11 @@ async def otp_code(request: web.Request) -> web.Response:
     if not telegram_id or not phone or not code:
         return web.json_response({"error": "telegramId, phone and code are required"}, status=400)
 
-    lang = payload.get("language") or "uz"
-    text = t("otp_code_message", lang, code=code)
-
-    builder = InlineKeyboardBuilder()
-    builder.button(text=t("otp_confirm_btn", lang), callback_data=f"otpconfirm:{phone}:{code}")
-
-    bot: Bot = request.app["bot"]
-    try:
-        await bot.send_message(int(telegram_id), text, reply_markup=builder.as_markup())
-    except Exception:
-        # Best-effort: the SMS with the same code already went out, so a DM failure here just
-        # means the user won't see the Telegram fast-path this one time.
-        logger.warning("Failed to DM OTP code to telegram_id=%s", telegram_id)
-
-    return web.json_response({"ok": True})
+    kirish_bot: Bot | None = request.app.get("kirish_bot")
+    if kirish_bot is None:
+        return web.json_response({"ok": True, "sent": False})
+    sent = await kirish_push(kirish_bot, int(telegram_id), str(code), str(phone), payload.get("intent") or "login")
+    return web.json_response({"ok": True, "sent": sent})
 
 
 @routes.post("/webapp/driver-reviewed")
@@ -1447,15 +1438,16 @@ async def chat_members(request: web.Request) -> web.Response:
     return web.json_response({"members": members, "chatErrors": chat_errors})
 
 
-def build_app(bot: Bot) -> web.Application:
+def build_app(bot: Bot, kirish_bot: Bot | None = None) -> web.Application:
     app = web.Application()
     app["bot"] = bot
+    app["kirish_bot"] = kirish_bot
     app.add_routes(routes)
     return app
 
 
-async def run_webserver(bot: Bot, port: int) -> web.AppRunner:
-    app = build_app(bot)
+async def run_webserver(bot: Bot, port: int, kirish_bot: Bot | None = None) -> web.AppRunner:
+    app = build_app(bot, kirish_bot)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
