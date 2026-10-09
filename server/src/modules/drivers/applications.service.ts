@@ -84,7 +84,7 @@ export async function reviewApplication(id: string, actorId: string, status: 'AP
   if (user) {
     await notifyDriverReviewed({
       telegramId: user.telegramId,
-      phone: user.phone,
+      phone: user.phone ?? application.phone,
       gender: user.gender,
       status,
       rejectionReason: rejectionReason ?? null,
@@ -129,7 +129,7 @@ export async function updateApplication(id: string, fields: ApplicationFields, a
 
   await updateBotDriverProfile({
     telegramId: updated.user.telegramId,
-    phone: updated.user.phone,
+    phone: updated.user.phone ?? updated.phone,
     fullName: updated.fullName,
     carModel: updated.carModel,
     plate: updated.plate,
@@ -179,7 +179,7 @@ export async function setApplicationBlocked(
   })
 
   if (!fromBot) {
-    await setBotDriverBlocked({ telegramId: updated.user.telegramId, phone: updated.user.phone, blocked }).catch((err) =>
+    await setBotDriverBlocked({ telegramId: updated.user.telegramId, phone: updated.user.phone ?? updated.phone, blocked }).catch((err) =>
       console.error('setBotDriverBlocked failed:', err),
     )
   }

@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma.js'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../errors/AppError.js'
+import { requireUserPhone } from '../../lib/phoneGate.js'
 import { getIo } from '../../lib/socket.js'
 import { SOCKET_EVENTS, bookingRoom, driverRoom } from '../../realtime/events.js'
 import { createNotification } from '../notifications/notifications.service.js'
@@ -83,6 +84,8 @@ export async function createBooking(
   riderId: string,
   data: { rideOfferId: string; seats: { offerSeatId: string; gender: 'MALE' | 'FEMALE' }[]; luggage: number },
 ) {
+  // The driver calls the passenger on this number.
+  await requireUserPhone(riderId)
   const offer = await prisma.rideOffer.findUnique({
     where: { id: data.rideOfferId },
     include: { driver: { include: { user: { select: { telegramId: true, language: true } } } }, seats: true },
@@ -162,8 +165,8 @@ export async function createBooking(
       telegramId: offer.driver.user.telegramId,
       language: offer.driver.user.language,
       kind: 'new',
-      riderName: booking.rider.name ?? booking.rider.phone,
-      riderPhone: booking.rider.phone,
+      riderName: booking.rider.name ?? booking.rider.phone ?? 'Yo‘lovchi',
+      riderPhone: booking.rider.phone ?? '',
       fromLabel: booking.fromLabel,
       toLabel: booking.toLabel,
       departAt: booking.departAt.toISOString(),

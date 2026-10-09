@@ -3,7 +3,7 @@ import * as authService from './auth.service.js'
 
 function serializeUser(user: {
   id: string
-  phone: string
+  phone: string | null
   name: string | null
   role: string
   verified: boolean
@@ -74,15 +74,26 @@ export function googleConfig(_req: Request, res: Response) {
 }
 
 export async function googleSignIn(req: Request, res: Response) {
-  const result = await authService.googleSignIn(req.body.code, sessionMeta(req))
+  const result = await authService.googleSignIn(req.body.code, req.body.intent, sessionMeta(req))
   if (result.status === 'ok') {
-    res.json({ status: 'ok', user: serializeUser(result.user), accessToken: result.accessToken, refreshToken: result.refreshToken })
+    res.json({
+      status: 'ok',
+      created: result.created,
+      user: serializeUser(result.user),
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    })
     return
   }
   res.json(result)
 }
 
 export async function googleRegister(req: Request, res: Response) {
-  const { user, accessToken, refreshToken } = await authService.googleRegister(req.body.ticket, req.body.phone, sessionMeta(req))
+  const { user, accessToken, refreshToken } = await authService.googleRegister(req.body.ticket, sessionMeta(req))
   res.json({ user: serializeUser(user), accessToken, refreshToken })
+}
+
+export async function addPhone(req: Request, res: Response) {
+  const user = await authService.addPhone(req.user!.id, req.body.phone)
+  res.json({ phone: user.phone })
 }

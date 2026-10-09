@@ -146,7 +146,7 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
   }
 }
 
-type CancelPerson = { id: string; name: string | null; phone: string }
+type CancelPerson = { id: string; name: string | null; phone: string | null }
 
 // `cancelledBy` just holds a userId (whoever's PATCH set the booking to CANCELLED) — this infers
 // *who* that was by comparing it against the booking's own rider/driver. Holds for the 3 current

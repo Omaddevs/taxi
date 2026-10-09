@@ -91,8 +91,8 @@ export async function createOffer(
     departAt: offer.departAt.toISOString(),
     pricePerSeat: offer.pricePerSeat,
     seatsTotal: offer.seatsTotal,
-    driverName: driver.user.name ?? driver.user.phone,
-    driverPhone: driver.user.phone,
+    driverName: driver.user.name ?? driver.user.phone ?? 'Haydovchi',
+    driverPhone: driver.user.phone ?? '',
     carModel: driver.carModel,
     plate: driver.plate,
   })

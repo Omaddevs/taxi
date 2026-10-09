@@ -179,7 +179,7 @@ enum CarFuelType {
 
 model User {
   id               String        @id @default(cuid())
-  phone            String        @unique
+  phone            String?       @unique // null only for Google sign-ups that haven't needed one yet
   name             String?
   firstName        String?
   email            String?

@@ -3,8 +3,10 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { validate } from '../../middleware/validate.js'
 import * as authController from './auth.controller.js'
 import { rateLimit } from '../../middleware/rateLimit.js'
+import { requireAuth } from '../../middleware/auth.js'
 import {
   adminLoginSchema,
+  addPhoneSchema,
   googleRegisterSchema,
   googleSignInSchema,
   logoutSchema,
@@ -36,6 +38,8 @@ authRouter.post(
 authRouter.get('/google/config', authController.googleConfig)
 authRouter.post('/google', rateLimit(30, 10 * 60_000), validate({ body: googleSignInSchema }), asyncRoute(authController.googleSignIn))
 authRouter.post('/google/register', rateLimit(20, 10 * 60_000), validate({ body: googleRegisterSchema }), asyncRoute(authController.googleRegister))
+// Signed-in account without a phone (Google sign-up) adds one when an action first needs it.
+authRouter.post('/phone', requireAuth, rateLimit(20, 10 * 60_000), validate({ body: addPhoneSchema }), asyncRoute(authController.addPhone))
 
 export const adminAuthRouter = Router()
 adminAuthRouter.post('/login', validate({ body: adminLoginSchema }), asyncRoute(authController.adminLogin))

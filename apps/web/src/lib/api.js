@@ -66,6 +66,11 @@ async function request(path, options = {}, retry = true) {
   const body = await res.json().catch(() => null)
 
   if (!res.ok) {
+    // A Google account without a phone tried something that needs one — PhoneRequiredDialog
+    // (mounted once in App) listens for this and asks for the number.
+    if (body?.error?.code === 'PHONE_REQUIRED' && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('taxiline:phone-required', { detail: { message: body.error.message } }))
+    }
     throw new ApiError(res.status, body?.error?.message ?? 'Xatolik yuz berdi', body?.error?.code)
   }
 

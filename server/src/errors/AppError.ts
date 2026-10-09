@@ -52,3 +52,11 @@ export class ServiceUnavailableError extends AppError {
     super(503, 'SERVICE_UNAVAILABLE', message, details)
   }
 }
+
+// The account has no phone yet (Google sign-up) and this action needs one — the website shows
+// its "add your number" dialog on this code and lets the person retry.
+export class PhoneRequiredError extends AppError {
+  constructor(message = 'Davom etish uchun telefon raqamingizni qo‘shing', details?: unknown) {
+    super(409, 'PHONE_REQUIRED', message, details)
+  }
+}

@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { ForbiddenError } from '../../errors/AppError.js'
+import { ForbiddenError, PhoneRequiredError } from '../../errors/AppError.js'
 import * as botBridge from '../../lib/botBridge.js'
 
 async function requireTelegramId(userId: string): Promise<string> {
@@ -66,6 +66,7 @@ export async function createPassengerOrder(
   if (!user?.telegramId) {
     throw new ForbiddenError('So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)')
   }
+  if (!user.phone) throw new PhoneRequiredError()
   const { date, time, ...rest } = input
   return botBridge.createPassengerBotOrder({
     ...rest,

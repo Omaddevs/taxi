@@ -258,7 +258,7 @@ export async function getStatus(): Promise<{
     igUsername: account.igUsername,
     pageId: account.pageId,
     connectedAt: account.connectedAt.toISOString(),
-    connectedByName: account.connectedBy?.name ?? account.connectedBy?.phone,
+    connectedByName: account.connectedBy?.name ?? account.connectedBy?.phone ?? undefined,
   }
 }
 

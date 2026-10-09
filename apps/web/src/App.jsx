@@ -5,6 +5,7 @@ import { isDriverUser } from './lib/role'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import GoogleFinish from './pages/GoogleFinish'
+import { PhoneRequiredDialog } from './components/auth/PhoneRequiredDialog'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
@@ -84,6 +85,8 @@ function DriverShell() {
 
 export default function App() {
   return (
+    <>
+    <PhoneRequiredDialog />
     <Routes>
       <Route path="/welcome" element={<WelcomeRedirect />} />
       <Route path="/news" element={<News />} />
@@ -167,5 +170,6 @@ export default function App() {
         <Route path="help" element={<Help />} />
       </Route>
     </Routes>
+    </>
   )
 }

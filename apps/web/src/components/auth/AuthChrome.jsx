@@ -195,10 +195,10 @@ function useGoogleEnabled() {
   return enabled
 }
 
-// "Google orqali kirish / ro‘yxatdan o‘tish". A Google account linked to TaxiLine signs in at
-// once, from either page, with no code. Not linked yet: from the login page the person is told
-// the account wasn't found and sent on to Google registration (/google); from the register page
-// they go there directly. Until Google keys are configured the button (and divider) is hidden.
+// "Google orqali kirish / ro‘yxatdan o‘tish" — "Continue" in Google's window is all it takes: no
+// code, no phone. A linked account signs in from either page; on the register page a new one is
+// created on the spot; on the login page an unknown one gets "Foydalanuvchi topilmadi" (/google)
+// with a one-tap registration. Hidden until Google keys are configured on the server.
 export function GoogleAuthButton({ label = 'Google orqali kirish', className = '', divider = false, intent = 'login' }) {
   const { googleSignIn } = useAuth()
   const navigate = useNavigate()
@@ -212,7 +212,7 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
     setBusy(true)
     try {
       const code = await requestGoogleCode()
-      const result = await googleSignIn(code)
+      const result = await googleSignIn(code, intent)
       if (result.status === 'ok') {
         navigate(homePathForRole(result.user), { replace: true })
         return

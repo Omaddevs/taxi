@@ -118,8 +118,8 @@ export async function buildReport(period: ReportPeriod): Promise<{ period: Repor
       rows: bookings.map((b) => [
         dt(b.createdAt),
         `${b.fromLabel} → ${b.toLabel}`,
-        b.rider.name || b.rider.phone,
-        b.rideOffer.driver.user.name || b.rideOffer.driver.user.phone,
+        b.rider.name || b.rider.phone || '—',
+        b.rideOffer.driver.user.name || b.rideOffer.driver.user.phone || '—',
         b.status,
         b.totalPrice,
       ]),
@@ -127,7 +127,7 @@ export async function buildReport(period: ReportPeriod): Promise<{ period: Repor
     {
       name: 'Foydalanuvchilar',
       columns: ['Sana', 'Ism', 'Telefon', 'Rol', 'Tasdiqlangan'],
-      rows: users.map((u) => [dt(u.createdAt), u.name || '—', u.phone, u.role, u.verified ? 'Ha' : 'Yo‘q']),
+      rows: users.map((u) => [dt(u.createdAt), u.name || '—', u.phone ?? '—', u.role, u.verified ? 'Ha' : 'Yo‘q']),
     },
     {
       name: 'Haydovchilar',
@@ -135,7 +135,7 @@ export async function buildReport(period: ReportPeriod): Promise<{ period: Repor
       rows: drivers.map((d) => [
         dt(d.createdAt),
         d.user.name || '—',
-        d.user.phone,
+        d.user.phone ?? '—',
         d.carModel,
         d.plate,
         d.approved ? 'Ha' : 'Yo‘q',
@@ -160,7 +160,7 @@ export async function buildReport(period: ReportPeriod): Promise<{ period: Repor
         .filter((o) => o.staffKind === 'SALES')
         .map((o) => {
           const actual = actualsFromActivities(activities.filter((a) => a.operatorId === o.id))
-          return [o.name || '—', o.phone, actual.newUsers, actual.newDrivers, actual.bookings, actual.calls, actual.revenue]
+          return [o.name || '—', o.phone ?? '—', actual.newUsers, actual.newDrivers, actual.bookings, actual.calls, actual.revenue]
         }),
     },
     {

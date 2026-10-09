@@ -507,18 +507,19 @@ export async function issueTokenPair(userId: string, role: JwtRole, meta?: Sessi
 // • A Google account is matched only by its `sub` (User.googleId) — never by email: emails in
 //   TaxiLine profiles are typed in by users and unverified, so matching on them could hand
 //   someone else's account over.
-// • Signing in with a linked Google account never asks for a code.
-// • Not linked yet → "not_registered": the site sends the person to Google registration, which
-//   takes name/email/photo from Google and only asks for a phone number (the taxi service needs
-//   one — drivers call passengers), with no code. That number is stored as unverified
-//   (User.verified = false); a number that already has an account is refused rather than linked,
-//   since linking without a code would let anyone claim someone else's account.
+// • Google sign-in and sign-up never ask for a code or a phone: "Continue" in Google's window is
+//   the whole thing. The account is created without a phone; the number is asked later, the
+//   first time something needs it (booking, cargo, driver application → PHONE_REQUIRED).
+// • From the login page an unknown Google account is "not_registered" (the site says so and
+//   offers registration); from the register page it is registered straight away.
 
 export function googleConfig() {
   return { enabled: googleEnabled(), clientId: googleEnabled() ? env.GOOGLE_CLIENT_ID : null }
 }
 
-async function signInGoogleUser(user: { id: string; avatarUrl: string | null; email: string | null }, profile: { picture: string | null; email: string | null }, meta?: SessionMeta) {
+type GoogleIdentity = { sub: string; email: string | null; name: string | null; picture: string | null }
+
+async function signInGoogleUser(user: { id: string; avatarUrl: string | null; email: string | null }, profile: GoogleIdentity, meta?: SessionMeta) {
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -533,46 +534,65 @@ async function signInGoogleUser(user: { id: string; avatarUrl: string | null; em
   return { user: { ...updated, role }, ...tokens }
 }
 
-export async function googleSignIn(code: string, meta?: SessionMeta) {
+async function createGoogleUser(profile: GoogleIdentity, meta?: SessionMeta) {
+  const name = normalizeName(profile.name ?? undefined) || 'TaxiLine foydalanuvchisi'
+  try {
+    const user = await prisma.user.create({
+      data: {
+        role: 'PASSENGER',
+        verified: false,
+        name,
+        firstName: name.split(' ')[0],
+        email: profile.email,
+        avatarUrl: profile.picture,
+        googleId: profile.sub,
+        signupSource: 'WEBAPP',
+        fromWebapp: true,
+        lastSeenAt: new Date(),
+      },
+    })
+    const role = await appRoleForUser(user)
+    const tokens = await issueTokenPair(user.id, role, meta)
+    return { user: { ...user, role }, ...tokens, created: true }
+  } catch (err) {
+    // Two tabs / a double click racing on the same Google account: the other one won — sign in.
+    const existing = await prisma.user.findUnique({ where: { googleId: profile.sub } })
+    if (existing) return { ...(await signInGoogleUser(existing, profile, meta)), created: false }
+    throw err
+  }
+}
+
+export async function googleSignIn(code: string, intent: 'login' | 'register', meta?: SessionMeta) {
   const profile = await exchangeGoogleCode(code)
   const user = await prisma.user.findUnique({ where: { googleId: profile.sub } })
-  if (user) return { status: 'ok' as const, ...(await signInGoogleUser(user, profile, meta)) }
+  if (user) return { status: 'ok' as const, created: false, ...(await signInGoogleUser(user, profile, meta)) }
+  if (intent === 'register') return { status: 'ok' as const, ...(await createGoogleUser(profile, meta)) }
   return {
     status: 'not_registered' as const,
+    // Lets the register page finish with one tap, without opening Google's window again.
     ticket: issueSignupTicket(profile),
     profile: { name: profile.name, email: profile.email, picture: profile.picture },
   }
 }
 
-export async function googleRegister(ticket: string, rawPhone: string, meta?: SessionMeta) {
+export async function googleRegister(ticket: string, meta?: SessionMeta) {
   const profile = readSignupTicket(ticket)
-
-  // Registered meanwhile (another tab, a double click) — just sign in.
   const linked = await prisma.user.findUnique({ where: { googleId: profile.sub } })
   if (linked) return signInGoogleUser(linked, profile, meta)
+  return createGoogleUser(profile, meta)
+}
 
+// "Add your number" — for an account without one (Google sign-up), the first time an action
+// needs it. No code (the person asked not to be bothered with one); stored unverified. A
+// number that already belongs to another account is refused rather than taken over.
+export async function addPhone(userId: string, rawPhone: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) throw new UnauthorizedError()
+  if (user.phone) throw new ConflictError('Akkauntingizda telefon raqam allaqachon bor')
   const phone = normalizePhone(rawPhone)
-  if (await prisma.user.findUnique({ where: { phone }, select: { id: true } })) {
-    throw new ConflictError('Bu raqam allaqachon ro‘yxatdan o‘tgan. Telefon raqam orqali kiring')
+  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
+  if (owner) {
+    throw new ConflictError('Bu raqam boshqa akkauntga tegishli. Boshqa raqam kiriting yoki o‘sha raqam bilan kiring')
   }
-
-  const name = normalizeName(profile.name ?? undefined) || 'TaxiLine foydalanuvchisi'
-  const user = await prisma.user.create({
-    data: {
-      phone,
-      role: 'PASSENGER',
-      verified: false,
-      name,
-      firstName: name.split(' ')[0],
-      email: profile.email,
-      avatarUrl: profile.picture,
-      googleId: profile.sub,
-      signupSource: 'WEBAPP',
-      fromWebapp: true,
-      lastSeenAt: new Date(),
-    },
-  })
-  const role = await appRoleForUser(user)
-  const tokens = await issueTokenPair(user.id, role, meta)
-  return { user: { ...user, role }, ...tokens }
+  return prisma.user.update({ where: { id: userId }, data: { phone, verified: false } })
 }

@@ -11,6 +11,7 @@ export async function submitApplication(
   data: { fullName: string; phone: string; carModel: string; plate: string; gender: 'MALE' | 'FEMALE' },
 ) {
   const existing = await prisma.driverApplication.findUnique({ where: { userId } })
+  await adoptPhoneIfMissing(userId, data.phone)
 
   if (existing?.blocked) {
     throw new ForbiddenError('Haydovchi bo‘lish uchun ariza bera olmaysiz. Qo‘llab-quvvatlash xizmatiga murojaat qiling')
@@ -318,7 +319,7 @@ export async function setApproved(driverId: string, approved: boolean) {
     await startSubscriptionOnApproval(driverId)
     await notifyDriverReviewed({
       telegramId: updated.user.telegramId,
-      phone: updated.user.phone,
+      phone: updated.user.phone ?? '',
       status: 'APPROVED',
       gender: updated.user.gender,
     })
@@ -337,7 +338,7 @@ export async function setDriverGender(driverId: string, actorId: string, gender:
   })
   // The bot decides who gets women-only orders from its own DriverProfile — keep it in step.
   // Best-effort: a downed bot must not undo the admin's change here.
-  await setBotDriverGender({ telegramId: user.telegramId, phone: user.phone, gender }).catch((err) => {
+  await setBotDriverGender({ telegramId: user.telegramId, phone: user.phone ?? '', gender }).catch((err) => {
     console.error('setBotDriverGender failed:', err)
   })
   await writeAudit({ actorId, action: 'DRIVER_GENDER_SET', targetType: 'Driver', targetId: driverId, meta: { gender } })
@@ -409,4 +410,17 @@ export async function listTopDrivers() {
     ratingCount: d.ratingCount,
     tripsCount: d.tripsCount,
   }))
+}
+
+// A Google sign-up has no phone yet; the one typed into the driver form becomes theirs (the bot
+// and admin tools find drivers by it). Taken by another account → that account must be used.
+async function adoptPhoneIfMissing(userId: string, rawPhone: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { phone: true } })
+  if (!user || user.phone) return
+  const phone = normalizePhone(rawPhone)
+  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
+  if (owner && owner.id !== userId) {
+    throw new ConflictError('Bu raqam boshqa akkauntga tegishli. O‘sha raqam bilan kiring yoki boshqa raqam kiriting')
+  }
+  await prisma.user.update({ where: { id: userId }, data: { phone } })
 }

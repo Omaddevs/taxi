@@ -102,17 +102,17 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  // Google popup code → { status: 'ok', user } (logged in, no code asked) or
-  // { status: 'not_registered', ticket, profile } (no account with this Google yet).
-  async function googleSignIn(code) {
-    const data = await api.post('/auth/google', { code })
-    if (data.status === 'ok') return { status: 'ok', user: applySession(data) }
+  // Google popup code → { status: 'ok', user } (signed in — never a code or a phone) or, from
+  // the login page only, { status: 'not_registered', ticket, profile }.
+  async function googleSignIn(code, intent = 'login') {
+    const data = await api.post('/auth/google', { code, intent })
+    if (data.status === 'ok') return { status: 'ok', created: Boolean(data.created), user: applySession(data) }
     return data
   }
 
-  // Google registration: name/email/photo come from Google, only the phone is asked — no code.
-  async function googleRegister(ticket, phone) {
-    return applySession(await api.post('/auth/google/register', { ticket, phone }))
+  // Finish a registration offered after "not found", without reopening Google's window.
+  async function googleRegister(ticket) {
+    return applySession(await api.post('/auth/google/register', { ticket }))
   }
 
   function logout() {

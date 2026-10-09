@@ -128,8 +128,9 @@ export async function syncDriver(input: {
   }
 
   const fields = {
-    fullName: input.name || user.name || user.phone,
-    phone: user.phone,
+    // linkUser above found/created the user by this number, so user.phone is set.
+    fullName: input.name || user.name || user.phone || input.phone,
+    phone: user.phone ?? input.phone,
     carModel: input.carModel,
     plate: input.plate,
     ...(input.region ? { region: input.region } : {}),

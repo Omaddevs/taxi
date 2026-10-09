@@ -4,7 +4,7 @@ import { confirmOtpByRequestId, confirmOtpViaBot, kirishIssueCode, kirishProfile
 
 function serializeUser(user: {
   id: string
-  phone: string
+  phone: string | null
   name: string | null
   role: string
   verified: boolean

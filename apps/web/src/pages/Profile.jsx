@@ -1,5 +1,6 @@
-import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, Settings, User } from 'lucide-react'
+import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, Phone, Settings, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { askForPhone } from '../components/auth/PhoneRequiredDialog'
 import { Button, Card } from '../components/ui/Button'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { CoinCard } from '../components/ui/CoinCard'
@@ -34,7 +35,18 @@ export default function Profile() {
             <img src={user.avatar} alt="" className="h-20 w-20 rounded-full border-4 border-white object-cover" />
             <div>
               <p className="text-xl font-extrabold">{user.name || user.phone}</p>
-              <p className="text-sm text-white/80">{user.phone}</p>
+              {user.phone ? (
+                <p className="text-sm text-white/80">{user.phone}</p>
+              ) : (
+                // Google sign-ups start without a number; it's needed for bookings.
+                <button
+                  type="button"
+                  onClick={() => askForPhone('Buyurtma berish uchun raqam kerak')}
+                  className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/40 transition hover:bg-white/30"
+                >
+                  <Phone className="h-3.5 w-3.5" /> Telefon raqam qo‘shish
+                </button>
+              )}
               {user.verified ? (
                 <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-xs font-bold text-brand">
                   <img src="/badges/verified.webp" alt="" aria-hidden className="h-5 w-5 object-contain" />

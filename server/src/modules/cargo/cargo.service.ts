@@ -1,6 +1,7 @@
 import type { CargoOrder, Prisma } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { ConflictError, ForbiddenError, NotFoundError } from '../../errors/AppError.js'
+import { requireUserPhone } from '../../lib/phoneGate.js'
 import { notifyCargoStatus, notifyGroupCargoPosted, notifyUserViaBot } from '../../lib/botNotify.js'
 import { formatSom } from '../../lib/format.js'
 import { createNotification } from '../notifications/notifications.service.js'
@@ -101,6 +102,8 @@ export async function createCargoOrder(
     price: number
   },
 ) {
+  // Drivers call the sender on this number.
+  await requireUserPhone(userId)
   const order = await prisma.cargoOrder.create({ data: { ...data, riderId: userId }, include: CARGO_INCLUDE })
 
   await notifyGroupCargoPosted({
@@ -177,7 +180,7 @@ export async function getDriverCargoOrder(userId: string, orderId: string) {
 }
 
 async function claim(
-  driver: { id: string; userId: string; user: { name: string | null; phone: string; telegramId: string | null } },
+  driver: { id: string; userId: string; user: { name: string | null; phone: string | null; telegramId: string | null } },
   orderId: string,
 ) {
   const { count } = await prisma.cargoOrder.updateMany({
@@ -196,7 +199,7 @@ async function claim(
   await createNotification(order.riderId, 'BOOKING', 'Haydovchi topildi', `${driverName} yukingizni olib ketadi. ${routeLine(order)}`, orderId).catch(() => {})
   await notifyUserViaBot(
     order.rider.telegramId,
-    `🚚 Yukingiz uchun haydovchi topildi!\n\n👤 ${driverName}\n📞 ${driver.user.phone}\n📍 ${routeLine(order)}`,
+    `🚚 Yukingiz uchun haydovchi topildi!\n\n👤 ${driverName}\n📞 ${driver.user.phone ?? '—'}\n📍 ${routeLine(order)}`,
   )
   return order
 }
