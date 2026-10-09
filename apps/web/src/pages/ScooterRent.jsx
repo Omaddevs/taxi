@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   ArrowRight,
   BadgeCheck,
@@ -18,9 +19,10 @@ import {
 } from 'lucide-react'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { Cover } from '../components/rent/shared'
-import { mainPrice, som, useRentals } from '../components/rent/rentData'
+import { mainPrice, som } from '../components/rent/rentData'
 import { Logo, Wordmark } from '../components/ui/Logo'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../lib/api'
 import { VEHICLE_TYPE, VEHICLE_TYPES } from '../data/rentals'
 import { breadcrumbJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
@@ -163,7 +165,7 @@ function Hero({ total }) {
       <div className="relative overflow-hidden rounded-[28px] bg-[#f3f4f6] sm:rounded-[40px]">
         <div className="relative grid lg:grid-cols-2">
           {/* ── Chap: kulrang panel ── */}
-          <div className="relative px-5 pb-2 pt-5 sm:px-10 sm:pt-8 lg:px-14 lg:pb-[250px] lg:pt-10 2xl:px-20 2xl:pb-[320px] 2xl:pt-14">
+          <div className="relative px-5 pb-2 pt-5 sm:px-10 sm:pt-8 lg:px-14 lg:pb-[300px] lg:pt-10 2xl:px-20 2xl:pb-[380px] 2xl:pt-14">
             {/* Fondagi katta "S" (Skuter) */}
             <svg aria-hidden="true" viewBox="0 0 600 600" className="pointer-events-none absolute -left-16 -top-6 w-[460px] sm:w-[600px] lg:w-[680px] 2xl:w-[820px]">
               <path d="M470 150 H 210 Q 110 150 110 250 Q 110 340 210 340 H 330 Q 430 340 430 440 Q 430 540 330 540 H 60" fill="none" stroke="#e7e9ed" strokeWidth="96" />
@@ -208,13 +210,13 @@ function Hero({ total }) {
               erkin harakat
             </h1>
 
-            <div className="relative z-20 mx-auto -mb-14 mt-6 w-[86%] max-w-[480px] sm:-mb-20 lg:hidden">
+            <div className="relative z-20 mx-auto -mb-10 mt-6 w-[86%] max-w-[480px] sm:-mb-14 lg:hidden">
               <ScooterImage className="h-auto w-full drop-shadow-[0_22px_18px_rgba(15,29,42,0.28)]" />
             </div>
           </div>
 
           {/* ── O‘ng: brend panel ── */}
-          <div className="relative overflow-hidden bg-brand px-5 pb-16 pt-24 sm:px-10 sm:pt-32 lg:overflow-visible lg:px-10 lg:pb-[190px] lg:pt-10 xl:px-14 2xl:px-20 2xl:pb-[240px] 2xl:pt-14">
+          <div className="relative overflow-hidden bg-brand px-5 pb-16 pt-24 sm:px-10 sm:pt-32 lg:overflow-visible lg:px-10 lg:pb-[240px] lg:pt-10 xl:px-14 2xl:px-20 2xl:pb-[300px] 2xl:pt-14">
             <svg aria-hidden="true" viewBox="0 0 600 600" className="pointer-events-none absolute -right-16 top-6 w-[460px] sm:w-[560px] lg:-right-10 lg:top-10 lg:w-[640px]">
               <circle cx="190" cy="430" r="120" fill="none" stroke="#fff" strokeOpacity="0.1" strokeWidth="64" />
               <circle cx="470" cy="430" r="120" fill="none" stroke="#fff" strokeOpacity="0.1" strokeWidth="64" />
@@ -270,7 +272,7 @@ function Hero({ total }) {
 
         {/* ── Pastki qorong‘i blok ── */}
         <div id="afzalliklar" className="relative z-10 -mt-8 scroll-mt-24 rounded-[28px] bg-[#1d2229] sm:-mt-10 sm:rounded-[40px]">
-          <div className="pointer-events-none absolute bottom-[calc(100%-36px)] left-[8%] z-20 hidden w-[34%] max-w-[520px] lg:block">
+          <div className="pointer-events-none absolute bottom-[calc(100%-36px)] left-[8%] z-20 hidden w-[30%] max-w-[440px] lg:block">
             <ScooterImage className="h-auto w-full drop-shadow-[0_26px_22px_rgba(0,0,0,0.35)]" />
           </div>
 
@@ -413,7 +415,7 @@ function ListingTile({ listing, href }) {
 
 function Listings({ listings, isLoading }) {
   const links = useRentLinks()
-  const shown = listings.slice(0, 6)
+  const shown = listings
   return (
     <section id="elonlar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="rounded-[28px] bg-[#f3f4f6] px-5 py-10 sm:rounded-[40px] sm:px-10 sm:py-14 lg:px-14 2xl:px-20 2xl:py-20">
@@ -553,13 +555,10 @@ function RentFaq() {
 export default function ScooterRent() {
   useSeo('/skuter-ijara')
   useJsonLd('breadcrumb', breadcrumbJsonLd('/skuter-ijara', 'Skuter ijara'))
-  const { data, isLoading } = useRentals()
-  const listings = useMemo(() => (Array.isArray(data) ? data : []), [data])
-  const counts = useMemo(() => {
-    const out = {}
-    for (const l of listings) out[l.vehicleType] = (out[l.vehicleType] || 0) + 1
-    return out
-  }, [listings])
+  // Only counts + 6 cards (GET /rentals/showcase) — the full market carries every photo.
+  const { data, isLoading } = useQuery({ queryKey: ['rentals-showcase'], queryFn: () => api.get('/rentals/showcase'), staleTime: 60_000 })
+  const listings = Array.isArray(data?.latest) ? data.latest : []
+  const counts = data?.counts ?? {}
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -569,7 +568,7 @@ export default function ScooterRent() {
     <div className="min-h-svh bg-white text-ink">
       <SiteHeader floating />
       <main>
-        <Hero total={listings.length} />
+        <Hero total={data?.total ?? 0} />
         <VehicleTypes counts={counts} />
         <Listings listings={listings} isLoading={isLoading} />
         <HowItWorks />

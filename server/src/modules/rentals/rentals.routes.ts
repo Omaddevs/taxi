@@ -23,6 +23,7 @@ const owner = [requireAuth, requireRole('PASSENGER', 'DRIVER')]
 rentalsRouter.get('/', validate({ query: listRentalsQuerySchema }), asyncRoute(rentalsController.listPublic))
 rentalsRouter.get('/mine', ...owner, asyncRoute(rentalsController.listMine))
 // Telegram bot browsing (public data, one card per call).
+rentalsRouter.get('/showcase', asyncRoute(rentalsController.showcase))
 rentalsRouter.get('/browse', validate({ query: browseRentalsQuerySchema }), asyncRoute(rentalsController.browse))
 rentalsRouter.get('/:id', validate({ params: rentalIdParamSchema }), asyncRoute(rentalsController.getPublic))
 rentalsRouter.post(

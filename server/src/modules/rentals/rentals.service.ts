@@ -81,6 +81,25 @@ export async function listPublic(filter: { type?: RentalVehicleType; q?: string 
   })
 }
 
+// Public /skuter-ijara landing: counts per type plus a handful of cards. Listing photos are
+// data: URIs of up to ~1 MB each, so the page must not pull the whole market like the app does.
+const SHOWCASE_SIZE = 6
+
+export async function showcase() {
+  const where = { status: 'APPROVED' as const, active: true }
+  const [groups, rows] = await Promise.all([
+    prisma.rentalListing.groupBy({ by: ['vehicleType'], where, _count: { _all: true } }),
+    prisma.rentalListing.findMany({ where, orderBy: ORDER, take: SHOWCASE_SIZE }),
+  ])
+  const counts = Object.fromEntries(groups.map((g) => [g.vehicleType, g._count._all]))
+  const total = groups.reduce((sum, g) => sum + g._count._all, 0)
+  const latest = rows.map((row) => {
+    const { ownerId: _ownerId, rejectionReason: _reason, ...card } = toCard(row)
+    return card
+  })
+  return { total, counts, latest }
+}
+
 export async function getPublic(id: string) {
   const listing = await prisma.rentalListing.findFirst({ where: { id, status: 'APPROVED', active: true } })
   if (!listing) throw new NotFoundError('E’lon topilmadi')

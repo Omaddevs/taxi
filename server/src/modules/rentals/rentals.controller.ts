@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express'
 import * as rentalsService from './rentals.service.js'
 
+export async function showcase(_req: Request, res: Response) {
+  res.json(await rentalsService.showcase())
+}
+
 export async function listPublic(req: Request, res: Response) {
   res.json(await rentalsService.listPublic(req.query as Parameters<typeof rentalsService.listPublic>[0]))
 }
