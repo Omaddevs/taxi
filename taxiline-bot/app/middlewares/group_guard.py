@@ -57,6 +57,16 @@ class GroupGuardMiddleware(BaseMiddleware):
                 is_chat_admin = False
 
         if is_chat_admin:
+            # Admins skip every restriction, but their taxi ads still get the TaxiLine header —
+            # except the linked channel's automatic forwards (announcements, pinned promos).
+            if (
+                not event.is_automatic_forward
+                and group.settings.get("format_ads")
+                and bot_config.get("features.format_ads")
+                and bot_config.get("format_ads.include_admins")
+                and await formatted_ads_service.repost(bot, session, event, data.get("bot_user"))
+            ):
+                return None
             return await handler(event, data)
 
         if group.settings.get("require_invites") and not await groups_service.has_met_invite_requirement(

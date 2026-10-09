@@ -69,6 +69,8 @@ FIELDS: list[Field] = [
     Field("format_ads.driver_subtitle", "format_ads", "Haydovchi e'loni sarlavhasi", "text", "Yo'lovchi tashish e'loni"),
     Field("format_ads.passenger_subtitle", "format_ads", "Yo'lovchi e'loni sarlavhasi", "text",
           "Yo'lovchi e'loni — mashina qidirilmoqda", "Matnda «mashina kerak», «ketamiz» kabi so'zlar bo'lsa"),
+    Field("format_ads.include_admins", "format_ads", "Guruh adminlarining e'lonlariga ham qo'llash", "bool", True,
+          "Adminlar yozgan e'lonlar ham TaxiLine sarlavhasi va tugmalar bilan qayta joylanadi"),
     Field("format_ads.fresh_minutes", "format_ads", "«🟢 Faol» turadigan vaqt (daqiqa)", "int", 30,
           "Keyin «🟡 30 daqiqa oldin», «🟡 1 soat oldin»… — belgi shu qadam bilan yangilanadi", 5, 720),
     Field("format_ads.stale_minutes", "format_ads", "«🔴 Eskirgan» bo'ladigan vaqt (daqiqa)", "int", 120,

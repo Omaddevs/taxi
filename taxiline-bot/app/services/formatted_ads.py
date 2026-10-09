@@ -53,7 +53,10 @@ def status_label(created_at: datetime, now: datetime | None = None) -> tuple[str
 
 def render(ad: FormattedAd, label: str) -> str:
     subtitle = bot_config.get("format_ads.passenger_subtitle" if ad.is_passenger else "format_ads.driver_subtitle")
-    owner = f'<a href="{profile_url(ad.author_telegram_id, ad.author_username)}">{html.escape(ad.author_name)}</a>'
+    if ad.author_telegram_id or ad.author_username:
+        owner = f'<a href="{profile_url(ad.author_telegram_id, ad.author_username)}">{html.escape(ad.author_name)}</a>'
+    else:  # an anonymous admin of a private group — nothing to link to
+        owner = html.escape(ad.author_name)
     return "\n".join(
         [
             f"🚕 <b>TAXILINE</b>  ·  {label}",
@@ -93,27 +96,38 @@ async def _send(bot: Bot, event: Message, ad: FormattedAd, text: str) -> Message
 
 async def repost(bot: Bot, session: AsyncSession, event: Message, bot_user) -> bool:
     """Reposts a recognisable taxi ad with the TaxiLine header and deletes the original.
-    False — original untouched — for non-ads, media other than a photo, posts made as a
-    channel, text too long to fit with the header, or when sending fails."""
+    False — original untouched — for non-ads, media other than a photo, posts made as some
+    other channel, text too long to fit with the header, or when sending fails. Group admins'
+    ads go through here too; an anonymous admin (posting as the group) is shown as the group."""
     raw = event.text or (event.caption if event.photo else None)
-    if not raw or event.sender_chat is not None or event.from_user is None:
+    if not raw or event.from_user is None:
+        return False
+    anonymous_admin = event.sender_chat is not None and event.sender_chat.id == event.chat.id
+    if event.sender_chat is not None and not anonymous_admin:
         return False
     parsed = parse_ad(raw)
     if parsed is None:
         return False
 
-    author = event.from_user
+    if anonymous_admin:
+        author_id, author_name, author_username = 0, event.chat.title or "TaxiLine", event.chat.username
+    else:
+        author = event.from_user
+        author_id, author_username = author.id, author.username
+        author_name = bot_user.name if bot_user and bot_user.name else author.full_name
     ad = FormattedAd(
         chat_id=event.chat.id,
-        author_telegram_id=author.id,
-        author_name=bot_user.name if bot_user and bot_user.name else author.full_name,
-        author_username=author.username,
+        message_id=0,  # placeholder until the repost exists — the row is flushed before sending
+        author_telegram_id=author_id,
+        author_name=author_name,
+        author_username=author_username,
         # The author's own formatting (bold, links, emoji) is kept via html_text.
         body_html=event.html_text,
         is_passenger=parsed.is_passenger,
         phone=parsed.phones[0] if parsed.phones else None,
         has_photo=bool(event.photo),
-        chat_button=True,
+        # An anonymous admin has no personal chat; "write" would open the group itself.
+        chat_button=not anonymous_admin,
         created_at=datetime.utcnow(),
         label="🟢 Faol",
     )
