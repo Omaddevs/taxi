@@ -29,6 +29,7 @@ import { botRouter } from './modules/bot/bot.routes.js'
 import { botOrdersRouter } from './modules/botOrders/botOrders.routes.js'
 import { adminBotOrdersRouter } from './modules/botOrders/adminBotOrders.routes.js'
 import { adminBotGroupsRouter, adminBotSettingsRouter } from './modules/botGroups/adminBotGroups.routes.js'
+import { adminCallsRouter, publicCallsRouter } from './modules/calls/calls.routes.js'
 import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter } from './modules/instagram/instagram.routes.js'
 import { cargoRouter, driverCargoRouter } from './modules/cargo/cargo.routes.js'
 import { adminCarsRouter, carsRouter } from './modules/cars/cars.routes.js'
@@ -126,7 +127,9 @@ export function createApp() {
   app.use('/bot-orders', botOrdersRouter)
   app.use('/admin/bot-orders', adminBotOrdersRouter)
   app.use('/admin/bot-groups', adminBotGroupsRouter)
+  app.use('/admin/bot-settings/calls', adminCallsRouter)
   app.use('/admin/bot-settings', adminBotSettingsRouter)
+  app.use('/calls', publicCallsRouter)
   app.use('/webhooks/instagram', instagramWebhookRouter)
   app.use('/admin/integrations/instagram', adminInstagramRouter)
   app.use('/admin/leads', adminLeadMessagesRouter)

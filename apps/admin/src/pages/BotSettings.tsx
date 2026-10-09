@@ -11,6 +11,7 @@ import { inputClass } from '../components/ui/Chart'
 import { EmptyState, SkeletonGrid } from '../components/ui/EmptyState'
 import { Switch } from '../components/ui/Switch'
 import { AdsLog } from '../components/bot/AdsLog'
+import { CallsReport } from '../components/bot/CallsReport'
 import { GroupLinks } from '../components/bot/GroupLinks'
 import { BOT_SETTINGS_PAGES } from '../lib/botSettings'
 import type { BotSettingField, BotSettingsResponse, BotSettingsSection } from '../types'
@@ -36,7 +37,7 @@ export default function BotSettings() {
           options={BOT_SETTINGS_PAGES.map((p) => ({ value: p.slug, label: p.label }))}
         />
       </div>
-      {section === 'ads-log' ? <AdsLog /> : <SettingsSection sectionKey={slugToKey(section)} />}
+      {section === 'ads-log' ? <AdsLog /> : section === 'calls' ? <CallsReport /> : <SettingsSection sectionKey={slugToKey(section)} />}
     </div>
   )
 }

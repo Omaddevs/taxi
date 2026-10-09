@@ -10,12 +10,6 @@ unchanged) and for the field rows of the closed-group passenger card in group_ad
 
 import re
 from dataclasses import dataclass, field
-from urllib.parse import quote
-
-from aiogram.types import CopyTextButton
-
-from app.config import settings
-from app.services.phone import format_phone
 
 _CYR_TO_LAT = {
     "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "yo", "ж": "j", "з": "z",
@@ -307,11 +301,3 @@ def parse_ad_fields(raw: str) -> ParsedAd:
 
 def profile_url(user_id: int, username: str | None) -> str:
     return f"https://t.me/{username}" if username else f"tg://user?id={user_id}"
-
-
-def call_button_kwargs(phone: str, text: str) -> dict:
-    """InlineKeyboardBuilder.button() kwargs for a "call" button — see card_keyboard."""
-    base = settings.webapp_url.rstrip("/")
-    if base.startswith("https://"):
-        return {"text": text, "url": f"{base}/call.html?n={quote(phone)}"}
-    return {"text": f"📞 {format_phone(phone)}", "copy_text": CopyTextButton(text=phone)}

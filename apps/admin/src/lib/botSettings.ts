@@ -9,5 +9,6 @@ export const BOT_SETTINGS_PAGES: { slug: string; label: string; to?: string }[] 
   { slug: 'format-ads', label: 'E’lon shabloni' },
   { slug: 'group-ads', label: 'Guruh e’lonlari' },
   { slug: 'ads-log', label: 'E’lonlar jurnali' },
+  { slug: 'calls', label: 'Aloqa' },
   { slug: 'groups', label: 'Guruhlar va biriktirish', to: '/groups' },
 ]

@@ -384,6 +384,66 @@ export async function deleteBotGroupAd(id: number): Promise<{ ok: true }> {
   return botFetch<{ ok: true }>(`/webapp/admin/group-ads/${id}`, { method: 'DELETE', ...GROUP_TIMEOUT })
 }
 
+// ── Aloqa: «Tel qilish» calls (bot's call_logs table, see taxiline-bot/app/services/calls.py) ──
+export interface RecordedCall {
+  phone: string
+  phoneDisplay: string
+  ownerName: string | null
+  role: 'DRIVER' | 'PASSENGER'
+  chatTitle: string | null
+  callerName: string | null
+}
+
+export async function recordCall(payload: {
+  k: string
+  i: number
+  s: string
+  tg?: Record<string, unknown> | null
+  ua: string | null
+  ip: string | null
+}): Promise<RecordedCall> {
+  return botFetch<RecordedCall>('/webapp/call', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export interface CallReport {
+  totals: { calls: number; identifiedCalls: number; uniqueCallers: number; numbers: number }
+  loginButtons: boolean
+  summary: {
+    phone: string
+    phoneDisplay: string
+    calls: number
+    knownCallers: number
+    lastAt: string | null
+    ownerName: string | null
+    ownerUsername: string | null
+    ownerTelegramId: string | null
+    chatTitle: string | null
+    ownerRole: string | null
+  }[]
+  calls: {
+    id: number
+    createdAt: string | null
+    phone: string
+    phoneDisplay: string
+    ownerName: string | null
+    ownerUsername: string | null
+    ownerRole: string | null
+    chatTitle: string | null
+    adKind: string
+    callerTelegramId: string | null
+    callerName: string | null
+    callerUsername: string | null
+    callerIsDriver: boolean
+    userAgent: string | null
+  }[]
+}
+
+export async function getCallReport(days: number, phone?: string): Promise<CallReport> {
+  const query = new URLSearchParams({ days: String(days) })
+  if (phone) query.set('phone', phone)
+  return botFetch<CallReport>(`/webapp/admin/calls?${query}`, GROUP_TIMEOUT)
+}
+
 // ── Random mijoz: Telegram kanal/guruh a'zoligini tekshirish ───────────────────────────────
 // The bot runs getChatMember for every (chat, user) pair. Per chat the answer is `true`
 // (member/admin/creator), `false` (left/kicked/never joined) or an error string when the chat

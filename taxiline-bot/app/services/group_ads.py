@@ -31,7 +31,8 @@ from sqlalchemy.orm import selectinload
 
 from app.db.models import BotUser, DriverProfile, Group, GroupAd
 from app.services import bot_config
-from app.services.ad_format import call_button_kwargs, parse_ad_fields, profile_url
+from app.services import calls as calls_service
+from app.services.ad_format import parse_ad_fields, profile_url
 from app.services.phone import format_phone
 
 logger = logging.getLogger(__name__)
@@ -150,7 +151,7 @@ def card_kb(ad: GroupAd, *, with_chat_button: bool = True) -> InlineKeyboardMark
     if with_chat_button and ad.author_telegram_id:
         builder.button(text="💬 Yo'lovchiga yozish", url=profile_url(ad.author_telegram_id, ad.author_username))
     if parsed.phones:
-        builder.button(**call_button_kwargs(parsed.phones[0], "📞 Yo'lovchiga tel qilish"))
+        builder.button(**calls_service.button("📞 Yo'lovchiga tel qilish", calls_service.GROUP_AD, ad.id, parsed.phones[0]))
     builder.adjust(1)
     return builder.as_markup()
 
@@ -208,13 +209,19 @@ async def _send_card(bot: Bot, ad: GroupAd, source_title: str | None) -> Message
             lambda: bot.send_message(ad.target_chat_id, text, parse_mode="HTML", reply_markup=markup, disable_web_page_preview=True)
         )
 
-    try:
-        return await send(True)
-    except TelegramBadRequest as exc:
-        # tg://user?id= buttons are refused when the author's privacy settings hide them.
-        if "PRIVACY" not in str(exc).upper():
-            raise
-        return await send(False)
+    with_chat_button = True
+    for _ in range(3):
+        try:
+            return await send(with_chat_button)
+        except TelegramBadRequest as exc:
+            # tg://user?id= buttons are refused when the author's privacy settings hide them.
+            if with_chat_button and "PRIVACY" in str(exc).upper():
+                with_chat_button = False
+            elif calls_service.is_login_url_error(exc):
+                calls_service.disable_login_url()
+            else:
+                raise
+    return await send(with_chat_button)
 
 
 async def refresh_card(bot: Bot, ad: GroupAd, source_title: str | None, *, edited: bool = False) -> bool:
@@ -240,9 +247,11 @@ async def refresh_card(bot: Bot, ad: GroupAd, source_title: str | None, *, edite
         message = str(exc).lower()
         if "not modified" in message:
             return True
-        if "privacy" in message:
+        if "privacy" in message or calls_service.is_login_url_error(exc):
+            if calls_service.is_login_url_error(exc):
+                calls_service.disable_login_url()
             try:
-                await edit(False)
+                await edit("privacy" not in message)
                 return True
             except TelegramAPIError:
                 return False

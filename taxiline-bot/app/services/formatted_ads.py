@@ -21,7 +21,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import FormattedAd
 from app.services import bot_config
-from app.services.ad_format import call_button_kwargs, parse_ad, profile_url
+from app.services import calls as calls_service
+from app.services.ad_format import parse_ad, profile_url
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def keyboard(ad: FormattedAd) -> InlineKeyboardMarkup | None:
     if ad.chat_button:
         builder.button(text=f"💬 {whom} yozish", url=profile_url(ad.author_telegram_id, ad.author_username))
     if ad.phone:
-        builder.button(**call_button_kwargs(ad.phone, f"📞 {whom} tel qilish"))
+        builder.button(**calls_service.button(f"📞 {whom} tel qilish", calls_service.FORMATTED, ad.id, ad.phone))
     builder.adjust(1)
     markup = builder.as_markup()
     return markup if markup.inline_keyboard else None
@@ -117,12 +118,20 @@ async def repost(bot: Bot, session: AsyncSession, event: Message, bot_user) -> b
         label="🟢 Faol",
     )
     limit = _CAPTION_LIMIT if ad.has_photo else _TEXT_LIMIT
+    # The id goes into the call button's link, so the row exists before the send.
+    session.add(ad)
+    await session.flush()
+
+    async def give_up() -> bool:
+        await session.delete(ad)
+        await session.commit()
+        return False
 
     plain_fallback = False
     for _ in range(4):
         text = render(ad, ad.label)
         if len(text) > limit:
-            return False  # leave a very long ad as the author posted it
+            return await give_up()  # leave a very long ad as the author posted it
         try:
             message = await _send(bot, event, ad, text)
             break
@@ -135,21 +144,23 @@ async def repost(bot: Bot, session: AsyncSession, event: Message, bot_user) -> b
             if ad.chat_button and "PRIVACY" in reason:
                 ad.chat_button = False
                 continue
+            if calls_service.is_login_url_error(exc):
+                calls_service.disable_login_url()
+                continue
             # Entities the bot may not resend (e.g. premium custom emoji) — fall back to plain text.
             if not plain_fallback:
                 plain_fallback = True
                 ad.body_html = html.escape(raw)
                 continue
             logger.warning("format_ads repost failed in %s: %s", event.chat.id, exc)
-            return False
+            return await give_up()
         except TelegramAPIError as exc:
             logger.warning("format_ads repost failed in %s: %s", event.chat.id, exc)
-            return False
+            return await give_up()
     else:
-        return False
+        return await give_up()
 
     ad.message_id = message.message_id
-    session.add(ad)
     await session.commit()
     try:
         await bot.delete_message(event.chat.id, event.message_id)
@@ -187,6 +198,9 @@ async def relabel(bot: Bot, session: AsyncSession) -> None:
             await asyncio.sleep(min(exc.retry_after, 30))
             return  # the rest wait for the next run
         except TelegramBadRequest as exc:
+            if calls_service.is_login_url_error(exc):
+                calls_service.disable_login_url()  # next run re-renders with plain links
+                continue
             if "not modified" not in str(exc).lower():
                 final = True  # deleted by someone, or otherwise uneditable — stop trying
         except TelegramAPIError:

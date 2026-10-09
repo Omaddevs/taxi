@@ -28,6 +28,7 @@ from app.db.models import BotUser, DriverProfile, Group, GroupAd, Order, OrderDi
 from app.handlers.admin.groups import SETTING_LABELS
 from app.i18n.translations import t
 from app.services import bot_config
+from app.services import calls as calls_service
 from app.services import cargo as cargo_service
 from app.services import drivers as drivers_service
 from app.services import group_ads as group_ads_service
@@ -1333,6 +1334,51 @@ async def admin_delete_group_ad(request: web.Request) -> web.Response:
         if ad is not None:
             await group_ads_service.admin_delete(request.app["bot"], session, ad)
     return web.json_response({"ok": True})
+
+
+# ── Aloqa: «Tel qilish» call page + the admin call log ───────────────────────────────────
+
+
+@routes.post("/webapp/call")
+async def record_call(request: web.Request) -> web.Response:
+    """server/'s public POST /calls forwards here: {k, i, s, tg: {...login data} | null, ua, ip}."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    try:
+        ad_id = int(payload.get("i"))
+    except (TypeError, ValueError):
+        return web.json_response({"error": "Havola noto‘g‘ri"}, status=400)
+    tg = payload.get("tg") if isinstance(payload.get("tg"), dict) else None
+    async with session_scope() as session:
+        result = await calls_service.record(
+            session,
+            kind=str(payload.get("k") or ""),
+            ad_id=ad_id,
+            signature=str(payload.get("s") or ""),
+            auth=tg,
+            user_agent=payload.get("ua"),
+            ip=payload.get("ip"),
+        )
+    if result is None:
+        return web.json_response({"error": "E’lon topilmadi yoki havola eskirgan"}, status=404)
+    return web.json_response(result)
+
+
+@routes.get("/webapp/admin/calls")
+async def admin_calls(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        days = min(max(int(request.query.get("days", "7")), 1), 365)
+    except ValueError:
+        days = 7
+    phone = request.query.get("phone") or None
+    async with session_scope() as session:
+        return web.json_response(await calls_service.report(session, days=days, phone=phone))
 
 
 # ── Random mijoz: kanal/guruh a'zoligini ommaviy tekshirish ─────────────────────────────────

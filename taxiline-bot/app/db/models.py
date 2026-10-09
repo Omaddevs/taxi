@@ -347,3 +347,30 @@ class FormattedAd(Base):
     label: Mapped[str] = mapped_column()
     final: Mapped[bool] = mapped_column(default=False, server_default="false", index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+
+
+class CallLog(Base):
+    """One «📞 Tel qilish» tap that reached the call page (Bot sozlamalari → Aloqa). The ad's
+    owner is copied in, so the log still reads right after the ad itself is gone."""
+
+    __tablename__ = "call_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ad_kind: Mapped[str] = mapped_column()  # fa (formatted_ads) | ga (group_ads)
+    ad_id: Mapped[int] = mapped_column()
+    phone: Mapped[str] = mapped_column(index=True)
+    owner_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    owner_name: Mapped[str | None] = mapped_column(nullable=True)
+    owner_username: Mapped[str | None] = mapped_column(nullable=True)
+    owner_role: Mapped[str | None] = mapped_column(nullable=True)  # DRIVER | PASSENGER
+    chat_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    chat_title: Mapped[str | None] = mapped_column(nullable=True)
+    # Known only when the button was a login_url one (see services/calls.py).
+    caller_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    caller_name: Mapped[str | None] = mapped_column(nullable=True)
+    caller_username: Mapped[str | None] = mapped_column(nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(nullable=True)
+    ip: Mapped[str | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+
+    __table_args__ = (Index("ix_call_logs_ad", "ad_kind", "ad_id"),)

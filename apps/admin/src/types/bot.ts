@@ -111,3 +111,38 @@ export interface BotGroupAdsResponse {
   stats24h: Partial<Record<BotGroupAdStatus, number>>
   chatTitles: Record<string, string | null>
 }
+
+// Bot sozlamalari → Aloqa (taxiline-bot/app/services/calls.py report()).
+export interface CallReport {
+  totals: { calls: number; identifiedCalls: number; uniqueCallers: number; numbers: number }
+  // False while Telegram rejects login_url buttons (bot domain not set) — callers are then unknown.
+  loginButtons: boolean
+  summary: {
+    phone: string
+    phoneDisplay: string
+    calls: number
+    knownCallers: number
+    lastAt: string | null
+    ownerName: string | null
+    ownerUsername: string | null
+    ownerTelegramId: string | null
+    chatTitle: string | null
+    ownerRole: string | null
+  }[]
+  calls: {
+    id: number
+    createdAt: string | null
+    phone: string
+    phoneDisplay: string
+    ownerName: string | null
+    ownerUsername: string | null
+    ownerRole: string | null
+    chatTitle: string | null
+    adKind: string
+    callerTelegramId: string | null
+    callerName: string | null
+    callerUsername: string | null
+    callerIsDriver: boolean
+    userAgent: string | null
+  }[]
+}

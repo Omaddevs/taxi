@@ -48,6 +48,9 @@ FIELDS: list[Field] = [
           "Yopiq guruhdagi yo'lovchi kartochkasida haydovchi e'lonni band qila oladi"),
     Field("features.notify_passenger", "features", "Haydovchi olganda yo'lovchiga xabar", "bool", True,
           "Yo'lovchi botni ochgan bo'lsa, unga shaxsiy xabar yuboriladi"),
+    Field("features.call_login", "features", "Qo'ng'iroq qilganni aniqlash (Telegram login)", "bool", True,
+          "«Tel qilish» bosilganda kim qo'ng'iroq qilgani Aloqa bo'limiga yoziladi. Birinchi marta Telegram "
+          "«taxiline.uz saytiga kirish» deb so'raydi. Ishlashi uchun @BotFather → /setdomain → saytingiz domeni"),
     Field("features.auto_cleanup", "features", "Bot xabarlarini guruhdan avtomatik o'chirish", "bool", True,
           "So'rov va javob xabarlari belgilangan vaqtdan keyin o'chadi"),
     Field("admin_contact_url", "general", "Admin havolasi", "url", settings.admin_contact_url,
