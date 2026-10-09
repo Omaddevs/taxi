@@ -198,6 +198,9 @@ model User {
   // @taxiline_kirish_bot → Sozlamalar: when on, the login page fills the code in by itself.
   otpAutofill      Boolean       @default(false)
   googleId         String?       @unique // "Google orqali kirish" — Google account `sub`
+  // Set when an admin deletes an account that has trip/payment history: personal data is wiped
+  // and the row stays only so that history keeps its references (see people.service deletePerson).
+  deletedAt        DateTime?
   telegramUsername String?
   language         String? // 'uz' | 'ru' | 'en', set by taxiline-bot
   signupSource     ChannelSource @default(WEBAPP)

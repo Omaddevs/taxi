@@ -3,7 +3,7 @@ import type { ChannelSource } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { normalizePhone } from '../../lib/otp.js'
 import { writeAudit } from '../../lib/audit.js'
-import { ConflictError, ForbiddenError, NotFoundError } from '../../errors/AppError.js'
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../errors/AppError.js'
 import type { JwtRole } from '../../lib/jwt.js'
 
 export const PERSON_SELECT = {
@@ -21,6 +21,7 @@ export const PERSON_SELECT = {
   language: true,
   telegramId: true,
   telegramUsername: true,
+  googleId: true,
   signupSource: true,
   fromWebapp: true,
   fromBot: true,
@@ -56,6 +57,7 @@ function searchWhere(q?: string) {
     { name: { contains: raw, mode: 'insensitive' as const } },
     { firstName: { contains: raw, mode: 'insensitive' as const } },
     { telegramUsername: { contains: raw, mode: 'insensitive' as const } },
+    { email: { contains: raw, mode: 'insensitive' as const } },
     { notes: { contains: raw, mode: 'insensitive' as const } },
     { driver: { is: { plate: { contains: raw, mode: 'insensitive' as const } } } },
     { driver: { is: { carModel: { contains: raw, mode: 'insensitive' as const } } } },
@@ -68,7 +70,7 @@ function searchWhere(q?: string) {
   return { OR: or }
 }
 
-export async function listPeople(filter: { q?: string; kind?: 'all' | 'passenger' | 'driver'; channel?: ChannelSource }) {
+export async function listPeople(filter: { q?: string; kind?: 'all' | 'passenger' | 'driver'; channel?: ChannelSource | 'GOOGLE' }) {
   const channelWhere =
     filter.channel === 'BOT'
       ? { fromBot: true }
@@ -76,7 +78,9 @@ export async function listPeople(filter: { q?: string; kind?: 'all' | 'passenger
         ? { fromWebapp: true }
         : filter.channel === 'GROUP'
           ? { fromGroup: true }
-          : {}
+          : filter.channel === 'GOOGLE'
+            ? { googleId: { not: null } }
+            : {}
 
   const kindWhere =
     filter.kind === 'driver'
@@ -85,33 +89,36 @@ export async function listPeople(filter: { q?: string; kind?: 'all' | 'passenger
         ? { driver: null, role: { not: 'DRIVER' as const } }
         : {}
 
-  const [rows, total, drivers, passengers, bot, webapp, group] = await Promise.all([
+  // Deleted (anonymised) accounts stay in the table for history, never in the catalogue.
+  const live = { staffKind: null, deletedAt: null }
+  const [rows, total, drivers, passengers, bot, webapp, group, google] = await Promise.all([
     prisma.user.findMany({
-      where: { staffKind: null, ...kindWhere, ...channelWhere, ...searchWhere(filter.q) },
+      where: { ...live, ...kindWhere, ...channelWhere, ...searchWhere(filter.q) },
       orderBy: { createdAt: 'desc' },
       take: 200,
       select: PERSON_SELECT,
     }),
-    prisma.user.count({ where: { staffKind: null } }),
-    prisma.user.count({ where: { staffKind: null, OR: [{ role: 'DRIVER' }, { driver: { isNot: null } }] } }),
-    prisma.user.count({ where: { staffKind: null, driver: null, role: { not: 'DRIVER' } } }),
-    prisma.user.count({ where: { staffKind: null, fromBot: true } }),
-    prisma.user.count({ where: { staffKind: null, fromWebapp: true } }),
-    prisma.user.count({ where: { staffKind: null, fromGroup: true } }),
+    prisma.user.count({ where: live }),
+    prisma.user.count({ where: { ...live, OR: [{ role: 'DRIVER' }, { driver: { isNot: null } }] } }),
+    prisma.user.count({ where: { ...live, driver: null, role: { not: 'DRIVER' } } }),
+    prisma.user.count({ where: { ...live, fromBot: true } }),
+    prisma.user.count({ where: { ...live, fromWebapp: true } }),
+    prisma.user.count({ where: { ...live, fromGroup: true } }),
+    prisma.user.count({ where: { ...live, googleId: { not: null } } }),
   ])
 
   return {
     items: rows,
-    stats: { total, drivers, passengers, bot, webapp, group },
+    stats: { total, drivers, passengers, bot, webapp, group, google },
   }
 }
 
 export async function getPerson(id: string, actorRole?: JwtRole) {
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { ...PERSON_SELECT, staffKind: true, loginPassword: true },
+    select: { ...PERSON_SELECT, staffKind: true, loginPassword: true, deletedAt: true },
   })
-  if (!user || user.staffKind) throw new NotFoundError('Foydalanuvchi topilmadi')
+  if (!user || user.staffKind || user.deletedAt) throw new NotFoundError('Foydalanuvchi topilmadi')
   const { staffKind: _staffKind, loginPassword, ...person } = user
   const canSeePassword = actorRole === 'ADMIN' || actorRole === 'SUPPORT_OPERATOR'
 
@@ -183,6 +190,7 @@ export async function updatePerson(
   patch: {
     name?: string
     phone?: string
+    email?: string | null
     password?: string
     language?: string
     notes?: string
@@ -194,7 +202,7 @@ export async function updatePerson(
   actorId?: string,
 ) {
   const user = await prisma.user.findUnique({ where: { id }, include: { driver: true } })
-  if (!user || user.staffKind) throw new NotFoundError('Foydalanuvchi topilmadi')
+  if (!user || user.staffKind || user.deletedAt) throw new NotFoundError('Foydalanuvchi topilmadi')
 
   const canEditSecrets = actorRole === 'ADMIN' || actorRole === 'SUPPORT_OPERATOR'
   if (!canEditSecrets) {
@@ -218,6 +226,7 @@ export async function updatePerson(
       data: {
         ...(patch.name ? { name: patch.name, firstName: patch.name.split(' ')[0] } : {}),
         ...(patch.phone ? { phone: patch.phone } : {}),
+        ...(patch.email !== undefined ? { email: patch.email } : {}),
         ...(patch.language ? { language: patch.language } : {}),
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
         ...(patch.verified === undefined ? {} : { verified: patch.verified }),
@@ -258,4 +267,92 @@ export function markChannel(source: ChannelSource) {
     ...(source === 'WEBAPP' ? { fromWebapp: true } : {}),
     ...(source === 'GROUP' ? { fromGroup: true } : {}),
   }
+}
+
+
+// ── Admin CRUD: create / delete ─────────────────────────────────────────────────────────────
+
+export async function createPerson(
+  input: { name: string; phone?: string; email?: string; language?: string; notes?: string },
+  actorId?: string,
+) {
+  const phone = input.phone ? normalizePhone(input.phone) : undefined
+  if (!phone && !input.email) throw new ValidationError('Telefon raqam yoki email kiriting')
+  if (phone && (await prisma.user.findUnique({ where: { phone }, select: { id: true } }))) {
+    throw new ConflictError('Bu telefon raqami boshqa hisobda bor')
+  }
+  const user = await prisma.user.create({
+    data: {
+      name: input.name,
+      firstName: input.name.split(' ')[0],
+      phone,
+      email: input.email || null,
+      language: input.language,
+      notes: input.notes,
+      role: 'PASSENGER',
+      verified: false,
+      signupSource: 'WEBAPP',
+    },
+    select: PERSON_SELECT,
+  })
+  await writeAudit({ actorId, action: 'PERSON_CREATED', targetType: 'User', targetId: user.id })
+  return user
+}
+
+// Rows that must keep pointing at the user (RESTRICT foreign keys): trips, cargo, money, chats,
+// and — through their driver profile — ride offers.
+async function hasHistory(id: string) {
+  const [bookings, cargo, transactions, messages, conversations, offers] = await Promise.all([
+    prisma.booking.count({ where: { riderId: id } }),
+    prisma.cargoOrder.count({ where: { riderId: id } }),
+    prisma.transaction.count({ where: { userId: id } }),
+    prisma.message.count({ where: { senderId: id } }),
+    prisma.conversation.count({ where: { OR: [{ participantAId: id }, { participantBId: id }] } }),
+    prisma.rideOffer.count({ where: { driver: { userId: id } } }),
+  ])
+  return bookings + cargo + transactions + messages + conversations + offers > 0
+}
+
+/**
+ * Deletes an account. Without history it is removed outright. With trips, cargo, payments or
+ * chats it can't be (those rows must keep pointing at someone), so it is anonymised instead:
+ * name, phone, email, photo, Google and Telegram links and password are wiped, every session is
+ * revoked and it disappears from the catalogue — the history stays intact.
+ */
+export async function deletePerson(id: string, actorId?: string) {
+  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, staffKind: true, deletedAt: true, phone: true, name: true } })
+  if (!user || user.staffKind || user.deletedAt) throw new NotFoundError('Foydalanuvchi topilmadi')
+  if (user.id === actorId) throw new ForbiddenError('O‘zingizni o‘chira olmaysiz')
+  const meta = { phone: user.phone, name: user.name }
+
+  if (!(await hasHistory(id))) {
+    await prisma.user.delete({ where: { id } })
+    await writeAudit({ actorId, action: 'PERSON_DELETED', targetType: 'User', targetId: id, meta })
+    return { mode: 'deleted' as const }
+  }
+
+  await prisma.$transaction([
+    prisma.refreshToken.deleteMany({ where: { userId: id } }),
+    prisma.telegramLoginToken.deleteMany({ where: { userId: id } }),
+    prisma.user.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        name: 'O‘chirilgan foydalanuvchi',
+        firstName: null,
+        phone: null,
+        email: null,
+        avatarUrl: null,
+        googleId: null,
+        telegramId: null,
+        telegramUsername: null,
+        passwordHash: null,
+        loginPassword: null,
+        notes: null,
+        verified: false,
+      },
+    }),
+  ])
+  await writeAudit({ actorId, action: 'PERSON_ANONYMIZED', targetType: 'User', targetId: id, meta })
+  return { mode: 'anonymized' as const }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Car, Star, Wallet } from 'lucide-react'
+import { Car, Mail, Star, Trash2, Wallet } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -11,6 +11,7 @@ import { Modal } from '../components/ui/Modal'
 import { Field, inputClass } from '../components/ui/Chart'
 import { SkeletonTable } from '../components/ui/EmptyState'
 import { ChannelChips } from '../components/people/ChannelChips'
+import { EmailPersonModal } from '../components/people/PeopleActions'
 import { RevealSecret } from '../components/ui/RevealSecret'
 import { displayName, formatDateTime, formatPhoneUz, formatSom } from '../lib/utils'
 import { BOOKING_LABEL, BOOKING_TONE, CHANNEL_LABEL, ROLE_LABEL, ROLE_TONE, TX_TYPE_LABEL } from '../lib/labels'
@@ -23,6 +24,9 @@ export default function PersonDetailPage() {
   const queryClient = useQueryClient()
   const canEditSecrets = actor?.role === 'ADMIN' || actor?.role === 'SUPPORT_OPERATOR'
   const canWallet = actor?.role === 'ADMIN'
+  const canDelete = actor?.role === 'ADMIN'
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const [walletOpen, setWalletOpen] = useState(false)
   const [amount, setAmount] = useState('')
@@ -33,6 +37,7 @@ export default function PersonDetailPage() {
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [language, setLanguage] = useState('uz')
   const [notes, setNotes] = useState('')
@@ -49,7 +54,8 @@ export default function PersonDetailPage() {
   useEffect(() => {
     if (!person) return
     setName(person.name || '')
-    setPhone(person.phone)
+    setPhone(person.phone || '')
+    setEmail(person.email || '')
     setPassword('')
     setLanguage(person.language || 'uz')
     setNotes(person.notes || '')
@@ -65,6 +71,7 @@ export default function PersonDetailPage() {
         name: name.trim() || undefined,
         language,
         notes,
+        email: email.trim() || null,
       }
       if (canEditSecrets) {
         if (phone.trim()) body.phone = phone.trim()
@@ -101,6 +108,32 @@ export default function PersonDetailPage() {
     onError: (err) => setWalletError(err instanceof ApiError ? err.message : 'Xatolik yuz berdi'),
   })
 
+  // Without history the account is removed; with trips/payments it is anonymised (server decides).
+  const remove = useMutation({
+    mutationFn: () => api.delete<{ mode: 'deleted' | 'anonymized' }>(`/admin/people/${id}`),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-people'] })
+      alert(
+        result?.mode === 'anonymized'
+          ? 'Foydalanuvchining safar/to‘lov tarixi bor edi — shaxsiy ma’lumotlari o‘chirildi, tarix saqlab qolindi.'
+          : 'Foydalanuvchi butunlay o‘chirildi.',
+      )
+      navigate('/people', { replace: true })
+    },
+    onError: (err) => setDeleteError(err instanceof ApiError ? err.message : 'O‘chirib bo‘lmadi'),
+  })
+
+  function onDelete() {
+    setDeleteError('')
+    if (
+      confirm(
+        `«${displayName(person)}» o‘chirilsinmi?\n\nTarixi bo‘lmasa butunlay o‘chadi; safar yoki to‘lov tarixi bo‘lsa, ism, raqam, email va kirish ma’lumotlari o‘chiriladi, tarix qoladi. Bu amalni qaytarib bo‘lmaydi.`,
+      )
+    ) {
+      remove.mutate()
+    }
+  }
+
   function onSave(e: FormEvent) {
     e.preventDefault()
     save.mutate()
@@ -114,24 +147,40 @@ export default function PersonDetailPage() {
     <div>
       <PageHeader
         title={displayName(person)}
-        subtitle={formatPhoneUz(person.phone)}
+        subtitle={person.phone ? formatPhoneUz(person.phone) : person.email || 'Raqam qo‘shilmagan'}
         onBack={() => navigate('/people')}
         backLabel="Katalogga"
         action={
-          canWallet ? (
-            <Button variant="outline" onClick={() => setWalletOpen(true)}>
-              <Wallet className="h-4 w-4" />
-              Balans
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            {person.email ? (
+              <Button variant="outline" onClick={() => setEmailOpen(true)}>
+                <Mail className="h-4 w-4" />
+                Email yozish
+              </Button>
+            ) : null}
+            {canWallet ? (
+              <Button variant="outline" onClick={() => setWalletOpen(true)}>
+                <Wallet className="h-4 w-4" />
+                Balans
+              </Button>
+            ) : null}
+            {canDelete ? (
+              <Button variant="danger" onClick={onDelete} disabled={remove.isPending}>
+                <Trash2 className="h-4 w-4" />
+                {remove.isPending ? 'O‘chirilmoqda…' : 'O‘chirish'}
+              </Button>
+            ) : null}
+          </div>
         }
       />
+      {deleteError ? <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{deleteError}</p> : null}
+      {emailOpen ? <EmailPersonModal person={person} onClose={() => setEmailOpen(false)} /> : null}
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-1">
           <Card className="p-5">
             <div className="mb-4 flex items-center gap-3">
-              <Avatar name={person.name || person.phone} src={person.avatarUrl} />
+              <Avatar name={displayName(person)} src={person.avatarUrl} />
               <div>
                 <p className="font-bold text-ink">{displayName(person)}</p>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -145,7 +194,9 @@ export default function PersonDetailPage() {
               </div>
             </div>
             <dl className="space-y-2.5 text-sm">
-              <Row label="Telefon" value={formatPhoneUz(person.phone)} />
+              <Row label="Telefon" value={person.phone ? formatPhoneUz(person.phone) : 'Qo‘shilmagan'} />
+              <Row label="Email" value={person.email || '—'} />
+              <Row label="Google" value={person.googleId ? 'Bog‘langan' : 'Bog‘lanmagan'} />
               {canEditSecrets ? (
                 <div className="flex items-start justify-between gap-3">
                   <dt className="text-muted">Parol</dt>
@@ -232,6 +283,9 @@ export default function PersonDetailPage() {
                   className={inputClass}
                   disabled={!canEditSecrets}
                 />
+              </Field>
+              <Field label="Email">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} placeholder="ism@gmail.com" />
               </Field>
               <Field label="Yangi parol">
                 <input

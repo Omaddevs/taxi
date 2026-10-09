@@ -126,9 +126,9 @@ export function initials(name: string | null | undefined, fallback = '?') {
   return parts.map((p) => p[0]?.toUpperCase() ?? '').join('') || fallback
 }
 
-export function displayName(user: { name?: string | null; phone?: string } | null | undefined) {
+export function displayName(user: { name?: string | null; phone?: string | null; email?: string | null } | null | undefined) {
   if (!user) return '—'
-  return user.name || user.phone || '—'
+  return user.name || user.phone || user.email || '—'
 }
 
 export function startOfToday() {

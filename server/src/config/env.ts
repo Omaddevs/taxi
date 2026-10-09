@@ -29,6 +29,12 @@ const schema = z.object({
   ADMIN_PHONE: z.string().optional().default(''),
   ADMIN_PASSWORD: z.string().optional().default(''),
   // Google Cloud → APIs & Services → Credentials → OAuth client (Web). Empty = Google sign-in off.
+  // Email to users from the admin panel (any SMTP mailbox; Gmail needs an app password).
+  SMTP_HOST: z.string().optional().default(''),
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASS: z.string().optional().default(''),
+  SMTP_FROM: z.string().optional().default(''),
   GOOGLE_CLIENT_ID: z.string().optional().default(''),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
   INSTAGRAM_APP_ID: z.string().optional().default(''),

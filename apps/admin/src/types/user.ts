@@ -82,7 +82,8 @@ export interface PersonDriver {
 
 export interface PersonRow {
   id: string
-  phone: string
+  // null for Google sign-ups that haven't needed a number yet
+  phone: string | null
   name: string | null
   firstName: string | null
   email: string | null
@@ -95,6 +96,8 @@ export interface PersonRow {
   language: string | null
   telegramId: string | null
   telegramUsername: string | null
+  // set when the account signs in with Google
+  googleId: string | null
   signupSource: ChannelSource
   fromWebapp: boolean
   fromBot: boolean
@@ -121,6 +124,7 @@ export interface PeopleListResponse {
     bot: number
     webapp: number
     group: number
+    google: number
   }
 }
 

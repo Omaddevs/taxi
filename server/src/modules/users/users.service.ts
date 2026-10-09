@@ -54,6 +54,7 @@ export async function updateMe(
 export async function listUsers(filter: { q?: string; role?: 'PASSENGER' | 'DRIVER' | 'ADMIN' }) {
   return prisma.user.findMany({
     where: {
+      deletedAt: null,
       ...(filter.role ? { role: filter.role } : {}),
       ...(filter.q
         ? { OR: [{ phone: { contains: filter.q } }, { name: { contains: filter.q, mode: 'insensitive' } }] }
