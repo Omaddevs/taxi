@@ -240,11 +240,14 @@ export interface BotGroup {
   inviteLink: string | null
   routes: BotGroupRoute[]
   createdAt: string | null
+  settings: Record<string, boolean>
+  linkedGroupId: number | null
 }
 
 export interface BotGroupsResponse {
   groups: BotGroup[]
   regions: string[]
+  settingLabels: Record<string, string>
 }
 
 export interface BotGroupTopicInput {
@@ -256,7 +259,9 @@ export interface BotGroupTopicInput {
 }
 
 export interface BotGroupPayload {
-  kind?: 'CLOSED' | 'ROUTE' | 'CHANNEL'
+  kind?: 'CLOSED' | 'ROUTE' | 'CHANNEL' | 'MAIN'
+  settings?: Record<string, boolean>
+  linkedGroupId?: number | null
   ref?: string
   title?: string
   fromRegion?: string
@@ -292,6 +297,62 @@ export async function updateAdminBotGroup(groupId: number, payload: BotGroupPayl
 
 export async function deleteAdminBotGroup(groupId: number): Promise<{ ok: true }> {
   return botFetch<{ ok: true }>(`/webapp/admin/groups/${groupId}`, { method: 'DELETE', ...GROUP_TIMEOUT })
+}
+
+// ── Bot sozlamalari: runtime settings the bot keeps in its own DB (see bot_config.py) ──────
+export interface BotSettingField {
+  key: string
+  label: string
+  type: 'int' | 'bool' | 'url' | 'text' | 'longtext'
+  help: string
+  min: number | null
+  max: number | null
+  default: unknown
+  value: unknown
+}
+
+export interface BotSettingsResponse {
+  sections: { key: string; label: string; description: string; fields: BotSettingField[] }[]
+}
+
+export async function getBotSettings(): Promise<BotSettingsResponse> {
+  return botFetch<BotSettingsResponse>('/webapp/admin/bot-settings')
+}
+
+export async function updateBotSettings(values: Record<string, unknown>): Promise<BotSettingsResponse> {
+  return botFetch<BotSettingsResponse>('/webapp/admin/bot-settings', {
+    method: 'PATCH',
+    body: JSON.stringify({ values }),
+  })
+}
+
+// Messages caught by an open group's "yo'lovchi/haydovchi" question (bot's group_ads table).
+export interface BotGroupAd {
+  id: number
+  sourceChatId: string
+  targetChatId: string | null
+  authorTelegramId: string
+  authorName: string
+  authorUsername: string | null
+  text: string
+  hasPhoto: boolean
+  role: 'PASSENGER' | 'DRIVER' | null
+  status: string
+  takenByName: string | null
+  createdAt: string | null
+  answeredAt: string | null
+}
+
+export interface BotGroupAdsResponse {
+  ads: BotGroupAd[]
+  stats24h: Record<string, number>
+  chatTitles: Record<string, string | null>
+}
+
+export async function getBotGroupAds(status?: string, limit = 100): Promise<BotGroupAdsResponse> {
+  const query = new URLSearchParams({ limit: String(limit) })
+  if (status) query.set('status', status)
+  return botFetch<BotGroupAdsResponse>(`/webapp/admin/group-ads?${query}`, GROUP_TIMEOUT)
 }
 
 // ── Random mijoz: Telegram kanal/guruh a'zoligini tekshirish ───────────────────────────────

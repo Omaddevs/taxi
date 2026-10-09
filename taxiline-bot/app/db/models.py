@@ -278,3 +278,50 @@ class AdminGrant(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
     granted_by_telegram_id: Mapped[int] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class GroupAd(Base):
+    """One member message caught in a group with `ad_router` on: the bot deletes it, asks
+    "yo'lovchimisiz yoki haydovchi?", and — for a passenger — reposts it as a card in the
+    linked closed driver group. The row is also what remembers someone's answer for a while
+    (bot_config "group_ads.role_memory_hours") so they aren't asked on every message."""
+
+    __tablename__ = "group_ads"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source_chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    target_chat_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    author_telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    author_name: Mapped[str] = mapped_column()
+    author_username: Mapped[str | None] = mapped_column(nullable=True)
+    text: Mapped[str] = mapped_column()
+    photo_file_id: Mapped[str | None] = mapped_column(nullable=True)
+
+    role: Mapped[str | None] = mapped_column(nullable=True)  # PASSENGER | DRIVER
+    # PENDING (question asked) | SENT (card in the closed group) | TAKEN (a driver took it) |
+    # DRIVER (told to contact admin) | EXPIRED (never answered) | CANCELLED (passenger withdrew)
+    status: Mapped[str] = mapped_column(default="PENDING", index=True)
+
+    # The bot's own message in the source group: the question, later edited into the notice.
+    prompt_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    prompt_deleted: Mapped[bool] = mapped_column(default=False, server_default="false")
+    card_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+    taken_by_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    taken_by_name: Mapped[str | None] = mapped_column(nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    answered_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    __table_args__ = (Index("ix_group_ads_author_chat", "author_telegram_id", "source_chat_id"),)
+
+
+class BotSetting(Base):
+    """Runtime-editable bot settings (admin dashboard "Bot sozlamalari"). Only overrides are
+    stored; app/services/bot_config.py holds the defaults and the in-memory cache."""
+
+    __tablename__ = "bot_settings"
+
+    key: Mapped[str] = mapped_column(primary_key=True)
+    value: Mapped[dict] = mapped_column(JSON)
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())

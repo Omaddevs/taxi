@@ -51,9 +51,60 @@ export interface BotGroup {
   inviteLink: string | null
   routes: BotGroupRoute[]
   createdAt: string | null
+  // On/off group services keyed like the bot's SETTING_LABELS (anti_spam, ad_router, …).
+  settings: Record<string, boolean>
+  // Closed driver group (BotGroup.id) an open group's passenger ads are routed to.
+  linkedGroupId: number | null
 }
 
 export interface BotGroupsResponse {
   groups: BotGroup[]
   regions: string[]
+  settingLabels: Record<string, string>
+}
+
+export interface BotSettingField {
+  key: string
+  label: string
+  type: 'int' | 'bool' | 'url' | 'text' | 'longtext'
+  help: string
+  min: number | null
+  max: number | null
+  default: string | number | boolean
+  value: string | number | boolean
+}
+
+export interface BotSettingsSection {
+  key: string
+  label: string
+  description: string
+  fields: BotSettingField[]
+}
+
+export interface BotSettingsResponse {
+  sections: BotSettingsSection[]
+}
+
+export type BotGroupAdStatus = 'PENDING' | 'SENT' | 'TAKEN' | 'DRIVER' | 'EXPIRED' | 'CANCELLED'
+
+export interface BotGroupAd {
+  id: number
+  sourceChatId: string
+  targetChatId: string | null
+  authorTelegramId: string
+  authorName: string
+  authorUsername: string | null
+  text: string
+  hasPhoto: boolean
+  role: 'PASSENGER' | 'DRIVER' | null
+  status: BotGroupAdStatus
+  takenByName: string | null
+  createdAt: string | null
+  answeredAt: string | null
+}
+
+export interface BotGroupAdsResponse {
+  ads: BotGroupAd[]
+  stats24h: Partial<Record<BotGroupAdStatus, number>>
+  chatTitles: Record<string, string | null>
 }

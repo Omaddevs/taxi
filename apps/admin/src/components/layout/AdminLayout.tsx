@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react'
-import { NavLink, Navigate, Outlet } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import {
   Bike,
+  Bot,
+  ChevronDown,
   ChevronsLeft,
   ChevronsRight,
   CalendarClock,
@@ -42,6 +45,7 @@ import { api } from '../../lib/api'
 import { cn } from '../../lib/utils'
 import { Logo } from '../ui/Logo'
 import logoMark from '../../assets/logo.png'
+import { BOT_SETTINGS_PAGES } from '../../lib/botSettings'
 import type { AnalyticsSummary, StaffDetail } from '../../types'
 import type { PanelRole } from '../../lib/tokens'
 
@@ -52,6 +56,8 @@ type NavItem = {
   end?: boolean
   badge?: 'pending' | 'newLeads' | 'rentals'
   roles: PanelRole[]
+  // Sub-pages: shown as a dropdown on hover (desktop) and expand inline on click (touch).
+  children?: { to: string; label: string }[]
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
@@ -102,10 +108,22 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/services', label: 'Xizmatlar', icon: Layers, roles: ['ADMIN'] },
       { to: '/cars', label: 'Mashinalar', icon: CarFront, roles: ['ADMIN'] },
       { to: '/map-places', label: 'Xarita joylari', icon: MapPinned, roles: ['ADMIN'] },
-      { to: '/groups', label: 'Guruhlar', icon: MessagesSquare, roles: ['ADMIN'] },
       { to: '/broadcast', label: 'Xabar yuborish', icon: Megaphone, roles: ['ADMIN'] },
       { to: '/integrations', label: 'Integratsiyalar', icon: Link2, roles: ['ADMIN'] },
       { to: '/settings', label: 'Sozlamalar', icon: Settings, roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
+    ],
+  },
+  {
+    label: 'Telegram bot',
+    items: [
+      {
+        to: '/bot-settings',
+        label: 'Bot sozlamalari',
+        icon: Bot,
+        roles: ['ADMIN'],
+        children: BOT_SETTINGS_PAGES.map((page) => ({ to: page.to ?? `/bot-settings/${page.slug}`, label: page.label })),
+      },
+      { to: '/groups', label: 'Guruhlar', icon: MessagesSquare, roles: ['ADMIN'] },
     ],
   },
 ]
@@ -114,6 +132,115 @@ const ROLE_BADGE: Record<PanelRole, string> = {
   ADMIN: 'Admin',
   SALES_OPERATOR: 'Sotuv',
   SUPPORT_OPERATOR: 'Texnik',
+}
+
+function isChildActive(pathname: string, to: string) {
+  const path = to.split('?')[0]
+  return pathname === path || pathname.startsWith(`${path}/`)
+}
+
+const canHover = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(hover: hover)').matches)
+
+// A nav entry with sub-pages ("Bot sozlamalari"). Hovering opens a dropdown beside the sidebar
+// (portaled to <body> so neither the nav's scroll box nor the collapsed rail clips it); a click
+// expands the list inline instead, which is what touch screens and the mobile drawer get.
+function NavDropdown({ item, collapsed, onNavigate }: { item: NavItem; collapsed: boolean; onNavigate?: () => void }) {
+  const { pathname } = useLocation()
+  const children = item.children ?? []
+  const active = children.some((child) => isChildActive(pathname, child.to))
+  // Open by default while one of its pages is showing; a click overrides that either way.
+  const [toggled, setToggled] = useState<boolean | null>(null)
+  const expanded = toggled ?? active
+  const [flyout, setFlyout] = useState<{ top: number; left: number } | null>(null)
+  const closeTimer = useRef<number | undefined>(undefined)
+  const anchor = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
+
+  function openFlyout() {
+    window.clearTimeout(closeTimer.current)
+    if (!canHover() || !anchor.current) return
+    const r = anchor.current.getBoundingClientRect()
+    setFlyout({ top: r.top, left: r.right + 6 })
+  }
+
+  function closeFlyout() {
+    window.clearTimeout(closeTimer.current)
+    closeTimer.current = window.setTimeout(() => setFlyout(null), 150)
+  }
+
+  const showInline = expanded && !collapsed
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'block rounded-lg px-3 py-2 text-sm font-semibold transition-colors',
+      isActive ? 'bg-brand-soft text-brand-dark' : 'text-ink hover:bg-canvas',
+    )
+
+  return (
+    <div onMouseEnter={openFlyout} onMouseLeave={closeFlyout}>
+      <button
+        ref={anchor}
+        type="button"
+        onClick={() => setToggled(!expanded)}
+        aria-expanded={showInline}
+        aria-label={item.label}
+        className={cn(
+          'relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors',
+          collapsed && 'lg:justify-center lg:px-0',
+          active ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
+        )}
+      >
+        <item.icon className={cn('shrink-0', collapsed ? 'h-4 w-4 lg:h-5 lg:w-5' : 'h-4 w-4')} />
+        <span className={cn('flex-1 truncate text-left', collapsed && 'lg:hidden')}>{item.label}</span>
+        <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform', showInline && 'rotate-180', collapsed && 'lg:hidden')} />
+      </button>
+      {showInline ? (
+        <div className="mt-0.5 ml-5 space-y-0.5 border-l border-white/10 pl-3">
+          {children.map((child) => (
+            <NavLink
+              key={child.to}
+              to={child.to}
+              onClick={onNavigate}
+              className={() =>
+                cn(
+                  'block truncate rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors',
+                  isChildActive(pathname, child.to) ? 'bg-brand text-ink' : 'text-white/60 hover:bg-white/5 hover:text-white',
+                )
+              }
+            >
+              {child.label}
+            </NavLink>
+          ))}
+        </div>
+      ) : null}
+      {flyout && !showInline
+        ? createPortal(
+            <div
+              className="fixed z-50 w-60 rounded-2xl border border-line bg-white p-2 shadow-xl"
+              style={{ top: flyout.top, left: flyout.left }}
+              onMouseEnter={openFlyout}
+              onMouseLeave={closeFlyout}
+            >
+              <p className="px-3 pt-1 pb-2 text-[10px] font-bold tracking-[0.14em] text-muted uppercase">{item.label}</p>
+              {children.map((child) => (
+                <NavLink
+                  key={child.to}
+                  to={child.to}
+                  onClick={() => {
+                    setFlyout(null)
+                    onNavigate?.()
+                  }}
+                  className={() => linkClass({ isActive: isChildActive(pathname, child.to) })}
+                >
+                  {child.label}
+                </NavLink>
+              ))}
+            </div>,
+            document.body,
+          )
+        : null}
+    </div>
+  )
 }
 
 // Hover label for the collapsed rail. Rendered `fixed` so the nav's own scroll box can't clip it.
@@ -161,7 +288,10 @@ function SidebarNav({
               {group.label}
             </p>
             <div className="space-y-0.5">
-              {items.map((item) => (
+              {items.map((item) =>
+                item.children ? (
+                  <NavDropdown key={item.to} item={item} collapsed={collapsed} onNavigate={onNavigate} />
+                ) : (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -202,7 +332,8 @@ function SidebarNav({
                     </span>
                   ) : null}
                 </NavLink>
-              ))}
+                ),
+              )}
             </div>
           </div>
         )

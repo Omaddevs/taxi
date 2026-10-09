@@ -96,6 +96,11 @@ def _panel_text(group, rights_warning: str | None) -> str:
     lines.append("")
     lines.append(f"Yoqilgan xizmatlar: {len(enabled)} ta" if enabled else "Yoqilgan xizmat yo'q.")
     lines.append("Tugmani bosib yoqing/o'chiring.")
+    if settings.get("ad_router") and not settings.get("linked_group_id"):
+        lines.append(
+            "\n⚠️ \"Yo'lovchi/haydovchi so'rovi\" ishlashi uchun guruhni haydovchilar guruhiga biriktiring "
+            "(sayt admin paneli → Guruhlar, yoki botdagi admin panel)."
+        )
     if group.kind == "MAIN" and settings.get("restrict_non_admin_posts"):
         lines.append("\nℹ️ \"Faqat adminlar yoza oladi\" faqat yopiq haydovchilar guruhida ishlaydi.")
     if rights_warning:

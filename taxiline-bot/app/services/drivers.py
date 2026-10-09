@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.config import settings
 from app.db.models import BotUser, DriverProfile, DriverSubscription
+from app.services import bot_config
 from app.services import groups as groups_service
 from app.services.phone import format_phone
 
@@ -262,7 +262,7 @@ async def start_subscription(session: AsyncSession, driver: DriverProfile) -> Dr
     of the related row."""
     subscription = await _get_subscription(session, driver.id)
     now = datetime.utcnow()
-    expires_at = now + timedelta(days=settings.driver_subscription_days)
+    expires_at = now + timedelta(days=bot_config.get("driver_subscription_days"))
     if subscription is None:
         subscription = DriverSubscription(driver_profile_id=driver.id, expires_at=expires_at, active=True)
         session.add(subscription)

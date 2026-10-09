@@ -37,6 +37,7 @@ import Leads from './pages/Leads'
 import Integrations from './pages/Integrations'
 import CannedResponses from './pages/CannedResponses'
 import TelegramGroups from './pages/TelegramGroups'
+import BotSettings from './pages/BotSettings'
 import Giveaway from './pages/Giveaway'
 import News from './pages/News'
 import NewsEditor from './pages/NewsEditor'
@@ -337,6 +338,15 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <TelegramGroups />
+            </RequireRole>
+          }
+        />
+        <Route path="/bot-settings" element={<Navigate to="/bot-settings/general" replace />} />
+        <Route
+          path="/bot-settings/:section"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <BotSettings />
             </RequireRole>
           }
         />

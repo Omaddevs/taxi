@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Hash, MessagesSquare, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, Hash, MessagesSquare, Pencil, Plus, Trash2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Badge, Button, Card } from '../components/ui/Button'
@@ -8,17 +9,24 @@ import { FilterPills } from '../components/ui/Filters'
 import { Field, inputClass } from '../components/ui/Chart'
 import { Modal } from '../components/ui/Modal'
 import { EmptyState, SkeletonGrid } from '../components/ui/EmptyState'
+import { Switch } from '../components/ui/Switch'
 import type { BotGroup, BotGroupsResponse } from '../types'
 
-type Tab = 'CLOSED' | 'ROUTE' | 'CHANNEL'
+type Tab = 'MAIN' | 'CLOSED' | 'ROUTE' | 'CHANNEL'
 
 const TABS: { value: Tab; label: string }[] = [
+  { value: 'MAIN', label: 'Asosiy guruhlar' },
   { value: 'CLOSED', label: 'Yopiq guruhlar' },
-  { value: 'ROUTE', label: 'Ochiq guruhlar' },
+  { value: 'ROUTE', label: 'Topic guruhlar' },
   { value: 'CHANNEL', label: 'Kanallar' },
 ]
 
 const TAB_META: Record<Tab, { title: string; text: string; action: string }> = {
+  MAIN: {
+    title: 'Asosiy guruh yo‘q',
+    text: 'Yo‘lovchilar yozadigan ochiq guruhlar (masalan Samarqand-Toshkent taksi). Har birini o‘z yopiq haydovchilar guruhiga biriktiring — yo‘lovchi e’lonlari o‘sha yerga tushadi.',
+    action: 'Asosiy guruh qo‘shish',
+  },
   CLOSED: {
     title: 'Yopiq guruh yo‘q',
     text: 'Haydovchilar guruhlari. Yo‘lovchi e’lonlari shu yerga tushadi. Mavjud guruhni Andijon-Toshkent kabi yo‘nalishga biriktiring.',
@@ -56,7 +64,10 @@ function chatHint(group: BotGroup) {
 
 export default function TelegramGroups() {
   const qc = useQueryClient()
-  const [tab, setTab] = useState<Tab>('CLOSED')
+  const [params, setParams] = useSearchParams()
+  const tabParam = params.get('tab') as Tab | null
+  const tab: Tab = tabParam && TABS.some((t) => t.value === tabParam) ? tabParam : 'MAIN'
+  const setTab = (value: Tab) => setParams({ tab: value }, { replace: true })
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<BotGroup | null>(null)
 
@@ -65,6 +76,14 @@ export default function TelegramGroups() {
     queryFn: () => api.get<BotGroupsResponse>(`/admin/bot-groups?kind=${tab}`),
   })
 
+  // Closed/topic driver groups an open group can be linked to.
+  const { data: allGroups } = useQuery({
+    queryKey: ['bot-groups', 'all'],
+    queryFn: () => api.get<BotGroupsResponse>('/admin/bot-groups'),
+    enabled: tab === 'MAIN',
+  })
+  const linkTargets = (allGroups?.groups ?? []).filter((g) => g.kind === 'CLOSED' || g.kind === 'ROUTE')
+
   const remove = useMutation({
     mutationFn: (id: number) => api.delete(`/admin/bot-groups/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['bot-groups'] }),
@@ -72,6 +91,7 @@ export default function TelegramGroups() {
 
   const regions = data?.regions ?? []
   const groups = data?.groups ?? []
+  const settingLabels = data?.settingLabels ?? {}
   const meta = TAB_META[tab]
 
   function openCreate() {
@@ -88,7 +108,7 @@ export default function TelegramGroups() {
     <div>
       <PageHeader
         title="Guruhlar va kanallar"
-        subtitle="Telegram yopiq/ochiq guruhlar va kanallarni ID, @username yoki t.me havola orqali biriktiring"
+        subtitle="Telegram guruhlar va kanallarni ID, @username yoki t.me havola orqali biriktiring, xizmatlarini yoqing"
         action={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4" />
@@ -115,6 +135,8 @@ export default function TelegramGroups() {
               key={row.id}
               group={row}
               tab={tab}
+              settingLabels={settingLabels}
+              linkTargets={linkTargets}
               onEdit={() => openEdit(row)}
               onDelete={() => {
                 if (confirm('Bu biriktirmani o‘chirasizmi? Telegram guruhi o‘zi o‘chmaydi.')) remove.mutate(row.id)
@@ -129,6 +151,7 @@ export default function TelegramGroups() {
         tab={tab}
         editing={editing}
         regions={regions}
+        linkTargets={linkTargets}
         onClose={() => setModalOpen(false)}
       />
     </div>
@@ -138,11 +161,15 @@ export default function TelegramGroups() {
 function GroupCard({
   group,
   tab,
+  settingLabels,
+  linkTargets,
   onEdit,
   onDelete,
 }: {
   group: BotGroup
   tab: Tab
+  settingLabels: Record<string, string>
+  linkTargets: BotGroup[]
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -200,7 +227,78 @@ function GroupCard({
       {tab === 'CHANNEL' ? (
         <Badge tone="pink">{group.kind === 'MANDATORY_SUB_TARGET' ? 'Majburiy obuna' : 'Kanal'}</Badge>
       ) : null}
+      {tab === 'MAIN' ? <LinkPicker group={group} linkTargets={linkTargets} /> : null}
+      {tab !== 'CHANNEL' ? <GroupServices group={group} settingLabels={settingLabels} /> : null}
     </Card>
+  )
+}
+
+function useGroupPatch(groupId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) => api.patch(`/admin/bot-groups/${groupId}`, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['bot-groups'] }),
+  })
+}
+
+// Open group -> the closed driver group its passenger ads are routed to.
+function LinkPicker({ group, linkTargets }: { group: BotGroup; linkTargets: BotGroup[] }) {
+  const patch = useGroupPatch(group.id)
+  const routing = group.settings?.ad_router
+  return (
+    <div className="space-y-1.5 rounded-xl bg-canvas p-3">
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-muted">
+        Yo‘lovchi e’lonlari <ArrowRight className="h-3 w-3" /> haydovchilar guruhi
+      </p>
+      <select
+        value={group.linkedGroupId ?? ''}
+        disabled={patch.isPending}
+        onChange={(e) => patch.mutate({ linkedGroupId: e.target.value ? Number(e.target.value) : null })}
+        className={inputClass}
+      >
+        <option value="">— Biriktirilmagan —</option>
+        {linkTargets.map((target) => (
+          <option key={target.id} value={target.id}>
+            {groupTitle(target)}
+          </option>
+        ))}
+      </select>
+      {routing && !group.linkedGroupId ? (
+        <p className="text-xs font-semibold text-amber-600">
+          “Yo‘lovchi/haydovchi so‘rovi” yoqilgan, lekin guruh biriktirilmagan — xabarlar hozircha ushlanmaydi.
+        </p>
+      ) : null}
+      {!routing && group.linkedGroupId ? (
+        <p className="text-xs text-muted">Ishga tushirish uchun pastda “Yo‘lovchi/haydovchi so‘rovi”ni yoqing.</p>
+      ) : null}
+      {patch.error ? <p className="text-xs text-red-600">{(patch.error as Error).message}</p> : null}
+    </div>
+  )
+}
+
+function GroupServices({ group, settingLabels }: { group: BotGroup; settingLabels: Record<string, string> }) {
+  const patch = useGroupPatch(group.id)
+  const entries = Object.entries(settingLabels)
+  if (!entries.length) return null
+  return (
+    <details className="rounded-xl border border-line" open={group.kind === 'MAIN'}>
+      <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-muted">
+        Guruh xizmatlari · {entries.filter(([key]) => group.settings?.[key]).length} ta yoqilgan
+      </summary>
+      <div className="space-y-2 border-t border-line px-3 py-2.5">
+        {entries.map(([key, label]) => (
+          <div key={key} className="flex items-center justify-between gap-3">
+            <span className="text-sm text-ink">{label}</span>
+            <Switch
+              checked={Boolean(group.settings?.[key])}
+              label={label}
+              onChange={(value) => patch.mutate({ settings: { [key]: value } })}
+            />
+          </div>
+        ))}
+        {patch.error ? <p className="text-xs text-red-600">{(patch.error as Error).message}</p> : null}
+      </div>
+    </details>
   )
 }
 
@@ -216,12 +314,14 @@ function GroupModal({
   tab,
   editing,
   regions,
+  linkTargets,
   onClose,
 }: {
   open: boolean
   tab: Tab
   editing: BotGroup | null
   regions: string[]
+  linkTargets: BotGroup[]
   onClose: () => void
 }) {
   const qc = useQueryClient()
@@ -241,6 +341,7 @@ function GroupModal({
         }))
       : emptyTopics(),
   )
+  const [linkedGroupId, setLinkedGroupId] = useState<number | null>(editing?.linkedGroupId ?? null)
   const [error, setError] = useState('')
 
   const autoTitle = useMemo(() => corridorLabel(fromRegion, toRegion) || '', [fromRegion, toRegion])
@@ -261,6 +362,9 @@ function GroupModal({
         payload.topics = topics
           .filter((topic) => topic.fromRegion && topic.toRegion && topic.ref.trim())
           .map((topic) => ({ fromRegion: topic.fromRegion, toRegion: topic.toRegion, ref: topic.ref.trim() }))
+      } else if (tab === 'MAIN') {
+        payload.title = title.trim() || undefined
+        payload.linkedGroupId = linkedGroupId
       } else {
         payload.title = title.trim()
       }
@@ -312,6 +416,12 @@ function GroupModal({
             Yopiq guruh — haydovchilar guruhi. Yo‘lovchi kiritgan e’lonlar shu yo‘nalishga tushadi. Hozirgi guruhni Andijon-Toshkent qilib biriktiring.
           </p>
         ) : null}
+        {tab === 'MAIN' ? (
+          <p className="text-xs text-muted">
+            Botni guruhga admin qiling (xabarlarni o‘chirish huquqi bilan), so‘ng guruh havolasini qo‘ying. Masalan:
+            https://t.me/samarqand_toshkent_taxiline
+          </p>
+        ) : null}
         {tab === 'ROUTE' ? (
           <p className="text-xs text-muted">
             Ochiq forum-guruh havolasini qo‘ying, ichidagi har bir Inner group (topic) uchun alohida havola va yo‘nalish tanlang.
@@ -325,7 +435,23 @@ function GroupModal({
             placeholder="-100…, @username yoki https://t.me/…"
           />
         </Field>
-        {tab !== 'CHANNEL' ? (
+        {tab === 'MAIN' ? (
+          <Field label="Yo‘lovchi e’lonlari yuboriladigan haydovchilar guruhi">
+            <select
+              value={linkedGroupId ?? ''}
+              onChange={(e) => setLinkedGroupId(e.target.value ? Number(e.target.value) : null)}
+              className={inputClass}
+            >
+              <option value="">— Keyinroq biriktiraman —</option>
+              {linkTargets.map((target) => (
+                <option key={target.id} value={target.id}>
+                  {groupTitle(target)}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
+        {tab !== 'CHANNEL' && tab !== 'MAIN' ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Qayerdan">
               <select value={fromRegion} onChange={(e) => setFromRegion(e.target.value)} className={inputClass}>

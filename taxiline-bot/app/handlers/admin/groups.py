@@ -20,6 +20,7 @@ SETTING_LABELS = {
     "restrict_non_admin_posts": "🔒 Faqat adminlar yoza oladi",
     "require_invites": "➕ Yozish uchun kamida 2 kishi taklif qilish talabi",
     "format_ads": "🧾 E'lonlarni yagona shablonga solish",
+    "ad_router": "🙋 Yo'lovchi/haydovchi so'rovi (yo'lovchini yopiq guruhga yuborish)",
 }
 
 
@@ -79,6 +80,9 @@ def _settings_kb(group):
     for key, label in SETTING_LABELS.items():
         state_icon = "✅" if group.settings.get(key) else "⬜️"
         builder.button(text=f"{state_icon} {label}", callback_data=f"admingroupsetting:{group.id}:{key}")
+    if group.kind == "MAIN":
+        linked = "✅ biriktirilgan" if group.settings.get("linked_group_id") else "biriktirilmagan"
+        builder.button(text=f"🔗 Haydovchilar guruhi ({linked})", callback_data=f"admingrouplink:{group.id}")
     builder.button(text="✏️ Turi/viloyatni o'zgartirish", callback_data=f"admingroupedit:{group.id}")
     builder.button(text="🗑 O'chirish", callback_data=f"admingroupdelete:{group.id}")
     builder.adjust(1)
@@ -365,6 +369,52 @@ async def toggle_setting(callback: CallbackQuery, session, bot_user) -> None:
     await groups_service.update_settings(session, group, **{key: new_value})
     await callback.answer("Yangilandi ✅")
     await callback.message.edit_reply_markup(reply_markup=_settings_kb(group))
+
+
+@router.callback_query(F.data.startswith("admingrouplink:"))
+async def link_group_menu(callback: CallbackQuery, session, bot_user) -> None:
+    """An open (MAIN) group's passenger ads go to the closed driver group picked here."""
+    if bot_user is None or not bot_user.is_admin:
+        await callback.answer()
+        return
+    group = await session.get(Group, int(callback.data.split(":")[1]))
+    if group is None:
+        await callback.answer("Topilmadi", show_alert=True)
+        return
+    current = group.settings.get("linked_group_id")
+    builder = InlineKeyboardBuilder()
+    for target in await groups_service.list_by_kind(session, "CLOSED") + await groups_service.list_by_kind(session, "ROUTE"):
+        mark = "✅ " if target.id == current else ""
+        builder.button(text=f"{mark}{target.title or target.chat_id}", callback_data=f"admingrouplinkset:{group.id}:{target.id}")
+    builder.button(text="🚫 Biriktirmaslik", callback_data=f"admingrouplinkset:{group.id}:0")
+    builder.adjust(1)
+    await callback.answer()
+    await callback.message.answer(
+        f"🔗 «{group.title or group.chat_id}» guruhidagi yo'lovchi e'lonlari qaysi haydovchilar guruhiga yuborilsin?",
+        reply_markup=builder.as_markup(),
+    )
+
+
+@router.callback_query(F.data.startswith("admingrouplinkset:"))
+async def link_group_set(callback: CallbackQuery, session, bot_user) -> None:
+    if bot_user is None or not bot_user.is_admin:
+        await callback.answer()
+        return
+    _, group_id, target_id = callback.data.split(":")
+    group = await session.get(Group, int(group_id))
+    target = await session.get(Group, int(target_id)) if int(target_id) else None
+    if group is None or (int(target_id) and target is None):
+        await callback.answer("Topilmadi", show_alert=True)
+        return
+    await groups_service.update_settings(session, group, linked_group_id=target.id if target else None)
+    await callback.answer("Saqlandi ✅")
+    if target:
+        await callback.message.edit_text(
+            f"✅ «{group.title or group.chat_id}» → «{target.title or target.chat_id}» biriktirildi.\n\n"
+            "Endi shu guruh sozlamalarida «🙋 Yo'lovchi/haydovchi so'rovi»ni yoqing."
+        )
+    else:
+        await callback.message.edit_text(f"🚫 «{group.title or group.chat_id}» hech qaysi guruhga biriktirilmagan.")
 
 
 @router.callback_query(F.data.startswith("admingroupdelete:"))

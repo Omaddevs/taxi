@@ -278,14 +278,20 @@ def _is_passenger(key_text: str) -> bool:
 
 
 def parse_ad(raw: str) -> ParsedAd | None:
+    """None unless both ends of a route were recognised — the bar for treating a message as an ad."""
     if not raw or not raw.strip():
         return None
-    phones = _parse_phones(raw)
+    ad = parse_ad_fields(raw)
+    return ad if ad.origins and ad.destinations else None
+
+
+def parse_ad_fields(raw: str) -> ParsedAd:
+    """Whatever could be recognised, route possibly empty — for text already known to be an ad
+    (a passenger said so), where the card should still show the phone/time it did find."""
+    phones = _parse_phones(raw or "")
     # Phones out first, so their digit groups never read as departure times or seat counts.
-    key_text = _key(_PHONE_RE.sub(" ", raw))
+    key_text = _key(_PHONE_RE.sub(" ", raw or ""))
     origins, destinations = _parse_route(key_text)
-    if not origins or not destinations:
-        return None
     return ParsedAd(
         origins=origins,
         destinations=destinations,
@@ -298,8 +304,20 @@ def parse_ad(raw: str) -> ParsedAd | None:
     )
 
 
+def profile_url(user_id: int, username: str | None) -> str:
+    return f"https://t.me/{username}" if username else f"tg://user?id={user_id}"
+
+
 def _profile_url(user: User) -> str:
-    return f"https://t.me/{user.username}" if user.username else f"tg://user?id={user.id}"
+    return profile_url(user.id, user.username)
+
+
+def call_button_kwargs(phone: str, text: str) -> dict:
+    """InlineKeyboardBuilder.button() kwargs for a "call" button — see card_keyboard."""
+    base = settings.webapp_url.rstrip("/")
+    if base.startswith("https://"):
+        return {"text": text, "url": f"{base}/call.html?n={quote(phone)}"}
+    return {"text": f"📞 {format_phone(phone)}", "copy_text": CopyTextButton(text=phone)}
 
 
 def render_card(ad: ParsedAd, author: User, author_name: str) -> str:
@@ -343,12 +361,7 @@ def card_keyboard(ad: ParsedAd, author: User, *, with_chat_button: bool = True) 
     if with_chat_button:
         builder.button(text=f"💬 {whom} yozish", url=_profile_url(author))
     if ad.phones:
-        phone = ad.phones[0]
-        base = settings.webapp_url.rstrip("/")
-        if base.startswith("https://"):
-            builder.button(text=f"📞 {whom} tel qilish", url=f"{base}/call.html?n={quote(phone)}")
-        else:
-            builder.button(text=f"📞 {format_phone(phone)}", copy_text=CopyTextButton(text=phone))
+        builder.button(**call_button_kwargs(ad.phones[0], f"📞 {whom} tel qilish"))
     builder.adjust(1)
     markup = builder.as_markup()
     return markup if markup.inline_keyboard else None

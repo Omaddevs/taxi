@@ -7,7 +7,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand, BotCommandScopeAllChatAdministrators, ErrorEvent
 
 from app.config import settings
-from app.handlers import cargo_claim, driver_flow, rent, driver_menu, giveaway, group_commands, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
+from app.db.base import session_scope
+from app.handlers import cargo_claim, driver_flow, rent, driver_menu, giveaway, group_ads, group_commands, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
 from app.handlers.admin import admins as admin_admins
 from app.handlers.admin import broadcast as admin_broadcast
 from app.handlers.admin import complaints as admin_complaints
@@ -26,6 +27,7 @@ from app.middlewares.group_guard import GroupGuardMiddleware
 from app.middlewares.mandatory_sub import MandatorySubMiddleware
 from app.middlewares.user_context import UserContextMiddleware
 from app.scheduler.jobs import setup_scheduler
+from app.services import bot_config
 from app.services.backend_client import backend_client
 from app.webserver import run_webserver
 
@@ -55,6 +57,8 @@ def build_dispatcher() -> Dispatcher:
     # only matters for readability here, not correctness.
     dp.include_routers(
         group_commands.router,
+        # Before start.router: its /start gad_<id> deep link must win over the generic /start.
+        group_ads.router,
         start.router,
         giveaway.router,
         trip_flow.router,
@@ -127,6 +131,8 @@ async def main() -> None:
     # two messages that want formatting set parse_mode explicitly on that call.
     bot = Bot(token=settings.bot_token)
     dp = build_dispatcher()
+    async with session_scope() as session:
+        await bot_config.load(session)
     await _register_commands(bot)
 
     scheduler = setup_scheduler(bot)

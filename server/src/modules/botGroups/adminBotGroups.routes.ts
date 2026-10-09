@@ -3,9 +3,35 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as controller from './adminBotGroups.controller.js'
-import { createGroupSchema, groupIdParamSchema, listGroupsQuerySchema, updateGroupSchema } from './adminBotGroups.schema.js'
+import {
+  createGroupSchema,
+  groupIdParamSchema,
+  listGroupAdsQuerySchema,
+  listGroupsQuerySchema,
+  updateBotSettingsSchema,
+  updateGroupSchema,
+} from './adminBotGroups.schema.js'
 
 export const adminBotGroupsRouter = Router()
+
+// Bot sozlamalari and the group-ads log — mounted at /admin/bot-settings (see app.ts).
+export const adminBotSettingsRouter = Router()
+
+adminBotSettingsRouter.get('/', requireAuth, requireRole('ADMIN'), asyncRoute(controller.getBotSettings))
+adminBotSettingsRouter.patch(
+  '/',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ body: updateBotSettingsSchema }),
+  asyncRoute(controller.updateBotSettings),
+)
+adminBotSettingsRouter.get(
+  '/group-ads',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ query: listGroupAdsQuerySchema }),
+  asyncRoute(controller.listGroupAds),
+)
 
 adminBotGroupsRouter.get(
   '/',

@@ -15,6 +15,9 @@ DEFAULT_SETTINGS = {
     "restrict_non_admin_posts": False,
     "require_invites": False,
     "format_ads": False,
+    "ad_router": False,
+    # Group.id of the closed driver group that receives this open group's passenger ads.
+    "linked_group_id": None,
 }
 
 # Number of real, still-present invited members a non-admin must bring into a
@@ -117,6 +120,10 @@ def serialize_group(group: Group) -> dict:
         "inviteLink": settings.get("invite_link"),
         "routes": routes,
         "createdAt": created,
+        # On/off group services (anti-spam, ad_router, …) and the closed group an open group's
+        # passenger ads are routed to.
+        "settings": {key: bool(settings.get(key)) for key, default in DEFAULT_SETTINGS.items() if isinstance(default, bool)},
+        "linkedGroupId": settings.get("linked_group_id"),
     }
 
 

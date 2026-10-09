@@ -43,3 +43,24 @@ export async function deleteGroup(req: Request, res: Response) {
   })
   res.json(result)
 }
+
+export async function getBotSettings(_req: Request, res: Response) {
+  res.json(await botBridge.getBotSettings())
+}
+
+export async function updateBotSettings(req: Request, res: Response) {
+  const { values } = req.body as { values: Record<string, unknown> }
+  const result = await botBridge.updateBotSettings(values)
+  await writeAudit({
+    actorId: req.user!.id,
+    action: 'BOT_SETTINGS_UPDATED',
+    targetType: 'BotSettings',
+    meta: { keys: Object.keys(values) },
+  })
+  res.json(result)
+}
+
+export async function listGroupAds(req: Request, res: Response) {
+  const { status, limit } = req.query as { status?: string; limit?: string }
+  res.json(await botBridge.getBotGroupAds(status, limit ? Number(limit) : undefined))
+}

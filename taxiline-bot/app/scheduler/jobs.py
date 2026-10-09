@@ -7,13 +7,14 @@ from aiogram.types import FSInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app.config import settings
 from app.db.base import session_scope
 from app.db.models import BotUser
 from app.i18n.translations import t
 from app.keyboards.trip import nudge_kb
 from app.scheduler import activity_tracker
+from app.services import bot_config
 from app.services import drivers as drivers_service
+from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
 from app.services import trips as trips_service
 from app.services import users as users_service
@@ -21,7 +22,7 @@ from app.tts.engine import synth
 
 
 async def _inactivity_job(bot: Bot) -> None:
-    stale = activity_tracker.stale_entries(settings.inactivity_nudge_seconds)
+    stale = activity_tracker.stale_entries(bot_config.get("inactivity_nudge_seconds"))
     for telegram_id, lang in stale:
         activity_tracker.mark_nudged(telegram_id)
         try:
@@ -62,13 +63,13 @@ async def _kick_from_closed_group(bot: Bot, session, driver) -> None:
 
 def _admin_contact_kb():
     builder = InlineKeyboardBuilder()
-    builder.button(text="👤 Admin", url=settings.admin_contact_url)
+    builder.button(text="👤 Admin", url=bot_config.get("admin_contact_url"))
     return builder.as_markup()
 
 
 async def _subscription_job(bot: Bot) -> None:
     async with session_scope() as session:
-        for subscription in await drivers_service.expiring_soon(session, settings.subscription_reminder_days):
+        for subscription in await drivers_service.expiring_soon(session, bot_config.get("subscription_reminder_days")):
             driver = subscription.driver
             # Rounded up: the job runs every few hours, so "4.8 days left" should still read 5.
             days_left = max(math.ceil((subscription.expires_at - datetime.utcnow()).total_seconds() / 86400), 1)
@@ -98,7 +99,7 @@ async def _subscription_job(bot: Bot) -> None:
 
 async def _claim_timeout_job(bot: Bot) -> None:
     async with session_scope() as session:
-        released = await trips_service.release_stale_claims(session, settings.claim_timeout_minutes)
+        released = await trips_service.release_stale_claims(session, bot_config.get("claim_timeout_minutes"))
         if not released:
             return
 
@@ -115,7 +116,7 @@ async def _claim_timeout_job(bot: Bot) -> None:
             await trips_service.dispatch_order(bot, session, order, exclude_driver_ids={flaked_driver_id})
 
             driver = await drivers_service.get(session, flaked_driver_id)
-            if driver is not None and driver.no_show_count >= settings.driver_no_show_alert_threshold:
+            if driver is not None and driver.no_show_count >= bot_config.get("driver_no_show_alert_threshold"):
                 if admins is None:
                     admins = await users_service.list_admins(session)
                 warning = (
@@ -129,6 +130,11 @@ async def _claim_timeout_job(bot: Bot) -> None:
                         continue
 
 
+async def _group_ads_cleanup_job(bot: Bot) -> None:
+    async with session_scope() as session:
+        await group_ads_service.cleanup(bot, session)
+
+
 def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(_inactivity_job, "interval", seconds=15, args=[bot], id="inactivity_nudge")
@@ -136,4 +142,5 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler.add_job(_subscription_job, "interval", hours=6, args=[bot], id="driver_subscriptions")
     scheduler.add_job(_claim_timeout_job, "interval", minutes=1, args=[bot], id="claim_timeout")
     scheduler.add_job(_women_first_job, "interval", seconds=30, args=[bot], id="women_first")
+    scheduler.add_job(_group_ads_cleanup_job, "interval", minutes=1, args=[bot], id="group_ads_cleanup")
     return scheduler

@@ -8,6 +8,7 @@ from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramRet
 from aiogram.types import Message, TelegramObject
 
 from app.handlers.admin.group_invites import send_invite_gate
+from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
 from app.services.ad_format import card_keyboard, parse_ad, render_card
 
@@ -20,8 +21,9 @@ class GroupGuardMiddleware(BaseMiddleware):
     """Enforces the per-group toggles admins set from the admin panel: join/leave message
     deletion, naive link/mention anti-spam, a 1-message-per-minute rate limit, and — in closed
     driver groups — restricting free-text posting to chat admins (anything else gets deleted
-    and reposted as a normalized card so the group stays readable). With `format_ads` on, any
-    member's taxi ad is replaced by the uniform TaxiLine ad card."""
+    and reposted as a normalized card so the group stays readable). With `ad_router` on, every
+    member's message is taken over by the passenger/driver question (services/group_ads.py);
+    with `format_ads` on, a member's taxi ad is replaced by the uniform TaxiLine ad card."""
 
     async def __call__(
         self,
@@ -83,6 +85,11 @@ class GroupGuardMiddleware(BaseMiddleware):
                 if not groups_service.check_rate_limit(event.chat.id, event.from_user.id):
                     await _try_delete(bot, event)
                     return None
+
+        if group.settings.get("ad_router") and await group_ads_service.intercept(
+            bot, session, group, event, data.get("bot_user")
+        ):
+            return None
 
         if group.settings.get("format_ads") and await _repost_as_ad_card(bot, event, data.get("bot_user")):
             return None

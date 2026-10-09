@@ -13,7 +13,7 @@ services/backend_client.py. Two things live here:
 import asyncio
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -25,9 +25,12 @@ from app.config import settings
 from app.data.regions import REGION_NAMES
 from app.db.base import session_scope
 from app.db.models import BotUser, DriverProfile, Group, Order, OrderDispatch
+from app.handlers.admin.groups import SETTING_LABELS
 from app.i18n.translations import t
+from app.services import bot_config
 from app.services import cargo as cargo_service
 from app.services import drivers as drivers_service
+from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
 from app.services import trips as trips_service
 from app.services import users as users_service
@@ -993,6 +996,31 @@ async def _resolve_topics(bot: Bot, parent_chat_id: int, topics: list | None) ->
     return routes
 
 
+async def _settings_patch(session, payload: dict, group_id: int | None) -> dict:
+    """Group-services toggles (`settings: {anti_spam: true, …}`) and `linkedGroupId` from an
+    admin-dashboard create/update payload, validated into Group.settings keys."""
+    patch: dict = {}
+    toggles = payload.get("settings")
+    if isinstance(toggles, dict):
+        for key, value in toggles.items():
+            if key in SETTING_LABELS and isinstance(value, bool):
+                patch[key] = value
+    if "linkedGroupId" in payload:
+        linked = payload.get("linkedGroupId")
+        if linked in (None, "", 0):
+            patch["linked_group_id"] = None
+        else:
+            try:
+                linked = int(linked)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Biriktiriladigan guruh noto‘g‘ri") from exc
+            target = await session.get(Group, linked)
+            if target is None or target.kind not in ("CLOSED", "ROUTE") or target.id == group_id:
+                raise ValueError("Faqat yopiq haydovchilar guruhiga biriktirish mumkin")
+            patch["linked_group_id"] = target.id
+    return patch
+
+
 @routes.get("/webapp/admin/groups")
 async def admin_list_groups(request: web.Request) -> web.Response:
     if not _authorized(request):
@@ -1005,6 +1033,7 @@ async def admin_list_groups(request: web.Request) -> web.Response:
             {
                 "groups": [groups_service.serialize_group(g) for g in groups],
                 "regions": REGION_NAMES,
+                "settingLabels": SETTING_LABELS,
             }
         )
 
@@ -1020,8 +1049,8 @@ async def admin_create_group(request: web.Request) -> web.Response:
 
     kind = payload.get("kind")
     ref = (payload.get("ref") or "").strip()
-    if kind not in ("CLOSED", "ROUTE", "CHANNEL"):
-        return web.json_response({"error": "kind CLOSED, ROUTE yoki CHANNEL bo‘lishi kerak"}, status=400)
+    if kind not in ("CLOSED", "ROUTE", "CHANNEL", "MAIN"):
+        return web.json_response({"error": "kind CLOSED, ROUTE, MAIN yoki CHANNEL bo‘lishi kerak"}, status=400)
     if not ref:
         return web.json_response({"error": "Guruh yoki kanal ID / havolasini kiriting"}, status=400)
 
@@ -1059,12 +1088,19 @@ async def admin_create_group(request: web.Request) -> web.Response:
             return web.json_response({"error": str(exc)}, status=400)
         if from_region:
             region = from_region
+    elif kind == "MAIN":
+        region = from_region or None
     else:
         if not (payload.get("title") or "").strip():
             return web.json_response({"error": "Kanalga nom qo‘ying — keyin adashib ketmaslik uchun"}, status=400)
         title = payload["title"].strip()
 
     async with session_scope() as session:
+        if kind == "MAIN":
+            try:
+                extra_settings.update(await _settings_patch(session, payload, None))
+            except ValueError as exc:
+                return web.json_response({"error": str(exc)}, status=400)
         group = await groups_service.register_group(
             session,
             chat_id=resolved["chat_id"],
@@ -1142,6 +1178,13 @@ async def admin_update_group(request: web.Request) -> web.Response:
         elif kind == "CHANNEL" and title is not None and len(title) < 1:
             return web.json_response({"error": "Kanalga nom qo‘ying"}, status=400)
 
+        try:
+            settings_patch = await _settings_patch(session, payload, group.id)
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        if settings_patch:
+            extra_settings = {**(extra_settings or {}), **settings_patch}
+
         if chat_id is not None and chat_id != group.chat_id:
             clash = await groups_service.get_by_chat_id(session, chat_id)
             if clash is not None and clash.id != group.id:
@@ -1175,6 +1218,56 @@ async def admin_delete_group(request: web.Request) -> web.Response:
             return web.json_response({"ok": True})
         await groups_service.remove_group(session, group)
         return web.json_response({"ok": True})
+
+
+# ── Bot sozlamalari (runtime settings) and the group-ads log ─────────────────────────────────
+
+
+@routes.get("/webapp/admin/bot-settings")
+async def admin_get_bot_settings(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    return web.json_response(bot_config.describe())
+
+
+@routes.patch("/webapp/admin/bot-settings")
+async def admin_update_bot_settings(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    values = payload.get("values")
+    if not isinstance(values, dict) or not values:
+        return web.json_response({"error": "values bo‘sh"}, status=400)
+    async with session_scope() as session:
+        try:
+            await bot_config.update(session, values)
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+    return web.json_response(bot_config.describe())
+
+
+@routes.get("/webapp/admin/group-ads")
+async def admin_group_ads(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    status = request.query.get("status") or None
+    try:
+        limit = int(request.query.get("limit", "100"))
+    except ValueError:
+        limit = 100
+    async with session_scope() as session:
+        ads = await group_ads_service.list_recent(session, status=status, limit=limit)
+        stats = await group_ads_service.stats(session, datetime.utcnow() - timedelta(hours=24))
+        titles = {
+            str(g.chat_id): g.title
+            for g in (await session.execute(select(Group).where(Group.kind.in_(("MAIN", "CLOSED", "ROUTE"))))).scalars()
+        }
+    return web.json_response(
+        {"ads": [group_ads_service.serialize(a) for a in ads], "stats24h": stats, "chatTitles": titles}
+    )
 
 
 # ── Random mijoz: kanal/guruh a'zoligini ommaviy tekshirish ─────────────────────────────────
