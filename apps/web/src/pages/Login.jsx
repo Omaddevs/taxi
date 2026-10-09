@@ -152,13 +152,7 @@ export default function Login() {
             <ArrowRight className="absolute right-5 h-5 w-5" />
           </button>
 
-          <div className="my-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-line" />
-            <span className="text-[11px] font-semibold text-muted">Yoki davom eting</span>
-            <span className="h-px flex-1 bg-line" />
-          </div>
-
-          <GoogleAuthButton label="Google orqali kirish" />
+          <GoogleAuthButton label="Google orqali kirish" divider />
 
           <p className="mt-auto pt-5 text-center text-[13px] text-muted">
             Hisobingiz yo‘qmi?{' '}

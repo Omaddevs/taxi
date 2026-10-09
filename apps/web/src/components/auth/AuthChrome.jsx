@@ -1,8 +1,8 @@
 import { ArrowLeft, ChevronRight, Headset, Loader2, Lock, MapPin, Send, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { homePathForRole } from '../../lib/role'
-import { GoogleCancelled, requestGoogleCode, savePendingGoogle } from '../../lib/google'
-import { useState } from 'react'
+import { GoogleCancelled, getGoogleConfig, requestGoogleCode, savePendingGoogle } from '../../lib/google'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo, LogoPin, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
@@ -180,11 +180,28 @@ export function GoogleMark() {
   )
 }
 
+// Whether the API has Google keys (GET /auth/google/config). null while unknown.
+function useGoogleEnabled() {
+  const [enabled, setEnabled] = useState(null)
+  useEffect(() => {
+    let alive = true
+    getGoogleConfig()
+      .then((config) => alive && setEnabled(Boolean(config?.enabled)))
+      .catch(() => alive && setEnabled(false))
+    return () => {
+      alive = false
+    }
+  }, [])
+  return enabled
+}
+
 // "Google orqali kirish / ro‘yxatdan o‘tish": an account already linked to this Google logs in
-// straight away; a new one continues on /google to confirm a phone number once.
-export function GoogleAuthButton({ label = 'Google orqali kirish', className = '' }) {
+// straight away; a new one continues on /google to confirm a phone number once. Until Google
+// keys are configured on the server the button (and its divider) isn't shown at all.
+export function GoogleAuthButton({ label = 'Google orqali kirish', className = '', divider = false }) {
   const { googleSignIn } = useAuth()
   const navigate = useNavigate()
+  const enabled = useGoogleEnabled()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -208,8 +225,17 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
     }
   }
 
+  if (!enabled) return null
+
   return (
     <div className={className}>
+      {divider ? (
+        <div className="my-4 flex items-center gap-3">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-[11px] font-semibold text-muted">Yoki davom eting</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+      ) : null}
       <button
         type="button"
         onClick={onClick}
