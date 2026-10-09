@@ -6,6 +6,7 @@ export const BOT_SETTINGS_PAGES: { slug: string; label: string; to?: string }[] 
   { slug: 'general', label: 'Umumiy' },
   { slug: 'drivers', label: 'Haydovchilar va obuna' },
   { slug: 'clients', label: 'Mijozlar' },
+  { slug: 'format-ads', label: 'E’lon shabloni' },
   { slug: 'group-ads', label: 'Guruh e’lonlari' },
   { slug: 'ads-log', label: 'E’lonlar jurnali' },
   { slug: 'groups', label: 'Guruhlar va biriktirish', to: '/groups' },

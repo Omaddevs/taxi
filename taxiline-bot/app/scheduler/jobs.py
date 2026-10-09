@@ -14,6 +14,7 @@ from app.keyboards.trip import nudge_kb
 from app.scheduler import activity_tracker
 from app.services import bot_config
 from app.services import drivers as drivers_service
+from app.services import formatted_ads as formatted_ads_service
 from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
 from app.services import trips as trips_service
@@ -135,6 +136,11 @@ async def _group_ads_cleanup_job(bot: Bot) -> None:
         await group_ads_service.cleanup(bot, session)
 
 
+async def _formatted_ads_relabel_job(bot: Bot) -> None:
+    async with session_scope() as session:
+        await formatted_ads_service.relabel(bot, session)
+
+
 def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(_inactivity_job, "interval", seconds=15, args=[bot], id="inactivity_nudge")
@@ -143,4 +149,5 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler.add_job(_claim_timeout_job, "interval", minutes=1, args=[bot], id="claim_timeout")
     scheduler.add_job(_women_first_job, "interval", seconds=30, args=[bot], id="women_first")
     scheduler.add_job(_group_ads_cleanup_job, "interval", minutes=1, args=[bot], id="group_ads_cleanup")
+    scheduler.add_job(_formatted_ads_relabel_job, "interval", minutes=1, args=[bot], id="formatted_ads_relabel")
     return scheduler

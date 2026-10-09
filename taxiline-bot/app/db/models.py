@@ -325,3 +325,25 @@ class BotSetting(Base):
     key: Mapped[str] = mapped_column(primary_key=True)
     value: Mapped[dict] = mapped_column(JSON)
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+
+class FormattedAd(Base):
+    """A member's ad the bot reposted with the TaxiLine header (`format_ads` group service) —
+    kept so the scheduler can move its 🟢/🟡/🔴 label along as it ages."""
+
+    __tablename__ = "formatted_ads"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger)
+    message_id: Mapped[int] = mapped_column(BigInteger)
+    author_telegram_id: Mapped[int] = mapped_column(BigInteger)
+    author_name: Mapped[str] = mapped_column()
+    author_username: Mapped[str | None] = mapped_column(nullable=True)
+    body_html: Mapped[str] = mapped_column()  # the author's text as posted, entities kept
+    is_passenger: Mapped[bool] = mapped_column(default=False)
+    phone: Mapped[str | None] = mapped_column(nullable=True)
+    has_photo: Mapped[bool] = mapped_column(default=False)
+    chat_button: Mapped[bool] = mapped_column(default=True)  # False when the author's privacy blocks it
+    label: Mapped[str] = mapped_column()
+    final: Mapped[bool] = mapped_column(default=False, server_default="false", index=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)

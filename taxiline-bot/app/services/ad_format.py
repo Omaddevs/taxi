@@ -1,17 +1,18 @@
-"""Turns a free-form taxi ad posted in a group ("✈️ SAMARQAND SHAXARDAN 🏡 TOSHKENTGA ...
-☎️ +998902412626") into one uniform card. Parsing is plain rules — a place dictionary, regexes
-for phones/times/seats and a few keyword lists — so it costs nothing per message and never
-invents a phone number. Anything without a recognisable route is left alone (questions,
-chatter), which is why `parse_ad` returns None rather than a half-empty card.
+"""Reads a free-form taxi ad posted in a group ("✈️ SAMARQAND SHAXARDAN 🏡 TOSHKENTGA ...
+☎️ +998902412626"): route, departure, seats, car, cargo, phones. Parsing is plain rules — a
+place dictionary, regexes for phones/times/seats and a few keyword lists — so it costs nothing
+per message and never invents a phone number. Anything without a recognisable route is not an
+ad (questions, chatter), which is why `parse_ad` returns None for it.
+
+Used as the "is this an ad" gate and phone source by formatted_ads.py (which reposts the text
+unchanged) and for the field rows of the closed-group passenger card in group_ads.py.
 """
 
-import html
 import re
 from dataclasses import dataclass, field
 from urllib.parse import quote
 
-from aiogram.types import CopyTextButton, InlineKeyboardMarkup, User
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import CopyTextButton
 
 from app.config import settings
 from app.services.phone import format_phone
@@ -308,60 +309,9 @@ def profile_url(user_id: int, username: str | None) -> str:
     return f"https://t.me/{username}" if username else f"tg://user?id={user_id}"
 
 
-def _profile_url(user: User) -> str:
-    return profile_url(user.id, user.username)
-
-
 def call_button_kwargs(phone: str, text: str) -> dict:
     """InlineKeyboardBuilder.button() kwargs for a "call" button — see card_keyboard."""
     base = settings.webapp_url.rstrip("/")
     if base.startswith("https://"):
         return {"text": text, "url": f"{base}/call.html?n={quote(phone)}"}
     return {"text": f"📞 {format_phone(phone)}", "copy_text": CopyTextButton(text=phone)}
-
-
-def render_card(ad: ParsedAd, author: User, author_name: str) -> str:
-    """HTML for parse_mode="HTML". Rows the ad didn't mention are left out, not shown empty."""
-    who = "Yo'lovchi" if ad.is_passenger else "Haydovchi"
-    subtitle = "Yo'lovchi e'loni — mashina qidirilmoqda" if ad.is_passenger else "Yo'lovchi tashish e'loni"
-    route = f"{' / '.join(ad.origins)} → {' / '.join(ad.destinations)}".upper()
-
-    lines = [
-        "🚕 <b>TAXILINE</b>  ·  🟢 Faol",
-        f"<i>{subtitle}</i>",
-        "➖➖➖➖➖➖➖➖➖➖",
-        f"📍 <b>{html.escape(route)}</b>",
-    ]
-    if ad.departure:
-        lines += ["", "🕐 <b>Jo'nash vaqti</b>", html.escape(ad.departure)]
-    if ad.seats:
-        if ad.is_passenger:
-            lines += ["", "👥 <b>Yo'lovchilar</b>", f"{ad.seats} nafar"]
-        else:
-            lines += ["", "👥 <b>Bo'sh joy</b>", f"{ad.seats} nafar yo'lovchi"]
-    if ad.car:
-        lines += ["", "🚗 <b>Mashina</b>", html.escape(ad.car)]
-    if ad.takes_cargo and not ad.is_passenger:
-        lines += ["", "📦 <b>Pochta</b>", "Olinadi"]
-    if ad.phones:
-        lines += ["", f"📞 <b>{who} telefoni</b>", "\n".join(format_phone(p) for p in ad.phones)]
-    lines += [
-        "➖➖➖➖➖➖➖➖➖➖",
-        f"E'lon egasi: <a href=\"{_profile_url(author)}\">{html.escape(author_name)}</a>",
-    ]
-    return "\n".join(lines)
-
-
-def card_keyboard(ad: ParsedAd, author: User, *, with_chat_button: bool = True) -> InlineKeyboardMarkup | None:
-    """"Write" opens the author's Telegram chat; "call" goes through the website's /call.html
-    redirect (Telegram buttons can't hold tel: links). On a non-https WEBAPP_URL (local dev)
-    the call button copies the number instead — Telegram rejects localhost button URLs."""
-    whom = "Yo'lovchiga" if ad.is_passenger else "Haydovchiga"
-    builder = InlineKeyboardBuilder()
-    if with_chat_button:
-        builder.button(text=f"💬 {whom} yozish", url=_profile_url(author))
-    if ad.phones:
-        builder.button(**call_button_kwargs(ad.phones[0], f"📞 {whom} tel qilish"))
-    builder.adjust(1)
-    markup = builder.as_markup()
-    return markup if markup.inline_keyboard else None

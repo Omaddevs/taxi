@@ -34,6 +34,7 @@ SECTIONS: list[tuple[str, str, str]] = [
     ("general", "Umumiy", "Admin bilan bog'lanish va umumiy parametrlar"),
     ("drivers", "Haydovchilar va obuna", "Obuna muddati, eslatmalar, buyurtma band qilish vaqti"),
     ("clients", "Mijozlar", "Bot ichidagi mijoz oqimi"),
+    ("format_ads", "E'lon shabloni", "E'lon matni o'zgarmaydi — bot tepasiga TaxiLine sarlavhasi, pastiga e'lon egasi va tugmalarni qo'yadi"),
     ("group_ads", "Guruh e'lonlari", "Ochiq guruhdagi xabarlar: yo'lovchi/haydovchi so'rovi va matnlar"),
 ]
 
@@ -62,6 +63,13 @@ FIELDS: list[Field] = [
     Field("inactivity_nudge_seconds", "clients", "Javobsiz qolgan mijozga eslatma (soniya)", "int",
           settings.inactivity_nudge_seconds, "Buyurtma berishni yarim yo'lda tashlagan mijozga shuncha vaqtdan keyin eslatiladi",
           15, 3600),
+    Field("format_ads.driver_subtitle", "format_ads", "Haydovchi e'loni sarlavhasi", "text", "Yo'lovchi tashish e'loni"),
+    Field("format_ads.passenger_subtitle", "format_ads", "Yo'lovchi e'loni sarlavhasi", "text",
+          "Yo'lovchi e'loni — mashina qidirilmoqda", "Matnda «mashina kerak», «ketamiz» kabi so'zlar bo'lsa"),
+    Field("format_ads.fresh_minutes", "format_ads", "«🟢 Faol» turadigan vaqt (daqiqa)", "int", 30,
+          "Keyin «🟡 30 daqiqa oldin», «🟡 1 soat oldin»… — belgi shu qadam bilan yangilanadi", 5, 720),
+    Field("format_ads.stale_minutes", "format_ads", "«🔴 Eskirgan» bo'ladigan vaqt (daqiqa)", "int", 120,
+          "Shundan keyin e'lon boshqa tahrirlanmaydi", 10, 2880),
     Field("group_ads.ask_text", "group_ads", "So'rov matni", "longtext",
           "👋 {name}, xabaringizni to'g'ri joyga yetkazishimiz uchun tanlang:\n\nSiz yo'lovchimisiz yoki haydovchi?",
           "{name} — yozgan odamning ismi (bosiladigan havola)"),
