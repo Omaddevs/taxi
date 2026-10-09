@@ -36,6 +36,13 @@ export const SEO_PAGES = {
     h1: 'Aksiyalar va Random mijoz',
     label: 'Aksiyalar',
   },
+  '/skuter-ijara': {
+    title: 'Skuter, samokat va velosiped ijarasi — TaxiLine',
+    description:
+      'TaxiLine Skuter ijara: yaqin atrofdagi skuter, elektr samokat, velosiped va mototsikllarni soatbay yoki kunlik ijaraga oling. Egasi bilan to‘g‘ridan-to‘g‘ri, e’lon joylash bepul.',
+    h1: 'Skuter, samokat va velosiped ijarasi',
+    label: 'Skuter ijara',
+  },
   '/biznes': {
     title: 'Biznes tarifi — TaxiLine',
     description:

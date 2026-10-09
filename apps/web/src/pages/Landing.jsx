@@ -41,7 +41,7 @@ import { useJsonLd, useSeo } from '../seo/useSeo'
 const NAV = [
   { href: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
   { href: '/news', label: 'Yangiliklar' },
-  { href: '/aksiyalar', label: 'Aksiyalar' },
+  { href: '/skuter-ijara', label: 'Skuter ijara' },
   { href: '#random', label: 'Random mijoz', highlight: true },
 ]
 
@@ -1545,7 +1545,7 @@ export function RandomClient() {
   )
 }
 
-function FaqItem({ item, open, onToggle, id }) {
+export function FaqItem({ item, open, onToggle, id }) {
   return (
     <div className="border-b border-ink/10">
       <h3>

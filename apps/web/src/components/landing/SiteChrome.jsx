@@ -8,7 +8,7 @@ import { Logo, Wordmark } from '../ui/Logo'
 const SITE_NAV = [
   { to: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
   { to: '/news', label: 'Yangiliklar' },
-  { to: '/aksiyalar', label: 'Aksiyalar' },
+  { to: '/skuter-ijara', label: 'Skuter ijara' },
   { to: '/biznes', label: 'Biznes' },
   { to: '/savollar', label: 'Savol-javob' },
 ]

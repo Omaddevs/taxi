@@ -8,6 +8,7 @@ import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
 import { BusinessPage, DriverPage, FaqPage, PromosPage } from './pages/PublicPages'
+import ScooterRent from './pages/ScooterRent'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import TripDetails from './pages/TripDetails'
@@ -89,6 +90,7 @@ export default function App() {
       {/* Ommaviy SEO sahifalar — ro‘yxat: src/seo/pages.js */}
       <Route path="/haydovchi-bolish" element={<DriverPage />} />
       <Route path="/aksiyalar" element={<PromosPage />} />
+      <Route path="/skuter-ijara" element={<ScooterRent />} />
       <Route path="/biznes" element={<BusinessPage />} />
       <Route path="/savollar" element={<FaqPage />} />
       <Route path="/login" element={<Login />} />
