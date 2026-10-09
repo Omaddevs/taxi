@@ -44,6 +44,8 @@ _QUOTE_LIMIT_CAPTION = 350
 
 
 def mention(user_id: int, name: str) -> str:
+    if not user_id:  # ads created from the admin dashboard have no Telegram author
+        return html.escape(name or "TaxiLine")
     return f'<a href="tg://user?id={user_id}">{html.escape(name or "Foydalanuvchi")}</a>'
 
 
@@ -140,11 +142,12 @@ def driver_notice_kb() -> InlineKeyboardMarkup:
 def card_kb(ad: GroupAd, *, with_chat_button: bool = True) -> InlineKeyboardMarkup:
     parsed = parse_ad_fields(ad.text)
     builder = InlineKeyboardBuilder()
-    if ad.status == "SENT":
-        builder.button(text="✅ Men olaman", callback_data=f"gad:c:{ad.id}")
-    elif ad.status == "TAKEN":
-        builder.button(text="↩️ Bo'shatish (faqat olgan haydovchi)", callback_data=f"gad:r:{ad.id}")
-    if with_chat_button:
+    if bot_config.get("features.take_button"):
+        if ad.status == "SENT":
+            builder.button(text="✅ Men olaman", callback_data=f"gad:c:{ad.id}")
+        elif ad.status == "TAKEN":
+            builder.button(text="↩️ Bo'shatish (faqat olgan haydovchi)", callback_data=f"gad:r:{ad.id}")
+    if with_chat_button and ad.author_telegram_id:
         builder.button(text="💬 Yo'lovchiga yozish", url=profile_url(ad.author_telegram_id, ad.author_username))
     if parsed.phones:
         builder.button(**call_button_kwargs(parsed.phones[0], "📞 Yo'lovchiga tel qilish"))
@@ -160,7 +163,7 @@ def render_card(ad: GroupAd, source_title: str | None, *, edited: bool = False) 
     if ad.status == "TAKEN":
         status = f"🔴 Band — {html.escape(ad.taken_by_name or 'haydovchi')} oldi"
     elif ad.status == "CANCELLED":
-        status = "⚪️ Yo'lovchi bekor qildi"
+        status = "⚪️ Bekor qilindi"
     else:
         status = "🟢 Faol"
 
@@ -305,6 +308,8 @@ async def intercept(bot: Bot, session: AsyncSession, group: Group, event: Messag
     """Called by the group guard for a non-admin's message in a group with `ad_router` on.
     True means the message was taken over (deleted/asked/forwarded); False leaves it to the
     normal pipeline — e.g. the group isn't linked to a closed group yet."""
+    if not bot_config.get("features.group_ads"):
+        return False
     target = await linked_group(session, group)
     if target is None or event.from_user is None or event.sender_chat is not None:
         return False
@@ -425,6 +430,8 @@ async def take(bot: Bot, session: AsyncSession, ad: GroupAd, driver_id: int, dri
     await refresh_card(bot, ad, await _source_title(session, ad.source_chat_id))
 
     # The passenger hears about it only if they've ever started the bot (bots can't DM first).
+    if not ad.author_telegram_id or not bot_config.get("features.notify_passenger"):
+        return None
     try:
         await bot.send_message(
             ad.author_telegram_id,
@@ -509,6 +516,8 @@ async def latest_for_author(session: AsyncSession, ad: GroupAd) -> GroupAd:
 
 async def cleanup(bot: Bot, session: AsyncSession) -> None:
     """Scheduled every minute: unanswered questions expire, answered notices disappear."""
+    if not bot_config.get("features.auto_cleanup"):
+        return
     now = datetime.utcnow()
     prompt_cutoff = now - timedelta(minutes=bot_config.get("group_ads.prompt_ttl_minutes"))
     notice_cutoff = now - timedelta(minutes=bot_config.get("group_ads.notice_ttl_minutes"))
@@ -545,6 +554,8 @@ def serialize(ad: GroupAd) -> dict:
         "role": ad.role,
         "status": ad.status,
         "takenByName": ad.taken_by_name,
+        "manual": not ad.author_telegram_id,
+        "hasCard": bool(ad.card_message_id),
         "createdAt": ad.created_at.isoformat() if ad.created_at else None,
         "answeredAt": ad.answered_at.isoformat() if ad.answered_at else None,
     }
@@ -563,3 +574,81 @@ async def stats(session: AsyncSession, since: datetime) -> dict[str, int]:
     for status in result.scalars():
         counts[status] = counts.get(status, 0) + 1
     return counts
+
+
+# ── admin dashboard CRUD ─────────────────────────────────────────────────────────────────
+
+ADMIN_STATUSES = ("SENT", "CANCELLED")
+
+
+async def admin_create(bot: Bot, session: AsyncSession, target: Group, text: str, author_name: str | None) -> GroupAd:
+    """A passenger ad typed in by staff (e.g. taken over the phone) and posted to a driver group."""
+    ad = GroupAd(
+        source_chat_id=0,
+        author_telegram_id=0,
+        author_name=(author_name or "").strip() or "TaxiLine operator",
+        text=text.strip(),
+        role=PASSENGER,
+        answered_at=datetime.utcnow(),
+        prompt_deleted=True,
+    )
+    session.add(ad)
+    await session.flush()
+    if not await send_to_drivers(bot, session, ad, target):
+        await session.delete(ad)
+        await session.commit()
+        raise ValueError("Kartochkani guruhga yuborib bo‘lmadi — bot o‘sha guruhda adminmi?")
+    return ad
+
+
+async def _resend_card(bot: Bot, session: AsyncSession, ad: GroupAd) -> bool:
+    """A card that can't be edited any more (deleted in Telegram, or never posted) is posted anew."""
+    target = None
+    if ad.target_chat_id:
+        target = (await session.execute(select(Group).where(Group.chat_id == ad.target_chat_id))).scalar_one_or_none()
+    if target is None and ad.source_chat_id:
+        source = (await session.execute(select(Group).where(Group.chat_id == ad.source_chat_id))).scalar_one_or_none()
+        target = await linked_group(session, source) if source else None
+    if target is None:
+        return False
+    if ad.target_chat_id:
+        await _delete(bot, ad.target_chat_id, ad.card_message_id)
+    return await send_to_drivers(bot, session, ad, target)
+
+
+async def admin_update(
+    bot: Bot, session: AsyncSession, ad: GroupAd, *, text: str | None = None, status: str | None = None
+) -> GroupAd:
+    """Edits an ad's text and/or moves it to SENT (active again, taker cleared) or CANCELLED;
+    the Telegram card follows. TAKEN is only ever set by a driver's own tap."""
+    if status is not None and status not in ADMIN_STATUSES:
+        raise ValueError("Holat faqat «Faol» (SENT) yoki «Bekor» (CANCELLED) bo‘lishi mumkin")
+    if text is not None:
+        if not text.strip():
+            raise ValueError("Matn bo‘sh bo‘lmasin")
+        ad.text = text.strip()
+    if status == "SENT":
+        ad.status = "SENT"
+        ad.role = ad.role or PASSENGER
+        ad.taken_by_telegram_id = None
+        ad.taken_by_name = None
+    elif status == "CANCELLED":
+        ad.status = "CANCELLED"
+    await session.commit()
+
+    if ad.status in ("SENT", "TAKEN", "CANCELLED"):
+        title = await _source_title(session, ad.source_chat_id) if ad.source_chat_id else None
+        refreshed = await refresh_card(bot, ad, title, edited=text is not None)
+        if not refreshed and ad.status == "SENT" and not await _resend_card(bot, session, ad):
+            raise ValueError("Saqlandi, lekin kartochkani guruhga qayta yuborib bo‘lmadi")
+    return ad
+
+
+async def admin_delete(bot: Bot, session: AsyncSession, ad: GroupAd) -> None:
+    """Removes the ad everywhere: the closed-group card, the open-group notice, and the row."""
+    if ad.target_chat_id:
+        await _delete(bot, ad.target_chat_id, ad.card_message_id)
+    if ad.source_chat_id and not ad.prompt_deleted:
+        await _delete(bot, ad.source_chat_id, ad.prompt_message_id)
+    await session.delete(ad)
+    await session.commit()

@@ -99,6 +99,9 @@ export interface BotGroupAd {
   role: 'PASSENGER' | 'DRIVER' | null
   status: BotGroupAdStatus
   takenByName: string | null
+  // Typed in from the dashboard (no Telegram author).
+  manual: boolean
+  hasCard: boolean
   createdAt: string | null
   answeredAt: string | null
 }

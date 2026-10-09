@@ -64,3 +64,35 @@ export async function listGroupAds(req: Request, res: Response) {
   const { status, limit } = req.query as { status?: string; limit?: string }
   res.json(await botBridge.getBotGroupAds(status, limit ? Number(limit) : undefined))
 }
+
+export async function createGroupAd(req: Request, res: Response) {
+  const ad = await botBridge.createBotGroupAd(req.body)
+  await writeAudit({
+    actorId: req.user!.id,
+    action: 'BOT_GROUP_AD_CREATED',
+    targetType: 'GroupAd',
+    targetId: String(ad.id),
+    meta: { targetGroupId: req.body.targetGroupId },
+  })
+  res.json(ad)
+}
+
+export async function updateGroupAd(req: Request, res: Response) {
+  const id = Number(req.params.id)
+  const ad = await botBridge.updateBotGroupAd(id, req.body)
+  await writeAudit({
+    actorId: req.user!.id,
+    action: 'BOT_GROUP_AD_UPDATED',
+    targetType: 'GroupAd',
+    targetId: String(id),
+    meta: { status: req.body.status, textChanged: req.body.text !== undefined },
+  })
+  res.json(ad)
+}
+
+export async function deleteGroupAd(req: Request, res: Response) {
+  const id = Number(req.params.id)
+  const result = await botBridge.deleteBotGroupAd(id)
+  await writeAudit({ actorId: req.user!.id, action: 'BOT_GROUP_AD_DELETED', targetType: 'GroupAd', targetId: String(id) })
+  res.json(result)
+}

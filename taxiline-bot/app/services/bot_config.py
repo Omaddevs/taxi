@@ -30,6 +30,7 @@ class Field:
 
 
 SECTIONS: list[tuple[str, str, str]] = [
+    ("features", "Funksiyalar", "Bot funksiyalarini barcha guruhlarda birdaniga yoqish yoki o'chirish"),
     ("general", "Umumiy", "Admin bilan bog'lanish va umumiy parametrlar"),
     ("drivers", "Haydovchilar va obuna", "Obuna muddati, eslatmalar, buyurtma band qilish vaqti"),
     ("clients", "Mijozlar", "Bot ichidagi mijoz oqimi"),
@@ -37,6 +38,17 @@ SECTIONS: list[tuple[str, str, str]] = [
 ]
 
 FIELDS: list[Field] = [
+    # Master switches. A group-level toggle (Guruhlar page) only matters while its feature is on here.
+    Field("features.group_ads", "features", "Yo'lovchi/haydovchi so'rovi", "bool", True,
+          "O'chirilsa, barcha guruhlarda xabarlar ushlanmaydi (guruh sozlamasi yoqilgan bo'lsa ham)"),
+    Field("features.format_ads", "features", "E'lonlarni yagona shablonga solish", "bool", True,
+          "O'chirilsa, hech bir guruhda e'lonlar kartochkaga aylantirilmaydi"),
+    Field("features.take_button", "features", "«✅ Men olaman» tugmasi", "bool", True,
+          "Yopiq guruhdagi yo'lovchi kartochkasida haydovchi e'lonni band qila oladi"),
+    Field("features.notify_passenger", "features", "Haydovchi olganda yo'lovchiga xabar", "bool", True,
+          "Yo'lovchi botni ochgan bo'lsa, unga shaxsiy xabar yuboriladi"),
+    Field("features.auto_cleanup", "features", "Bot xabarlarini guruhdan avtomatik o'chirish", "bool", True,
+          "So'rov va javob xabarlari belgilangan vaqtdan keyin o'chadi"),
     Field("admin_contact_url", "general", "Admin havolasi", "url", settings.admin_contact_url,
           "«Adminga yozish» tugmalari shu manzilni ochadi, masalan https://t.me/taxiline_toshkent"),
     Field("driver_subscription_days", "drivers", "Obuna muddati (kun)", "int", settings.driver_subscription_days,

@@ -8,6 +8,7 @@ from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramRet
 from aiogram.types import Message, TelegramObject
 
 from app.handlers.admin.group_invites import send_invite_gate
+from app.services import bot_config
 from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
 from app.services.ad_format import card_keyboard, parse_ad, render_card
@@ -91,7 +92,7 @@ class GroupGuardMiddleware(BaseMiddleware):
         ):
             return None
 
-        if group.settings.get("format_ads") and await _repost_as_ad_card(bot, event, data.get("bot_user")):
+        if group.settings.get("format_ads") and bot_config.get("features.format_ads") and await _repost_as_ad_card(bot, event, data.get("bot_user")):
             return None
 
         return await handler(event, data)

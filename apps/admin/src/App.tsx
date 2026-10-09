@@ -341,7 +341,7 @@ export default function App() {
             </RequireRole>
           }
         />
-        <Route path="/bot-settings" element={<Navigate to="/bot-settings/general" replace />} />
+        <Route path="/bot-settings" element={<Navigate to="/bot-settings/features" replace />} />
         <Route
           path="/bot-settings/:section"
           element={

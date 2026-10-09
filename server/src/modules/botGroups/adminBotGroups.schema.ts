@@ -59,3 +59,20 @@ export const listGroupAdsQuerySchema = z.object({
   status: z.enum(['PENDING', 'SENT', 'TAKEN', 'DRIVER', 'EXPIRED', 'CANCELLED']).optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),
 })
+
+export const groupAdIdParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+})
+
+export const createGroupAdSchema = z.object({
+  targetGroupId: z.number().int().positive(),
+  text: z.string().trim().min(5, 'E’lon matni juda qisqa').max(3000),
+  authorName: z.string().trim().max(100).optional(),
+})
+
+export const updateGroupAdSchema = z
+  .object({
+    text: z.string().trim().min(5, 'E’lon matni juda qisqa').max(3000).optional(),
+    status: z.enum(['SENT', 'CANCELLED']).optional(),
+  })
+  .refine((data) => data.text !== undefined || data.status !== undefined, { message: 'O‘zgartirish yo‘q' })

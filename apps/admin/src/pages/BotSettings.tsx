@@ -3,23 +3,25 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Inbox, RotateCcw } from 'lucide-react'
 import { api } from '../lib/api'
-import { cn, formatDateTime } from '../lib/utils'
+import { cn } from '../lib/utils'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Badge, Button, Card } from '../components/ui/Button'
+import { Button, Card } from '../components/ui/Button'
 import { FilterPills } from '../components/ui/Filters'
 import { inputClass } from '../components/ui/Chart'
-import { EmptyState, SkeletonGrid, SkeletonTable } from '../components/ui/EmptyState'
+import { EmptyState, SkeletonGrid } from '../components/ui/EmptyState'
 import { Switch } from '../components/ui/Switch'
+import { AdsLog } from '../components/bot/AdsLog'
+import { GroupLinks } from '../components/bot/GroupLinks'
 import { BOT_SETTINGS_PAGES } from '../lib/botSettings'
-import type { BotGroupAd, BotGroupAdStatus, BotGroupAdsResponse, BotSettingField, BotSettingsResponse, BotSettingsSection } from '../types'
+import type { BotSettingField, BotSettingsResponse, BotSettingsSection } from '../types'
 
 const slugToKey = (slug: string) => slug.replace(/-/g, '_')
 
 export default function BotSettings() {
-  const { section = 'general' } = useParams()
+  const { section = 'features' } = useParams()
   const navigate = useNavigate()
   const page = BOT_SETTINGS_PAGES.find((p) => p.slug === section)
-  if (!page || page.to) return <Navigate to={page?.to ?? '/bot-settings/general'} replace />
+  if (!page || page.to) return <Navigate to={page?.to ?? '/bot-settings/features'} replace />
 
   return (
     <div>
@@ -59,15 +61,21 @@ function SettingsSection({ sectionKey }: { sectionKey: string }) {
   return (
     <div className="space-y-4">
       {sectionKey === 'group_ads' ? <GroupAdsExplainer /> : null}
-      {/* Remount on fresh data so the form starts from the saved values. */}
-      <SectionForm key={JSON.stringify(section.fields.map((f) => f.value))} section={section} />
+      {sectionKey === 'group_ads' ? <GroupLinks /> : null}
+      {/* Remount when saved text/number values change, so the form starts from them. Switches
+          save on their own and aren't part of the form state, so they don't trigger this. */}
+      <SectionForm key={JSON.stringify(section.fields.filter((f) => f.type !== 'bool').map((f) => f.value))} section={section} />
     </div>
   )
 }
 
 function SectionForm({ section }: { section: BotSettingsSection }) {
   const qc = useQueryClient()
-  const initial = useMemo(() => Object.fromEntries(section.fields.map((f) => [f.key, f.value])), [section])
+  const formFields = section.fields.filter((f) => f.type !== 'bool')
+  const initial = useMemo(
+    () => Object.fromEntries(section.fields.filter((f) => f.type !== 'bool').map((f) => [f.key, f.value])),
+    [section],
+  )
   const [values, setValues] = useState<Record<string, BotSettingField['value']>>(initial)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -91,6 +99,17 @@ function SectionForm({ section }: { section: BotSettingsSection }) {
     onError: (err) => setError(err instanceof Error ? err.message : 'Saqlab bo‘lmadi'),
   })
 
+  // On/off switches save the moment they're flipped — that's what "yoqish/o'chirish" should feel like.
+  const toggle = useMutation({
+    mutationFn: (patch: Record<string, boolean>) => api.patch<BotSettingsResponse>('/admin/bot-settings', { values: patch }),
+    onSuccess: (fresh) => {
+      setError('')
+      qc.setQueryData(['bot-settings'], fresh)
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : 'Saqlab bo‘lmadi'),
+  })
+  const pendingToggle = toggle.isPending ? toggle.variables : undefined
+
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (dirty) save.mutate()
@@ -103,16 +122,25 @@ function SectionForm({ section }: { section: BotSettingsSection }) {
           <h2 className="text-base font-bold text-ink">{section.label}</h2>
           <p className="mt-0.5 text-sm text-muted">{section.description}</p>
         </div>
-        {section.fields.map((field) => (
-          <SettingInput
-            key={field.key}
-            field={field}
-            value={values[field.key]}
-            onChange={(value) => setValues((v) => ({ ...v, [field.key]: value }))}
-          />
-        ))}
+        {section.fields.map((field) =>
+          field.type === 'bool' ? (
+            <SettingInput
+              key={field.key}
+              field={field}
+              value={pendingToggle && field.key in pendingToggle ? pendingToggle[field.key] : field.value}
+              onChange={(value) => toggle.mutate({ [field.key]: Boolean(value) })}
+            />
+          ) : (
+            <SettingInput
+              key={field.key}
+              field={field}
+              value={values[field.key]}
+              onChange={(value) => setValues((v) => ({ ...v, [field.key]: value }))}
+            />
+          ),
+        )}
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <div className="flex items-center justify-end gap-3 border-t border-line pt-4">
+        <div className={cn('flex items-center justify-end gap-3 border-t border-line pt-4', !formFields.length && 'hidden')}>
           {saved ? <span className="text-sm font-semibold text-emerald-600">Saqlandi ✓</span> : null}
           <Button type="button" variant="ghost" disabled={!dirty || save.isPending} onClick={() => setValues(initial)}>
             Bekor qilish
@@ -217,108 +245,6 @@ function GroupAdsExplainer() {
       >
         Guruhlar va biriktirish <ArrowRight className="h-4 w-4" />
       </Link>
-    </Card>
-  )
-}
-
-const STATUS_META: Record<BotGroupAdStatus, { label: string; tone: 'pink' | 'green' | 'red' | 'gray' | 'amber' }> = {
-  PENDING: { label: 'Javob kutilmoqda', tone: 'amber' },
-  SENT: { label: 'Haydovchilarga yuborildi', tone: 'pink' },
-  TAKEN: { label: 'Haydovchi oldi', tone: 'green' },
-  DRIVER: { label: 'Haydovchi (adminga)', tone: 'gray' },
-  EXPIRED: { label: 'Javob berilmadi', tone: 'gray' },
-  CANCELLED: { label: 'Bekor qilindi', tone: 'red' },
-}
-
-const STATUS_FILTERS: { value: '' | BotGroupAdStatus; label: string }[] = [
-  { value: '', label: 'Hammasi' },
-  { value: 'SENT', label: 'Yuborilgan' },
-  { value: 'TAKEN', label: 'Olingan' },
-  { value: 'DRIVER', label: 'Haydovchilar' },
-  { value: 'PENDING', label: 'Kutilmoqda' },
-  { value: 'EXPIRED', label: 'Javobsiz' },
-  { value: 'CANCELLED', label: 'Bekor' },
-]
-
-function AdsLog() {
-  const [status, setStatus] = useState<'' | BotGroupAdStatus>('')
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['bot-group-ads', status],
-    queryFn: () => api.get<BotGroupAdsResponse>(`/admin/bot-settings/group-ads?limit=200${status ? `&status=${status}` : ''}`),
-    refetchInterval: 30_000,
-  })
-  const stats = data?.stats24h ?? {}
-  const passengers = (stats.SENT ?? 0) + (stats.TAKEN ?? 0) + (stats.CANCELLED ?? 0)
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Yo‘lovchi e’lonlari (24 soat)" value={passengers} />
-        <Stat label="Haydovchi olgan" value={stats.TAKEN ?? 0} />
-        <Stat label="Haydovchi deb javob bergan" value={stats.DRIVER ?? 0} />
-        <Stat label="Javobsiz qolgan" value={stats.EXPIRED ?? 0} />
-      </div>
-      <FilterPills value={status} onChange={(value) => setStatus(value as '' | BotGroupAdStatus)} options={STATUS_FILTERS} />
-      {error ? (
-        <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error instanceof Error ? error.message : 'Bot xizmatiga ulanib bo‘lmadi'}
-        </p>
-      ) : null}
-      {isLoading ? (
-        <SkeletonTable />
-      ) : !data?.ads.length ? (
-        <EmptyState icon={Inbox} title="Hozircha e’lon yo‘q" text="Ochiq guruhda “Yo‘lovchi/haydovchi so‘rovi” yoqilgach, xabarlar shu yerda ko‘rinadi." />
-      ) : (
-        <div className="space-y-2">
-          {data.ads.map((ad) => (
-            <AdRow key={ad.id} ad={ad} groupTitle={data.chatTitles[ad.sourceChatId] ?? ad.sourceChatId} />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <Card className="p-4">
-      <p className="text-xs font-semibold text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold text-ink">{value}</p>
-    </Card>
-  )
-}
-
-function AdRow({ ad, groupTitle }: { ad: BotGroupAd; groupTitle: string | null }) {
-  const meta = STATUS_META[ad.status] ?? { label: ad.status, tone: 'gray' as const }
-  const profile = ad.authorUsername ? `https://t.me/${ad.authorUsername}` : null
-  return (
-    <Card className="p-4">
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-        <span>{formatDateTime(ad.createdAt)}</span>
-        <span>·</span>
-        <span className="font-semibold text-ink">{groupTitle}</span>
-        <span className="ml-auto flex gap-1.5">
-          {ad.role ? <Badge tone="gray">{ad.role === 'PASSENGER' ? '🙋 Yo‘lovchi' : '🚖 Haydovchi'}</Badge> : null}
-          <Badge tone={meta.tone}>{meta.label}</Badge>
-        </span>
-      </div>
-      <p className="mt-2 line-clamp-3 whitespace-pre-line text-sm text-ink">{ad.text}</p>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-        <span>
-          👤{' '}
-          {profile ? (
-            <a href={profile} target="_blank" rel="noreferrer" className="font-semibold text-brand-dark hover:underline">
-              {ad.authorName} (@{ad.authorUsername})
-            </a>
-          ) : (
-            <span className="font-semibold text-ink">
-              {ad.authorName} · ID {ad.authorTelegramId}
-            </span>
-          )}
-        </span>
-        {ad.takenByName ? <span>🚖 Olgan: {ad.takenByName}</span> : null}
-        {ad.hasPhoto ? <span>🖼 Rasm bilan</span> : null}
-      </div>
     </Card>
   )
 }

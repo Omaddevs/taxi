@@ -24,7 +24,7 @@ from sqlalchemy import delete, func, select
 from app.config import settings
 from app.data.regions import REGION_NAMES
 from app.db.base import session_scope
-from app.db.models import BotUser, DriverProfile, Group, Order, OrderDispatch
+from app.db.models import BotUser, DriverProfile, Group, GroupAd, Order, OrderDispatch
 from app.handlers.admin.groups import SETTING_LABELS
 from app.i18n.translations import t
 from app.services import bot_config
@@ -1268,6 +1268,71 @@ async def admin_group_ads(request: web.Request) -> web.Response:
     return web.json_response(
         {"ads": [group_ads_service.serialize(a) for a in ads], "stats24h": stats, "chatTitles": titles}
     )
+
+
+async def _admin_ad(request: web.Request, session):
+    try:
+        ad_id = int(request.match_info["ad_id"])
+    except ValueError:
+        return None
+    return await session.get(GroupAd, ad_id)
+
+
+@routes.post("/webapp/admin/group-ads")
+async def admin_create_group_ad(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    text = (payload.get("text") or "").strip()
+    if not text:
+        return web.json_response({"error": "E’lon matnini kiriting"}, status=400)
+    async with session_scope() as session:
+        try:
+            target = await session.get(Group, int(payload.get("targetGroupId") or 0))
+        except (TypeError, ValueError):
+            target = None
+        if target is None or target.kind not in ("CLOSED", "ROUTE"):
+            return web.json_response({"error": "Haydovchilar guruhini tanlang"}, status=400)
+        try:
+            ad = await group_ads_service.admin_create(request.app["bot"], session, target, text, payload.get("authorName"))
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        return web.json_response({"ad": group_ads_service.serialize(ad)})
+
+
+@routes.patch("/webapp/admin/group-ads/{ad_id}")
+async def admin_update_group_ad(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    async with session_scope() as session:
+        ad = await _admin_ad(request, session)
+        if ad is None:
+            return web.json_response({"error": "E’lon topilmadi"}, status=404)
+        try:
+            ad = await group_ads_service.admin_update(
+                request.app["bot"], session, ad, text=payload.get("text"), status=payload.get("status")
+            )
+        except ValueError as exc:
+            return web.json_response({"error": str(exc)}, status=400)
+        return web.json_response({"ad": group_ads_service.serialize(ad)})
+
+
+@routes.delete("/webapp/admin/group-ads/{ad_id}")
+async def admin_delete_group_ad(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    async with session_scope() as session:
+        ad = await _admin_ad(request, session)
+        if ad is not None:
+            await group_ads_service.admin_delete(request.app["bot"], session, ad)
+    return web.json_response({"ok": True})
 
 
 # ── Random mijoz: kanal/guruh a'zoligini ommaviy tekshirish ─────────────────────────────────

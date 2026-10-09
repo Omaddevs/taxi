@@ -339,6 +339,9 @@ export interface BotGroupAd {
   role: 'PASSENGER' | 'DRIVER' | null
   status: string
   takenByName: string | null
+  // Typed in from the dashboard (no Telegram author).
+  manual: boolean
+  hasCard: boolean
   createdAt: string | null
   answeredAt: string | null
 }
@@ -353,6 +356,32 @@ export async function getBotGroupAds(status?: string, limit = 100): Promise<BotG
   const query = new URLSearchParams({ limit: String(limit) })
   if (status) query.set('status', status)
   return botFetch<BotGroupAdsResponse>(`/webapp/admin/group-ads?${query}`, GROUP_TIMEOUT)
+}
+
+export async function createBotGroupAd(payload: {
+  targetGroupId: number
+  text: string
+  authorName?: string
+}): Promise<BotGroupAd> {
+  const { ad } = await botFetch<{ ad: BotGroupAd }>('/webapp/admin/group-ads', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    ...GROUP_TIMEOUT,
+  })
+  return ad
+}
+
+export async function updateBotGroupAd(id: number, payload: { text?: string; status?: 'SENT' | 'CANCELLED' }): Promise<BotGroupAd> {
+  const { ad } = await botFetch<{ ad: BotGroupAd }>(`/webapp/admin/group-ads/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+    ...GROUP_TIMEOUT,
+  })
+  return ad
+}
+
+export async function deleteBotGroupAd(id: number): Promise<{ ok: true }> {
+  return botFetch<{ ok: true }>(`/webapp/admin/group-ads/${id}`, { method: 'DELETE', ...GROUP_TIMEOUT })
 }
 
 // ── Random mijoz: Telegram kanal/guruh a'zoligini tekshirish ───────────────────────────────
