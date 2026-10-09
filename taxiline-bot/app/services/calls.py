@@ -26,7 +26,7 @@ from app.config import settings
 from app.db.models import BotUser, CallLog, DriverProfile, FormattedAd, Group, GroupAd
 from app.services import bot_config
 from app.services.ad_format import parse_ad_fields
-from app.services.phone import format_phone
+from app.services.phone import format_phone, normalize_phone
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +126,27 @@ async def _target(session: AsyncSession, kind: str, ad_id: int) -> dict | None:
     }
 
 
+async def _legacy_target(session: AsyncSession, raw_phone: str) -> tuple[str, int] | None:
+    """Cards posted before call logging link to /call.html?n=<phone>. Such a call is
+    attributed to the newest ad carrying that number — and only counted if one exists, so the
+    unsigned link can't be used to log arbitrary numbers."""
+    phone = normalize_phone(raw_phone or "")
+    if phone is None:
+        return None
+    formatted = (
+        await session.execute(
+            select(FormattedAd.id).where(FormattedAd.phone == phone).order_by(FormattedAd.id.desc()).limit(1)
+        )
+    ).scalar_one_or_none()
+    if formatted is not None:
+        return FORMATTED, formatted
+    recent = await session.execute(select(GroupAd).order_by(GroupAd.id.desc()).limit(500))
+    for ad in recent.scalars():
+        if phone in parse_ad_fields(ad.text).phones:
+            return GROUP_AD, ad.id
+    return None
+
+
 async def record(
     session: AsyncSession,
     *,
@@ -135,9 +156,15 @@ async def record(
     auth: dict | None,
     user_agent: str | None,
     ip: str | None,
+    legacy_phone: str | None = None,
 ) -> dict | None:
     """Logs one call and returns what the call page shows; None for a bad or unknown link."""
-    if kind not in KINDS or not _valid_signature(kind, ad_id, signature):
+    if legacy_phone:
+        found = await _legacy_target(session, legacy_phone)
+        if found is None:
+            return None
+        kind, ad_id = found
+    elif kind not in KINDS or not _valid_signature(kind, ad_id, signature):
         return None
     target = await _target(session, kind, ad_id)
     if target is None:

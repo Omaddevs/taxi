@@ -214,3 +214,30 @@ async def relabel(bot: Bot, session: AsyncSession) -> None:
     for ad in stale.scalars():
         ad.final = True
     await session.commit()
+
+
+async def refresh_buttons(bot: Bot, session: AsyncSession) -> int:
+    """Run once at startup: re-attaches the current buttons to every live card, so cards posted
+    by an older version (e.g. before call logging) get today's call link. Returns cards updated."""
+    window = timedelta(minutes=bot_config.get("format_ads.stale_minutes") + 60)
+    result = await session.execute(
+        select(FormattedAd).where(FormattedAd.final.is_(False), FormattedAd.created_at >= datetime.utcnow() - window)
+    )
+    updated = 0
+    for ad in result.scalars():
+        for _ in range(2):
+            try:
+                await bot.edit_message_reply_markup(chat_id=ad.chat_id, message_id=ad.message_id, reply_markup=keyboard(ad))
+                updated += 1
+                break
+            except TelegramRetryAfter as exc:
+                await asyncio.sleep(exc.retry_after)
+            except TelegramBadRequest as exc:
+                if calls_service.is_login_url_error(exc):
+                    calls_service.disable_login_url()
+                    continue
+                break  # "not modified", or the message is gone
+            except TelegramAPIError:
+                break
+        await asyncio.sleep(0.2)
+    return updated

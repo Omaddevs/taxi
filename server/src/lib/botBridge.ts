@@ -395,9 +395,10 @@ export interface RecordedCall {
 }
 
 export async function recordCall(payload: {
-  k: string
-  i: number
-  s: string
+  k?: string
+  i?: number
+  s?: string
+  n?: string
   tg?: Record<string, unknown> | null
   ua: string | null
   ip: string | null

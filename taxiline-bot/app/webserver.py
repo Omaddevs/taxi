@@ -1348,9 +1348,12 @@ async def record_call(request: web.Request) -> web.Response:
         payload = await request.json()
     except ValueError:
         return web.json_response({"error": "invalid json"}, status=400)
+    legacy_phone = payload.get("n") if isinstance(payload.get("n"), str) else None
     try:
-        ad_id = int(payload.get("i"))
+        ad_id = int(payload.get("i") or 0)
     except (TypeError, ValueError):
+        ad_id = 0
+    if not ad_id and not legacy_phone:
         return web.json_response({"error": "Havola noto‘g‘ri"}, status=400)
     tg = payload.get("tg") if isinstance(payload.get("tg"), dict) else None
     async with session_scope() as session:
@@ -1362,6 +1365,7 @@ async def record_call(request: web.Request) -> web.Response:
             auth=tg,
             user_agent=payload.get("ua"),
             ip=payload.get("ip"),
+            legacy_phone=legacy_phone,
         )
     if result is None:
         return web.json_response({"error": "E’lon topilmadi yoki havola eskirgan"}, status=404)

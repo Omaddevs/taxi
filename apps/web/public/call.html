@@ -156,22 +156,22 @@
         else window.close();
       };
 
-      // Old cards (before call logging) carry the number itself: ?n=+998…
-      if (params.get('n')) return show({ phone: params.get('n') });
-
+      // Old cards (before call logging) carry the number itself: ?n=+998… — still logged; if
+      // the API can't place it, the number is dialled anyway.
+      var legacy = params.get('n');
       var k = params.get('k'), i = params.get('i'), s = params.get('s');
-      if (!k || !i || !s) return fail('Havola to‘liq emas');
+      if (!legacy && (!k || !i || !s)) return fail('Havola to‘liq emas');
 
       var tg = null;
       if (params.get('hash') && params.get('id')) {
         tg = {};
-        params.forEach(function (value, key) { if (key !== 'k' && key !== 'i' && key !== 's') tg[key] = value; });
+        params.forEach(function (value, key) { if (key !== 'k' && key !== 'i' && key !== 's' && key !== 'n') tg[key] = value; });
       }
 
       fetch(api + '/calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ k: k, i: Number(i), s: s, tg: tg }),
+        body: JSON.stringify(legacy ? { n: legacy, tg: tg } : { k: k, i: Number(i), s: s, tg: tg }),
       })
         .then(function (res) {
           return res.json().then(function (body) {
@@ -180,7 +180,10 @@
           });
         })
         .then(show)
-        .catch(function (err) { fail(err && err.message ? err.message : 'Internet aloqasini tekshiring'); });
+        .catch(function (err) {
+          if (legacy) return show({ phone: legacy });
+          fail(err && err.message ? err.message : 'Internet aloqasini tekshiring');
+        });
     })();
   </script>
 </body>

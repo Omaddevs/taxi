@@ -16,12 +16,17 @@ const telegramAuthSchema = z
   })
   .passthrough()
 
-const recordCallSchema = z.object({
-  k: z.enum(['fa', 'ga']),
-  i: z.coerce.number().int().positive(),
-  s: z.string().min(8).max(64),
-  tg: telegramAuthSchema.nullable().optional(),
-})
+// Either a signed ad reference (k, i, s) or — from cards posted before call logging — the
+// bare number (n), which the bot only accepts if some ad carries it.
+const recordCallSchema = z
+  .object({
+    k: z.enum(['fa', 'ga']).optional(),
+    i: z.coerce.number().int().positive().optional(),
+    s: z.string().min(8).max(64).optional(),
+    n: z.string().min(9).max(20).optional(),
+    tg: telegramAuthSchema.nullable().optional(),
+  })
+  .refine((data) => data.n || (data.k && data.i && data.s), { message: 'Havola to‘liq emas' })
 
 const callReportQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(365).optional(),

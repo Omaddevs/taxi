@@ -661,3 +661,37 @@ async def admin_delete(bot: Bot, session: AsyncSession, ad: GroupAd) -> None:
         await _delete(bot, ad.source_chat_id, ad.prompt_message_id)
     await session.delete(ad)
     await session.commit()
+
+
+async def refresh_buttons(bot: Bot, session: AsyncSession) -> int:
+    """Run once at startup: live closed-group cards get the current buttons (see formatted_ads)."""
+    result = await session.execute(
+        select(GroupAd).where(
+            GroupAd.status.in_(("SENT", "TAKEN")),
+            GroupAd.card_message_id.is_not(None),
+            GroupAd.created_at >= datetime.utcnow() - timedelta(days=2),
+        )
+    )
+    updated = 0
+    for ad in result.scalars():
+        with_chat_button = True
+        for _ in range(3):
+            try:
+                await bot.edit_message_reply_markup(
+                    chat_id=ad.target_chat_id, message_id=ad.card_message_id, reply_markup=card_kb(ad, with_chat_button=with_chat_button)
+                )
+                updated += 1
+                break
+            except TelegramRetryAfter as exc:
+                await asyncio.sleep(exc.retry_after)
+            except TelegramBadRequest as exc:
+                if calls_service.is_login_url_error(exc):
+                    calls_service.disable_login_url()
+                elif with_chat_button and "PRIVACY" in str(exc).upper():
+                    with_chat_button = False
+                else:
+                    break
+            except TelegramAPIError:
+                break
+        await asyncio.sleep(0.2)
+    return updated

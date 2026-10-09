@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import datetime
 
@@ -141,6 +142,13 @@ async def _formatted_ads_relabel_job(bot: Bot) -> None:
         await formatted_ads_service.relabel(bot, session)
 
 
+async def _refresh_card_buttons_job(bot: Bot) -> None:
+    async with session_scope() as session:
+        formatted = await formatted_ads_service.refresh_buttons(bot, session)
+        cards = await group_ads_service.refresh_buttons(bot, session)
+    logging.getLogger(__name__).info("refreshed buttons on %s formatted ads and %s driver-group cards", formatted, cards)
+
+
 def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(_inactivity_job, "interval", seconds=15, args=[bot], id="inactivity_nudge")
@@ -150,4 +158,6 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler.add_job(_women_first_job, "interval", seconds=30, args=[bot], id="women_first")
     scheduler.add_job(_group_ads_cleanup_job, "interval", minutes=1, args=[bot], id="group_ads_cleanup")
     scheduler.add_job(_formatted_ads_relabel_job, "interval", minutes=1, args=[bot], id="formatted_ads_relabel")
+    # Once, right after start: cards posted by the previous version get the current buttons.
+    scheduler.add_job(_refresh_card_buttons_job, "date", args=[bot], id="refresh_card_buttons")
     return scheduler
