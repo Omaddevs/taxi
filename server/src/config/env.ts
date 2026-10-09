@@ -28,6 +28,9 @@ const schema = z.object({
   // Admin-panel account ensured on every start-up (see lib/ensureAdmin.ts). Both optional.
   ADMIN_PHONE: z.string().optional().default(''),
   ADMIN_PASSWORD: z.string().optional().default(''),
+  // Google Cloud → APIs & Services → Credentials → OAuth client (Web). Empty = Google sign-in off.
+  GOOGLE_CLIENT_ID: z.string().optional().default(''),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
   INSTAGRAM_APP_ID: z.string().optional().default(''),
   INSTAGRAM_APP_SECRET: z.string().optional().default(''),
   INSTAGRAM_VERIFY_TOKEN: z.string().optional().default(''),

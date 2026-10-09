@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext'
 import { isDriverUser } from './lib/role'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import GoogleFinish from './pages/GoogleFinish'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
@@ -95,6 +96,7 @@ export default function App() {
       <Route path="/savollar" element={<FaqPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/google" element={<GoogleFinish />} />
       <Route
         element={
           <RequireAuth>

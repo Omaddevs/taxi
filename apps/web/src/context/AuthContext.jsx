@@ -95,6 +95,28 @@ export function AuthProvider({ children }) {
     return { pending: false, user: data.user }
   }
 
+  function applySession(data) {
+    setTokens(data.accessToken, data.refreshToken)
+    setAuthUser(data.user)
+    setStatus('authed')
+    return data.user
+  }
+
+  // Google popup code → { status: 'ok', user } (logged in) or { status: 'need_phone', ticket, profile }.
+  async function googleSignIn(code) {
+    const data = await api.post('/auth/google', { code })
+    if (data.status === 'ok') return { status: 'ok', user: applySession(data) }
+    return data
+  }
+
+  async function googleRequestOtp(ticket, phone) {
+    return api.post('/auth/google/otp', { ticket, phone })
+  }
+
+  async function googleComplete(ticket, phone, code) {
+    return applySession(await api.post('/auth/google/complete', { ticket, phone, code }))
+  }
+
   function logout() {
     clearTokens()
     disconnectSocket()
@@ -103,7 +125,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ authUser, status, requestOtp, verifyOtp, pollOtp, logout }}>
+    <AuthContext.Provider
+      value={{ authUser, status, requestOtp, verifyOtp, pollOtp, googleSignIn, googleRequestOtp, googleComplete, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

@@ -1,4 +1,8 @@
-import { ArrowLeft, Headset, Lock, MapPin, Send, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Headset, Loader2, Lock, MapPin, Send, ShieldCheck } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { homePathForRole } from '../../lib/role'
+import { GoogleCancelled, requestGoogleCode, savePendingGoogle } from '../../lib/google'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo, LogoPin, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
@@ -173,5 +177,50 @@ export function GoogleMark() {
       <path fill="#FBBC05" d="M6.41 13.9A6.01 6.01 0 0 1 6.1 12c0-.66.11-1.3.3-1.9V7.52H3.07A10 10 0 0 0 2 12c0 1.61.39 3.14 1.07 4.48l3.34-2.58Z" />
       <path fill="#EA4335" d="M12 5.98c1.47 0 2.78.5 3.82 1.5l2.86-2.86C16.95 2.9 14.7 2 12 2A10 10 0 0 0 3.07 7.52l3.34 2.58C7.2 7.74 9.4 5.98 12 5.98Z" />
     </svg>
+  )
+}
+
+// "Google orqali kirish / ro‘yxatdan o‘tish": an account already linked to this Google logs in
+// straight away; a new one continues on /google to confirm a phone number once.
+export function GoogleAuthButton({ label = 'Google orqali kirish', className = '' }) {
+  const { googleSignIn } = useAuth()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function onClick() {
+    if (busy) return
+    setError('')
+    setBusy(true)
+    try {
+      const code = await requestGoogleCode()
+      const result = await googleSignIn(code)
+      if (result.status === 'ok') {
+        navigate(homePathForRole(result.user), { replace: true })
+        return
+      }
+      savePendingGoogle({ ticket: result.ticket, profile: result.profile })
+      navigate('/google', { state: { ticket: result.ticket, profile: result.profile } })
+    } catch (err) {
+      if (!(err instanceof GoogleCancelled)) setError(err?.message || 'Google orqali kirib bo‘lmadi')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className={className}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={busy}
+        className="flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] disabled:opacity-70 lg:h-14 lg:px-4"
+      >
+        <GoogleMark />
+        <span className="min-w-0 flex-1 text-left text-[14px] font-bold">{busy ? 'Google bilan bog‘lanilmoqda…' : label}</span>
+        {busy ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-300" />}
+      </button>
+      {error ? <p className="mt-2 text-center text-[12px] font-semibold text-red-500">{error}</p> : null}
+    </div>
   )
 }

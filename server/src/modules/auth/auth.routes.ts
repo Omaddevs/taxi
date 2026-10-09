@@ -2,8 +2,12 @@ import { Router } from 'express'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { validate } from '../../middleware/validate.js'
 import * as authController from './auth.controller.js'
+import { rateLimit } from '../../middleware/rateLimit.js'
 import {
   adminLoginSchema,
+  googleCompleteSchema,
+  googleOtpSchema,
+  googleSignInSchema,
   logoutSchema,
   otpPollSchema,
   otpRequestSchema,
@@ -28,6 +32,12 @@ authRouter.post(
   validate({ body: telegramExchangeSchema }),
   asyncRoute(authController.telegramExchange),
 )
+
+// Google orqali kirish / ro‘yxatdan o‘tish (see auth.service — Google section).
+authRouter.get('/google/config', authController.googleConfig)
+authRouter.post('/google', rateLimit(30, 10 * 60_000), validate({ body: googleSignInSchema }), asyncRoute(authController.googleSignIn))
+authRouter.post('/google/otp', rateLimit(20, 10 * 60_000), validate({ body: googleOtpSchema }), asyncRoute(authController.googleRequestOtp))
+authRouter.post('/google/complete', rateLimit(30, 10 * 60_000), validate({ body: googleCompleteSchema }), asyncRoute(authController.googleComplete))
 
 export const adminAuthRouter = Router()
 adminAuthRouter.post('/login', validate({ body: adminLoginSchema }), asyncRoute(authController.adminLogin))

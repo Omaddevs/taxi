@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronRight } from 'lucide-react'
-import { AuthChrome, GoogleMark, KirishBotButton, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
+import { AuthChrome, GoogleAuthButton, KirishBotButton, TELEGRAM_BOT, TelegramMark } from '../components/auth/AuthChrome'
 import { LanguageFlag } from '../components/ui/LanguagePicker'
 import { FlagUz } from '../components/ui/Flags'
 import { LANGUAGES } from '../data/languages'
@@ -34,7 +34,6 @@ export default function Register() {
   const [code, setCode] = useState('')
   const [otpRequestId, setOtpRequestId] = useState(null)
   const [error, setError] = useState('')
-  const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
 
   const pollOtpRef = useRef(pollOtp)
@@ -223,16 +222,7 @@ export default function Register() {
             <span className="min-w-0 flex-1 text-[14px] font-bold">Telegram orqali ro‘yxatdan o‘tish</span>
             <ChevronRight className="h-4 w-4 text-slate-300" />
           </a>
-          <button
-            type="button"
-            onClick={() => setNote('Google orqali kirish tez orada qo‘shiladi. Hozircha telefon yoki Telegram ishlating.')}
-            className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] lg:mt-3 lg:h-14 lg:px-4"
-          >
-            <GoogleMark />
-            <span className="min-w-0 flex-1 text-left text-[14px] font-bold">Google orqali kirish</span>
-            <ChevronRight className="h-4 w-4 text-slate-300" />
-          </button>
-          {note ? <p className="mt-2 text-center text-[11px] font-semibold text-muted">{note}</p> : null}
+          <GoogleAuthButton label="Google orqali ro‘yxatdan o‘tish" className="mt-2 lg:mt-3" />
 
           <p className="mt-auto pt-5 text-center text-[13px] text-muted">
             Hisobingiz bormi?{' '}

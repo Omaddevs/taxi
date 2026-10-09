@@ -197,6 +197,7 @@ model User {
   telegramId       String?       @unique // linked from taxiline-bot on phone match/registration
   // @taxiline_kirish_bot → Sozlamalar: when on, the login page fills the code in by itself.
   otpAutofill      Boolean       @default(false)
+  googleId         String?       @unique // "Google orqali kirish" — Google account `sub`
   telegramUsername String?
   language         String? // 'uz' | 'ru' | 'en', set by taxiline-bot
   signupSource     ChannelSource @default(WEBAPP)

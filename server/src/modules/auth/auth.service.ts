@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import { env } from '../../config/env.js'
 import { prisma } from '../../lib/prisma.js'
 import { compareOtpCode, generateOtpCode, getSmsProvider, hashOtpCode, normalizePhone } from '../../lib/otp.js'
 import {
@@ -11,6 +12,7 @@ import {
 } from '../../lib/jwt.js'
 import { sha256Hex } from '../../lib/hash.js'
 import { notifyOtpViaBot } from '../../lib/botNotify.js'
+import { exchangeGoogleCode, googleEnabled, issueSignupTicket, readSignupTicket } from './google.js'
 import { ConflictError, TooManyRequestsError, UnauthorizedError, ValidationError } from '../../errors/AppError.js'
 
 type OtpIntent = 'login' | 'register'
@@ -497,4 +499,92 @@ export async function issueTokenPair(userId: string, role: JwtRole, meta?: Sessi
   await prisma.refreshToken.update({ where: { id: row.id }, data: { tokenHash: sha256Hex(refreshToken) } })
 
   return { accessToken, refreshToken }
+}
+
+
+// ── Google orqali kirish ──────────────────────────────────────────────────────────────────
+// A Google account is matched only by its `sub` (User.googleId) — never by email: emails in
+// TaxiLine profiles are typed in by users and unverified, so matching on them could hand
+// someone else's account over. New Google users confirm a phone once (code from
+// @taxiline_kirish_bot); that either creates their account or attaches Google to the existing
+// one with that number.
+
+export function googleConfig() {
+  return { enabled: googleEnabled(), clientId: googleEnabled() ? env.GOOGLE_CLIENT_ID : null }
+}
+
+export async function googleSignIn(code: string, meta?: SessionMeta) {
+  const profile = await exchangeGoogleCode(code)
+  const user = await prisma.user.findUnique({ where: { googleId: profile.sub } })
+  if (user) {
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastSeenAt: new Date(),
+        fromWebapp: true,
+        ...(!user.avatarUrl && profile.picture ? { avatarUrl: profile.picture } : {}),
+        ...(!user.email && profile.email ? { email: profile.email } : {}),
+      },
+    })
+    const role = await appRoleForUser(updated)
+    const tokens = await issueTokenPair(updated.id, role, meta)
+    return { status: 'ok' as const, user: { ...updated, role }, ...tokens }
+  }
+  return {
+    status: 'need_phone' as const,
+    ticket: issueSignupTicket(profile),
+    profile: { name: profile.name, email: profile.email, picture: profile.picture },
+  }
+}
+
+async function phoneOwnerForGoogle(phone: string, sub: string) {
+  const owner = await prisma.user.findUnique({ where: { phone } })
+  if (owner?.googleId && owner.googleId !== sub) {
+    throw new ConflictError('Bu raqam boshqa Google akkauntga bog‘langan. Shu raqam bilan oddiy kirishdan foydalaning')
+  }
+  return owner
+}
+
+export async function googleRequestOtp(ticket: string, rawPhone: string) {
+  const profile = readSignupTicket(ticket)
+  const phone = normalizePhone(rawPhone)
+  const owner = await phoneOwnerForGoogle(phone, profile.sub)
+  const intent: OtpIntent = owner ? 'login' : 'register'
+  const { otp, code, reused } = await issueOtpCode(phone, {
+    intent,
+    name: intent === 'register' ? normalizeName(profile.name ?? undefined) || 'TaxiLine foydalanuvchisi' : undefined,
+  })
+  if (!reused && owner?.telegramId) {
+    await notifyOtpViaBot({ telegramId: owner.telegramId, language: owner.language, code, phone, intent })
+  }
+  return { phone, otpRequestId: otp.id, existing: Boolean(owner) }
+}
+
+export async function googleComplete(ticket: string, rawPhone: string, code: string, meta?: SessionMeta) {
+  const profile = readSignupTicket(ticket)
+  const phone = normalizePhone(rawPhone)
+  await phoneOwnerForGoogle(phone, profile.sub)
+  const clash = await prisma.user.findUnique({ where: { googleId: profile.sub } })
+  if (clash && clash.phone !== phone) {
+    throw new ConflictError('Bu Google akkaunt boshqa raqamga bog‘langan. Google orqali qaytadan kiring')
+  }
+
+  const otp = await consumeValidOtp(phone, code)
+  const verified = await finalizeVerifiedPhone(
+    phone,
+    takeOtpProfile(otp.id, phone, {
+      name: normalizeName(profile.name ?? undefined) || 'TaxiLine foydalanuvchisi',
+    }),
+  )
+  const user = await prisma.user.update({
+    where: { id: verified.id },
+    data: {
+      googleId: profile.sub,
+      ...(!verified.email && profile.email ? { email: profile.email } : {}),
+      ...(!verified.avatarUrl && profile.picture ? { avatarUrl: profile.picture } : {}),
+    },
+  })
+  const role = await appRoleForUser(user)
+  const tokens = await issueTokenPair(user.id, role, meta)
+  return { user: { ...user, role }, ...tokens }
 }

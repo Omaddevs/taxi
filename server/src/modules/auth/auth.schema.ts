@@ -40,3 +40,16 @@ export const adminLoginSchema = z.object({
   phone: phoneSchema,
   password: z.string().min(6),
 })
+
+export const googleSignInSchema = z.object({
+  code: z.string().min(10).max(2000),
+})
+
+export const googleOtpSchema = z.object({
+  ticket: z.string().min(20).max(4000),
+  phone: phoneSchema,
+})
+
+export const googleCompleteSchema = googleOtpSchema.extend({
+  code: z.string().length(6, 'Kod 6 xonali bo‘lishi kerak'),
+})
