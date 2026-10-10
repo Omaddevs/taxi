@@ -3,11 +3,13 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as chatController from './chat.controller.js'
-import { conversationIdParamSchema, listMessagesQuerySchema, sendMessageSchema } from './chat.schema.js'
+import { conversationIdParamSchema, listMessagesQuerySchema, openDirectSchema, sendMessageSchema } from './chat.schema.js'
 
 export const chatRouter = Router()
 
 chatRouter.get('/', requireAuth, asyncRoute(chatController.listConversations))
+// "Haydovchiga yozish" — before '/:id' routes.
+chatRouter.post('/direct', requireAuth, validate({ body: openDirectSchema }), asyncRoute(chatController.openDirect))
 chatRouter.get(
   '/:id',
   requireAuth,

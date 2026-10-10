@@ -28,3 +28,7 @@ export async function markRead(req: Request, res: Response) {
   await chatService.markRead(req.params.id, req.user!.id)
   res.status(204).end()
 }
+
+export async function openDirect(req: Request, res: Response) {
+  res.json(await chatService.openDirectConversation(req.user!.id, req.body.userId))
+}

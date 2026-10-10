@@ -31,6 +31,7 @@ import Favorites from './pages/Favorites'
 import Settings from './pages/Settings'
 import Notifications from './pages/Notifications'
 import Drivers from './pages/Drivers'
+import DriverProfile from './pages/DriverProfile'
 import BecomeDriver from './pages/BecomeDriver'
 import ServiceHub from './pages/ServiceHub'
 import Roadside from './pages/Roadside'
@@ -128,6 +129,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/drivers" element={<Drivers />} />
+        <Route path="/drivers/:id" element={<DriverProfile />} />
         <Route path="/become-driver" element={<BecomeDriver />} />
         <Route path="/hub/:slug" element={<ServiceHub />} />
         <Route path="/roadside" element={<Roadside />} />

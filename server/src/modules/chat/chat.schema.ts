@@ -29,3 +29,7 @@ export const listMessagesQuerySchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(80),
 })
+
+export const openDirectSchema = z.object({
+  userId: z.string().min(1).max(40),
+})

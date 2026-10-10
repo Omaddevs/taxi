@@ -3,6 +3,8 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as driversController from './drivers.controller.js'
+import * as driverBoard from './driverBoard.service.js'
+import { z } from 'zod'
 import {
   applicationIdParamSchema,
   archiveDriverSchema,
@@ -51,6 +53,30 @@ driversRouter.patch(
 )
 driversRouter.get('/me/stats', requireAuth, asyncRoute(driversController.getStats))
 driversRouter.get('/me/ratings', requireAuth, asyncRoute(driversController.getMyRatings))
+
+// "Haydovchilar" (passenger app): drivers' ads with who the driver is, and a driver's profile.
+const boardQuerySchema = z.object({
+  from: z.string().max(80).optional(),
+  to: z.string().max(80).optional(),
+  q: z.string().max(80).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+})
+driversRouter.get(
+  '/board',
+  requireAuth,
+  validate({ query: boardQuerySchema }),
+  asyncRoute(async (req, res) => {
+    res.json(await driverBoard.driverBoard(req.query as z.infer<typeof boardQuerySchema>))
+  }),
+)
+driversRouter.get(
+  '/:id/profile',
+  requireAuth,
+  validate({ params: z.object({ id: z.string().min(1).max(40) }) }),
+  asyncRoute(async (req, res) => {
+    res.json(await driverBoard.driverProfile(req.params.id))
+  }),
+)
 
 export const adminDriversRouter = Router()
 

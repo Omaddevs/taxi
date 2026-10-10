@@ -139,3 +139,22 @@ export async function markRead(conversationId: string, userId: string) {
 
   emitToConversation(conversation, SOCKET_EVENTS.CHAT_READ, { conversationId, readBy: userId })
 }
+
+/**
+ * "Haydovchiga yozish" from the Haydovchilar section: the one conversation between the two
+ * (same row a booking would use — the pair is unique), created on first use. Only an approved
+ * driver can be messaged this way, so the button can't be used to message arbitrary users.
+ */
+export async function openDirectConversation(userId: string, driverUserId: string) {
+  if (userId === driverUserId) throw new ValidationError('O‘zingizga yoza olmaysiz')
+  const driver = await prisma.driver.findUnique({ where: { userId: driverUserId }, select: { approved: true, archivedAt: true } })
+  if (!driver?.approved || driver.archivedAt) throw new NotFoundError('Haydovchi topilmadi')
+  const [a, b] = [userId, driverUserId].sort()
+  const conversation = await prisma.conversation.upsert({
+    where: { participantAId_participantBId: { participantAId: a, participantBId: b } },
+    update: {},
+    create: { participantAId: a, participantBId: b },
+    select: { id: true },
+  })
+  return conversation
+}

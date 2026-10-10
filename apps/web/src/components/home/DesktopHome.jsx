@@ -292,7 +292,7 @@ export function DesktopHome() {
         />
         <Tile to="/hub/auto-service" title="Avtoservis" hint="Ustaxonalar va xizmatlar" art="/home/service.webp" artClass="-bottom-4 -right-4 w-[130px]" />
         <Tile to="/fuel" title="Yoqilg‘i" hint="Narxlar va manzillar" art="/home/fuel.webp" artClass="-bottom-4 -right-4 w-[130px]" />
-        <Tile to="/promo" title="Promokodlar" hint="Chegirmalar" soon art="/home/promo.webp" artClass="-bottom-4 -right-4 w-[140px]" />
+        <Tile to="/drivers" title="Haydovchilar" hint="E’lonlar va aloqa" badge="Yangi" badgeTone="hot" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
       </section>
 
       {/* ── Barcha xizmatlar ── */}

@@ -163,11 +163,11 @@ export function MobileHome() {
             style={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
           />
         </Tile>
-        <Tile to="/promo" title="Promokodlar" hint="Chegirmalar" soon>
+        <Tile to="/drivers" title="Haydovchilar" hint="E’lonlar va aloqa" badge="Yangi" badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] to-[#ffe7a3]">
           <img
-            src="/home/promo.webp"
+            src="/home/driver-mascot.webp"
             alt=""
-            className="pointer-events-none absolute -bottom-3 -right-3 w-[108px] max-w-none drop-shadow-lg"
+            className="pointer-events-none absolute -bottom-2 -right-1 w-[78px] max-w-none drop-shadow-lg"
           />
         </Tile>
       </section>
