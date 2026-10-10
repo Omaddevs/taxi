@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeftRight, BadgeCheck, Flag, MapPin, Star } from 'lucide-react'
+import { ArrowLeftRight, BadgeCheck, Flag, MapPin, Route, Star, Users } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { DriverAdCard, DriverAvatar, RatingLine, tashkentDate, useMessageDriver } from '../components/drivers/driverUi'
 import { PlaceSelect, placeQuery } from '../components/drivers/PlaceSelect'
@@ -54,22 +54,33 @@ export default function Drivers() {
     <div className="mx-auto max-w-4xl">
       <ScreenHeader title="Haydovchilar" subtitle="E’lonlar va haydovchilar" />
 
-      {/* Hero */}
-      <section className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-[#fff6d6] via-[#ffeeb3] to-[#ffe08a] px-5 pb-5 pt-5 sm:px-7 sm:pt-7">
-        <img src="/home/driver-mascot.webp" alt="" className="pointer-events-none absolute -bottom-3 right-2 w-[118px] drop-shadow-xl sm:right-6 sm:w-[150px]" />
-        <div className="relative max-w-[62%] sm:max-w-[70%]">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-700">
+      {/* Hero — same language as the landing's brand panel and the home "TaxiLine bilan" card */}
+      <section className="relative mb-4 overflow-hidden rounded-[26px] bg-gradient-to-br from-brand to-brand-dark px-5 pb-5 pt-5 shadow-[0_18px_40px_-20px_rgba(0,163,174,0.75)] sm:px-7 sm:pb-7 sm:pt-7">
+        {/* TaxiLine's big "T" in the background */}
+        <svg aria-hidden="true" viewBox="0 0 600 600" className="pointer-events-none absolute -right-24 -top-10 w-[420px] sm:w-[520px]">
+          <path d="M40 120 H 560 M300 120 V 700" fill="none" stroke="#fff" strokeOpacity="0.12" strokeWidth="96" />
+        </svg>
+        <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 right-0 h-[170px] w-[170px] rounded-full bg-white/25 blur-2xl sm:right-6" />
+        <img
+          src="/home/driver-mascot.webp"
+          alt=""
+          className="pointer-events-none absolute -bottom-2 right-1 w-[112px] drop-shadow-[0_18px_22px_rgba(15,29,42,0.35)] sm:right-8 sm:w-[150px]"
+        />
+
+        <div className="relative max-w-[64%] sm:max-w-[68%]">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-ink ring-1 ring-white/30 backdrop-blur">
             <BadgeCheck className="h-3.5 w-3.5" /> Tasdiqlangan haydovchilar
           </p>
-          <h1 className="mt-3 text-[24px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[32px]">Haydovchilar e’lonlari</h1>
-          <p className="mt-1.5 text-[13px] leading-5 text-ink/70 sm:text-[15px]">
-            Yo‘nalish, vaqt va narxni ko‘ring — haydovchi bilan to‘g‘ridan-to‘g‘ri bog‘laning.
-          </p>
-          {data ? (
-            <p className="mt-3 text-[13px] font-bold text-ink">
-              {items.length} ta e’lon · {data.driversActive} ta haydovchi
-            </p>
-          ) : null}
+          <h1 className="mt-3 text-[25px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[34px]">Haydovchilar e’lonlari</h1>
+          <p className="mt-2 text-[13px] leading-5 text-ink/80 sm:text-[15px]">Yo‘nalish, vaqt va narxni ko‘ring — haydovchi bilan to‘g‘ridan-to‘g‘ri bog‘laning.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-extrabold text-ink shadow-sm">
+              <Route className="h-3.5 w-3.5 text-brand-dark" /> {data ? items.length : '…'} ta e’lon
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-[12px] font-extrabold text-white shadow-sm">
+              <Users className="h-3.5 w-3.5 text-brand" /> {data ? data.driversActive : '…'} ta haydovchi
+            </span>
+          </div>
         </div>
       </section>
 

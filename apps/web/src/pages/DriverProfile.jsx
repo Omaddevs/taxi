@@ -48,8 +48,11 @@ export default function DriverProfile() {
       <ScreenHeader title="Haydovchi profili" />
 
       <section className="overflow-hidden rounded-[26px] bg-white shadow-[0_10px_30px_-18px_rgba(15,29,42,0.35)]">
-        <div className="relative h-[92px] bg-gradient-to-br from-[#ffe08a] via-[#ffd35c] to-[#ffb84d]">
-          <img src="/home/driver-mascot.webp" alt="" className="pointer-events-none absolute -bottom-6 right-4 w-[86px] opacity-90" />
+        <div className="relative h-[96px] overflow-hidden bg-gradient-to-br from-brand to-brand-dark">
+          <svg aria-hidden="true" viewBox="0 0 600 600" className="pointer-events-none absolute -right-16 -top-16 w-[360px]">
+            <path d="M40 120 H 560 M300 120 V 700" fill="none" stroke="#fff" strokeOpacity="0.14" strokeWidth="96" />
+          </svg>
+          <img src="/home/driver-mascot.webp" alt="" className="pointer-events-none absolute -bottom-8 right-4 w-[84px] drop-shadow-[0_12px_16px_rgba(15,29,42,0.3)]" />
         </div>
         <div className="px-5 pb-5">
           <div className="-mt-10 flex items-end gap-4">
