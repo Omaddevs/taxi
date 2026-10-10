@@ -106,17 +106,23 @@ function liveOfferWhere() {
 
 export async function driverBoard(filter: { from?: string; to?: string; date?: string; q?: string }) {
   const where: Record<string, unknown> = liveOfferWhere()
-  if (filter.from) where.fromLabel = { contains: filter.from.trim(), mode: 'insensitive' }
-  if (filter.to) where.toLabel = { contains: filter.to.trim(), mode: 'insensitive' }
+  // A region or district from the site's picker is looked for in the ad's title and its full
+  // address, so "Urgut" also finds an ad titled "Samarqand" whose pickup address is in Urgut.
+  const and: object[] = []
+  const contains = (value: string) => ({ contains: value.trim(), mode: 'insensitive' as const })
+  if (filter.from) and.push({ OR: [{ fromLabel: contains(filter.from) }, { fromAddress: contains(filter.from) }] })
+  if (filter.to) and.push({ OR: [{ toLabel: contains(filter.to) }, { toAddress: contains(filter.to) }] })
   if (filter.q) {
-    const q = filter.q.trim()
-    where.OR = [
-      { fromLabel: { contains: q, mode: 'insensitive' } },
-      { toLabel: { contains: q, mode: 'insensitive' } },
-      { driver: { carModel: { contains: q, mode: 'insensitive' } } },
-      { driver: { user: { name: { contains: q, mode: 'insensitive' } } } },
-    ]
+    and.push({
+      OR: [
+        { fromLabel: contains(filter.q) },
+        { toLabel: contains(filter.q) },
+        { driver: { carModel: contains(filter.q) } },
+        { driver: { user: { name: contains(filter.q) } } },
+      ],
+    })
   }
+  if (and.length) where.AND = and
   if (filter.date) {
     where.departAt = {
       gte: new Date(Math.max(new Date(`${filter.date}T00:00:00+05:00`).getTime(), Date.now() - SHOWN_FOR_MS)),

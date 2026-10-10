@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeftRight, BadgeCheck, MapPin, Search, Star } from 'lucide-react'
+import { ArrowLeftRight, BadgeCheck, Flag, MapPin, Star } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { DriverAdCard, DriverAvatar, RatingLine, tashkentDate, useMessageDriver } from '../components/drivers/driverUi'
+import { PlaceSelect, placeQuery } from '../components/drivers/PlaceSelect'
 import { api } from '../lib/api'
 
 // "Haydovchilar": every driver's live ads (the trips they post from their driver profile →
@@ -16,22 +17,15 @@ const DATES = [
   { id: 'tomorrow', label: 'Ertaga' },
 ]
 
-function useDebounced(value, ms = 300) {
-  const [debounced, setDebounced] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), ms)
-    return () => clearTimeout(t)
-  }, [value, ms])
-  return debounced
-}
+const EMPTY = { region: null, district: null }
 
 export default function Drivers() {
   const [tab, setTab] = useState('ads')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState(EMPTY)
+  const [to, setTo] = useState(EMPTY)
   const [date, setDate] = useState('')
-  const fromQ = useDebounced(from.trim())
-  const toQ = useDebounced(to.trim())
+  const fromQ = placeQuery(from)
+  const toQ = placeQuery(to)
   const { message, busyId, error } = useMessageDriver()
 
   const dateParam = date === 'today' ? tashkentDate(0) : date === 'tomorrow' ? tashkentDate(1) : ''
@@ -100,10 +94,7 @@ export default function Drivers() {
         <>
           <div className="mb-3 rounded-[22px] bg-white p-3 shadow-[0_6px_20px_rgba(28,28,40,0.05)]">
             <div className="flex items-center gap-2">
-              <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-xl bg-canvas px-3">
-                <MapPin className="h-4 w-4 shrink-0 text-brand" />
-                <input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Qayerdan" className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold outline-none placeholder:text-muted" />
-              </label>
+              <PlaceSelect value={from} onChange={setFrom} placeholder="Qayerdan" icon={MapPin} />
               <button
                 type="button"
                 onClick={() => {
@@ -115,10 +106,7 @@ export default function Drivers() {
               >
                 <ArrowLeftRight className="h-4 w-4" />
               </button>
-              <label className="flex h-12 min-w-0 flex-1 items-center gap-2 rounded-xl bg-canvas px-3">
-                <Search className="h-4 w-4 shrink-0 text-brand" />
-                <input value={to} onChange={(e) => setTo(e.target.value)} placeholder="Qayerga" className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold outline-none placeholder:text-muted" />
-              </label>
+              <PlaceSelect value={to} onChange={setTo} placeholder="Qayerga" icon={Flag} />
             </div>
             <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
               {DATES.map((d) => (
@@ -155,8 +143,8 @@ export default function Drivers() {
                 <button
                   type="button"
                   onClick={() => {
-                    setFrom('')
-                    setTo('')
+                    setFrom(EMPTY)
+                    setTo(EMPTY)
                     setDate('')
                   }}
                   className="mt-4 rounded-full bg-brand-soft px-5 py-2 text-[13px] font-bold text-brand-dark"
