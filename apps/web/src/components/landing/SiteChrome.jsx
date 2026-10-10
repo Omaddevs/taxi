@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { ArrowUp, Bot, Gift, LogIn, Menu, Phone, X } from 'lucide-react'
+import { ArrowUp, Bot, Gift, LogIn, Phone } from 'lucide-react'
 import { Logo, Wordmark } from '../ui/Logo'
-import { LanguageChip, LanguageSwitch } from '../ui/LanguagePicker'
+import { LanguageChip } from '../ui/LanguagePicker'
+import { SiteMobileMenu } from './SiteMobileMenu'
 import { t } from '../../i18n'
 
 // Landing'dan tashqaridagi ochiq sahifalar (Yangiliklar) uchun umumiy header va footer.
@@ -18,7 +19,6 @@ const SITE_NAV = [
 // `floating` — landing'da: sahifa `showAfter` px dan pastga aylantirilganda tepada qotib
 // turadigan navbar sifatida silliq tushadi (hero ichidagi menyu ko‘rinmay qolgandan keyin).
 export function SiteHeader({ floating = false, showAfter = 420 }) {
-  const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(!floating)
   const link = 'whitespace-nowrap text-[14px] font-semibold text-ink/75 transition hover:text-ink 2xl:text-[16px]'
 
@@ -29,7 +29,6 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       frame = 0
       const next = window.scrollY > showAfter
       setShown(next)
-      if (!next) setOpen(false)
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update)
@@ -82,31 +81,10 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
           >
             <LogIn className="h-4 w-4" /> {t('Kirish')}
           </Link>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-ink lg:hidden"
-            aria-label={t('Menyu')}
-            aria-expanded={open}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <SiteMobileMenu buttonClassName="lg:hidden" />
         </div>
       </div>
 
-      {open ? (
-        <div className="border-t border-line bg-white px-4 pb-4 pt-3 lg:hidden">
-          <LanguageSwitch className="mb-2 sm:hidden" onChange={() => setOpen(false)} />
-          {SITE_NAV.map((item) => (
-            <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-[15px] font-bold text-ink hover:bg-canvas">
-              {t(item.label)}
-            </Link>
-          ))}
-          <Link to="/aksiyalar#random" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-3 text-[15px] font-bold text-brand-dark hover:bg-canvas">
-            <Gift className="h-4 w-4" /> {t('Random mijoz')}
-          </Link>
-        </div>
-      ) : null}
     </header>
   )
 }

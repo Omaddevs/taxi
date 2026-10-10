@@ -13,7 +13,6 @@ import {
   Gift,
   Headphones,
   LogIn,
-  Menu,
   Package,
   PartyPopper,
   RefreshCw,
@@ -22,13 +21,13 @@ import {
   ShieldCheck,
   Truck,
   User,
-  X,
 } from 'lucide-react'
 import { TELEGRAM_BOT } from '../components/auth/AuthChrome'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { Regions } from '../components/landing/Regions'
 import { Logo, Wordmark } from '../components/ui/Logo'
-import { LanguageChip, LanguageSwitch } from '../components/ui/LanguagePicker'
+import { LanguageChip } from '../components/ui/LanguagePicker'
+import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
 import { useAuth } from '../context/AuthContext'
 import { faqs } from '../data/mock'
 import { api } from '../lib/api'
@@ -122,7 +121,6 @@ const DOTS = 4
 function Showcase() {
   const navigate = useNavigate()
   const [phone, setPhone] = useState(maskPhoneUz('+998'))
-  const [menuOpen, setMenuOpen] = useState(false)
   const [active, setActive] = useState(0)
   const scroller = useRef(null)
 
@@ -193,30 +191,10 @@ function Showcase() {
                 >
                   <LogIn className="h-4 w-4" /> {t('Kirish')}
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-ink"
-                  aria-label={t('Menyu')}
-                  aria-expanded={menuOpen}
-                >
-                  {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
+                <SiteMobileMenu />
               </div>
             </div>
 
-            {menuOpen ? (
-              <div className="absolute inset-x-4 top-[68px] z-40 rounded-2xl bg-white p-2 shadow-[0_20px_40px_rgba(15,29,42,0.18)] sm:inset-x-10 lg:hidden">
-                <LanguageSwitch className="mb-1 sm:hidden" onChange={() => setMenuOpen(false)} />
-                <NavLinks
-                  onNavigate={() => setMenuOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-[15px] font-bold text-ink hover:bg-canvas"
-                />
-                <Link to="/register" className="block rounded-xl px-4 py-3 text-[15px] font-extrabold text-brand-dark hover:bg-canvas">
-                  {t('Ro‘yxatdan o‘tish')}
-                </Link>
-              </div>
-            ) : null}
 
             <h1 className="relative mt-12 text-[38px] font-extrabold leading-[1.08] tracking-tight text-ink sm:mt-16 sm:text-[52px] lg:mt-[92px] lg:text-[54px] xl:text-[60px] 2xl:mt-[120px] 2xl:text-[78px]">
               {t('Viloyatlararo')}
