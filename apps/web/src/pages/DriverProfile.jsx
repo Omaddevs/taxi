@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { BadgeCheck, CalendarDays, Car, MessageCircle, Phone, Route, Star } from 'lucide-react'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { DriverAdCard, DriverAvatar, memberSinceLabel, telHref, useMessageDriver } from '../components/drivers/driverUi'
+import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { formatPhoneUz } from '../lib/utils'
 
@@ -11,6 +12,7 @@ import { formatPhoneUz } from '../lib/utils'
 export default function DriverProfile() {
   const { id } = useParams()
   const { message, busyId, error } = useMessageDriver()
+  const { authUser } = useAuth()
   const { data, isLoading, isError } = useQuery({
     queryKey: ['driver-profile', id],
     queryFn: () => api.get(`/drivers/${id}/profile`),
@@ -71,6 +73,9 @@ export default function DriverProfile() {
             ))}
           </div>
 
+          {authUser?.id === driver.userId ? (
+            <p className="mt-4 rounded-2xl bg-canvas px-3 py-3 text-center text-[13px] font-bold text-ink/70">Bu sizning profilingiz — yo‘lovchilar sizni shunday ko‘radi</p>
+          ) : (
           <div className="mt-4 grid grid-cols-2 gap-2">
             {phone ? (
               <a href={telHref(phone)} className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-500 text-[14px] font-extrabold text-white shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-600">
@@ -88,6 +93,7 @@ export default function DriverProfile() {
               <MessageCircle className="h-4 w-4" /> {busyId === driver.userId ? 'Ochilmoqda…' : 'Yozish'}
             </button>
           </div>
+          )}
           {phone ? <p className="mt-2 text-center text-[12px] font-semibold text-muted">{formatPhoneUz(phone)}</p> : null}
           {error ? <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-center text-sm font-semibold text-red-600">{error}</p> : null}
         </div>

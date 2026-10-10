@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, BadgeCheck, Briefcase, Car, Clock, MessageCircle, Phone, Star, UserRound, Users } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import { api } from '../../lib/api'
 import { formatPhoneUz, formatSom } from '../../lib/utils'
 
@@ -44,7 +45,8 @@ export function useMessageDriver() {
     setError('')
     setBusyId(driverUserId)
     try {
-      const { id } = await api.post('/chat/direct', { userId: driverUserId })
+      // Chat API lives under /conversations (server app.ts).
+      const { id } = await api.post('/conversations/direct', { userId: driverUserId })
       navigate(`/messages/${id}`)
     } catch (err) {
       setError(err.message || 'Chatni ochib bo‘lmadi')
@@ -98,6 +100,9 @@ export function DriverAdCard({ offer, driver, showDriver = true, onMessage, mess
   const phone = offer.phones?.[0]
   const full = offer.seatsAvailable <= 0
   const womenOnly = offer.genderPref === 'FEMALE'
+  // A driver looking at their own ad: no calling, messaging or booking themselves.
+  const { authUser } = useAuth()
+  const own = Boolean(authUser?.id && authUser.id === driver.userId)
 
   return (
     <article className="overflow-hidden rounded-[22px] border border-line bg-white shadow-[0_10px_30px_-18px_rgba(15,29,42,0.35)] transition hover:border-brand/40">
@@ -160,6 +165,9 @@ export function DriverAdCard({ offer, driver, showDriver = true, onMessage, mess
 
         {offer.notes ? <p className="mt-3 line-clamp-2 rounded-xl bg-canvas px-3 py-2 text-[13px] leading-5 text-ink/80">{offer.notes}</p> : null}
 
+        {own ? (
+          <p className="mt-4 flex h-11 items-center justify-center rounded-xl bg-canvas text-[13px] font-bold text-ink/70">Sizning e’loningiz</p>
+        ) : (
         <div className="mt-4 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
           {phone ? (
             <a
@@ -190,6 +198,7 @@ export function DriverAdCard({ offer, driver, showDriver = true, onMessage, mess
             Joy band qilish
           </Link>
         </div>
+        )}
       </div>
     </article>
   )
