@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { ArrowLeft, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { t } from '../../i18n'
 
 export function DriverHeader({ title, right, back = true, onBack, className = '' }) {
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ export function DriverHeader({ title, right, back = true, onBack, className = ''
             type="button"
             onClick={onBack || (() => navigate(-1))}
             className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink"
-            aria-label="Orqaga"
+            aria-label={t('Orqaga')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -27,7 +28,7 @@ export function DriverHeader({ title, right, back = true, onBack, className = ''
           <div className="h-10 w-10 shrink-0" />
         )}
         <h1 className="pointer-events-none absolute inset-x-14 truncate text-center text-[17px] font-extrabold leading-10">
-          {title}
+          {t(title)}
         </h1>
         <div className="relative z-10 flex h-10 min-w-10 shrink-0 items-center justify-end">
           {right ?? <div className="w-10" />}
@@ -66,15 +67,15 @@ export function Toggle({ on, onChange, disabled }) {
 
 export function StatusBadge({ status }) {
   const map = {
-    PENDING: { label: 'Kutmoqda', className: 'bg-orange-50 text-orange-600' },
-    ACCEPTED: { label: 'Faol', className: 'bg-emerald-50 text-emerald-600' },
-    ONGOING: { label: 'Faol', className: 'bg-emerald-50 text-emerald-600' },
-    NEW: { label: 'Yangi', className: 'bg-brand-soft text-brand' },
-    COMPLETED: { label: 'Bajarilgan', className: 'bg-sky-50 text-sky-600' },
-    CANCELLED: { label: 'Bekor qilingan', className: 'bg-slate-100 text-slate-500' },
+    PENDING: { label: t('Kutmoqda'), className: 'bg-orange-50 text-orange-600' },
+    ACCEPTED: { label: t('Faol'), className: 'bg-emerald-50 text-emerald-600' },
+    ONGOING: { label: t('Faol'), className: 'bg-emerald-50 text-emerald-600' },
+    NEW: { label: t('Yangi'), className: 'bg-brand-soft text-brand' },
+    COMPLETED: { label: t('Bajarilgan'), className: 'bg-sky-50 text-sky-600' },
+    CANCELLED: { label: t('Bekor qilingan'), className: 'bg-slate-100 text-slate-500' },
   }
   const item = map[status] || map.PENDING
-  return <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', item.className)}>{item.label}</span>
+  return <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', item.className)}>{t(item.label)}</span>
 }
 
 export function RouteStops({ from, fromHint, to, toHint, whenText, compact }) {
@@ -84,13 +85,13 @@ export function RouteStops({ from, fromHint, to, toHint, whenText, compact }) {
       <div className="relative pb-3">
         <span className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full bg-sky-500 ring-2 ring-sky-100" />
         <p className="text-sm font-bold leading-snug">{from}</p>
-        {fromHint ? <p className="text-[11px] text-muted">Mo‘ljal: {fromHint}</p> : null}
+        {fromHint ? <p className="text-[11px] text-muted">{t('Mo‘ljal:')}{' '}{fromHint}</p> : null}
       </div>
       <div className="relative">
         <span className="absolute -left-5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand ring-2 ring-brand-soft" />
         <p className="text-sm font-bold leading-snug">{to}</p>
-        {toHint ? <p className="text-[11px] text-muted">Mo‘ljal: {toHint}</p> : null}
-        {whenText ? <p className="text-[11px] font-semibold text-brand">🕐 Jo‘nash vaqti: {whenText}</p> : null}
+        {toHint ? <p className="text-[11px] text-muted">{t('Mo‘ljal:')}{' '}{toHint}</p> : null}
+        {whenText ? <p className="text-[11px] font-semibold text-brand">{t('🕐 Jo‘nash vaqti:')}{' '}{whenText}</p> : null}
       </div>
     </div>
   )
@@ -108,7 +109,7 @@ export function SeatChips({ chips }) {
             c.gender === 'MALE' ? 'bg-seat-male-soft text-seat-male' : 'bg-seat-female-soft text-seat-female',
           )}
         >
-          {c.label} · {c.gender === 'MALE' ? 'Erkak' : 'Ayol'}
+          {t(c.label)} · {c.gender === 'MALE' ? t('Erkak') : t('Ayol')}
         </span>
       ))}
     </div>
@@ -136,16 +137,16 @@ export function formatMmSs(total) {
 export function DriverSheet({ title, onClose, children, footer }) {
   return createPortal(
     <div className="fixed inset-0 z-[11000]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 max-h-[86vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
         <div className="mb-3 flex items-center gap-3">
-          <p className="min-w-0 flex-1 truncate text-base font-extrabold">{title}</p>
+          <p className="min-w-0 flex-1 truncate text-base font-extrabold">{t(title)}</p>
           <button
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-2xl bg-canvas"
-            aria-label="Yopish"
+            aria-label={t('Yopish')}
           >
             <X className="h-4 w-4" />
           </button>

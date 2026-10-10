@@ -9,6 +9,7 @@ import { NewsBody } from '../components/news/NewsBody'
 import { api } from '../lib/api'
 import { OG_IMAGE, SITE_NAME, SITE_URL, absoluteUrl } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
+import { t } from '../i18n'
 
 // Admin muharriridan kelgan HTML (server'da ham tozalangan) — brauzerda yana bir bor tozalanadi.
 function ArticleBody({ body }) {
@@ -34,7 +35,7 @@ function ShareBar({ title }) {
   const btn = 'inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-bold transition'
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="text-[14px] font-semibold text-ink/50">Ulashish:</span>
+      <span className="text-[14px] font-semibold text-ink/50">{t('Ulashish:')}</span>
       <a
         href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}
         target="_blank"
@@ -45,7 +46,7 @@ function ShareBar({ title }) {
       </a>
       <button type="button" onClick={copy} className={`${btn} bg-white text-ink ring-1 ring-black/10 hover:bg-canvas`}>
         {copied ? <Check className="h-4 w-4 text-brand-dark" /> : <Link2 className="h-4 w-4" />}
-        {copied ? 'Nusxalandi' : 'Havolani nusxalash'}
+        {copied ? t('Nusxalandi') : t('Havolani nusxalash')}
       </button>
     </div>
   )
@@ -67,7 +68,7 @@ export default function NewsDetail() {
   // Muqova data: URI bo‘lishi mumkin (admin yuklagan) — ijtimoiy tarmoqlar uni ko‘rmaydi, umumiy rasm qo‘yamiz.
   const image = /^https?:\/\//.test(post?.coverUrl || '') ? post.coverUrl : OG_IMAGE
   useSeo('/news', {
-    title: post ? `${post.title} — TaxiLine` : undefined,
+    title: post ? t('{0} — TaxiLine', post.title) : undefined,
     description: post?.excerpt || undefined,
     url,
     image,
@@ -97,7 +98,7 @@ export default function NewsDetail() {
       <main className="mx-auto max-w-[1600px] px-3 pb-16 pt-6 sm:px-6 sm:pt-10">
         <div className="mx-auto max-w-[820px] 2xl:max-w-[960px]">
           <Link to="/news" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[14px] font-semibold text-ink ring-1 ring-black/[0.06] transition hover:bg-canvas">
-            <ArrowLeft className="h-4 w-4" /> Barcha yangiliklar
+            <ArrowLeft className="h-4 w-4" /> {t('Barcha yangiliklar')}
           </Link>
         </div>
 
@@ -111,12 +112,12 @@ export default function NewsDetail() {
         ) : notFound || isError ? (
           <div className="mx-auto mt-8 flex max-w-[820px] flex-col items-center rounded-[32px] bg-white px-6 py-16 text-center ring-1 ring-black/[0.06]">
             <p className="text-[56px] font-extrabold leading-none text-brand">{notFound ? '404' : '!'}</p>
-            <p className="mt-4 text-[22px] font-extrabold">{notFound ? 'Yangilik topilmadi' : 'Yangilikni yuklab bo‘lmadi'}</p>
+            <p className="mt-4 text-[22px] font-extrabold">{notFound ? t('Yangilik topilmadi') : t('Yangilikni yuklab bo‘lmadi')}</p>
             <p className="mt-2 text-[15px] text-ink/60">
-              {notFound ? 'U o‘chirilgan yoki havola noto‘g‘ri bo‘lishi mumkin.' : 'Internet aloqasini tekshirib, qayta urinib ko‘ring.'}
+              {notFound ? t('U o‘chirilgan yoki havola noto‘g‘ri bo‘lishi mumkin.') : t('Internet aloqasini tekshirib, qayta urinib ko‘ring.')}
             </p>
             <Link to="/news" className="mt-6 inline-flex h-12 items-center rounded-full bg-ink px-6 text-[14px] font-bold text-white transition hover:bg-black">
-              Barcha yangiliklar
+              {t('Barcha yangiliklar')}
             </Link>
           </div>
         ) : post ? (
@@ -127,8 +128,8 @@ export default function NewsDetail() {
                   <CategoryChip category={post.category} />
                   <Meta post={post} className="text-[14px]" />
                 </div>
-                <h1 className="mt-4 text-[32px] font-extrabold leading-[1.12] tracking-tight sm:text-[46px] 2xl:text-[56px]">{post.title}</h1>
-                <p className="mt-4 text-[18px] leading-[1.6] text-ink/65 sm:text-[20px] 2xl:text-[23px]">{post.excerpt}</p>
+                <h1 className="mt-4 text-[32px] font-extrabold leading-[1.12] tracking-tight sm:text-[46px] 2xl:text-[56px]">{t(post.title)}</h1>
+                <p className="mt-4 text-[18px] leading-[1.6] text-ink/65 sm:text-[20px] 2xl:text-[23px]">{t(post.excerpt)}</p>
               </header>
 
               <div className="relative mx-auto mt-8 aspect-[16/9] max-w-[1040px] overflow-hidden rounded-[28px] bg-canvas sm:mt-10 sm:rounded-[40px] 2xl:max-w-[1200px]">
@@ -138,7 +139,7 @@ export default function NewsDetail() {
               <div className="mx-auto mt-10 max-w-[720px] sm:mt-12 2xl:max-w-[820px]">
                 <ArticleBody body={post.body} />
                 <div className="mt-12 border-t border-black/[0.08] pt-6">
-                  <ShareBar title={post.title} />
+                  <ShareBar title={t(post.title)} />
                 </div>
               </div>
             </article>
@@ -148,21 +149,21 @@ export default function NewsDetail() {
               <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -right-24 h-72 w-72 rounded-full bg-brand" />
               <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-[24px] font-extrabold tracking-tight sm:text-[30px]">TaxiLine bilan yo‘lga chiqing</p>
-                  <p className="mt-2 text-[15px] text-white/65 sm:text-[17px]">Taksi, shaharlararo safar, pochta va yuk — bitta ilovada.</p>
+                  <p className="text-[24px] font-extrabold tracking-tight sm:text-[30px]">{t('TaxiLine bilan yo‘lga chiqing')}</p>
+                  <p className="mt-2 text-[15px] text-white/65 sm:text-[17px]">{t('Taksi, shaharlararo safar, pochta va yuk — bitta ilovada.')}</p>
                 </div>
                 <Link
                   to="/register"
                   className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-brand px-7 text-[14px] font-extrabold uppercase tracking-[0.03em] text-ink transition hover:bg-[#1ad3df]"
                 >
-                  Ro‘yxatdan o‘tish
+                  {t('Ro‘yxatdan o‘tish')}
                 </Link>
               </div>
             </section>
 
             {post.related?.length ? (
               <section className="mt-14">
-                <h2 className="text-[26px] font-extrabold tracking-tight sm:text-[32px] 2xl:text-[38px]">Boshqa yangiliklar</h2>
+                <h2 className="text-[26px] font-extrabold tracking-tight sm:text-[32px] 2xl:text-[38px]">{t('Boshqa yangiliklar')}</h2>
                 <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:gap-7">
                   {post.related.map((r) => (
                     <NewsCard key={r.id} post={r} />

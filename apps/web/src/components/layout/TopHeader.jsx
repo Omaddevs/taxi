@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, Crown, Menu, MessageCircle } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { Logo, Wordmark } from '../ui/Logo'
+import { t } from '../../i18n'
 
 const titles = {
   '/': { title: 'Xush kelibsiz! 👋', subtitle: 'Qayerga yo‘l olmoqchisiz?' },
@@ -36,10 +37,10 @@ const backOnMobile = ['/cargo', '/women', '/become-driver']
 
 function headerMeta(pathname) {
   if (titles[pathname]) return titles[pathname]
-  if (pathname.startsWith('/trip/')) return { title: 'Safar tafsilotlari', subtitle: 'Haydovchi va marshrut' }
-  if (pathname.startsWith('/messages/')) return { title: 'Chat', subtitle: 'Xabarlar' }
-  if (pathname.startsWith('/hub/')) return { title: 'Xizmatlar', subtitle: 'TaxiLine ekotizimi' }
-  return { title: 'TaxiLine', subtitle: 'Yo‘l, avtomobil va kundalik xizmatlar' }
+  if (pathname.startsWith('/trip/')) return { title: t('Safar tafsilotlari'), subtitle: t('Haydovchi va marshrut') }
+  if (pathname.startsWith('/messages/')) return { title: t('Chat'), subtitle: t('Xabarlar') }
+  if (pathname.startsWith('/hub/')) return { title: t('Xizmatlar'), subtitle: t('TaxiLine ekotizimi') }
+  return { title: 'TaxiLine', subtitle: t('Yo‘l, avtomobil va kundalik xizmatlar') }
 }
 
 export function TopHeader() {
@@ -49,7 +50,7 @@ export function TopHeader() {
   const firstName = (user.firstName || user.name || '').trim().split(/\s+/)[0]
   const baseMeta = headerMeta(pathname)
   // Home greets by name once we know it.
-  const meta = pathname === '/' && firstName ? { ...baseMeta, title: `Xush kelibsiz, ${firstName}! 👋` } : baseMeta
+  const meta = pathname === '/' && firstName ? { ...baseMeta, title: t('Xush kelibsiz, {0}! 👋', firstName) } : baseMeta
   const showBack = backOnMobile.includes(pathname)
 
   return (
@@ -60,11 +61,11 @@ export function TopHeader() {
           type="button"
           className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas transition hover:bg-brand-soft lg:flex"
           onClick={() => setDrawerOpen(true)}
-          aria-label="Menyu"
+          aria-label={t('Menyu')}
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Link to="/" className="hidden shrink-0 items-center gap-1.5 lg:flex" aria-label="Bosh sahifa">
+        <Link to="/" className="hidden shrink-0 items-center gap-1.5 lg:flex" aria-label={t('Bosh sahifa')}>
           <Logo size={34} />
           <Wordmark className="text-[24px]" />
         </Link>
@@ -74,7 +75,7 @@ export function TopHeader() {
             type="button"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas lg:hidden"
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-            aria-label="Orqaga"
+            aria-label={t('Orqaga')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -88,8 +89,8 @@ export function TopHeader() {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-extrabold tracking-tight lg:text-[22px]">{meta.title}</h1>
-          {meta.subtitle ? <p className="hidden truncate text-sm text-muted sm:block">{meta.subtitle}</p> : null}
+          <h1 className="truncate text-lg font-extrabold tracking-tight lg:text-[22px]">{t(meta.title)}</h1>
+          {meta.subtitle ? <p className="hidden truncate text-sm text-muted sm:block">{t(meta.subtitle)}</p> : null}
         </div>
       </div>
 
@@ -99,7 +100,7 @@ export function TopHeader() {
           className="hidden h-12 items-center gap-2 rounded-full bg-brand px-5 text-sm font-extrabold text-white shadow-md shadow-brand/30 sm:flex"
         >
           <Crown className="h-4 w-4 fill-white" strokeWidth={0} />
-          Plus
+          {t('Plus')}
         </Link>
         <Link to="/notifications" className="relative flex h-10 w-10 items-center justify-center rounded-full bg-canvas">
           <Bell className="h-5 w-5 text-ink" />
@@ -110,7 +111,7 @@ export function TopHeader() {
         </Link>
         <Link
           to="/profile"
-          aria-label="Profil"
+          aria-label={t('Profil')}
           className={`ml-1 flex items-center gap-2 rounded-full bg-canvas py-1 pl-1 transition hover:bg-brand-soft ${firstName ? 'sm:pr-3' : 'pr-1'}`}
         >
           <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />

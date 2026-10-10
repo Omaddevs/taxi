@@ -6,6 +6,7 @@ import { Field, Input } from '../components/ui/Input'
 import { LanguageRow } from '../components/ui/LanguagePicker'
 import { useApp } from '../context/AppContext'
 import { api } from '../lib/api'
+import { t } from '../i18n'
 
 export default function Settings() {
   const { user } = useApp()
@@ -24,25 +25,25 @@ export default function Settings() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <ScreenHeader title="Sozlamalar" />
-      <PageTitle title="Sozlamalar" subtitle="Profil va ilova parametrlari" />
+      <ScreenHeader title={t('Sozlamalar')} />
+      <PageTitle title={t('Sozlamalar')} subtitle={t('Profil va ilova parametrlari')} />
       <Card className="space-y-4 p-4">
-        <Field label="Ism familiya">
+        <Field label={t('Ism familiya')}>
           <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </Field>
-        <Field label="Telefon">
+        <Field label={t('Telefon')}>
           <Input defaultValue={user.phone} disabled />
         </Field>
-        <Field label="Email">
+        <Field label={t('Email')}>
           <Input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
         </Field>
         <div>
-          <p className="mb-1.5 text-xs font-medium text-muted">Jins</p>
-          <p className="mb-2 text-[11px] text-muted">O‘rindiq tanlashda o‘zingizga mos jins avtomatik belgilanadi.</p>
+          <p className="mb-1.5 text-xs font-medium text-muted">{t('Jins')}</p>
+          <p className="mb-2 text-[11px] text-muted">{t('O‘rindiq tanlashda o‘zingizga mos jins avtomatik belgilanadi.')}</p>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'MALE', label: 'Erkak' },
-              { id: 'FEMALE', label: 'Ayol' },
+              { id: 'MALE', label: t('Erkak') },
+              { id: 'FEMALE', label: t('Ayol') },
             ].map((g) => (
               <button
                 key={g.id}
@@ -52,22 +53,22 @@ export default function Settings() {
                   form.gender === g.id ? 'border-brand bg-brand-soft text-brand' : 'border-line bg-white text-ink'
                 }`}
               >
-                {g.label}
+                {t(g.label)}
               </button>
             ))}
           </div>
         </div>
         <LanguageRow />
         <label className="flex items-center justify-between rounded-xl bg-canvas px-3 py-3 text-sm font-medium">
-          Bildirishnomalar
+          {t('Bildirishnomalar')}
           <input type="checkbox" defaultChecked className="h-4 w-4 accent-brand" />
         </label>
         <label className="flex items-center justify-between rounded-xl bg-canvas px-3 py-3 text-sm font-medium">
-          Joylashuvni ulashish
+          {t('Joylashuvni ulashish')}
           <input type="checkbox" defaultChecked className="h-4 w-4 accent-brand" />
         </label>
         <Button className="w-full" disabled={save.isPending} onClick={() => save.mutate()}>
-          {save.isPending ? 'Saqlanmoqda…' : saved ? 'Saqlandi ✓' : 'Saqlash'}
+          {save.isPending ? t('Saqlanmoqda…') : saved ? t('Saqlandi ✓') : t('Saqlash')}
         </Button>
       </Card>
     </div>

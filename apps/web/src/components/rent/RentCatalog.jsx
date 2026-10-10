@@ -4,6 +4,7 @@ import { VEHICLE_TYPES } from '../../data/rentals'
 import { cn } from '../../lib/utils'
 import { Cover, EmptyBlock, ListingCard } from './shared'
 import { dailyPrice, distanceKm, mainPrice, som, useOrigin, useRentFavorites, useRentNav, useRentals } from './rentData'
+import { t } from '../../i18n'
 
 const SORTS = [
   { id: 'new', label: 'Yangi' },
@@ -55,14 +56,14 @@ export function RentCatalog({ onClose }) {
             <img src="/home/scooter-rent.webp" alt="" className="h-10 w-10 object-contain" />
           </span>
           <div className="min-w-0 flex-1 leading-tight">
-            <p className="text-[24px] font-black tracking-tight">Skuter ijara</p>
-            <p className="truncate text-[12px] font-semibold text-white/85">Skuter · samokat · velosiped · moto</p>
+            <p className="text-[24px] font-black tracking-tight">{t('Skuter ijara')}</p>
+            <p className="truncate text-[12px] font-semibold text-white/85">{t('Skuter · samokat · velosiped · moto')}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 backdrop-blur transition active:scale-90"
-            aria-label="Yopish"
+            aria-label={t('Yopish')}
           >
             <ChevronDown className="h-5 w-5" strokeWidth={2.6} />
           </button>
@@ -73,7 +74,7 @@ export function RentCatalog({ onClose }) {
             type="button"
             onClick={() => go({ ijara: 'xarita' })}
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-sm transition active:scale-90"
-            aria-label="Xaritada ko‘rish"
+            aria-label={t('Xaritada ko‘rish')}
           >
             <LayoutGrid className="h-5 w-5" strokeWidth={2.2} />
           </button>
@@ -82,11 +83,11 @@ export function RentCatalog({ onClose }) {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Transport yoki ijara joyini toping"
+              placeholder={t('Transport yoki ijara joyini toping')}
               className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted"
             />
             {query ? (
-              <button type="button" onClick={() => setQuery('')} aria-label="Tozalash" className="text-muted">
+              <button type="button" onClick={() => setQuery('')} aria-label={t('Tozalash')} className="text-muted">
                 <X className="h-4 w-4" />
               </button>
             ) : null}
@@ -97,10 +98,10 @@ export function RentCatalog({ onClose }) {
           <div className="relative mt-4 flex items-center gap-3 lg:max-w-xl">
             <button type="button" onClick={() => setSort('cheap')} className="min-w-0 flex-1 text-left">
               <p className="text-[17px] font-black uppercase italic leading-[1.05] tracking-tight">
-                {highlights.some((l) => l.featured) ? 'Top takliflar' : 'Eng arzon ijara'}
+                {highlights.some((l) => l.featured) ? t('Top takliflar') : t('Eng arzon ijara')}
               </p>
               <p className="mt-1 inline-flex items-center text-[12px] font-semibold text-white/90">
-                Barchasi <ChevronRight className="h-3.5 w-3.5" />
+                {t('Barchasi')}{' '}<ChevronRight className="h-3.5 w-3.5" />
               </p>
             </button>
             {highlights.map((l) => {
@@ -112,7 +113,7 @@ export function RentCatalog({ onClose }) {
                   </span>
                   {price ? (
                     <span className="mt-1 block truncate text-[11px] font-extrabold">
-                      {som(price.amount)} so‘m
+                      {som(price.amount)} {t('so‘m')}
                     </span>
                   ) : null}
                 </button>
@@ -124,18 +125,18 @@ export function RentCatalog({ onClose }) {
 
       {/* ── Turlar ── */}
       <nav className="no-scrollbar sticky top-0 z-10 flex gap-2 overflow-x-auto bg-white px-4 pb-3 pt-7 lg:flex-wrap lg:px-8 lg:pt-5">
-        {[{ id: 'all', label: 'Barchasi' }, ...VEHICLE_TYPES].map((t) => (
+        {[{ id: 'all', label: t('Barchasi') }, ...VEHICLE_TYPES].map((item) => (
           <button
-            key={t.id}
+            key={item.id}
             type="button"
-            onClick={() => setType(t.id)}
+            onClick={() => setType(item.id)}
             className={cn(
               'flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold transition',
-              type === t.id ? 'border-2 border-ink text-ink' : 'border-2 border-transparent bg-canvas text-ink',
+              type === item.id ? 'border-2 border-ink text-ink' : 'border-2 border-transparent bg-canvas text-ink',
             )}
           >
-            {t.icon ? <t.icon className="h-4 w-4 text-brand-dark" /> : null}
-            {t.label}
+            {item.icon ? <item.icon className="h-4 w-4 text-brand-dark" /> : null}
+            {t(item.label)}
           </button>
         ))}
       </nav>
@@ -144,17 +145,17 @@ export function RentCatalog({ onClose }) {
       <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 lg:grid lg:grid-cols-2 lg:gap-5 lg:overflow-visible lg:px-8">
         <Banner
           tone="bg-[linear-gradient(120deg,#1a2b3c,#24465e)]"
-          title="Transportingizni ijaraga bering"
-          text="Tashkilotlar va shaxslar uchun e’lon joylash bepul"
-          cta="E’lon joylash"
+          title={t('Transportingizni ijaraga bering')}
+          text={t('Tashkilotlar va shaxslar uchun e’lon joylash bepul')}
+          cta={t('E’lon joylash')}
           img="/rent/scooter.webp"
           onClick={() => go({ ijara: 'yangi' })}
         />
         <Banner
           tone="bg-[linear-gradient(120deg,#00a3ae,#00c7d4)]"
-          title="Ijara nuqtalari xaritada"
-          text="Eng yaqin skuter va velosiped ijarasini toping"
-          cta="Xaritani ochish"
+          title={t('Ijara nuqtalari xaritada')}
+          text={t('Eng yaqin skuter va velosiped ijarasini toping')}
+          cta={t('Xaritani ochish')}
           img="/rent/bike.webp"
           onClick={() => go({ ijara: 'xarita' })}
         />
@@ -163,7 +164,7 @@ export function RentCatalog({ onClose }) {
       {/* ── Saralash ── */}
       <div className="mt-4 flex items-center justify-between px-4 lg:mt-6 lg:px-8">
         <p className="text-[19px] font-extrabold tracking-tight text-ink">
-          {type === 'all' ? 'Siz uchun' : VEHICLE_TYPES.find((t) => t.id === type)?.label}
+          {type === 'all' ? t('Siz uchun') : VEHICLE_TYPES.find((entry) => entry.id === type)?.label}
           <span className="ml-1.5 text-[13px] font-bold text-muted">{shown.length}</span>
         </p>
         <div className="flex rounded-full bg-canvas p-1">
@@ -177,7 +178,7 @@ export function RentCatalog({ onClose }) {
                 sort === s.id ? 'bg-white text-ink shadow-sm' : 'text-muted',
               )}
             >
-              {s.label}
+              {t(s.label)}
             </button>
           ))}
         </div>
@@ -195,11 +196,11 @@ export function RentCatalog({ onClose }) {
         </div>
       ) : isError ? (
         <EmptyBlock
-          title="E’lonlarni yuklab bo‘lmadi"
-          text="Internet aloqasini tekshirib, qayta urinib ko‘ring."
+          title={t('E’lonlarni yuklab bo‘lmadi')}
+          text={t('Internet aloqasini tekshirib, qayta urinib ko‘ring.')}
           action={
             <button type="button" onClick={() => refetch()} className="mt-4 h-11 rounded-full bg-ink px-6 text-sm font-bold text-white">
-              Qayta urinish
+              {t('Qayta urinish')}
             </button>
           }
         />
@@ -218,15 +219,15 @@ export function RentCatalog({ onClose }) {
         </div>
       ) : (
         <EmptyBlock
-          title={data.length ? 'Hech narsa topilmadi' : 'Hozircha e’lonlar yo‘q'}
-          text={data.length ? 'Boshqa tur yoki so‘zni sinab ko‘ring.' : 'Birinchi bo‘lib transportingizni ijaraga bering.'}
+          title={data.length ? t('Hech narsa topilmadi') : t('Hozircha e’lonlar yo‘q')}
+          text={data.length ? t('Boshqa tur yoki so‘zni sinab ko‘ring.') : t('Birinchi bo‘lib transportingizni ijaraga bering.')}
           action={
             <button
               type="button"
               onClick={() => go({ ijara: 'yangi' })}
               className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-full bg-brand px-6 text-sm font-extrabold text-white"
             >
-              <Plus className="h-4 w-4" strokeWidth={3} /> E’lon joylash
+              <Plus className="h-4 w-4" strokeWidth={3} /> {t('E’lon joylash')}
             </button>
           }
         />
@@ -238,7 +239,7 @@ export function RentCatalog({ onClose }) {
           onClick={() => go({ ijara: 'xarita' })}
           className="mx-auto mt-6 flex h-11 items-center gap-2 rounded-full bg-canvas px-5 text-[14px] font-bold text-ink"
         >
-          <MapIcon className="h-4 w-4 text-brand-dark" /> Xaritada ko‘rish
+          <MapIcon className="h-4 w-4 text-brand-dark" /> {t('Xaritada ko‘rish')}
         </button>
       ) : null}
     </div>
@@ -256,10 +257,10 @@ function Banner({ tone, title, text, cta, img, onClick }) {
       )}
     >
       <span className="relative z-10 flex max-w-[58%] flex-col lg:max-w-[50%]">
-        <span className="text-[19px] font-black uppercase leading-[1.05] tracking-tight">{title}</span>
-        <span className="mt-1.5 text-[11px] font-medium leading-snug text-white/80">{text}</span>
+        <span className="text-[19px] font-black uppercase leading-[1.05] tracking-tight">{t(title)}</span>
+        <span className="mt-1.5 text-[11px] font-medium leading-snug text-white/80">{t(text)}</span>
         <span className="mt-auto inline-flex w-fit items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-extrabold text-ink">
-          {cta} <ChevronRight className="h-3.5 w-3.5" />
+          {t(cta)} <ChevronRight className="h-3.5 w-3.5" />
         </span>
       </span>
       <img src={img} alt="" className="pointer-events-none absolute -right-6 bottom-1 w-[58%] max-w-none lg:-right-2 lg:w-[46%] drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]" />

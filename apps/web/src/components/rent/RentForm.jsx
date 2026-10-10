@@ -11,6 +11,7 @@ import { RENT_SCOOTER_COLOR, VEHICLE_TYPES } from '../../data/rentals'
 import { cn } from '../../lib/utils'
 import { useMyRentals, useOrigin } from './rentData'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 const MAX_PHOTOS = 6
 const INPUT =
@@ -35,16 +36,16 @@ export function RentForm({ editId, onBack, onDone }) {
   if (editId && isLoading) {
     return (
       <div className="flex h-full items-center justify-center text-sm font-semibold text-muted">
-        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> Yuklanmoqda…
+        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> {t('Yuklanmoqda…')}
       </div>
     )
   }
   if (editId && !editing) {
     return (
       <div className="p-6 text-center">
-        <p className="mt-10 font-semibold text-muted">E’lon topilmadi</p>
+        <p className="mt-10 font-semibold text-muted">{t('E’lon topilmadi')}</p>
         <button type="button" onClick={onBack} className="mt-4 h-11 rounded-full bg-ink px-6 text-sm font-bold text-white">
-          Orqaga
+          {t('Orqaga')}
         </button>
       </div>
     )
@@ -92,7 +93,7 @@ function FormBody({ editing, onBack, onDone }) {
       const urls = await Promise.all(files.map((f) => fileToImageDataUrl(f)))
       setPhotos((list) => [...list, ...urls].slice(0, MAX_PHOTOS))
     } catch (err) {
-      setError(err?.message || 'Rasmni yuklab bo‘lmadi, boshqa rasm tanlang')
+      setError(err?.message || t('Rasmni yuklab bo‘lmadi, boshqa rasm tanlang'))
     } finally {
       setImageBusy(false)
     }
@@ -124,15 +125,15 @@ function FormBody({ editing, onBack, onDone }) {
       queryClient.invalidateQueries({ queryKey: ['rentals'] })
       setSent(true)
     },
-    onError: (err) => setError(err?.message || 'Xatolik yuz berdi'),
+    onError: (err) => setError(err?.message || t('Xatolik yuz berdi')),
   })
 
   function submit(e) {
     e.preventDefault()
     setError('')
-    if (title.trim().length < 3) return setError('E’lon sarlavhasini yozing')
-    if (ownerType === 'COMPANY' && !companyName.trim()) return setError('Tashkilot nomini kiriting')
-    if (phone.replace(/\D/g, '').length < 9) return setError('Telefon raqamini to‘liq kiriting')
+    if (title.trim().length < 3) return setError(t('E’lon sarlavhasini yozing'))
+    if (ownerType === 'COMPANY' && !companyName.trim()) return setError(t('Tashkilot nomini kiriting'))
+    if (phone.replace(/\D/g, '').length < 9) return setError(t('Telefon raqamini to‘liq kiriting'))
     const nums = {
       pricePerHour: parseNum(hour),
       pricePerDay: parseNum(day),
@@ -141,9 +142,9 @@ function FormBody({ editing, onBack, onDone }) {
       maxSpeed: parseNum(maxSpeed),
       rangeKm: parseNum(rangeKm),
     }
-    if (Object.values(nums).some((n) => Number.isNaN(n))) return setError('Narx va ko‘rsatkichlarni faqat raqamda yozing')
+    if (Object.values(nums).some((n) => Number.isNaN(n))) return setError(t('Narx va ko‘rsatkichlarni faqat raqamda yozing'))
     if (!nums.pricePerHour && !nums.pricePerDay && !nums.pricePerWeek) {
-      return setError('Kamida bitta narx kiriting: soatiga, kuniga yoki haftasiga')
+      return setError(t('Kamida bitta narx kiriting: soatiga, kuniga yoki haftasiga'))
     }
     mutation.mutate({
       vehicleType,
@@ -171,12 +172,12 @@ function FormBody({ editing, onBack, onDone }) {
         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-soft text-brand-dark">
           <CheckCircle2 className="h-10 w-10" />
         </span>
-        <p className="mt-4 text-[22px] font-extrabold tracking-tight text-ink">E’lon moderatsiyaga yuborildi</p>
+        <p className="mt-4 text-[22px] font-extrabold tracking-tight text-ink">{t('E’lon moderatsiyaga yuborildi')}</p>
         <p className="mt-2 text-[14px] text-muted">
-          Operatorlarimiz tez orada tekshiradi. Tasdiqlangach, e’loningiz Skuter ijara bo‘limida chiqadi va sizga bildirishnoma keladi.
+          {t('Operatorlarimiz tez orada tekshiradi. Tasdiqlangach, e’loningiz Skuter ijara bo‘limida chiqadi va sizga bildirishnoma keladi.')}
         </p>
         <button type="button" onClick={onDone} className="mt-6 h-12 w-full max-w-[280px] rounded-full bg-ink text-[15px] font-bold text-white">
-          Mening e’lonlarim
+          {t('Mening e’lonlarim')}
         </button>
       </div>
     )
@@ -185,43 +186,43 @@ function FormBody({ editing, onBack, onDone }) {
   return (
     <form onSubmit={submit} className="relative flex h-full flex-col">
       <header className="flex items-center gap-3 border-b border-line px-4 pb-3 pt-4 lg:px-8 lg:pt-6">
-        <button type="button" onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas" aria-label="Orqaga">
+        <button type="button" onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas" aria-label={t('Orqaga')}>
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="min-w-0">
-          <p className="truncate text-[18px] font-extrabold tracking-tight text-ink">{editing ? 'E’lonni tahrirlash' : 'Ijaraga berish'}</p>
-          <p className="truncate text-[12px] text-muted">Bepul · moderatsiyadan so‘ng chiqadi</p>
+          <p className="truncate text-[18px] font-extrabold tracking-tight text-ink">{editing ? t('E’lonni tahrirlash') : t('Ijaraga berish')}</p>
+          <p className="truncate text-[12px] text-muted">{t('Bepul · moderatsiyadan so‘ng chiqadi')}</p>
         </div>
       </header>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-canvas px-4 pb-32 pt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:space-y-0 lg:px-8 lg:pt-6">
         {editing?.status === 'REJECTED' && editing.rejectionReason ? (
           <p className="rounded-[18px] bg-red-50 px-3.5 py-3 text-[13px] font-semibold text-red-600">
-            Rad etilish sababi: {editing.rejectionReason}
+            {t('Rad etilish sababi:')}{' '}{editing.rejectionReason}
           </p>
         ) : null}
 
-        <Card title="Rasmlar" hint={`${photos.length}/${MAX_PHOTOS} · birinchisi muqova bo‘ladi`}>
+        <Card title={t('Rasmlar')} hint={`${photos.length}/${MAX_PHOTOS} · birinchisi muqova bo‘ladi`}>
           <div className="grid grid-cols-3 gap-2">
             {photos.map((src, i) => (
               <div key={i} className="relative">
                 <img src={src} alt="" className="aspect-square w-full rounded-[16px] object-cover" />
                 {i === 0 ? (
-                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-ink/75 px-2 py-0.5 text-[10px] font-bold text-white">Muqova</span>
+                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-ink/75 px-2 py-0.5 text-[10px] font-bold text-white">{t('Muqova')}</span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setPhotos((list) => [list[i], ...list.filter((_, j) => j !== i)])}
                     className="absolute bottom-1.5 left-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-ink"
                   >
-                    Muqova qilish
+                    {t('Muqova qilish')}
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setPhotos((list) => list.filter((_, j) => j !== i))}
                   className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-white"
-                  aria-label="Rasmni olib tashlash"
+                  aria-label={t('Rasmni olib tashlash')}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -230,80 +231,80 @@ function FormBody({ editing, onBack, onDone }) {
             {photos.length < MAX_PHOTOS ? (
               <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-[16px] border-2 border-dashed border-brand/40 bg-brand-soft/50 text-[12px] font-bold text-brand-dark">
                 {imageBusy ? <LoaderCircle className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
-                {imageBusy ? 'Yuklanmoqda' : 'Rasm qo‘shish'}
+                {imageBusy ? t('Yuklanmoqda') : t('Rasm qo‘shish')}
                 <input type="file" accept="image/*" multiple className="hidden" onChange={onFiles} disabled={imageBusy} />
               </label>
             ) : null}
           </div>
         </Card>
 
-        <Card title="Transport">
+        <Card title={t('Transport')}>
           <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
-            {VEHICLE_TYPES.map((t) => (
+            {VEHICLE_TYPES.map((item) => (
               <button
-                key={t.id}
+                key={item.id}
                 type="button"
-                onClick={() => setVehicleType(t.id)}
+                onClick={() => setVehicleType(item.id)}
                 className={cn(
                   'flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold transition',
-                  vehicleType === t.id ? 'bg-ink text-white' : 'bg-canvas text-ink',
+                  vehicleType === item.id ? 'bg-ink text-white' : 'bg-canvas text-ink',
                 )}
               >
-                <t.icon className="h-4 w-4" /> {t.label}
+                <item.icon className="h-4 w-4" /> {t(item.label)}
               </button>
             ))}
           </div>
-          <Label text="Sarlavha">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className={INPUT} maxLength={100} placeholder="Masalan, Yadea G5 elektr skuter" />
+          <Label text={t('Sarlavha')}>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className={INPUT} maxLength={100} placeholder={t('Masalan, Yadea G5 elektr skuter')} />
           </Label>
           <div className="grid grid-cols-2 gap-2">
-            <Label text="Brend">
-              <input value={brand} onChange={(e) => setBrand(e.target.value)} className={INPUT} placeholder="Yadea" />
+            <Label text={t('Brend')}>
+              <input value={brand} onChange={(e) => setBrand(e.target.value)} className={INPUT} placeholder={t('Yadea')} />
             </Label>
-            <Label text="Model">
+            <Label text={t('Model')}>
               <input value={model} onChange={(e) => setModel(e.target.value)} className={INPUT} placeholder="G5" />
             </Label>
-            <Label text="Maks. tezlik, km/soat">
+            <Label text={t('Maks. tezlik, km/soat')}>
               <input value={maxSpeed} onChange={(e) => setMaxSpeed(e.target.value)} className={INPUT} inputMode="numeric" placeholder="45" />
             </Label>
-            <Label text="Bir zaryadda, km">
+            <Label text={t('Bir zaryadda, km')}>
               <input value={rangeKm} onChange={(e) => setRangeKm(e.target.value)} className={INPUT} inputMode="numeric" placeholder="60" />
             </Label>
           </div>
-          <Toggle checked={licenseRequired} onChange={setLicenseRequired} label="Haydovchilik guvohnomasi kerak" />
+          <Toggle checked={licenseRequired} onChange={setLicenseRequired} label={t('Haydovchilik guvohnomasi kerak')} />
         </Card>
 
-        <Card title="Narxlar" hint="so‘mda · kamida bittasini kiriting">
+        <Card title={t('Narxlar')} hint={t('so‘mda · kamida bittasini kiriting')}>
           <div className="grid grid-cols-3 gap-2">
-            <Label text="Soatiga">
+            <Label text={t('Soatiga')}>
               <input value={hour} onChange={(e) => setHour(e.target.value)} className={INPUT} inputMode="numeric" placeholder="25 000" />
             </Label>
-            <Label text="Kuniga">
+            <Label text={t('Kuniga')}>
               <input value={day} onChange={(e) => setDay(e.target.value)} className={INPUT} inputMode="numeric" placeholder="150 000" />
             </Label>
-            <Label text="Haftasiga">
+            <Label text={t('Haftasiga')}>
               <input value={week} onChange={(e) => setWeek(e.target.value)} className={INPUT} inputMode="numeric" placeholder="800 000" />
             </Label>
           </div>
-          <Label text="Zalog (qaytariladigan depozit)">
+          <Label text={t('Zalog (qaytariladigan depozit)')}>
             <input value={deposit} onChange={(e) => setDeposit(e.target.value)} className={INPUT} inputMode="numeric" placeholder="500 000" />
           </Label>
         </Card>
 
-        <Card title="Tavsif">
+        <Card title={t('Tavsif')}>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             maxLength={2000}
             className="w-full rounded-[16px] border border-line bg-white px-3.5 py-3 text-[15px] text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand/15"
-            placeholder="Holati, ijara shartlari, shlem/qulf bormi, yetkazib berasizmi…"
+            placeholder={t('Holati, ijara shartlari, shlem/qulf bormi, yetkazib berasizmi…')}
           />
         </Card>
 
-        <Card title="Joylashuv" hint="Xaritani bosing — e’lon Smart xaritada ham chiqadi">
-          <Label text="Manzil">
-            <input value={address} onChange={(e) => setAddress(e.target.value)} className={INPUT} placeholder="Chilonzor, 9-kvartal" />
+        <Card title={t('Joylashuv')} hint={t('Xaritani bosing — e’lon Smart xaritada ham chiqadi')}>
+          <Label text={t('Manzil')}>
+            <input value={address} onChange={(e) => setAddress(e.target.value)} className={INPUT} placeholder={t('Chilonzor, 9-kvartal')} />
           </Label>
           <div className="isolate h-[200px] overflow-hidden rounded-[18px] border border-line">
             <MapContainer
@@ -326,21 +327,21 @@ function FormBody({ editing, onBack, onDone }) {
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-[14px] bg-brand-soft text-[13px] font-bold text-brand-dark"
             >
               {locating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
-              Mening joylashuvim
+              {t('Mening joylashuvim')}
             </button>
             {point ? (
               <button type="button" onClick={() => setPoint(null)} className="h-11 rounded-[14px] bg-canvas px-4 text-[13px] font-bold text-muted">
-                Olib tashlash
+                {t('Olib tashlash')}
               </button>
             ) : null}
           </div>
         </Card>
 
-        <Card title="E’lon beruvchi">
+        <Card title={t('E’lon beruvchi')}>
           <div className="grid grid-cols-2 gap-2 rounded-[16px] bg-canvas p-1">
             {[
-              { id: 'PERSON', label: 'Shaxsiy', icon: UserRound },
-              { id: 'COMPANY', label: 'Tashkilot', icon: Store },
+              { id: 'PERSON', label: t('Shaxsiy'), icon: UserRound },
+              { id: 'COMPANY', label: t('Tashkilot'), icon: Store },
             ].map((o) => (
               <button
                 key={o.id}
@@ -351,20 +352,20 @@ function FormBody({ editing, onBack, onDone }) {
                   ownerType === o.id ? 'bg-white text-ink shadow-sm' : 'text-muted',
                 )}
               >
-                <o.icon className="h-4 w-4" /> {o.label}
+                <o.icon className="h-4 w-4" /> {t(o.label)}
               </button>
             ))}
           </div>
           {ownerType === 'COMPANY' ? (
-            <Label text="Tashkilot nomi">
-              <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={INPUT} placeholder="Masalan, ScootUz" />
+            <Label text={t('Tashkilot nomi')}>
+              <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={INPUT} placeholder={t('Masalan, ScootUz')} />
             </Label>
           ) : null}
-          <Label text="Ism">
-            <input value={contactName} onChange={(e) => setContactName(e.target.value)} className={INPUT} placeholder="Ismingiz" />
+          <Label text={t('Ism')}>
+            <input value={contactName} onChange={(e) => setContactName(e.target.value)} className={INPUT} placeholder={t('Ismingiz')} />
           </Label>
           <div className="grid grid-cols-2 gap-2">
-            <Label text="Telefon">
+            <Label text={t('Telefon')}>
               <input value={phone} onChange={(e) => setPhone(e.target.value)} className={INPUT} inputMode="tel" placeholder="+998 90 123 45 67" />
             </Label>
             <Label text="Telegram">
@@ -375,14 +376,14 @@ function FormBody({ editing, onBack, onDone }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 border-t border-line bg-white px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 lg:px-[max(32px,calc(50%-280px))]">
-        {error ? <p className="mb-2 text-center text-[13px] font-semibold text-red-500">{error}</p> : null}
+        {error ? <p className="mb-2 text-center text-[13px] font-semibold text-red-500">{t(error)}</p> : null}
         <button
           type="submit"
           disabled={mutation.isPending || imageBusy}
           className="flex h-13 w-full items-center justify-center gap-2 rounded-[18px] bg-brand text-[16px] font-extrabold text-white shadow-[0_8px_20px_rgba(0,199,212,0.35)] disabled:opacity-60"
         >
           {mutation.isPending ? <LoaderCircle className="h-5 w-5 animate-spin" /> : null}
-          {editing ? 'Saqlash va qayta yuborish' : 'Moderatsiyaga yuborish'}
+          {editing ? t('Saqlash va qayta yuborish') : t('Moderatsiyaga yuborish')}
         </button>
       </div>
     </form>
@@ -397,8 +398,8 @@ function PickPoint({ onPick }) {
 function FlyTo({ point }) {
   const map = useMap()
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 150)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => map.invalidateSize(), 150)
+    return () => clearTimeout(timer)
   }, [map])
   useEffect(() => {
     if (point) map.flyTo(point, Math.max(map.getZoom(), 16), { duration: 0.5 })
@@ -410,8 +411,8 @@ function Card({ title, hint, children }) {
   return (
     <section className="space-y-3 rounded-[24px] bg-white p-4">
       <div>
-        <h3 className="text-[16px] font-extrabold text-ink">{title}</h3>
-        {hint ? <p className="text-[12px] text-muted">{hint}</p> : null}
+        <h3 className="text-[16px] font-extrabold text-ink">{t(title)}</h3>
+        {hint ? <p className="text-[12px] text-muted">{t(hint)}</p> : null}
       </div>
       {children}
     </section>
@@ -421,7 +422,7 @@ function Card({ title, hint, children }) {
 function Label({ text: label, children }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-1 block text-[12px] font-semibold text-muted">{label}</span>
+      <span className="mb-1 block text-[12px] font-semibold text-muted">{t(label)}</span>
       {children}
     </label>
   )
@@ -430,7 +431,7 @@ function Label({ text: label, children }) {
 function Toggle({ checked, onChange, label }) {
   return (
     <button type="button" onClick={() => onChange(!checked)} className="flex w-full items-center justify-between gap-3 py-1 text-left">
-      <span className="text-[14px] font-semibold text-ink">{label}</span>
+      <span className="text-[14px] font-semibold text-ink">{t(label)}</span>
       <span className={cn('relative h-7 w-12 shrink-0 rounded-full transition', checked ? 'bg-brand' : 'bg-slate-300')}>
         <span className={cn('absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', checked ? 'left-6' : 'left-1')} />
       </span>

@@ -9,6 +9,7 @@ import { api, ApiError } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { ONLINE_PAYMENTS } from '../lib/features'
 import { SoonBadge } from '../components/ui/SoonBadge'
+import { t } from '../i18n'
 
 // Card rows come from the rider's own saved cards; these are the methods that need no stored card.
 const BASE_METHODS = [
@@ -41,7 +42,7 @@ export default function Payment() {
   const methods = [
     ...BASE_METHODS,
     ...cards.map((c) => ({ id: c.id, title: c.brand, subtitle: `•••• ${c.last4}` })),
-    { id: 'wallet', title: 'Hamyon', subtitle: 'Balansdan yechish' },
+    { id: 'wallet', title: t('Hamyon'), subtitle: t('Balansdan yechish') },
   ]
   // The server charges booking.totalPrice — show that, not a client-side guess.
   const price = booking?.totalPrice ?? booked?.price
@@ -53,7 +54,7 @@ export default function Payment() {
   const charge = useMutation({
     mutationFn: () => api.post('/payments/charge', { bookingId: booked.bookingId, methodId: paymentMethod }),
     onSuccess: () => navigate('/history'),
-    onError: (err) => setError(err instanceof ApiError ? err.message : 'To‘lov amalga oshmadi'),
+    onError: (err) => setError(err instanceof ApiError ? err.message : t('To‘lov amalga oshmadi')),
   })
 
   function onConfirm() {
@@ -67,8 +68,8 @@ export default function Payment() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <ScreenHeader title="To‘lov" />
-      <PageTitle title="To‘lov" subtitle="Qulay usulni tanlang va tasdiqlang" />
+      <ScreenHeader title={t('To‘lov')} />
+      <PageTitle title={t('To‘lov')} subtitle={t('Qulay usulni tanlang va tasdiqlang')} />
 
       <Card className="divide-y divide-line">
         {methods.map((item) => {
@@ -85,8 +86,8 @@ export default function Payment() {
               {item.title.slice(0, 2).toUpperCase()}
             </span>
             <span className="flex-1">
-              <span className="block text-sm font-semibold">{item.title}</span>
-              <span className="text-xs text-muted">{item.subtitle}</span>
+              <span className="block text-sm font-semibold">{t(item.title)}</span>
+              <span className="text-xs text-muted">{t(item.subtitle)}</span>
             </span>
             {soon ? <SoonBadge /> : paymentMethod === item.id ? <Check className="h-5 w-5 text-brand" /> : null}
           </button>
@@ -103,13 +104,13 @@ export default function Payment() {
 
       {waitingForDriver ? (
         <p className="mt-3 text-sm font-semibold text-amber-600">
-          Haydovchi bronni hali tasdiqlagani yo‘q. Tasdiqlagach, to‘lovni shu yerdan yakunlashingiz mumkin.
+          {t('Haydovchi bronni hali tasdiqlagani yo‘q. Tasdiqlagach, to‘lovni shu yerdan yakunlashingiz mumkin.')}
         </p>
       ) : null}
-      {error ? <p className="mt-3 text-sm font-semibold text-red-500">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm font-semibold text-red-500">{t(error)}</p> : null}
 
       <Button size="lg" className="mt-4 w-full" disabled={charge.isPending || !readyToPay} onClick={onConfirm}>
-        {charge.isPending ? 'Yuborilmoqda…' : waitingForDriver ? 'Haydovchi javobini kutmoqda…' : 'To‘lovni tasdiqlash'}
+        {charge.isPending ? t('Yuborilmoqda…') : waitingForDriver ? t('Haydovchi javobini kutmoqda…') : t('To‘lovni tasdiqlash')}
       </Button>
     </div>
   )

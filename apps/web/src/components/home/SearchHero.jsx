@@ -14,6 +14,7 @@ import {
   CarPicker,
   TimePicker,
 } from '../ui/SearchPickers'
+import { t } from '../../i18n'
 
 // Bir vaqtda faqat bitta variant render bo‘lishi kerak, aks holda ikkita picker oynasi ochiladi.
 function useMobileLayout() {
@@ -52,8 +53,8 @@ export function SearchHero() {
     <section className="relative overflow-visible rounded-2xl bg-gradient-to-br from-[#16b8a5] via-brand to-brand-dark p-4 text-white shadow-xl shadow-brand/25 lg:p-6">
       <div className="no-scrollbar flex gap-2 overflow-x-auto">
         {[
-          { id: 'passenger', label: 'Yo‘lovchi' },
-          { id: 'cargo', label: 'Yuk jo‘natish' },
+          { id: 'passenger', label: t('Yo‘lovchi') },
+          { id: 'cargo', label: t('Yuk jo‘natish') },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -66,7 +67,7 @@ export function SearchHero() {
               search.mode === tab.id ? 'bg-white text-brand' : 'bg-white/15 text-white'
             }`}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </div>
@@ -78,7 +79,7 @@ export function SearchHero() {
             <RegionPicker
               variant="row"
               icon={MapPin}
-              label="Qayerdan"
+              label={t('Qayerdan')}
               region={search.fromRegion}
               place={search.fromPlace}
               onChange={({ region, place, label }) => {
@@ -93,7 +94,7 @@ export function SearchHero() {
             <RegionPicker
               variant="row"
               icon={Flag}
-              label="Qayerga"
+              label={t('Qayerga')}
               region={search.toRegion}
               place={search.toPlace}
               onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
@@ -107,7 +108,7 @@ export function SearchHero() {
               type="button"
               onClick={swap}
               className="absolute left-1/2 top-1/2 z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-brand text-white shadow-md"
-              aria-label="Almashtirish"
+              aria-label={t('Almashtirish')}
             >
               <ArrowDownUp className="h-4 w-4" />
             </button>
@@ -115,7 +116,7 @@ export function SearchHero() {
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] md:items-end">
             <RegionPicker
-              label="Qayerdan"
+              label={t('Qayerdan')}
               region={search.fromRegion}
               place={search.fromPlace}
               onChange={({ region, place, label }) => {
@@ -131,13 +132,13 @@ export function SearchHero() {
                 type="button"
                 onClick={swap}
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-brand shadow-md"
-                aria-label="Almashtirish"
+                aria-label={t('Almashtirish')}
               >
                 <ArrowDownUp className="h-4 w-4 rotate-90" />
               </button>
             </div>
             <RegionPicker
-              label="Qayerga"
+              label={t('Qayerga')}
               region={search.toRegion}
               place={search.toPlace}
               onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
@@ -220,7 +221,7 @@ export function SearchHero() {
           />
         </div>
         <Button className="mb-2.5 mt-1 h-12 w-full rounded-2xl text-[15px] font-extrabold" onClick={() => navigate('/results')}>
-          Safar topish
+          {t('Safar topish')}
         </Button>
       </div>
     </section>

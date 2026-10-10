@@ -4,6 +4,7 @@ import { formatSom } from '../../lib/utils'
 import { useApp } from '../../context/AppContext'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Button'
+import { t } from '../../i18n'
 
 export function PopularTrips({ trips }) {
   const { favoriteIds, toggleFavorite } = useApp()
@@ -12,9 +13,9 @@ export function PopularTrips({ trips }) {
   return (
     <section>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-bold">Mashhur yo‘nalishlar</h2>
+        <h2 className="text-lg font-bold">{t('Mashhur yo‘nalishlar')}</h2>
         <Link to="/results" className="text-sm font-semibold text-brand">
-          Barchasi
+          {t('Barchasi')}
         </Link>
       </div>
       <div className="space-y-3">
@@ -41,7 +42,7 @@ export function PopularTrips({ trips }) {
                   <span>
                     {trip.date}, {trip.time} – {trip.arrive}
                   </span>
-                  <span>{trip.seats} ta joy</span>
+                  <span>{t('{0} ta joy', trip.seats)}</span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" /> {trip.car}
                   </span>
@@ -50,16 +51,16 @@ export function PopularTrips({ trips }) {
               <div className="flex items-center gap-3">
                 <img src={trip.driver.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
                 <div>
-                  <p className="text-sm font-semibold">{trip.driver.name}</p>
+                  <p className="text-sm font-semibold">{t(trip.driver.name)}</p>
                   <p className="flex items-center gap-1 text-xs text-muted">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'}
+                    {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : t('Yangi')}
                   </p>
                 </div>
               </div>
               <p className="text-lg font-extrabold text-brand lg:w-40 lg:text-right">{formatSom(trip.price)}</p>
               <div className="flex items-center gap-2">
-                <Button onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`) }}>Joy band qilish</Button>
+                <Button onClick={(e) => { e.stopPropagation(); navigate(`/trip/${trip.id}`) }}>{t('Joy band qilish')}</Button>
                 <button
                   type="button"
                   onClick={(e) => {

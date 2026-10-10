@@ -1,3 +1,4 @@
+import { t } from '../../i18n'
 /* Yangilik matni uchun oddiy belgilash (admin muharriri bilan bir xil qoidalar):
    bo‘sh qator — yangi blok · "## " — sarlavha · "- " — ro‘yxat · "> " — iqtibos · **qalin**.
    HTML ishlatilmaydi — hammasi React elementlari, shuning uchun xavfsiz. */
@@ -37,7 +38,7 @@ export function NewsBody({ text }) {
         if (b.type === 'h')
           return (
             <h2 key={i} className="pt-4 text-[24px] font-extrabold leading-tight tracking-tight text-ink sm:text-[28px] 2xl:text-[32px]">
-              <Inline text={b.text} />
+              <Inline text={t(b.text)} />
             </h2>
           )
         if (b.type === 'ul')
@@ -56,12 +57,12 @@ export function NewsBody({ text }) {
         if (b.type === 'quote')
           return (
             <blockquote key={i} className="whitespace-pre-line rounded-r-2xl border-l-4 border-brand bg-brand-soft/60 px-6 py-4 text-[18px] font-medium italic text-ink sm:text-[19px]">
-              <Inline text={b.text} />
+              <Inline text={t(b.text)} />
             </blockquote>
           )
         return (
           <p key={i} className="whitespace-pre-line">
-            <Inline text={b.text} />
+            <Inline text={t(b.text)} />
           </p>
         )
       })}

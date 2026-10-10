@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Car, MapPin, Smile, Star, Users } from 'lucide-react'
 import { api } from '../../lib/api'
+import { t } from '../../i18n'
 
 /* ── Hududlar va ularning ramziy binolari (stillashtirilgan SVG belgilar) ──────────────────
    x/y — tarmoq xaritasidagi joyi (%), taxminan O‘zbekiston xaritasiga mos: g‘arbdan sharqqa. */
@@ -91,9 +92,9 @@ function CountUp({ value, run, suffix = '' }) {
     const start = performance.now()
     const dur = 1600
     const tick = (now) => {
-      const t = Math.min(1, (now - start) / dur)
-      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))))
-      if (t < 1) frame = requestAnimationFrame(tick)
+      const progress = Math.min(1, (now - start) / dur)
+      setShown(Math.round(value * (1 - Math.pow(1 - progress, 3))))
+      if (progress < 1) frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
@@ -101,7 +102,7 @@ function CountUp({ value, run, suffix = '' }) {
   return (
     <>
       {value == null ? '—' : shown.toLocaleString('uz-UZ').replace(/,/g, ' ')}
-      {suffix}
+      {t(suffix)}
     </>
   )
 }
@@ -136,8 +137,8 @@ function buildTable(d) {
   return { pts, len }
 }
 
-function sample(pts, t) {
-  const f = Math.min(SAMPLES, Math.max(0, t * SAMPLES))
+function sample(pts, pos) {
+  const f = Math.min(SAMPLES, Math.max(0, pos * SAMPLES))
   const i = Math.min(SAMPLES - 1, Math.floor(f))
   const k = f - i
   return [pts[i * 2] + (pts[i * 2 + 2] - pts[i * 2]) * k, pts[i * 2 + 1] + (pts[i * 2 + 3] - pts[i * 2 + 1]) * k]
@@ -178,10 +179,10 @@ function TaxiMovers({ containerRef, active }) {
         const car = carRefs.current[k]
         if (!car || !w) return
         const { pts, len } = tables[k]
-        const t = ((clock / 1000) * m.speed / len + m.offset) % 1
-        const [x, y] = sample(pts, t)
-        const [ax, ay] = sample(pts, Math.max(0, t - 0.02))
-        const [bx, by] = sample(pts, Math.min(1, t + 0.02))
+        const pos = ((clock / 1000) * m.speed / len + m.offset) % 1
+        const [x, y] = sample(pts, pos)
+        const [ax, ay] = sample(pts, Math.max(0, pos - 0.02))
+        const [bx, by] = sample(pts, Math.min(1, pos + 0.02))
         const target = Math.atan2((by - ay) * sy, (bx - ax) * sx)
         // Burchakni yumshatish (eng qisqa yo‘l bilan)
         let cur = headings.current[k] ?? target
@@ -195,7 +196,7 @@ function TaxiMovers({ containerRef, active }) {
           flip = -1
           angle = angle > 0 ? angle - 180 : angle + 180
         }
-        const opacity = smoothstep(t / 0.08) * smoothstep((1 - t) / 0.08)
+        const opacity = smoothstep(pos / 0.08) * smoothstep((1 - pos) / 0.08)
         car.style.opacity = String(opacity)
         car.style.transform = `translate3d(${x * sx}px, ${y * sy}px, 0) translate(-50%, -78%) rotate(${angle}deg) scaleX(${flip})`
       })
@@ -245,14 +246,14 @@ export function Regions() {
   }, [])
 
   const cards = [
-    { icon: MapPin, value: stats?.regions ?? REGIONS.length, label: 'hudud', hint: 'Qoraqalpog‘istondan Andijongacha' },
-    { icon: Users, value: stats?.users, label: 'foydalanuvchi', hint: 'TaxiLine’da ro‘yxatdan o‘tgan' },
-    { icon: Car, value: stats?.drivers, label: 'tasdiqlangan haydovchi', hint: 'Hujjatlari tekshirilgan' },
+    { icon: MapPin, value: stats?.regions ?? REGIONS.length, label: 'hudud', hint: t('Qoraqalpog‘istondan Andijongacha') },
+    { icon: Users, value: stats?.users, label: 'foydalanuvchi', hint: t('TaxiLine’da ro‘yxatdan o‘tgan') },
+    { icon: Car, value: stats?.drivers, label: t('tasdiqlangan haydovchi'), hint: t('Hujjatlari tekshirilgan') },
     {
       icon: Smile,
       value: stats?.happyClients,
-      label: 'mamnun mijoz',
-      hint: stats?.avgRating ? `O‘rtacha baho ${stats.avgRating} ★` : 'Haydovchini 4–5 yulduzga baholagan',
+      label: t('mamnun mijoz'),
+      hint: stats?.avgRating ? t('O‘rtacha baho {0} ★', stats.avgRating) : t('Haydovchini 4–5 yulduzga baholagan'),
     },
   ]
 
@@ -260,13 +261,13 @@ export function Regions() {
     <section ref={ref} id="regions" className="relative scroll-mt-24 overflow-hidden pb-20 pt-4">
       <div className="mx-auto max-w-[1600px] px-5 text-center sm:px-6">
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3.5 py-1.5 text-[13px] font-bold text-brand-dark">
-          <MapPin className="h-4 w-4" /> Butun O‘zbekiston bo‘ylab
+          <MapPin className="h-4 w-4" /> {t('Butun O‘zbekiston bo‘ylab')}
         </span>
         <h2 className="mx-auto mt-4 max-w-[760px] text-[34px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[46px] 2xl:max-w-[960px] 2xl:text-[60px]">
-          TaxiLine barcha viloyatlarni bir-biriga bog‘laydi
+          {t('TaxiLine barcha viloyatlarni bir-biriga bog‘laydi')}
         </h2>
         <p className="mx-auto mt-4 max-w-[600px] text-[16px] leading-[1.6] text-ink/65 sm:text-[18px] 2xl:max-w-[720px] 2xl:text-[21px]">
-          Toshkentdan Xivagacha, Termizdan Andijongacha — har bir yo‘nalishda ishonchli haydovchilar.
+          {t('Toshkentdan Xivagacha, Termizdan Andijongacha — har bir yo‘nalishda ishonchli haydovchilar.')}
         </p>
       </div>
 
@@ -315,8 +316,8 @@ export function Regions() {
                 {r.hub ? <span className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-brand sm:h-4 sm:w-4" /> : null}
               </div>
               <p className="pointer-events-none absolute left-1/2 top-full mt-1.5 hidden -translate-x-1/2 whitespace-nowrap text-center text-[12px] font-bold text-ink sm:block 2xl:text-[14px]">
-                {r.name}
-                <span className="block text-[10.5px] font-medium text-ink/45 opacity-0 transition group-hover:opacity-100 2xl:text-[12px]">{r.landmark}</span>
+                {t(r.name)}
+                <span className="block text-[10.5px] font-medium text-ink/45 opacity-0 transition group-hover:opacity-100 2xl:text-[12px]">{t(r.landmark)}</span>
               </p>
             </div>
           ))}
@@ -335,7 +336,7 @@ export function Regions() {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-ink">
                   <Car className="h-3.5 w-3.5" />
                 </span>
-                {c.label}
+                {t(c.label)}
               </div>
             )
           })}
@@ -358,9 +359,9 @@ export function Regions() {
             <p className="relative mt-5 text-[34px] font-extrabold leading-none tracking-tight sm:text-[46px] 2xl:text-[56px]">
               <CountUp value={value} run={inView} />
             </p>
-            <p className={`relative mt-2 text-[14px] font-bold sm:text-[16px] 2xl:text-[18px] ${i === 0 ? 'text-white' : 'text-ink'}`}>{label}</p>
+            <p className={`relative mt-2 text-[14px] font-bold sm:text-[16px] 2xl:text-[18px] ${i === 0 ? 'text-white' : 'text-ink'}`}>{t(label)}</p>
             <p className={`relative mt-1 text-[12px] leading-snug sm:text-[13px] 2xl:text-[15px] ${i === 0 ? 'text-white/60' : 'text-ink/55'}`}>
-              {hint}
+              {t(hint)}
             </p>
           </div>
         ))}
@@ -368,7 +369,7 @@ export function Regions() {
 
       {stats?.avgRating ? (
         <p className="mt-6 flex items-center justify-center gap-1.5 text-[14px] font-semibold text-ink/60">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> Mijozlarimizning o‘rtacha bahosi: {stats.avgRating} / 5
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {t('Mijozlarimizning o‘rtacha bahosi:')}{' '}{stats.avgRating} / 5
         </p>
       ) : null}
     </section>

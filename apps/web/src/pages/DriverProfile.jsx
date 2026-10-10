@@ -6,6 +6,7 @@ import { DriverAdCard, DriverAvatar, memberSinceLabel, telHref, useMessageDriver
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { formatPhoneUz } from '../lib/utils'
+import { t } from '../i18n'
 
 // A driver's public profile in the passenger app: who they are, their car, live ads and what
 // passengers said — with call / chat right at the top.
@@ -29,8 +30,8 @@ export default function DriverProfile() {
   if (isError || !data) {
     return (
       <div className="mx-auto max-w-4xl">
-        <ScreenHeader title="Haydovchi" />
-        <p className="py-16 text-center text-sm font-semibold text-muted">Haydovchi topilmadi yoki profili yopilgan.</p>
+        <ScreenHeader title={t('Haydovchi')} />
+        <p className="py-16 text-center text-sm font-semibold text-muted">{t('Haydovchi topilmadi yoki profili yopilgan.')}</p>
       </div>
     )
   }
@@ -38,14 +39,14 @@ export default function DriverProfile() {
   const { driver, offers, reviews } = data
   const phone = driver.phone
   const stats = [
-    { icon: Star, value: driver.ratingCount ? driver.ratingAvg.toFixed(1) : '—', label: `${driver.ratingCount} baho` },
-    { icon: Route, value: String(driver.tripsCount), label: 'safar' },
-    { icon: CalendarDays, value: memberSinceLabel(driver.memberSince), label: 'dan beri' },
+    { icon: Star, value: driver.ratingCount ? driver.ratingAvg.toFixed(1) : '—', label: t('{0} baho', driver.ratingCount) },
+    { icon: Route, value: String(driver.tripsCount), label: t('safar', driver.tripsCount) },
+    { icon: CalendarDays, value: memberSinceLabel(driver.memberSince), label: t('dan beri') },
   ]
 
   return (
     <div className="mx-auto max-w-4xl">
-      <ScreenHeader title="Haydovchi profili" />
+      <ScreenHeader title={t('Haydovchi profili')} />
 
       <section className="overflow-hidden rounded-[26px] bg-white shadow-[0_10px_30px_-18px_rgba(15,29,42,0.35)]">
         <div className="relative h-[96px] overflow-hidden bg-gradient-to-br from-brand to-brand-dark">
@@ -59,10 +60,10 @@ export default function DriverProfile() {
             <DriverAvatar driver={driver} size="lg" />
             <div className="min-w-0 pb-1">
               <p className="flex items-center gap-1.5">
-                <span className="truncate text-[20px] font-extrabold text-ink">{driver.name}</span>
+                <span className="truncate text-[20px] font-extrabold text-ink">{t(driver.name)}</span>
                 <BadgeCheck className="h-5 w-5 shrink-0 text-brand" />
               </p>
-              <p className="text-[13px] font-semibold text-muted">{driver.online ? 'Hozir onlayn' : 'Tasdiqlangan haydovchi'}</p>
+              <p className="text-[13px] font-semibold text-muted">{driver.online ? t('Hozir onlayn') : t('Tasdiqlangan haydovchi')}</p>
             </div>
           </div>
 
@@ -71,21 +72,21 @@ export default function DriverProfile() {
               <div key={s.label} className="rounded-2xl bg-canvas px-2 py-3 text-center">
                 <s.icon className="mx-auto h-4 w-4 text-brand" />
                 <p className="mt-1 truncate text-[16px] font-extrabold text-ink">{s.value}</p>
-                <p className="text-[11px] font-semibold text-muted">{s.label}</p>
+                <p className="text-[11px] font-semibold text-muted">{t(s.label)}</p>
               </div>
             ))}
           </div>
 
           {authUser?.id === driver.userId ? (
-            <p className="mt-4 rounded-2xl bg-canvas px-3 py-3 text-center text-[13px] font-bold text-ink/70">Bu sizning profilingiz — yo‘lovchilar sizni shunday ko‘radi</p>
+            <p className="mt-4 rounded-2xl bg-canvas px-3 py-3 text-center text-[13px] font-bold text-ink/70">{t('Bu sizning profilingiz — yo‘lovchilar sizni shunday ko‘radi')}</p>
           ) : (
           <div className="mt-4 grid grid-cols-2 gap-2">
             {phone ? (
               <a href={telHref(phone)} className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-500 text-[14px] font-extrabold text-white shadow-sm shadow-emerald-500/30 transition hover:bg-emerald-600">
-                <Phone className="h-4 w-4" /> Qo‘ng‘iroq
+                <Phone className="h-4 w-4" /> {t('Qo‘ng‘iroq')}
               </a>
             ) : (
-              <span className="flex h-12 items-center justify-center rounded-2xl bg-canvas text-[13px] font-semibold text-muted">Raqam yo‘q</span>
+              <span className="flex h-12 items-center justify-center rounded-2xl bg-canvas text-[13px] font-semibold text-muted">{t('Raqam yo‘q')}</span>
             )}
             <button
               type="button"
@@ -93,12 +94,12 @@ export default function DriverProfile() {
               disabled={busyId === driver.userId}
               className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand text-[14px] font-extrabold text-white shadow-sm shadow-brand/30 transition hover:bg-brand-dark disabled:opacity-60"
             >
-              <MessageCircle className="h-4 w-4" /> {busyId === driver.userId ? 'Ochilmoqda…' : 'Yozish'}
+              <MessageCircle className="h-4 w-4" /> {busyId === driver.userId ? t('Ochilmoqda…') : t('Yozish')}
             </button>
           </div>
           )}
           {phone ? <p className="mt-2 text-center text-[12px] font-semibold text-muted">{formatPhoneUz(phone)}</p> : null}
-          {error ? <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-center text-sm font-semibold text-red-600">{error}</p> : null}
+          {error ? <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-center text-sm font-semibold text-red-600">{t(error)}</p> : null}
         </div>
       </section>
 
@@ -111,7 +112,7 @@ export default function DriverProfile() {
           </span>
         )}
         <div className="min-w-0">
-          <p className="text-[12px] font-bold uppercase tracking-wider text-muted">Avtomobil</p>
+          <p className="text-[12px] font-bold uppercase tracking-wider text-muted">{t('Avtomobil')}</p>
           <p className="truncate text-[16px] font-extrabold text-ink">{driver.carModel}</p>
           <p className="mt-0.5 inline-block rounded-md border border-ink/15 bg-canvas px-2 py-0.5 text-[12px] font-extrabold uppercase tracking-wider text-ink">{driver.plate}</p>
         </div>
@@ -119,7 +120,7 @@ export default function DriverProfile() {
 
       <section className="mt-5">
         <h2 className="mb-3 px-1 text-[17px] font-extrabold text-ink">
-          Faol e’lonlar <span className="text-muted">· {offers.length}</span>
+          {t('Faol e’lonlar')}{' '}<span className="text-muted">· {offers.length}</span>
         </h2>
         {offers.length ? (
           <div className="grid gap-3 lg:grid-cols-2">
@@ -128,13 +129,13 @@ export default function DriverProfile() {
             ))}
           </div>
         ) : (
-          <p className="rounded-[22px] bg-white px-4 py-8 text-center text-sm text-muted">Hozir faol e’lon yo‘q. Haydovchiga yozib, kerakli yo‘nalishni so‘rashingiz mumkin.</p>
+          <p className="rounded-[22px] bg-white px-4 py-8 text-center text-sm text-muted">{t('Hozir faol e’lon yo‘q. Haydovchiga yozib, kerakli yo‘nalishni so‘rashingiz mumkin.')}</p>
         )}
       </section>
 
       <section className="mt-5 pb-6">
         <h2 className="mb-3 px-1 text-[17px] font-extrabold text-ink">
-          Yo‘lovchilar fikri <span className="text-muted">· {reviews.length}</span>
+          {t('Yo‘lovchilar fikri')}{' '}<span className="text-muted">· {reviews.length}</span>
         </h2>
         {reviews.length ? (
           <div className="space-y-2.5">
@@ -156,7 +157,7 @@ export default function DriverProfile() {
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {r.tags.map((tag) => (
                       <span key={tag} className="rounded-full bg-canvas px-2.5 py-1 text-[11px] font-semibold text-ink/70">
-                        {tag}
+                        {t(tag)}
                       </span>
                     ))}
                   </div>
@@ -165,7 +166,7 @@ export default function DriverProfile() {
             ))}
           </div>
         ) : (
-          <p className="rounded-[22px] bg-white px-4 py-8 text-center text-sm text-muted">Hali baho qoldirilmagan.</p>
+          <p className="rounded-[22px] bg-white px-4 py-8 text-center text-sm text-muted">{t('Hali baho qoldirilmagan.')}</p>
         )}
       </section>
     </div>

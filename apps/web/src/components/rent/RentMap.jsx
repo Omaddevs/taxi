@@ -8,6 +8,7 @@ import { PlacesMap } from '../places/PlacesMap'
 import { PhotoRow, PlaceSheet, PriceGrid } from '../places/PlaceSheet'
 import { Cover } from './shared'
 import { mainPrice, ownerName, som, useRentals } from './rentData'
+import { t } from '../../i18n'
 
 const LISTING_COLOR = '#1a2b3c'
 
@@ -40,23 +41,23 @@ export function RentMap({ onBack, onOpenListing }) {
   return (
     <PlacesMap
       fill
-      title="Skuter ijara xaritasi"
-      hint="Ijara nuqtalari va e’lonlar"
+      title={t('Skuter ijara xaritasi')}
+      hint={t('Ijara nuqtalari va e’lonlar')}
       art="/home/scooter-rent.webp"
       filters={[
-        { id: 'all', label: 'Barchasi' },
-        { id: 'point', label: 'Ijara nuqtalari', color: RENT_SCOOTER_COLOR },
-        { id: 'listing', label: 'E’lonlar', color: LISTING_COLOR },
+        { id: 'all', label: t('Barchasi') },
+        { id: 'point', label: t('Ijara nuqtalari'), color: RENT_SCOOTER_COLOR },
+        { id: 'listing', label: t('E’lonlar'), color: LISTING_COLOR },
       ]}
       items={items}
       filterMatch={(p, filter) => p.kind === filter}
       pinColor={(p) => (p.kind === 'point' ? RENT_SCOOTER_COLOR : LISTING_COLOR)}
       mapLabel={(p) => (p.kind === 'point' ? p.brand || p.name : priceLabel(p) || ownerName(p))}
       listMeta={(p) => (p.kind === 'listing' ? priceLabel(p) : p.hours || '')}
-      emptyText="Hozircha xaritada ijara joylari yo‘q"
+      emptyText={t('Hozircha xaritada ijara joylari yo‘q')}
       onBack={onBack}
       renderDetail={(p, h) =>
-        p.kind === 'point' ? <PointDetail place={p} {...h} /> : <ListingPreview listing={p} onOpen={() => onOpenListing(p.id)} />
+        p.kind === 'point' ? <PointDetail place={t(p)} {...h} /> : <ListingPreview listing={p} onOpen={() => onOpenListing(p.id)} />
       }
     />
   )
@@ -69,12 +70,12 @@ function priceLabel(l) {
 
 function PointDetail({ place, onClose, onShare }) {
   return (
-    <PlaceSheet place={place} onClose={onClose} onShare={onShare}>
+    <PlaceSheet place={t(place)} onClose={onClose} onShare={onShare}>
       <span className="inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold text-white" style={{ background: RENT_SCOOTER_COLOR }}>
-        Ijara nuqtasi
+        {t('Ijara nuqtasi')}
       </span>
       <PhotoRow photos={place.photos} />
-      {place.description ? <p className="mt-3 whitespace-pre-line text-sm text-ink">{place.description}</p> : null}
+      {place.description ? <p className="mt-3 whitespace-pre-line text-sm text-ink">{t(place.description)}</p> : null}
       <PriceGrid items={place.prices} />
     </PlaceSheet>
   )
@@ -87,11 +88,11 @@ function ListingPreview({ listing, onOpen }) {
     <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 text-left">
       <Cover src={listing.cover} className="h-24 w-24 shrink-0 rounded-[20px]" />
       <span className="min-w-0 flex-1">
-        {type ? <span className="text-[11px] font-bold uppercase tracking-wide text-brand-dark">{type.label}</span> : null}
-        <span className="mt-0.5 line-clamp-2 block text-[16px] font-extrabold leading-snug text-ink">{listing.title}</span>
+        {type ? <span className="text-[11px] font-bold uppercase tracking-wide text-brand-dark">{t(type.label)}</span> : null}
+        <span className="mt-0.5 line-clamp-2 block text-[16px] font-extrabold leading-snug text-ink">{t(listing.title)}</span>
         {price ? (
           <span className="mt-1 block text-[15px] font-extrabold text-ink">
-            {som(price.amount)} <span className="text-[12px] font-bold text-muted">so‘m/{price.unit}</span>
+            {som(price.amount)} <span className="text-[12px] font-bold text-muted">{t('so‘m/')}{t(price.unit)}</span>
           </span>
         ) : null}
         <span className="mt-1 block truncate text-[12px] text-muted">{ownerName(listing)}</span>

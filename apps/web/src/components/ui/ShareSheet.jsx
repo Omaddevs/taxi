@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Copy, MessageSquare, Send, Share2, X } from 'lucide-react'
+import { t } from '../../i18n'
 
 function ShareSheet({ title, text, url, onClose }) {
   const [copied, setCopied] = useState(false)
@@ -35,19 +36,19 @@ function ShareSheet({ title, text, url, onClose }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[11000]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-extrabold">Ulashish</p>
-            <p className="truncate text-xs text-muted">{title}</p>
+            <p className="truncate text-base font-extrabold">{t('Ulashish')}</p>
+            <p className="truncate text-xs text-muted">{t(title)}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-2xl bg-canvas"
-            aria-label="Yopish"
+            aria-label={t('Yopish')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -65,7 +66,7 @@ function ShareSheet({ title, text, url, onClose }) {
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft text-brand">
                 <app.icon className="h-4 w-4" />
               </span>
-              {app.label}
+              {t(app.label)}
             </a>
           ))}
           <button
@@ -80,7 +81,7 @@ function ShareSheet({ title, text, url, onClose }) {
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </span>
-            {copied ? 'Nusxalandi' : 'Nusxalash'}
+            {copied ? t('Nusxalandi') : t('Nusxalash')}
           </button>
         </div>
 

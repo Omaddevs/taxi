@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext'
 import { PlateInput, isValidPlateUz } from '../components/ui/PlateInput'
 import { api, ApiError } from '../lib/api'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
+import { t } from '../i18n'
 
 // Landing sahifasidagi hero bilan bir xil vizual til: kulrang + brend panel, katta "T"/"7" shakllari
 // va pastda qorong‘i "qanday ishlaydi" bloki.
@@ -32,7 +33,7 @@ function CarImage({ className = '' }) {
       <source type="image/webp" srcSet="/landing/taxi-car-sm.webp 520w, /landing/taxi-car.webp 1400w" sizes="(min-width: 1024px) 560px, 100vw" />
       <img
         src="/landing/taxi-car.png"
-        alt="TaxiLine avtomobili"
+        alt={t('TaxiLine avtomobili')}
         width={2017}
         height={694}
         className={`select-none ${className}`}
@@ -58,7 +59,7 @@ export default function BecomeDriver() {
   const submit = useMutation({
     mutationFn: () => api.post('/drivers/applications', { ...form, phone: toE164Uz(form.phone) }),
     onSuccess: () => navigate('/driver'),
-    onError: (err) => setError(err instanceof ApiError ? err.message : 'Ariza yuborilmadi'),
+    onError: (err) => setError(err instanceof ApiError ? err.message : t('Ariza yuborilmadi')),
   })
 
   function update(field) {
@@ -94,13 +95,13 @@ export default function BecomeDriver() {
             </svg>
 
             <span className="relative inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] text-brand-dark shadow-sm">
-              <Car className="h-4 w-4" /> Haydovchilar uchun
+              <Car className="h-4 w-4" /> {t('Haydovchilar uchun')}
             </span>
 
             <h1 className="relative mt-6 text-[36px] font-extrabold leading-[1.06] tracking-tight text-ink sm:text-[48px] lg:mt-10 lg:text-[50px] xl:text-[58px]">
-              TaxiLine bilan
+              {t('TaxiLine bilan')}
               <br />
-              daromad qiling
+              {t('daromad qiling')}
             </h1>
 
             <ul className="relative mt-6 space-y-2.5">
@@ -109,7 +110,7 @@ export default function BecomeDriver() {
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-dark shadow-sm">
                     <Icon className="h-[18px] w-[18px]" />
                   </span>
-                  {text}
+                  {t(text)}
                 </li>
               ))}
             </ul>
@@ -131,10 +132,10 @@ export default function BecomeDriver() {
             </svg>
 
             <h2 className="relative text-[30px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[40px] lg:mt-6 lg:text-[36px] xl:text-[42px]">
-              Ariza qoldiring
+              {t('Ariza qoldiring')}
             </h2>
             <p className="relative mt-3 max-w-[420px] text-[15px] leading-[1.5] text-ink/85 sm:text-[17px]">
-              Ma’lumotlaringizni yuboring — operator siz bilan bog‘lanadi.
+              {t('Ma’lumotlaringizni yuboring — operator siz bilan bog‘lanadi.')}
             </p>
 
             <form onSubmit={onSubmit} className="relative mt-7 max-w-[440px] space-y-3">
@@ -143,16 +144,16 @@ export default function BecomeDriver() {
                 <input
                   value={form.fullName}
                   onChange={update('fullName')}
-                  placeholder="Ism familiya"
+                  placeholder={t('Ism familiya')}
                   autoComplete="name"
-                  aria-label="Ism familiya"
+                  aria-label={t('Ism familiya')}
                   className={INPUT}
                 />
               </label>
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Jinsingiz">
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('Jinsingiz')}>
                 {[
-                  { id: 'MALE', label: 'Erkak', icon: '👨' },
-                  { id: 'FEMALE', label: 'Ayol', icon: '👩' },
+                  { id: 'MALE', label: t('Erkak'), icon: '👨' },
+                  { id: 'FEMALE', label: t('Ayol'), icon: '👩' },
                 ].map((g) => (
                   <button
                     key={g.id}
@@ -164,13 +165,13 @@ export default function BecomeDriver() {
                       form.gender === g.id ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-white/80'
                     }`}
                   >
-                    <span aria-hidden>{g.icon}</span> {g.label}
+                    <span aria-hidden>{g.icon}</span> {t(g.label)}
                   </button>
                 ))}
               </div>
               {form.gender === 'FEMALE' ? (
                 <p className="rounded-2xl bg-white/80 px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
-                  🌸 «Ayollar uchun taxi» buyurtmalari avval ayol haydovchilarga keladi.
+                  {t('🌸 «Ayollar uchun taxi» buyurtmalari avval ayol haydovchilarga keladi.')}
                 </p>
               ) : null}
               <label className={FIELD}>
@@ -178,12 +179,12 @@ export default function BecomeDriver() {
                 <input
                   value={maskLocalPhoneUz(form.phone)}
                   onChange={(e) => setForm((f) => ({ ...f, phone: maskPhoneUz(e.target.value) }))}
-                  placeholder="Telefon raqam"
+                  placeholder={t('Telefon raqam')}
                   type="tel"
                   inputMode="numeric"
                   autoComplete="tel"
                   maxLength={12}
-                  aria-label="Telefon raqam"
+                  aria-label={t('Telefon raqam')}
                   className={`${INPUT} tracking-wide placeholder:tracking-normal`}
                 />
               </label>
@@ -192,19 +193,19 @@ export default function BecomeDriver() {
                 <input
                   value={form.carModel}
                   onChange={update('carModel')}
-                  placeholder="Avtomobil (masalan, Chevrolet Cobalt)"
-                  aria-label="Avtomobil"
+                  placeholder={t('Avtomobil (masalan, Chevrolet Cobalt)')}
+                  aria-label={t('Avtomobil')}
                   className={INPUT}
                 />
               </label>
               <div className="pt-1">
-                <p className="mb-2 pl-1 text-[13px] font-bold text-ink/80">Davlat raqami</p>
+                <p className="mb-2 pl-1 text-[13px] font-bold text-ink/80">{t('Davlat raqami')}</p>
                 <PlateInput value={form.plate} onChange={(plate) => setForm((f) => ({ ...f, plate }))} />
               </div>
 
               {error ? (
                 <p role="alert" className="rounded-2xl bg-white/90 px-4 py-2.5 text-[13px] font-semibold text-danger">
-                  {error}
+                  {t(error)}
                 </p>
               ) : null}
 
@@ -214,7 +215,7 @@ export default function BecomeDriver() {
                 className="spin-border flex h-12 w-full items-center justify-center gap-2 rounded-full bg-ink px-8 text-[14px] font-bold uppercase tracking-[0.03em] text-white shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {submit.isPending ? 'Yuborilmoqda…' : 'Ariza qoldirish'}
+                {submit.isPending ? t('Yuborilmoqda…') : t('Ariza qoldirish')}
               </button>
             </form>
           </div>
@@ -228,9 +229,9 @@ export default function BecomeDriver() {
 
           <div className="px-5 pb-8 pt-12 sm:px-10 sm:pb-10 sm:pt-16 lg:px-12 lg:pb-14 lg:pt-24">
             <h2 className="text-[28px] font-extrabold leading-[1.12] tracking-tight text-white sm:text-[38px] xl:text-[44px]">
-              Qanday ishlaydi
+              {t('Qanday ishlaydi')}
             </h2>
-            <p className="mt-3 text-[15px] leading-[1.5] text-white/75 sm:text-[17px]">uch qadamda haydovchi bo‘ling</p>
+            <p className="mt-3 text-[15px] leading-[1.5] text-white/75 sm:text-[17px]">{t('uch qadamda haydovchi bo‘ling')}</p>
 
             <ol className="mt-7 grid gap-3 sm:grid-cols-3 sm:gap-4">
               {STEPS.map(({ icon: Icon, title, text, tone }, i) => {
@@ -244,8 +245,8 @@ export default function BecomeDriver() {
                       <Icon className={`h-8 w-8 ${brand ? 'text-ink' : 'text-brand'}`} strokeWidth={1.7} />
                       <span className={`text-[13px] font-extrabold ${brand ? 'text-ink/60' : 'text-muted'}`}>0{i + 1}</span>
                     </div>
-                    <h3 className="mt-auto pt-6 text-[18px] font-extrabold leading-[1.15] tracking-tight">{title}</h3>
-                    <p className={`mt-2 text-[12px] leading-[1.45] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{text}</p>
+                    <h3 className="mt-auto pt-6 text-[18px] font-extrabold leading-[1.15] tracking-tight">{t(title)}</h3>
+                    <p className={`mt-2 text-[12px] leading-[1.45] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{t(text)}</p>
                   </li>
                 )
               })}

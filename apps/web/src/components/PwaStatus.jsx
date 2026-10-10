@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { RefreshCw, WifiOff } from 'lucide-react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { t } from '../i18n'
 
 // Offline banner + "yangi versiya tayyor" toast. Lives once near the app root so it
 // is visible across every route, including full-bleed screens like /driver and /sos.
@@ -31,7 +32,7 @@ export function PwaStatus() {
       {isOffline ? (
         <div className="pointer-events-auto flex items-center gap-2 rounded-2xl bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-lg">
           <WifiOff className="h-4 w-4 shrink-0" />
-          Internet aloqasi yo‘q — ba’zi ma’lumotlar yangilanmasligi mumkin
+          {t('Internet aloqasi yo‘q — ba’zi ma’lumotlar yangilanmasligi mumkin')}
         </div>
       ) : (
         <button
@@ -43,7 +44,7 @@ export function PwaStatus() {
           className="pointer-events-auto flex items-center gap-2 rounded-2xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-lg"
         >
           <RefreshCw className="h-4 w-4 shrink-0" />
-          Yangi versiya tayyor — yangilash uchun bosing
+          {t('Yangi versiya tayyor — yangilash uchun bosing')}
         </button>
       )}
     </div>

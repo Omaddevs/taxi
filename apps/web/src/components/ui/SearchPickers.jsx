@@ -14,7 +14,7 @@ import {
   Plus,
   X,
 } from 'lucide-react'
-import { MONTHS, cn, formatDateShortUz } from '../../lib/utils'
+import { cn, formatDateShortUz, monthName } from '../../lib/utils'
 import {
   ACTIVE_REGION_IDS,
   REGIONS_BY_AVAILABILITY,
@@ -27,6 +27,7 @@ import {
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode } from '../../lib/geocode'
 import { lockScroll } from '../../lib/scrollLock'
+import { t } from '../../i18n'
 
 const WEEKDAYS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 
@@ -61,7 +62,7 @@ function BottomSheet({ open, title, onClose, children, bare = false }) {
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-[120]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div
         className={cn(
           'absolute inset-x-0 bottom-0 max-h-[85vh] touch-pan-y overflow-y-auto overscroll-contain rounded-t-2xl px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)] [-webkit-overflow-scrolling:touch]',
@@ -71,7 +72,7 @@ function BottomSheet({ open, title, onClose, children, bare = false }) {
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300" />
         {bare ? null : (
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-extrabold text-ink">{title}</h3>
+            <h3 className="text-lg font-extrabold text-ink">{t(title)}</h3>
             <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas">
               <X className="h-4 w-4" />
             </button>
@@ -99,8 +100,8 @@ export function PickerTrigger({ icon: Icon, label, value, open, onClick, variant
           <Icon className="h-[18px] w-[18px]" />
         </span>
         <span className="min-w-0 flex-1 overflow-hidden">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
-          <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{value}</span>
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{t(label)}</span>
+          <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{t(value)}</span>
         </span>
         <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
       </button>
@@ -120,8 +121,8 @@ export function PickerTrigger({ icon: Icon, label, value, open, onClick, variant
         <Icon className="h-[17px] w-[17px]" />
       </span>
       <span className="min-w-0 flex-1 overflow-hidden">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
-        <span className="mt-0.5 block truncate text-sm font-bold leading-5 text-ink">{value}</span>
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{t(label)}</span>
+        <span className="mt-0.5 block truncate text-sm font-bold leading-5 text-ink">{t(value)}</span>
       </span>
       <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
     </button>
@@ -170,7 +171,7 @@ function PickerShell({
           {children}
         </div>
       ) : null}
-      <BottomSheet open={open && !desktop} title={title} onClose={onClose} bare={bare}>
+      <BottomSheet open={open && !desktop} title={t(title)} onClose={onClose} bare={bare}>
         {children}
       </BottomSheet>
     </div>
@@ -202,12 +203,12 @@ export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVa
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Sanani tanlang"
+      title={t('Sanani tanlang')}
       forceSheet={forceSheet}
       trigger={
         <PickerTrigger
           icon={CalendarIcon}
-          label="Sana"
+          label={t('Sana')}
           value={formatDateShortUz(value)}
           open={open}
           onClick={onToggle}
@@ -220,7 +221,7 @@ export function DatePicker({ value, onChange, open, onToggle, onClose, triggerVa
           <ChevronLeft className="h-4 w-4" />
         </button>
         <p className="text-sm font-bold">
-          {MONTHS[view.month]} {view.year}
+          {monthName(view.month)} {view.year}
         </p>
         <button type="button" onClick={() => shiftMonth(1)} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas">
           <ChevronRight className="h-4 w-4" />
@@ -317,10 +318,10 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Vaqtni tanlang"
+      title={t('Vaqtni tanlang')}
       forceSheet={forceSheet}
       trigger={
-        <PickerTrigger icon={ClockIcon} label="Vaqt" value={value} open={open} onClick={onToggle} variant={triggerVariant} />
+        <PickerTrigger icon={ClockIcon} label={t('Vaqt')} value={value} open={open} onClick={onToggle} variant={triggerVariant} />
       }
       panelClass="w-[300px]"
     >
@@ -343,7 +344,7 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
             }}
             className="flex-1 rounded-xl bg-canvas py-2 text-xs font-bold text-ink hover:bg-brand-soft hover:text-brand"
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
@@ -351,7 +352,7 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
       {step === 'hour' ? (
         <>
           <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">
-            Soatni tanlang (24 soatlik, 0–23)
+            {t('Soatni tanlang (24 soatlik, 0–23)')}
           </p>
           <div className="no-scrollbar grid h-48 touch-pan-y grid-cols-6 content-start gap-1.5 overflow-y-auto overscroll-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
             {HOURS.map((hour) => (
@@ -374,9 +375,9 @@ export function TimePicker({ value, onChange, open, onToggle, onClose, triggerVa
         <>
           <div className="mb-2 flex items-center justify-between">
             <button type="button" onClick={() => setStep('hour')} className="flex items-center gap-0.5 text-xs font-bold text-brand">
-              <ChevronLeft className="h-3.5 w-3.5" /> Soat: {h}
+              <ChevronLeft className="h-3.5 w-3.5" /> {t('Soat:')}{' '}{h}
             </button>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Daqiqani tanlang</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{t('Daqiqani tanlang')}</p>
           </div>
           <div className="no-scrollbar grid h-48 touch-pan-y grid-cols-6 content-start gap-1.5 overflow-y-auto overscroll-contain pr-0.5 [-webkit-overflow-scrolling:touch]">
             {MINUTES.map((min) => (
@@ -414,12 +415,12 @@ export function PassengerPicker({ value, onChange, open, onToggle, onClose, trig
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Yo‘lovchilar"
+      title={t('Yo‘lovchilar')}
       trigger={
         <PickerTrigger
           icon={UsersIcon}
-          label="Yo‘lovchilar"
-          value={`${value} kishi`}
+          label={t('Yo‘lovchilar')}
+          value={t('{0} kishi', value)}
           open={open}
           onClick={onToggle}
           variant={triggerVariant}
@@ -428,7 +429,7 @@ export function PassengerPicker({ value, onChange, open, onToggle, onClose, trig
       panelClass="w-[280px]"
     >
       <div className="mb-4 flex items-center justify-between rounded-2xl bg-canvas px-4 py-3">
-        <span className="text-sm font-semibold">Nechta yo‘lovchi?</span>
+        <span className="text-sm font-semibold">{t('Nechta yo‘lovchi?')}</span>
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -461,7 +462,7 @@ export function PassengerPicker({ value, onChange, open, onToggle, onClose, trig
               n === value ? 'bg-brand text-white' : 'bg-canvas hover:bg-brand-soft hover:text-brand',
             )}
           >
-            {n} kishi
+            {t('{0} kishi', n)}
           </button>
         ))}
       </div>
@@ -492,12 +493,12 @@ export function LuggagePicker({ value, onChange, open, onToggle, onClose, trigge
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Bagaj hajmi"
+      title={t('Bagaj hajmi')}
       align="right"
       trigger={
         <PickerTrigger
           icon={BagIcon}
-          label="Bagaj"
+          label={t('Bagaj')}
           value={current.title}
           open={open}
           onClick={onToggle}
@@ -521,8 +522,8 @@ export function LuggagePicker({ value, onChange, open, onToggle, onClose, trigge
             )}
           >
             <span>
-              <span className="block text-sm font-bold">{item.title}</span>
-              <span className="text-xs text-muted">{item.desc}</span>
+              <span className="block text-sm font-bold">{t(item.title)}</span>
+              <span className="text-xs text-muted">{t(item.desc)}</span>
             </span>
             {item.id === value ? <Check className="h-5 w-5 text-brand" /> : null}
           </button>
@@ -555,12 +556,12 @@ export function GenderPicker({ value, onChange, passengers = 1, open, onToggle, 
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Jins"
+      title={t('Jins')}
       align="right"
       trigger={
         <PickerTrigger
           icon={GenderIcon}
-          label="Jins"
+          label={t('Jins')}
           value={current?.title || 'Tanlang'}
           open={open}
           onClick={onToggle}
@@ -584,8 +585,8 @@ export function GenderPicker({ value, onChange, passengers = 1, open, onToggle, 
             )}
           >
             <span>
-              <span className="block text-sm font-bold">{item.title}</span>
-              <span className="text-xs text-muted">{item.desc}</span>
+              <span className="block text-sm font-bold">{t(item.title)}</span>
+              <span className="text-xs text-muted">{t(item.desc)}</span>
             </span>
             {item.id === value ? <Check className="h-5 w-5 text-brand" /> : null}
           </button>
@@ -619,12 +620,12 @@ export function SeatPicker({ value, onChange, open, onToggle, onClose, triggerVa
     <PickerShell
       open={open}
       onClose={onClose}
-      title="O‘rindiq tanlash"
+      title={t('O‘rindiq tanlash')}
       align="right"
       trigger={
         <PickerTrigger
           icon={SeatIcon}
-          label="O‘rindiq"
+          label={t('O‘rindiq')}
           value={current?.title || 'Tanlang'}
           open={open}
           onClick={onToggle}
@@ -648,8 +649,8 @@ export function SeatPicker({ value, onChange, open, onToggle, onClose, triggerVa
             )}
           >
             <span>
-              <span className="block text-sm font-bold">{item.title}</span>
-              <span className="text-xs text-muted">{item.desc}</span>
+              <span className="block text-sm font-bold">{t(item.title)}</span>
+              <span className="text-xs text-muted">{t(item.desc)}</span>
             </span>
             {item.id === value ? <Check className="h-5 w-5 text-brand" /> : null}
           </button>
@@ -687,12 +688,12 @@ export function CarPicker({ value, onChange, open, onToggle, onClose, triggerVar
     <PickerShell
       open={open}
       onClose={onClose}
-      title="Avtomobil tanlash"
+      title={t('Avtomobil tanlash')}
       align="right"
       trigger={
         <PickerTrigger
           icon={CarPickIcon}
-          label="Avtomobil"
+          label={t('Avtomobil')}
           value={current?.title || 'Tanlang'}
           open={open}
           onClick={onToggle}
@@ -718,7 +719,7 @@ export function CarPicker({ value, onChange, open, onToggle, onClose, triggerVar
             <span className="flex h-[96px] w-[168px] shrink-0 items-center justify-center">
               <img src={item.photo} alt="" className="max-h-[96px] w-full object-contain" />
             </span>
-            <span className="min-w-0 flex-1 text-[15px] font-bold leading-5">{item.title}</span>
+            <span className="min-w-0 flex-1 text-[15px] font-bold leading-5">{t(item.title)}</span>
             {item.id === value ? <Check className="h-5 w-5 shrink-0 text-brand" /> : null}
           </button>
         ))}
@@ -756,13 +757,13 @@ function PlaceRow({ title, subtitle, soon, selected, onClick }) {
               selected && 'font-bold text-brand',
             )}
           >
-            {title}
+            {t(title)}
           </span>
-          {subtitle ? <span className="block truncate text-xs text-muted">{subtitle}</span> : null}
+          {subtitle ? <span className="block truncate text-xs text-muted">{t(subtitle)}</span> : null}
         </span>
         {soon ? (
           <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
-            Tez orada
+            {t('Tez orada')}
           </span>
         ) : selected ? (
           <Check className="h-4 w-4 shrink-0 text-brand" />
@@ -820,7 +821,7 @@ export function RegionPicker({
           .filter((d) => d.toLowerCase().includes(q))
           .map((d) => ({ type: 'district', region: picked, place: d, active: true }))
       : searchUzPlaces(query)
-  const display = formatPlace(region, place) || 'Tanlang'
+  const display = formatPlace(region, place) || t('Tanlang')
 
   function pickRegion(name) {
     setPicked(name)
@@ -837,11 +838,11 @@ export function RegionPicker({
   function pickGeocoded(loc) {
     const name = matchRegion(loc.state, loc.city, loc.label)
     if (!name) {
-      setNotice('Bu manzil hududini aniqlab bo‘lmadi. Ro‘yxatdan tanlang.')
+      setNotice(t('Bu manzil hududini aniqlab bo‘lmadi. Ro‘yxatdan tanlang.'))
       return
     }
     if (!isRegionActive(name)) {
-      setNotice(`${name} — tez orada ishga tushadi. Hozircha Toshkent, Andijon va Samarqand.`)
+      setNotice(t('{0} — tez orada ishga tushadi. Hozircha Toshkent, Andijon va Samarqand.', name))
       return
     }
     pickPlace(name, loc.label, { lat: loc.lat, lng: loc.lng })
@@ -849,12 +850,12 @@ export function RegionPicker({
 
   function openMap() {
     setNotice('')
-    openLocationPicker({ title: side === 'to' ? 'Qayerga' : 'Qayerdan', onPick: pickGeocoded })
+    openLocationPicker({ title: side === 'to' ? t('Qayerga') : t('Qayerdan'), onPick: pickGeocoded })
   }
 
   function pickCurrentLocation() {
     if (!navigator.geolocation) {
-      setNotice('Brauzer geolokatsiyani qo‘llab-quvvatlamaydi.')
+      setNotice(t('Brauzer geolokatsiyani qo‘llab-quvvatlamaydi.'))
       return
     }
     setNotice('')
@@ -871,14 +872,14 @@ export function RegionPicker({
             lng: coords.longitude,
           })
         } catch {
-          setNotice('Manzil aniqlanmadi. Xaritadan tanlang.')
+          setNotice(t('Manzil aniqlanmadi. Xaritadan tanlang.'))
         } finally {
           setLocating(false)
         }
       },
       () => {
         setLocating(false)
-        setNotice('Joylashuvga ruxsat berilmadi. Ro‘yxat yoki xaritadan tanlang.')
+        setNotice(t('Joylashuvga ruxsat berilmadi. Ro‘yxat yoki xaritadan tanlang.'))
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
@@ -886,7 +887,7 @@ export function RegionPicker({
 
   const InputIcon = side === 'to' ? Flag : PersonStanding
   const placeholder =
-    step === 'district' ? `${picked}: tuman qidiring` : side === 'to' ? 'Qayerga?' : 'Viloyat yoki manzil'
+    step === 'district' ? t('{0}: tuman qidiring', picked) : side === 'to' ? t('Qayerga?') : t('Viloyat yoki manzil')
 
   let trigger = null
   if (variant === 'row') {
@@ -898,7 +899,7 @@ export function RegionPicker({
           </span>
         ) : null}
         <span className="min-w-0 flex-1 overflow-hidden pr-9">
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">{t(label)}</span>
           <span className="mt-0.5 block truncate text-[15px] font-extrabold leading-5 text-ink">{display}</span>
         </span>
         <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180 text-brand')} />
@@ -907,7 +908,7 @@ export function RegionPicker({
   } else if (variant === 'stacked') {
     trigger = (
       <div>
-        <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{label}</span>
+        <span className="mb-1.5 block text-[11px] font-medium leading-none text-white/80">{t(label)}</span>
         <button
           type="button"
           onClick={onToggle}
@@ -924,7 +925,7 @@ export function RegionPicker({
     <PickerShell
       open={open}
       onClose={onClose}
-      title={label}
+      title={t(label)}
       forceSheet={forceSheet}
       bare
       panelClass="w-[min(380px,calc(100vw-2rem))] bg-[#eef3f6]!"
@@ -946,7 +947,7 @@ export function RegionPicker({
                   type="button"
                   onClick={onEditOrigin}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                  aria-label="Qayerdan manzilini o‘zgartirish"
+                  aria-label={t('Qayerdan manzilini o‘zgartirish')}
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -959,16 +960,16 @@ export function RegionPicker({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={placeholder}
+              placeholder={t(placeholder)}
               className="h-11 min-w-0 flex-1 bg-transparent text-[16px] caret-brand outline-none placeholder:text-slate-400"
             />
             {query ? (
-              <button type="button" onClick={() => setQuery('')} className="p-1 text-muted" aria-label="Tozalash">
+              <button type="button" onClick={() => setQuery('')} className="p-1 text-muted" aria-label={t('Tozalash')}>
                 <X className="h-4 w-4" />
               </button>
             ) : null}
             <button type="button" onClick={openMap} className="h-10 shrink-0 rounded-full bg-canvas px-4 text-sm font-bold">
-              Xarita
+              {t('Xarita')}
             </button>
           </div>
 
@@ -985,8 +986,8 @@ export function RegionPicker({
                 <Navigation className="h-5 w-5 shrink-0 fill-sky-500 text-sky-500" />
               )}
               <span className="min-w-0">
-                <span className="block text-[15px] font-bold">Joriy joylashuv</span>
-                <span className="block text-xs text-muted">{locating ? 'Aniqlanmoqda…' : 'GPS orqali aniqlanadi'}</span>
+                <span className="block text-[15px] font-bold">{t('Joriy joylashuv')}</span>
+                <span className="block text-xs text-muted">{locating ? t('Aniqlanmoqda…') : t('GPS orqali aniqlanadi')}</span>
               </span>
             </button>
           ) : null}
@@ -1003,7 +1004,7 @@ export function RegionPicker({
                 className="flex h-9 items-center gap-1 rounded-full px-2 text-sm font-bold text-brand"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Viloyatlar
+                {t('Viloyatlar')}
               </button>
               <span className="min-w-0 flex-1 truncate pr-2 text-right text-sm font-bold">{picked}</span>
             </div>
@@ -1015,20 +1016,20 @@ export function RegionPicker({
                 <PlaceRow
                   key={`${hit.region}-${hit.place}`}
                   title={hit.place || hit.region}
-                  subtitle={hit.place ? hit.region : 'Viloyat · tumanlarni ochish'}
+                  subtitle={hit.place ? hit.region : t('Viloyat · tumanlarni ochish')}
                   soon={!hit.active}
                   selected={hit.region === region && hit.place === place}
                   onClick={() => (hit.type === 'region' ? pickRegion(hit.region) : pickPlace(hit.region, hit.place))}
                 />
               ))
             ) : (
-              <p className="px-4 py-6 text-center text-sm text-muted">Hech narsa topilmadi — “Xarita” orqali belgilang.</p>
+              <p className="px-4 py-6 text-center text-sm text-muted">{t('Hech narsa topilmadi — “Xarita” orqali belgilang.')}</p>
             )
           ) : step === 'region' ? (
             REGIONS_BY_AVAILABILITY.map((item) => (
               <PlaceRow
                 key={item.id}
-                title={item.name}
+                title={t(item.name)}
                 soon={!ACTIVE_REGION_IDS.has(item.id)}
                 selected={item.name === region}
                 onClick={() => pickRegion(item.name)}
@@ -1038,7 +1039,7 @@ export function RegionPicker({
             districts.map((item) => (
               <PlaceRow
                 key={item}
-                title={item}
+                title={t(item)}
                 selected={picked === region && item === place}
                 onClick={() => pickPlace(picked, item)}
               />

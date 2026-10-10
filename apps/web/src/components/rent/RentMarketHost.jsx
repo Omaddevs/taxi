@@ -9,6 +9,7 @@ import { RentMap } from './RentMap'
 import { RentMine, RentSaved } from './RentMine'
 import { useRentNav } from './rentData'
 import { lockScroll } from '../../lib/scrollLock'
+import { t } from '../../i18n'
 
 const TABS = [
   { view: '1', label: 'Katalog', icon: LayoutGrid },
@@ -54,8 +55,8 @@ export function RentMarketHost() {
     }
     setShown(false)
     setDrag(0)
-    const t = setTimeout(() => setMounted(false), ANIM_MS)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setMounted(false), ANIM_MS)
+    return () => clearTimeout(timer)
   }, [isOpen])
 
   useEffect(() => {
@@ -117,13 +118,13 @@ export function RentMarketHost() {
     screen = <RentCatalog onClose={nav.close} />
   }
 
-  const activeTab = TABS.find((t) => t.view === view)?.view ?? '1'
+  const activeTab = TABS.find((item) => item.view === view)?.view ?? '1'
 
   return createPortal(
-    <div className="fixed inset-0 z-[9000]" role="dialog" aria-modal="true" aria-label="Skuter ijara">
+    <div className="fixed inset-0 z-[9000]" role="dialog" aria-modal="true" aria-label={t('Skuter ijara')}>
       <button
         type="button"
-        aria-label="Yopish"
+        aria-label={t('Yopish')}
         onClick={nav.close}
         className={cn('absolute inset-0 bg-ink/50 transition-opacity duration-300', shown ? 'opacity-100' : 'opacity-0')}
       />
@@ -155,20 +156,20 @@ export function RentMarketHost() {
           // Every tab — the "Joylash" action included — stays inside the bar: nothing pokes up over
           // the scrolling content, all icons sit on one line and each target is ≥ 48px tall.
           <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white/95 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur lg:px-[max(8px,calc(50%-300px))] lg:pb-2">
-            {TABS.map((t) => {
-              const active = activeTab === t.view
-              const go = () => (t.primary ? nav.go({ ijara: t.view }) : nav.go({ ijara: t.view }, { replace: true }))
+            {TABS.map((entry) => {
+              const active = activeTab === entry.view
+              const go = () => (entry.primary ? nav.go({ ijara: entry.view }) : nav.go({ ijara: entry.view }, { replace: true }))
               return (
                 <button
-                  key={t.view}
+                  key={entry.view}
                   type="button"
                   onClick={go}
                   aria-current={active ? 'page' : undefined}
                   className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl transition active:scale-95"
                 >
-                  {t.primary ? (
+                  {entry.primary ? (
                     <span className="flex h-8 w-12 items-center justify-center rounded-full bg-brand text-white shadow-[0_4px_12px_rgba(0,199,212,0.35)]">
-                      <t.icon className="h-5 w-5" strokeWidth={3} />
+                      <entry.icon className="h-5 w-5" strokeWidth={3} />
                     </span>
                   ) : (
                     <span
@@ -177,16 +178,16 @@ export function RentMarketHost() {
                         active ? 'bg-brand-soft text-brand-dark' : 'text-muted',
                       )}
                     >
-                      <t.icon className={cn('h-[22px] w-[22px]', active && t.view === 'saqlangan' && 'fill-current')} strokeWidth={active ? 2.4 : 2} />
+                      <entry.icon className={cn('h-[22px] w-[22px]', active && entry.view === 'saqlangan' && 'fill-current')} strokeWidth={active ? 2.4 : 2} />
                     </span>
                   )}
                   <span
                     className={cn(
                       'text-[11px] leading-none',
-                      t.primary ? 'font-bold text-brand-dark' : active ? 'font-bold text-ink' : 'font-semibold text-muted',
+                      entry.primary ? 'font-bold text-brand-dark' : active ? 'font-bold text-ink' : 'font-semibold text-muted',
                     )}
                   >
-                    {t.label}
+                    {t(entry.label)}
                   </span>
                 </button>
               )

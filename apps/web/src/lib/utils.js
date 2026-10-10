@@ -1,5 +1,7 @@
+import { getLanguage, t } from '../i18n'
+
 export function formatSom(value) {
-  return `${new Intl.NumberFormat('uz-UZ').format(value || 0).replace(/,/g, ' ')} so'm`
+  return t('{0} so\'m', new Intl.NumberFormat('uz-UZ').format(value || 0).replace(/,/g, ' '))
 }
 
 const UZ_COUNTRY = '998'
@@ -79,17 +81,44 @@ const MONTHS = [
   'Dekabr',
 ]
 
+// Ruscha sanada oy qaratqich kelishigida: "10 октября"
+const MONTHS_RU_GENITIVE = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+
+const MONTHS_SHORT = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+
+const isUzbek = () => ['uz', 'oz'].includes(getLanguage())
+
+/** Oy nomi (bosh kelishik) joriy tilda: "Oktabr" / "Октябрь" / "October". `lower` faqat o‘zbekchaga ta’sir qiladi. */
+export function monthName(index, { lower = false } = {}) {
+  const name = t(MONTHS[index])
+  return lower && isUzbek() ? name.toLowerCase() : name
+}
+
+/** Qisqa oy nomi: "Okt" / "окт" / "Oct". */
+export function shortMonth(index, { lower = false } = {}) {
+  const name = t(MONTHS_SHORT[index])
+  return lower && isUzbek() ? name.toLowerCase() : name
+}
+
+/** Kun + oy joriy tilda: "10 Oktabr" / "10 октября" / "10 October". `dash` — o‘zbekcha "10-Oktabr" ko‘rinishi. */
+export function dayMonth(day, index, { dash = false, lower = false } = {}) {
+  const lang = getLanguage()
+  if (lang === 'ru') return `${day} ${MONTHS_RU_GENITIVE[index]}`
+  if (lang === 'en') return `${day} ${monthName(index)}`
+  const name = monthName(index, { lower })
+  return dash ? `${day}-${name}` : `${day} ${name}`
+}
+
 export function formatDateUz(iso) {
   if (!iso) return ''
   const [y, m, d] = iso.split('-').map(Number)
-  return `${d} ${MONTHS[m - 1]}, ${y}`
+  return `${dayMonth(d, m - 1)}, ${y}`
 }
 
 export function formatDateShortUz(iso) {
   if (!iso) return ''
-  const short = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
   const [, m, d] = iso.split('-').map(Number)
-  return `${d} ${short[m - 1]}`
+  return `${d} ${shortMonth(m - 1)}`
 }
 
 export { MONTHS }

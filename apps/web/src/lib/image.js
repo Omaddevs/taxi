@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 // Resizes/compresses a picked photo in the browser and returns a data: URI, so listings can
 // store photos in a plain JSON column without a file-upload backend (same as the admin panel).
 //
@@ -16,7 +17,7 @@ function loadImage(file) {
     img.onerror = () => {
       URL.revokeObjectURL(url)
       const heic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name)
-      reject(new Error(heic ? 'HEIC formatdagi rasm ochilmadi. JPG yoki PNG tanlang' : 'Rasmni ochib bo‘lmadi. JPG, PNG yoki WEBP tanlang'))
+      reject(new Error(heic ? t('HEIC formatdagi rasm ochilmadi. JPG yoki PNG tanlang') : t('Rasmni ochib bo‘lmadi. JPG, PNG yoki WEBP tanlang')))
     }
     img.src = url
   })
@@ -28,7 +29,7 @@ function encode(img, side, type, quality, background) {
   canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
   canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Brauzer rasmni qayta ishlay olmadi')
+  if (!ctx) throw new Error(t('Brauzer rasmni qayta ishlay olmadi'))
   if (background) {
     ctx.fillStyle = background
     ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -47,5 +48,5 @@ export async function fileToImageDataUrl(file, maxSize = 960, quality = 0.8, max
     if (out.length <= maxChars) return out
     if (attempt >= 2) side = Math.round(side * 0.8)
   }
-  throw new Error('Rasm juda katta. Kichikroq rasm tanlang')
+  throw new Error(t('Rasm juda katta. Kichikroq rasm tanlang'))
 }

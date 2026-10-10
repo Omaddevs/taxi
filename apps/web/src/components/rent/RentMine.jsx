@@ -5,19 +5,20 @@ import { cn } from '../../lib/utils'
 import { VEHICLE_TYPE } from '../../data/rentals'
 import { Cover, EmptyBlock, ListingCard } from './shared'
 import { distanceKm, mainPrice, som, useMyRentals, useOrigin, useRentFavorites, useRentNav, useRentals } from './rentData'
+import { t } from '../../i18n'
 
 function statusOf(l) {
-  if (l.status === 'PENDING') return { label: 'Moderatsiyada', tone: 'bg-amber-100 text-amber-800' }
-  if (l.status === 'REJECTED') return { label: 'Rad etildi', tone: 'bg-red-100 text-red-600' }
-  if (!l.active) return { label: 'Yashirin', tone: 'bg-slate-200 text-slate-600' }
-  return { label: 'Faol', tone: 'bg-emerald-100 text-emerald-700' }
+  if (l.status === 'PENDING') return { label: t('Moderatsiyada'), tone: 'bg-amber-100 text-amber-800' }
+  if (l.status === 'REJECTED') return { label: t('Rad etildi'), tone: 'bg-red-100 text-red-600' }
+  if (!l.active) return { label: t('Yashirin'), tone: 'bg-slate-200 text-slate-600' }
+  return { label: t('Faol'), tone: 'bg-emerald-100 text-emerald-700' }
 }
 
 function ScreenTitle({ title, hint }) {
   return (
     <header className="px-4 pb-2 pt-8 lg:px-8">
-      <h2 className="text-[26px] font-black tracking-tight text-ink">{title}</h2>
-      {hint ? <p className="text-[13px] text-muted">{hint}</p> : null}
+      <h2 className="text-[26px] font-black tracking-tight text-ink">{t(title)}</h2>
+      {hint ? <p className="text-[13px] text-muted">{t(hint)}</p> : null}
     </header>
   )
 }
@@ -42,7 +43,7 @@ export function RentMine() {
 
   return (
     <div className="pb-6">
-      <ScreenTitle title="Mening e’lonlarim" hint="Ijaraga bergan transportlaringiz" />
+      <ScreenTitle title={t('Mening e’lonlarim')} hint={t('Ijaraga bergan transportlaringiz')} />
 
       {isLoading ? (
         <div className="space-y-3 px-4 pt-2">
@@ -61,12 +62,12 @@ export function RentMine() {
                 <div className="flex gap-3">
                   <Cover src={photos[0]} className="h-[84px] w-[84px] shrink-0 rounded-[18px]" iconClass="h-8 w-8" />
                   <div className="min-w-0 flex-1">
-                    <span className={cn('inline-block rounded-full px-2 py-0.5 text-[11px] font-bold', st.tone)}>{st.label}</span>
-                    <p className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug text-ink">{l.title}</p>
+                    <span className={cn('inline-block rounded-full px-2 py-0.5 text-[11px] font-bold', st.tone)}>{t(st.label)}</span>
+                    <p className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug text-ink">{t(l.title)}</p>
                     <p className="mt-0.5 truncate text-[12px] text-muted">
-                      {VEHICLE_TYPE[l.vehicleType]?.label}
-                      {price ? ` · ${som(price.amount)} so‘m/${price.unit}` : ''}
-                      {l.status === 'APPROVED' ? ` · ${l.views} ko‘rish` : ''}
+                      {t(VEHICLE_TYPE[l.vehicleType]?.label)}
+                      {price ? t(' · {0} so‘m/{1}', som(price.amount), price.unit) : ''}
+                      {l.status === 'APPROVED' ? t(' · {0} ko‘rish', l.views) : ''}
                     </p>
                   </div>
                 </div>
@@ -75,7 +76,7 @@ export function RentMine() {
                 ) : null}
                 {l.status === 'PENDING' ? (
                   <p className="mt-2 rounded-[14px] bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
-                    Operator tekshirmoqda. Tasdiqlangach, bildirishnoma olasiz.
+                    {t('Operator tekshirmoqda. Tasdiqlangach, bildirishnoma olasiz.')}
                   </p>
                 ) : null}
                 <div className="mt-3 grid grid-cols-3 gap-2">
@@ -84,7 +85,7 @@ export function RentMine() {
                     onClick={() => go({ ijara: 'yangi', tahrir: l.id })}
                     className="flex h-10 items-center justify-center gap-1.5 rounded-[14px] bg-canvas text-[13px] font-bold text-ink"
                   >
-                    <Pencil className="h-4 w-4" /> Tahrir
+                    <Pencil className="h-4 w-4" /> {t('Tahrir')}
                   </button>
                   <button
                     type="button"
@@ -93,7 +94,7 @@ export function RentMine() {
                     className="flex h-10 items-center justify-center gap-1.5 rounded-[14px] bg-canvas text-[13px] font-bold text-ink"
                   >
                     {l.active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    {l.active ? 'Yashirish' : 'Ko‘rsatish'}
+                    {l.active ? t('Yashirish') : t('Ko‘rsatish')}
                   </button>
                   <button
                     type="button"
@@ -102,7 +103,7 @@ export function RentMine() {
                     }}
                     className="flex h-10 items-center justify-center gap-1.5 rounded-[14px] bg-red-50 text-[13px] font-bold text-red-600"
                   >
-                    <Trash2 className="h-4 w-4" /> O‘chirish
+                    <Trash2 className="h-4 w-4" /> {t('O‘chirish')}
                   </button>
                 </div>
               </li>
@@ -111,15 +112,15 @@ export function RentMine() {
         </ul>
       ) : (
         <EmptyBlock
-          title="Hali e’lon joylamagansiz"
-          text="Skuter, samokat, velosiped yoki mototsiklingizni ijaraga bering va daromad qiling."
+          title={t('Hali e’lon joylamagansiz')}
+          text={t('Skuter, samokat, velosiped yoki mototsiklingizni ijaraga bering va daromad qiling.')}
           action={
             <button
               type="button"
               onClick={() => go({ ijara: 'yangi' })}
               className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-full bg-brand px-6 text-sm font-extrabold text-white"
             >
-              <Plus className="h-4 w-4" strokeWidth={3} /> E’lon joylash
+              <Plus className="h-4 w-4" strokeWidth={3} /> {t('E’lon joylash')}
             </button>
           }
         />
@@ -137,7 +138,7 @@ export function RentSaved() {
 
   return (
     <div className="pb-6">
-      <ScreenTitle title="Saqlanganlar" hint="Yoqqan e’lonlar shu qurilmada saqlanadi" />
+      <ScreenTitle title={t('Saqlanganlar')} hint={t('Yoqqan e’lonlar shu qurilmada saqlanadi')} />
       {saved.length ? (
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-5 px-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5 lg:px-8 xl:grid-cols-5">
           {saved.map((l) => (
@@ -152,7 +153,7 @@ export function RentSaved() {
           ))}
         </div>
       ) : (
-        <EmptyBlock title="Hozircha bo‘sh" text="E’lonlardagi ♡ belgisini bosing, ular shu yerda to‘planadi." />
+        <EmptyBlock title={t('Hozircha bo‘sh')} text={t('E’lonlardagi ♡ belgisini bosing, ular shu yerda to‘planadi.')} />
       )}
     </div>
   )

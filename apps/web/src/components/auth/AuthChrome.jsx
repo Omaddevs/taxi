@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Logo, LogoPin, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
+import { t } from '../../i18n'
 
 export const TELEGRAM_BOT = import.meta.env.VITE_TELEGRAM_BOT || 'taxilines_bot'
 // Sign-in / registration codes come from this bot (not the main one).
@@ -29,21 +30,21 @@ function AuthBrandPanel() {
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 -right-32 h-[520px] w-[520px] rounded-full bg-brand 2xl:h-[640px] 2xl:w-[640px]" />
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
 
-        <Link to="/" className="relative flex items-center gap-3 self-start" aria-label="TaxiLine — bosh sahifa">
+        <Link to="/" className="relative flex items-center gap-3 self-start" aria-label={t('TaxiLine — bosh sahifa')}>
           <Logo size={48} className="2xl:h-14! 2xl:w-14!" />
           <span className="text-[25px] font-extrabold tracking-tight 2xl:text-[29px]">
-            Taxi<span className="text-brand">Line</span>
+            {t('Taxi')}<span className="text-brand">{t('Line')}</span>
           </span>
         </Link>
 
         <div className="relative mt-auto pb-8 xl:pb-10">
           <h2 className="text-[44px] font-extrabold leading-[1.06] tracking-tight xl:text-[52px] 2xl:text-[64px]">
-            Yo‘l va xizmatlar —
+            {t('Yo‘l va xizmatlar —')}
             <br />
-            <span className="text-brand">bitta ilovada</span>
+            <span className="text-brand">{t('bitta ilovada')}</span>
           </h2>
           <p className="mt-5 max-w-[460px] text-[16px] leading-[1.55] text-white/70 2xl:max-w-[560px] 2xl:text-[19px]">
-            Taksi, shaharlararo safar, pochta va yuk. Kirish uchun telefon raqamingizning o‘zi yetarli.
+            {t('Taksi, shaharlararo safar, pochta va yuk. Kirish uchun telefon raqamingizning o‘zi yetarli.')}
           </p>
           <ul className="mt-8 space-y-3.5">
             {AUTH_PERKS.map(({ icon: Icon, text }) => (
@@ -51,7 +52,7 @@ function AuthBrandPanel() {
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.08] text-brand ring-1 ring-white/10">
                   <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
                 </span>
-                {text}
+                {t(text)}
               </li>
             ))}
           </ul>
@@ -60,7 +61,7 @@ function AuthBrandPanel() {
         <div className="relative -mx-12 pb-8 xl:-mx-16 2xl:-mx-20 2xl:pb-10">
           <img
             src="/landing/taxi-car.webp"
-            alt="TaxiLine avtomobili"
+            alt={t('TaxiLine avtomobili')}
             className="ml-auto w-[88%] max-w-[760px] translate-x-[4%] drop-shadow-[0_30px_30px_rgba(0,0,0,0.45)]"
           />
         </div>
@@ -94,10 +95,10 @@ export function AuthChrome({ children, onBack }) {
                 type="button"
                 onClick={handleBack}
                 className="-ml-2 flex h-11 w-11 items-center justify-center gap-2 rounded-full text-ink transition hover:bg-black/5 lg:ml-0 lg:h-10 lg:w-auto lg:bg-[#f3f4f6] lg:pl-3 lg:pr-4 lg:text-[14px] lg:font-semibold lg:hover:bg-[#e9ebee]"
-                aria-label="Orqaga"
+                aria-label={t('Orqaga')}
               >
                 <ArrowLeft className="h-5 w-5 lg:h-4 lg:w-4" />
-                <span className="hidden lg:inline">Orqaga</span>
+                <span className="hidden lg:inline">{t('Orqaga')}</span>
               </button>
               <LanguageChip className="h-8 lg:h-9" />
             </header>
@@ -105,7 +106,7 @@ export function AuthChrome({ children, onBack }) {
             <div className="flex flex-col items-center pt-1 lg:hidden">
               <LogoPin size={72} />
               <Wordmark className="mt-2 text-[22px]" />
-              <p className="mt-1 text-[11px] font-semibold text-muted">Yo‘l va xizmatlar</p>
+              <p className="mt-1 text-[11px] font-semibold text-muted">{t('Yo‘l va xizmatlar')}</p>
             </div>
           </div>
 
@@ -113,7 +114,7 @@ export function AuthChrome({ children, onBack }) {
             <div className="mx-auto h-[128px] w-full max-w-[340px]">
               <img
                 src="/landing/taxi-car.webp"
-                alt="TaxiLine avtomobili"
+                alt={t('TaxiLine avtomobili')}
                 className="h-full w-full object-contain object-bottom drop-shadow-[0_14px_14px_rgba(15,29,42,0.22)]"
               />
             </div>
@@ -121,7 +122,7 @@ export function AuthChrome({ children, onBack }) {
 
           <div className="flex flex-1 flex-col rounded-t-[24px] bg-white px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-5 shadow-[0_-8px_24px_rgba(28,28,40,0.05)] sm:px-8 sm:pb-8 lg:mx-auto lg:my-auto lg:w-full lg:max-w-[440px] lg:flex-none lg:rounded-none lg:px-0 lg:py-10 lg:shadow-none 2xl:max-w-[500px] lg:[&_h1]:text-[30px] lg:[&_h1]:leading-9 2xl:[&_h1]:text-[34px]">
             <p className="mb-5 hidden items-center gap-2 self-start rounded-full bg-brand-soft px-3 py-1.5 text-[12px] font-semibold text-brand-dark lg:inline-flex">
-              <Lock className="h-3.5 w-3.5" strokeWidth={2.2} /> Ma’lumotlaringiz himoyalangan
+              <Lock className="h-3.5 w-3.5" strokeWidth={2.2} /> {t('Ma’lumotlaringiz himoyalangan')}
             </p>
             {children}
           </div>
@@ -129,7 +130,7 @@ export function AuthChrome({ children, onBack }) {
           <footer className="hidden items-center justify-between gap-4 border-t border-line pt-5 text-[13px] text-muted lg:flex">
             <span>© {new Date().getFullYear()} TaxiLine</span>
             <a href="tel:+998877353636" className="flex items-center gap-2 font-medium transition hover:text-ink">
-              <Headset className="h-4 w-4" /> Yordam: <span className="font-semibold text-ink">+998 87 735 36 36</span>
+              <Headset className="h-4 w-4" /> {t('Yordam:')}{' '}<span className="font-semibold text-ink">+998 87 735 36 36</span>
             </a>
           </footer>
         </div>
@@ -161,10 +162,10 @@ export function KirishBotButton({ start = 'kirish' }) {
     >
       <TelegramMark />
       <span className="min-w-0 flex-1">
-        <span className="block text-[14px] font-extrabold text-ink">Kodni Telegram botdan oling</span>
-        <span className="block truncate text-[12px] font-semibold text-muted">@{KIRISH_BOT} → /kirish</span>
+        <span className="block text-[14px] font-extrabold text-ink">{t('Kodni Telegram botdan oling')}</span>
+        <span className="block truncate text-[12px] font-semibold text-muted">@{KIRISH_BOT} {t('→ /kirish')}</span>
       </span>
-      <span className="rounded-full bg-[#2AABEE] px-3 py-1.5 text-[12px] font-extrabold text-white">Ochish</span>
+      <span className="rounded-full bg-[#2AABEE] px-3 py-1.5 text-[12px] font-extrabold text-white">{t('Ochish')}</span>
     </a>
   )
 }
@@ -199,7 +200,7 @@ function useGoogleEnabled() {
 // code, no phone. A linked account signs in from either page; on the register page a new one is
 // created on the spot; on the login page an unknown one gets "Foydalanuvchi topilmadi" (/google)
 // with a one-tap registration. Hidden until Google keys are configured on the server.
-export function GoogleAuthButton({ label = 'Google orqali kirish', className = '', divider = false, intent = 'login' }) {
+export function GoogleAuthButton({ label = t('Google orqali kirish'), className = '', divider = false, intent = 'login' }) {
   const { googleSignIn } = useAuth()
   const navigate = useNavigate()
   const enabled = useGoogleEnabled()
@@ -221,7 +222,7 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
       savePendingGoogle(pending)
       navigate('/google', { state: pending })
     } catch (err) {
-      if (!(err instanceof GoogleCancelled)) setError(err?.message || 'Google orqali kirib bo‘lmadi')
+      if (!(err instanceof GoogleCancelled)) setError(err?.message || t('Google orqali kirib bo‘lmadi'))
     } finally {
       setBusy(false)
     }
@@ -234,7 +235,7 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
       {divider ? (
         <div className="my-4 flex items-center gap-3">
           <span className="h-px flex-1 bg-line" />
-          <span className="text-[11px] font-semibold text-muted">Yoki davom eting</span>
+          <span className="text-[11px] font-semibold text-muted">{t('Yoki davom eting')}</span>
           <span className="h-px flex-1 bg-line" />
         </div>
       ) : null}
@@ -245,10 +246,10 @@ export function GoogleAuthButton({ label = 'Google orqali kirish', className = '
         className="flex h-12 w-full items-center justify-center gap-3 rounded-[16px] border border-line bg-white px-3 transition hover:border-brand/50 hover:bg-[#f7fdfe] disabled:opacity-70 lg:h-14 lg:px-4"
       >
         <GoogleMark />
-        <span className="min-w-0 flex-1 text-left text-[14px] font-bold">{busy ? 'Google bilan bog‘lanilmoqda…' : label}</span>
+        <span className="min-w-0 flex-1 text-left text-[14px] font-bold">{busy ? t('Google bilan bog‘lanilmoqda…') : label}</span>
         {busy ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-300" />}
       </button>
-      {error ? <p className="mt-2 text-center text-[12px] font-semibold text-red-500">{error}</p> : null}
+      {error ? <p className="mt-2 text-center text-[12px] font-semibold text-red-500">{t(error)}</p> : null}
     </div>
   )
 }

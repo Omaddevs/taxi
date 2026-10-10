@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { ArrowUp, Bot, Gift, LogIn, Menu, Phone, X } from 'lucide-react'
 import { Logo, Wordmark } from '../ui/Logo'
+import { LanguageChip, LanguageSwitch } from '../ui/LanguagePicker'
+import { t } from '../../i18n'
 
 // Landing'dan tashqaridagi ochiq sahifalar (Yangiliklar) uchun umumiy header va footer.
 // Har bir band — alohida ommaviy sahifa (src/seo/pages.js). Google sitelinks shu havolalardan tanlanadi.
@@ -52,8 +54,8 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       inert={floating && !shown ? true : undefined}
       className={`${position} z-[100] border-b border-black/[0.05] bg-white/85 backdrop-blur-md`}
     >
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-6 px-4 sm:h-[72px] sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5" aria-label="TaxiLine — bosh sahifa">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-4 sm:h-[72px] sm:gap-6 sm:px-6">
+        <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label={t('TaxiLine — bosh sahifa')}>
           <Logo size={38} className="sm:h-11! sm:w-11!" />
           <Wordmark className="text-[20px] sm:text-[23px]" />
         </Link>
@@ -61,29 +63,30 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
         <nav className="ml-auto hidden items-center gap-5 xl:gap-7 lg:flex">
           {SITE_NAV.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]' : ''}`}>
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
           <Link
             to="/aksiyalar#random"
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-1.5 text-[14px] font-bold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-ink 2xl:text-[16px]"
           >
-            <Gift className="h-4 w-4" /> Random mijoz
+            <Gift className="h-4 w-4" /> {t('Random mijoz')}
           </Link>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+        <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
+          <LanguageChip compact wrapperClassName="hidden sm:block" />
           <Link
             to="/login"
-            className="spin-border flex h-10 items-center gap-1.5 rounded-full bg-ink px-5 text-[13px] font-extrabold text-white shadow-[0_8px_18px_rgba(15,29,42,0.2)] transition hover:bg-black"
+            className="spin-border flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-4 text-[13px] font-extrabold text-white shadow-[0_8px_18px_rgba(15,29,42,0.2)] transition hover:bg-black sm:px-5"
           >
-            <LogIn className="h-4 w-4" /> Kirish
+            <LogIn className="h-4 w-4" /> {t('Kirish')}
           </Link>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-full text-ink lg:hidden"
-            aria-label="Menyu"
+            aria-label={t('Menyu')}
             aria-expanded={open}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -92,14 +95,15 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       </div>
 
       {open ? (
-        <div className="border-t border-line bg-white px-4 pb-4 pt-2 lg:hidden">
+        <div className="border-t border-line bg-white px-4 pb-4 pt-3 lg:hidden">
+          <LanguageSwitch className="mb-2 sm:hidden" onChange={() => setOpen(false)} />
           {SITE_NAV.map((item) => (
             <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-[15px] font-bold text-ink hover:bg-canvas">
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
           <Link to="/aksiyalar#random" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-3 text-[15px] font-bold text-brand-dark hover:bg-canvas">
-            <Gift className="h-4 w-4" /> Random mijoz
+            <Gift className="h-4 w-4" /> {t('Random mijoz')}
           </Link>
         </div>
       ) : null}
@@ -163,16 +167,16 @@ export function SiteFooter({ attached = false }) {
           <Link to="/" className="flex items-center gap-4 self-start" aria-label="TaxiLine">
             <Logo size={64} className="sm:h-20! sm:w-20! 2xl:h-24! 2xl:w-24!" />
             <span className="text-[34px] font-bold leading-[1.02] tracking-tight sm:text-[42px] 2xl:text-[50px]">
-              Taxi
+              {t('Taxi')}
               <br />
-              <span className="text-brand">Line</span>
+              <span className="text-brand">{t('Line')}</span>
             </span>
           </Link>
 
           <nav className="grid grid-cols-2 gap-x-10 gap-y-9 sm:grid-cols-3 sm:gap-x-16 2xl:gap-x-24">
             {FOOTER_COLUMNS.map((col) => (
               <div key={col.title}>
-                <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">{col.title}</p>
+                <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">{t(col.title)}</p>
                 <ul className="mt-4 space-y-2">
                   {col.links.map((l) => (
                     <li key={l.label}>
@@ -181,7 +185,7 @@ export function SiteFooter({ attached = false }) {
                         {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                         className="text-[14px] text-white/75 transition hover:text-brand 2xl:text-[16px]"
                       >
-                        {l.label}
+                        {t(l.label)}
                       </a>
                     </li>
                   ))}
@@ -190,7 +194,7 @@ export function SiteFooter({ attached = false }) {
             ))}
 
             <div>
-              <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">Kontaktlar</p>
+              <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">{t('Kontaktlar')}</p>
               <a
                 href="tel:+998877353636"
                 className="mt-4 inline-flex items-center gap-2 whitespace-nowrap text-[14px] font-semibold text-white/85 transition hover:text-brand 2xl:text-[16px]"
@@ -204,8 +208,8 @@ export function SiteFooter({ attached = false }) {
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={label}
-                      title={label}
+                      aria-label={t(label)}
+                      title={t(label)}
                       className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-white ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:bg-brand hover:text-ink hover:ring-brand 2xl:h-12 2xl:w-12"
                     >
                       <Icon className="h-5 w-5" />
@@ -218,19 +222,19 @@ export function SiteFooter({ attached = false }) {
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between 2xl:text-[14px]">
-          <span>© {new Date().getFullYear()} TaxiLine. Barcha huquqlar himoyalangan.</span>
+          <span>© {new Date().getFullYear()} {t('TaxiLine. Barcha huquqlar himoyalangan.')}</span>
           <span className="flex flex-wrap gap-x-5 gap-y-2">
             <Link to="/privacy" className="transition hover:text-white">
-              Maxfiylik siyosati
+              {t('Maxfiylik siyosati')}
             </Link>
             <Link to="/terms" className="transition hover:text-white">
-              Foydalanish shartlari
+              {t('Foydalanish shartlari')}
             </Link>
             <Link to="/login" className="transition hover:text-white">
-              Kirish
+              {t('Kirish')}
             </Link>
             <Link to="/register" className="transition hover:text-white">
-              Ro‘yxatdan o‘tish
+              {t('Ro‘yxatdan o‘tish')}
             </Link>
           </span>
         </div>
@@ -278,8 +282,8 @@ export function ScrollTopButton() {
     <button
       type="button"
       onClick={toTop}
-      aria-label="Sahifa boshiga qaytish"
-      title="Tepaga"
+      aria-label={t('Sahifa boshiga qaytish')}
+      title={t('Tepaga')}
       tabIndex={visible ? 0 : -1}
       className={`group fixed bottom-[max(20px,env(safe-area-inset-bottom))] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#1d2229] text-white shadow-[0_14px_30px_-8px_rgba(15,29,42,0.55)] transition-all duration-300 hover:bg-black sm:right-6 sm:bottom-6 2xl:h-16 2xl:w-16 ${
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'

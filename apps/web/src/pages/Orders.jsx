@@ -19,9 +19,10 @@ import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
 import { useMyBookings } from '../lib/queries'
 import { api } from '../lib/api'
 import { avatarOrFallback } from '../lib/adapters'
+import { shortMonth } from '../lib/utils'
+import { t } from '../i18n'
 
 const DRIVER_TAGS = ['Toza salon', 'Xushmuomala', 'Vaqtida keldi', 'Xavfsiz haydash', 'Yoqimli suhbat']
-const MONTHS = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek']
 const ACTIVE = new Set(['PENDING', 'ACCEPTED', 'ONGOING'])
 const SCHEDULED_AHEAD_MS = 30 * 60 * 1000
 const RECENT_LIMIT = 4
@@ -59,7 +60,7 @@ function pad(n) {
 
 function formatDate(iso) {
   const d = new Date(iso)
-  return `${d.getDate()} ${MONTHS[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getDate()} ${shortMonth(d.getMonth(), { lower: true })}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 // Aktiv buyurtma uchun: "Bugun, 14:30" / "Ertaga, 09:00" / "12 okt, 09:00".
@@ -71,19 +72,19 @@ function formatWhen(iso) {
       86_400_000,
   )
   const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-  if (dayDiff === 0) return `Bugun, ${time}`
-  if (dayDiff === 1) return `Ertaga, ${time}`
+  if (dayDiff === 0) return t('Bugun, {0}', time)
+  if (dayDiff === 1) return t('Ertaga, {0}', time)
   return formatDate(iso)
 }
 
 function formatPrice(value) {
   if (value == null) return null
-  return `${new Intl.NumberFormat('uz-UZ').format(value).replace(/[, ]/g, ' ')} so‘m`
+  return t('{0} so‘m', new Intl.NumberFormat('uz-UZ').format(value).replace(/[, ]/g, ' '))
 }
 
 function personOf(driver) {
   if (!driver?.user) return null
-  const name = driver.user.name || driver.user.phone || 'Haydovchi'
+  const name = driver.user.name || driver.user.phone || t('Haydovchi')
   return {
     name,
     phone: driver.user.phone,
@@ -169,10 +170,10 @@ function KindIcon({ kind, large = false }) {
 function SectionHeader({ title, onSeeAll }) {
   return (
     <div className="mb-3 mt-6 flex items-center justify-between">
-      <h2 className="text-[18px] font-extrabold text-ink">{title}</h2>
+      <h2 className="text-[18px] font-extrabold text-ink">{t(title)}</h2>
       {onSeeAll ? (
         <button type="button" onClick={onSeeAll} className="flex items-center gap-1 text-[13px] font-semibold text-brand">
-          Barchasini ko‘rish <ChevronRight className="h-4 w-4" />
+          {t('Barchasini ko‘rish')}{' '}<ChevronRight className="h-4 w-4" />
         </button>
       ) : null}
     </div>
@@ -199,13 +200,13 @@ function ActiveCard({ item, onCancel, onOpen }) {
         <KindIcon kind={item.kind} large />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[16px] font-extrabold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? '🌸 Ayollar uchun taxi' : 'Taxi') : 'Yetkazib berish'}</p>
+            <p className="text-[16px] font-extrabold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? t('🌸 Ayollar uchun taxi') : t('Taxi')) : t('Yetkazib berish')}</p>
             {price ? <p className="shrink-0 text-[16px] font-extrabold text-ink">{price}</p> : null}
           </div>
           <div className="mt-1 flex items-center justify-between gap-2">
             <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-dark">
               {item.kind === 'taxi' ? <CarFront className="h-3.5 w-3.5 shrink-0" /> : <Package className="h-3.5 w-3.5 shrink-0" />}
-              <span className="truncate">{label}</span>
+              <span className="truncate">{t(label)}</span>
             </span>
             <span className="shrink-0 text-[13px] font-semibold text-slate-600">{formatWhen(item.at)}</span>
           </div>
@@ -229,7 +230,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
             <img src={item.person.avatar} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-brand-soft" />
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 truncate text-[14px] font-bold text-ink">
-                {item.person.name}
+                {t(item.person.name)}
                 {item.person.rating != null ? (
                   <span className="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-slate-600">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -244,14 +245,14 @@ function ActiveCard({ item, onCancel, onOpen }) {
                 href={`tel:${item.person.phone}`}
                 className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand-soft px-4 text-[13px] font-semibold text-brand-dark"
               >
-                <Phone className="h-4 w-4 fill-brand-dark" /> Qo‘ng‘iroq
+                <Phone className="h-4 w-4 fill-brand-dark" /> {t('Qo‘ng‘iroq')}
               </a>
             ) : null}
           </>
         ) : (
           <p className="flex min-w-0 flex-1 items-center gap-2 text-[13px] text-muted">
             <Clock3 className="h-4 w-4 shrink-0 text-brand" />
-            {item.kind === 'taxi' ? 'Haydovchi javobini kuting' : 'Kuryer hali biriktirilmagan'}
+            {item.kind === 'taxi' ? t('Haydovchi javobini kuting') : t('Kuryer hali biriktirilmagan')}
           </p>
         )}
         {canCancel ? (
@@ -260,7 +261,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-dark"
-              aria-label="Boshqa amallar"
+              aria-label={t('Boshqa amallar')}
             >
               <MoreVertical className="h-5 w-5" />
             </button>
@@ -276,7 +277,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
                     }}
                     className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] font-semibold text-red-500 hover:bg-red-50"
                   >
-                    <X className="h-4 w-4" /> Buyurtmani bekor qilish
+                    <X className="h-4 w-4" /> {t('Buyurtmani bekor qilish')}
                   </button>
                 </div>
               </>
@@ -296,20 +297,20 @@ function PastRow({ item, rated, onRate, onOpen }) {
     <>
       <KindIcon kind={item.kind} />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-bold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? '🌸 Ayollar uchun taxi' : 'Taxi') : 'Yetkazib berish'}</p>
+        <p className="text-[15px] font-bold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? t('🌸 Ayollar uchun taxi') : t('Taxi')) : t('Yetkazib berish')}</p>
         <p className="mt-0.5 truncate text-[13px] text-slate-600">
           {item.from} <span className="text-slate-400">→</span> {item.to}
         </p>
         <p className="mt-0.5 truncate text-[11.5px] text-muted">
           {formatDate(item.at)}
-          {canRate ? <span className="font-semibold text-brand"> · Baholang</span> : null}
-          {rated ? <span className="font-semibold text-emerald-600"> · Baholandi</span> : null}
+          {canRate ? <span className="font-semibold text-brand"> {t('· Baholang')}</span> : null}
+          {rated ? <span className="font-semibold text-emerald-600"> {t('· Baholandi')}</span> : null}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1.5">
         {price ? <p className="text-[15px] font-extrabold text-ink">{price}</p> : null}
         {badge ? (
-          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${badge.className}`}>{badge.label}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${badge.className}`}>{t(badge.label)}</span>
         ) : null}
       </div>
       <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
@@ -336,10 +337,10 @@ function PastRow({ item, rated, onRate, onOpen }) {
 function EmptyState({ text, cta = false }) {
   return (
     <div className="rounded-[22px] bg-white px-6 py-8 text-center shadow-[0_6px_24px_rgba(16,42,67,0.05)]">
-      <p className="text-[13.5px] text-muted">{text}</p>
+      <p className="text-[13.5px] text-muted">{t(text)}</p>
       {cta ? (
         <Link to="/ride" className="mt-4 inline-flex h-10 items-center rounded-full bg-brand px-5 text-[13px] font-bold text-white">
-          Taxi chaqirish
+          {t('Taxi chaqirish')}
         </Link>
       ) : null}
     </div>
@@ -399,7 +400,7 @@ export default function Orders() {
   const pastList =
     status === 'active' ? past.slice(0, RECENT_LIMIT) : status === 'all' ? past : past.filter((i) => i.status === status)
   const pastTitle =
-    status === 'COMPLETED' ? 'Bajarilgan buyurtmalar' : status === 'CANCELLED' ? 'Bekor qilingan buyurtmalar' : 'So‘nggi buyurtmalar'
+    status === 'COMPLETED' ? t('Bajarilgan buyurtmalar') : status === 'CANCELLED' ? t('Bekor qilingan buyurtmalar') : t('So‘nggi buyurtmalar')
 
   const cancel = useMutation({
     mutationFn: (item) => api.patch(`/bookings/${item.id}/cancel`, { reason: 'Mijoz bekor qildi' }),
@@ -422,7 +423,7 @@ export default function Orders() {
 
   function handleRate(item) {
     openRating({
-      title: 'Haydovchini baholang',
+      title: t('Haydovchini baholang'),
       subtitle: `${item.from} → ${item.to}`,
       tagOptions: DRIVER_TAGS,
       onSubmit: async ({ stars, tags, comment }) => {
@@ -438,8 +439,8 @@ export default function Orders() {
     <div className="mx-auto max-w-2xl pt-[max(0px,env(safe-area-inset-top))]">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-extrabold leading-tight tracking-tight text-ink">Buyurtmalar</h1>
-          <p className="mt-0.5 text-[13.5px] text-muted">Barcha buyurtmalaringiz shu yerda</p>
+          <h1 className="text-[28px] font-extrabold leading-tight tracking-tight text-ink">{t('Buyurtmalar')}</h1>
+          <p className="mt-0.5 text-[13.5px] text-muted">{t('Barcha buyurtmalaringiz shu yerda')}</p>
         </div>
         <button
           type="button"
@@ -448,7 +449,7 @@ export default function Orders() {
             setQuery('')
           }}
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-[0_6px_20px_rgba(16,42,67,0.08)]"
-          aria-label={searchOpen ? 'Qidiruvni yopish' : 'Qidirish'}
+          aria-label={searchOpen ? t('Qidiruvni yopish') : t('Qidirish')}
         >
           {searchOpen ? <X className="h-5 w-5" strokeWidth={2.4} /> : <Search className="h-5 w-5" strokeWidth={2.4} />}
         </button>
@@ -461,7 +462,7 @@ export default function Orders() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Manzil yoki haydovchi bo‘yicha qidirish"
+            placeholder={t('Manzil yoki haydovchi bo‘yicha qidirish')}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
           />
         </div>
@@ -480,7 +481,7 @@ export default function Orders() {
               }`}
             >
               <Icon className={`h-4.5 w-4.5 ${on ? '' : 'text-slate-600'}`} />
-              {label}
+              {t(label)}
               <span
                 className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
                   on ? 'bg-white text-brand' : 'bg-brand-soft text-brand-dark'
@@ -503,17 +504,17 @@ export default function Orders() {
               status === id ? 'bg-brand-soft text-ink' : 'bg-white text-slate-600'
             }`}
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
 
-      {loading ? <p className="mt-6 text-sm text-muted">Yuklanmoqda…</p> : null}
+      {loading ? <p className="mt-6 text-sm text-muted">{t('Yuklanmoqda…')}</p> : null}
 
       {!loading && showActive ? (
         <>
           <SectionHeader
-            title="Aktiv buyurtmalar"
+            title={t('Aktiv buyurtmalar')}
             onSeeAll={status !== 'all' && active.length > 0 ? () => setStatus('all') : null}
           />
           {active.length ? (
@@ -523,7 +524,7 @@ export default function Orders() {
               ))}
             </div>
           ) : (
-            <EmptyState text="Hozircha aktiv buyurtma yo‘q." cta={status === 'active'} />
+            <EmptyState text={t('Hozircha aktiv buyurtma yo‘q.')} cta={status === 'active'} />
           )}
         </>
       ) : null}
@@ -541,7 +542,7 @@ export default function Orders() {
               ))}
             </div>
           ) : (
-            <EmptyState text="Bu bo‘limda buyurtmalar yo‘q." />
+            <EmptyState text={t('Bu bo‘limda buyurtmalar yo‘q.')} />
           )}
         </>
       ) : null}

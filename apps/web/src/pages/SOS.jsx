@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { googleMapsUrl } from '../lib/geo'
 import { SOS_ENABLED } from '../lib/features'
+import { t } from '../i18n'
 
 const CONTACTS_KEY = 'taxiline-sos-contacts'
 
@@ -28,18 +29,18 @@ function SosSoon() {
   const navigate = useNavigate()
   return (
     <div className="flex min-h-svh flex-col bg-[#1a0b10] px-5 py-6 text-white">
-      <button type="button" onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10" aria-label="Orqaga">
+      <button type="button" onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10" aria-label={t('Orqaga')}>
         <ArrowLeft className="h-5 w-5" />
       </button>
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-300">Tez orada</span>
-        <h1 className="mt-4 text-2xl font-extrabold">Favqulodda yordam</h1>
+        <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-300">{t('Tez orada')}</span>
+        <h1 className="mt-4 text-2xl font-extrabold">{t('Favqulodda yordam')}</h1>
         <div className="mt-10 flex h-44 w-44 items-center justify-center rounded-full bg-white/10 text-4xl font-black tracking-widest text-white/30">SOS</div>
         <p className="mt-8 max-w-xs text-sm text-white/70">
-          SOS xizmati hozircha ishlamaydi va tez orada ishga tushadi. Xavfli vaziyatda darhol <b className="text-white">112</b> raqamiga qo‘ng‘iroq qiling.
+          {t('SOS xizmati hozircha ishlamaydi va tez orada ishga tushadi. Xavfli vaziyatda darhol')}{' '}<b className="text-white">112</b> {t('raqamiga qo‘ng‘iroq qiling.')}
         </p>
         <a href="tel:112" className="mt-6 flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-[#1a0b10]">
-          <Phone className="h-4 w-4" /> 112 ga qo‘ng‘iroq
+          <Phone className="h-4 w-4" /> {t('112 ga qo‘ng‘iroq')}
         </a>
       </div>
     </div>
@@ -73,8 +74,8 @@ function SosActive() {
 
   useEffect(() => {
     if (phase !== 'sending') return
-    const t = setTimeout(() => setPhase('sent'), 1400)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setPhase('sent'), 1400)
+    return () => clearTimeout(timer)
   }, [phase])
 
   function persist(next) {
@@ -115,13 +116,13 @@ function SosActive() {
   }
 
   const shareText = coords
-    ? `SOS! Menga yordam kerak. TaxiLine.\nJoylashuv: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}\n${googleMapsUrl(coords.lat, coords.lng)}`
-    : 'SOS! Menga yordam kerak. TaxiLine.'
+    ? t('SOS! Menga yordam kerak. TaxiLine.\nJoylashuv: {0}, {1}\n{2}', coords.lat.toFixed(5), coords.lng.toFixed(5), googleMapsUrl(coords.lat, coords.lng))
+    : t('SOS! Menga yordam kerak. TaxiLine.')
 
   async function shareSos() {
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'SOS — TaxiLine', text: shareText })
+        await navigator.share({ title: t('SOS — TaxiLine'), text: shareText })
         return
       }
     } catch {
@@ -141,9 +142,9 @@ function SosActive() {
       </button>
 
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <p className="text-sm font-semibold text-white/70">Favqulodda holat</p>
+        <p className="text-sm font-semibold text-white/70">{t('Favqulodda holat')}</p>
         <h1 className="mt-2 text-2xl font-extrabold">
-          {phase === 'sent' ? 'Joylashuv yuborildi' : phase === 'sending' ? 'Yuborilmoqda…' : 'Yordam chaqirish'}
+          {phase === 'sent' ? t('Joylashuv yuborildi') : phase === 'sending' ? t('Yuborilmoqda…') : t('Yordam chaqirish')}
         </h1>
         <button
           type="button"
@@ -160,10 +161,10 @@ function SosActive() {
         </button>
         <p className="mt-8 max-w-xs text-sm text-white/70">
           {phase === 'sent'
-            ? 'Ishonchli kontaktlar va 24/7 yordam xizmati sizning joylashuvingizni oldi. Qo‘ng‘iroq qiling yoki ulashing.'
-            : 'Tugmani bosing yoki 2 soniya ushlab turing. Geolokatsiya ishonchli kontaktlarga yuboriladi.'}
+            ? t('Ishonchli kontaktlar va 24/7 yordam xizmati sizning joylashuvingizni oldi. Qo‘ng‘iroq qiling yoki ulashing.')
+            : t('Tugmani bosing yoki 2 soniya ushlab turing. Geolokatsiya ishonchli kontaktlarga yuboriladi.')}
         </p>
-        {gpsStatus === 'pending' ? <p className="mt-3 text-xs font-semibold text-amber-200">Joylashuv aniqlanmoqda…</p> : null}
+        {gpsStatus === 'pending' ? <p className="mt-3 text-xs font-semibold text-amber-200">{t('Joylashuv aniqlanmoqda…')}</p> : null}
         {coords ? (
           <p className="mt-2 text-xs text-white/50">
             {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
@@ -179,7 +180,7 @@ function SosActive() {
             rel="noreferrer"
             className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 text-sm font-bold"
           >
-            <MapPin className="h-4 w-4" /> Joylashuvim
+            <MapPin className="h-4 w-4" /> {t('Joylashuvim')}
           </a>
         ) : (
           <button
@@ -187,7 +188,7 @@ function SosActive() {
             onClick={requestUserLocation}
             className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 text-sm font-bold"
           >
-            <MapPin className="h-4 w-4" /> Joylashuvim
+            <MapPin className="h-4 w-4" /> {t('Joylashuvim')}
           </button>
         )}
         <button
@@ -195,42 +196,42 @@ function SosActive() {
           onClick={() => setShowContacts(true)}
           className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 text-sm font-bold"
         >
-          <Users className="h-4 w-4" /> Kontaktlar
+          <Users className="h-4 w-4" /> {t('Kontaktlar')}
         </button>
         <a href="tel:101" className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-white text-sm font-extrabold text-red-600">
-          <Phone className="h-4 w-4" /> 101 — O‘t
+          <Phone className="h-4 w-4" /> {t('101 — O‘t')}
         </a>
         <a href="tel:103" className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-white text-sm font-extrabold text-red-600">
-          <Phone className="h-4 w-4" /> 103 — Tez yordam
+          <Phone className="h-4 w-4" /> {t('103 — Tez yordam')}
         </a>
         <button
           type="button"
           onClick={shareSos}
           className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-2xl bg-red-500 text-sm font-extrabold"
         >
-          <Share2 className="h-4 w-4" /> Holatni ulashish
+          <Share2 className="h-4 w-4" /> {t('Holatni ulashish')}
         </button>
         <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" className="col-span-2 text-center text-xs font-semibold text-white/60">
-          WhatsApp orqali yuborish
+          {t('WhatsApp orqali yuborish')}
         </a>
       </div>
 
       {showContacts ? (
         <div className="fixed inset-0 z-[140]">
-          <button type="button" className="absolute inset-0 bg-black/50" aria-label="Yopish" onClick={() => setShowContacts(false)} />
+          <button type="button" className="absolute inset-0 bg-black/50" aria-label={t('Yopish')} onClick={() => setShowContacts(false)} />
           <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-[#2a1218] px-4 pb-8 pt-3">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
-            <p className="text-lg font-extrabold">Ishonchli kontaktlar</p>
+            <p className="text-lg font-extrabold">{t('Ishonchli kontaktlar')}</p>
             <div className="mt-3 space-y-2">
               {contacts.length === 0 ? (
                 <p className="rounded-2xl bg-white/10 px-3 py-3 text-sm text-white/70">
-                  Hali kontakt qo‘shilmagan. Favqulodda holatda xabar boradigan yaqinlaringizni pastda qo‘shing.
+                  {t('Hali kontakt qo‘shilmagan. Favqulodda holatda xabar boradigan yaqinlaringizni pastda qo‘shing.')}
                 </p>
               ) : null}
               {contacts.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold">{c.name}</p>
+                    <p className="text-sm font-bold">{t(c.name)}</p>
                     <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="text-xs text-white/70">
                       {c.phone}
                     </a>
@@ -238,7 +239,7 @@ function SosActive() {
                   <a href={`sms:${c.phone.replace(/\s/g, '')}?body=${encodeURIComponent(shareText)}`} className="text-xs font-bold">
                     SMS
                   </a>
-                  <button type="button" aria-label="O‘chirish" onClick={() => persist(contacts.filter((x) => x.id !== c.id))}>
+                  <button type="button" aria-label={t('O‘chirish')} onClick={() => persist(contacts.filter((x) => x.id !== c.id))}>
                     <Trash2 className="h-4 w-4 text-white/50" />
                   </button>
                 </div>
@@ -248,13 +249,13 @@ function SosActive() {
               <input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Ism"
+                placeholder={t('Ism')}
                 className="h-11 rounded-2xl bg-white/10 px-3 text-sm outline-none"
               />
               <input
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder="Telefon"
+                placeholder={t('Telefon')}
                 className="h-11 rounded-2xl bg-white/10 px-3 text-sm outline-none"
               />
               <button

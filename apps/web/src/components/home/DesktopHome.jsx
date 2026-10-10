@@ -21,6 +21,7 @@ import { DEFAULT_LOCATION } from '../../lib/geocode'
 import { formatPlace, isRegionActive, matchRegion } from '../../data/uzbekistan'
 import { RegionPicker } from '../ui/SearchPickers'
 import { SERVICES } from '../../data/services'
+import { t } from '../../i18n'
 
 // Laptop/desktop version of MobileHome — the same visual language (soft canvas tiles with 3D
 // art, pill search fields, service icons, gradient banners), laid out for a wide screen.
@@ -51,8 +52,8 @@ function Tile({ to, title, hint, badge, badgeTone, soon = false, className = '',
       } ${className}`}
     >
       <div className="relative z-10">
-        <p className="text-[19px] font-extrabold leading-tight tracking-tight text-ink">{title}</p>
-        <p className="mt-1 text-[13px] text-muted">{hint}</p>
+        <p className="text-[19px] font-extrabold leading-tight tracking-tight text-ink">{t(title)}</p>
+        <p className="mt-1 text-[13px] text-muted">{t(hint)}</p>
       </div>
       {art ? (
         <img
@@ -66,7 +67,7 @@ function Tile({ to, title, hint, badge, badgeTone, soon = false, className = '',
       ) : null}
       {soon || badge ? (
         <div className="relative z-10">
-          <Badge tone={soon ? 'soon' : badgeTone}>{soon ? 'Tez orada' : badge}</Badge>
+          <Badge tone={soon ? 'soon' : badgeTone}>{soon ? t('Tez orada') : badge}</Badge>
         </div>
       ) : null}
     </Root>
@@ -108,7 +109,7 @@ export function DesktopHome() {
 
   const pickOriginOnMap = () =>
     openLocationPicker({
-      title: 'Mo‘ljal',
+      title: t('Mo‘ljal'),
       onPick: (loc) => {
         const region = matchRegion(loc.state, loc.city, loc.label)
         if (!region) return
@@ -128,8 +129,8 @@ export function DesktopHome() {
         <div className="col-span-12 rounded-[32px] bg-white p-7 shadow-[0_10px_40px_rgba(16,42,67,0.06)] xl:col-span-7">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-[30px] font-black leading-tight tracking-tight text-ink">Qayerga boramiz?</h2>
-              <p className="mt-1 text-[14px] text-muted">Shahar ichida va viloyatlar bo‘ylab — bir necha bosishda</p>
+              <h2 className="text-[30px] font-black leading-tight tracking-tight text-ink">{t('Qayerga boramiz?')}</h2>
+              <p className="mt-1 text-[14px] text-muted">{t('Shahar ichida va viloyatlar bo‘ylab — bir necha bosishda')}</p>
             </div>
             <button
               type="button"
@@ -137,7 +138,7 @@ export function DesktopHome() {
               className="flex max-w-[260px] items-center gap-1.5 rounded-full bg-canvas px-3.5 py-2 text-[13px] font-semibold text-ink transition hover:bg-brand-soft"
             >
               <MapPin className="h-4 w-4 shrink-0 text-brand" />
-              <span className="truncate">{hasLocation ? location.label : 'Manzilni aniqlang'}</span>
+              <span className="truncate">{hasLocation ? location.label : t('Manzilni aniqlang')}</span>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
             </button>
           </div>
@@ -146,9 +147,9 @@ export function DesktopHome() {
             <div className="flex h-16 items-center gap-3 rounded-[20px] bg-canvas pl-5 pr-2.5 transition focus-within:ring-2 focus-within:ring-brand/40">
               <PersonStanding className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
               <button type="button" onClick={() => openPicker('from')} className="min-w-0 flex-1 text-left">
-                <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">Qayerdan</span>
+                <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">{t('Qayerdan')}</span>
                 <span className={`block truncate text-[16px] font-semibold ${originText ? 'text-ink' : 'text-muted'}`}>
-                  {originText || 'Manzilni tanlang'}
+                  {originText || t('Manzilni tanlang')}
                 </span>
               </button>
               <button
@@ -156,12 +157,12 @@ export function DesktopHome() {
                 onClick={pickOriginOnMap}
                 className="h-10 shrink-0 rounded-xl bg-white px-4 text-[13px] font-semibold text-ink shadow-sm transition hover:bg-brand-soft"
               >
-                Mo‘ljal
+                {t('Mo‘ljal')}
               </button>
               <Link
                 to="/favorites"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-ink shadow-sm transition hover:bg-brand-soft"
-                aria-label="Saqlangan manzillar"
+                aria-label={t('Saqlangan manzillar')}
               >
                 <Bookmark className="h-4 w-4" />
               </Link>
@@ -170,7 +171,7 @@ export function DesktopHome() {
             <button
               type="button"
               onClick={swap}
-              aria-label="Manzillarni almashtirish"
+              aria-label={t('Manzillarni almashtirish')}
               className="absolute right-[120px] top-[52px] z-10 flex h-9 w-9 items-center justify-center rounded-full border-4 border-white bg-brand text-white shadow-md transition hover:rotate-180"
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -183,9 +184,9 @@ export function DesktopHome() {
             >
               <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
               <span className="min-w-0 flex-1">
-                <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">Qayerga</span>
+                <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">{t('Qayerga')}</span>
                 <span className={`block truncate text-[16px] font-semibold ${search.to ? 'text-ink' : 'text-muted'}`}>
-                  {search.to || 'Qayerga borasiz?'}
+                  {search.to || t('Qayerga borasiz?')}
                 </span>
               </span>
             </button>
@@ -197,7 +198,7 @@ export function DesktopHome() {
               onClick={findTrip}
               className="inline-flex h-13 items-center gap-2 rounded-[18px] bg-brand px-7 text-[15px] font-extrabold text-white shadow-[0_10px_24px_rgba(0,199,212,0.35)] transition hover:bg-brand-dark"
             >
-              Safar topish <ArrowRight className="h-5 w-5" />
+              {t('Safar topish')}{' '}<ArrowRight className="h-5 w-5" />
             </button>
             {[
               ['/taxi', 'Shahar taxi'],
@@ -205,7 +206,7 @@ export function DesktopHome() {
               ['/cargo', 'Yuk jo‘natish'],
             ].map(([to, label]) => (
               <Link key={to} to={to} className="rounded-full bg-canvas px-4 py-2.5 text-[13px] font-semibold text-ink transition hover:bg-brand-soft">
-                {label}
+                {t(label)}
               </Link>
             ))}
           </div>
@@ -213,7 +214,7 @@ export function DesktopHome() {
           <RegionPicker
             variant="headless"
             kind="from"
-            label="Qayerdan"
+            label={t('Qayerdan')}
             forceSheet
             region={search.fromRegion}
             place={search.fromPlace}
@@ -228,7 +229,7 @@ export function DesktopHome() {
           <RegionPicker
             variant="headless"
             kind="to"
-            label="Qayerga"
+            label={t('Qayerga')}
             forceSheet
             region={search.toRegion}
             place={search.toPlace}
@@ -251,9 +252,9 @@ export function DesktopHome() {
           <span aria-hidden className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10" />
           <span aria-hidden className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-white/10" />
           <div className="relative z-10">
-            <Badge tone="glass">Tez</Badge>
-            <p className="mt-3 text-[34px] font-black leading-none tracking-tight">Taxi</p>
-            <p className="mt-2 max-w-[220px] text-[14px] text-white/85">Shahar ichida va viloyatlararo — haydovchi bir zumda</p>
+            <Badge tone="glass">{t('Tez')}</Badge>
+            <p className="mt-3 text-[34px] font-black leading-none tracking-tight">{t('Taxi')}</p>
+            <p className="mt-2 max-w-[220px] text-[14px] text-white/85">{t('Shahar ichida va viloyatlararo — haydovchi bir zumda')}</p>
           </div>
           <img
             src="/landing/taxi-car.webp"
@@ -261,7 +262,7 @@ export function DesktopHome() {
             className="pointer-events-none absolute -right-16 bottom-14 w-[460px] max-w-none drop-shadow-[0_24px_30px_rgba(0,60,70,0.35)] transition-transform duration-500 group-hover:-translate-x-3"
           />
           <span className="relative z-10 mt-auto inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-3 text-[14px] font-extrabold text-ink shadow-lg">
-            Taxi chaqirish <ArrowRight className="h-4 w-4" />
+            {t('Taxi chaqirish')}{' '}<ArrowRight className="h-4 w-4" />
           </span>
         </Link>
       </section>
@@ -270,40 +271,40 @@ export function DesktopHome() {
       <section className="grid grid-cols-4 gap-4">
         <Tile
           to="/women/taxi"
-          title="Ayollar uchun Taxi"
-          hint="Avval ayol haydovchilarga"
-          badge="Xavfsiz"
+          title={t('Ayollar uchun Taxi')}
+          hint={t('Avval ayol haydovchilarga')}
+          badge={t('Xavfsiz')}
           badgeTone="hot"
           className="col-span-2 bg-gradient-to-br from-[#fff0f5] to-[#fde2ec]"
           art="/landing/taxi-car-sm.webp"
           artClass="-right-10 bottom-2 w-[300px]"
           artStyle={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
         />
-        <Tile to="/cargo" title="Yetkazish" hint="Posilka, hujjat" art="/home/box.webp" artClass="-bottom-4 -right-4 w-[140px]" />
-        <Tile to="/map" title="Smart Xarita" hint="Yangi" art="/home/smart-map.png" artClass="-bottom-4 -right-4 w-[140px]" />
+        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} art="/home/box.webp" artClass="-bottom-4 -right-4 w-[140px]" />
+        <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')} art="/home/smart-map.png" artClass="-bottom-4 -right-4 w-[140px]" />
         <Tile
           to="?ijara=1"
-          title="Skuter ijara"
-          hint="Skuter, samokat, velosiped"
-          badge="Yangi"
+          title={t('Skuter ijara')}
+          hint={t('Skuter, samokat, velosiped')}
+          badge={t('Yangi')}
           badgeTone="hot"
           art="/home/scooter-rent.webp"
           artClass="-bottom-3 -right-3 w-[130px]"
         />
-        <Tile to="/hub/auto-service" title="Avtoservis" hint="Ustaxonalar va xizmatlar" art="/home/service.webp" artClass="-bottom-4 -right-4 w-[130px]" />
-        <Tile to="/fuel" title="Yoqilg‘i" hint="Narxlar va manzillar" art="/home/fuel.webp" artClass="-bottom-4 -right-4 w-[130px]" />
-        <Tile to="/drivers" title="Haydovchilar" hint="E’lonlar va aloqa" badge="Yangi" badgeTone="hot" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
+        <Tile to="/hub/auto-service" title={t('Avtoservis')} hint={t('Ustaxonalar va xizmatlar')} art="/home/service.webp" artClass="-bottom-4 -right-4 w-[130px]" />
+        <Tile to="/fuel" title={t('Yoqilg‘i')} hint={t('Narxlar va manzillar')} art="/home/fuel.webp" artClass="-bottom-4 -right-4 w-[130px]" />
+        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
       </section>
 
       {/* ── Barcha xizmatlar ── */}
       <section className="rounded-[32px] bg-white p-6 shadow-[0_10px_40px_rgba(16,42,67,0.05)]">
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <h3 className="text-[20px] font-extrabold tracking-tight text-ink">Barcha xizmatlar</h3>
-            <p className="text-[13px] text-muted">Yo‘l, avtomobil va kundalik xizmatlar — bir joyda</p>
+            <h3 className="text-[20px] font-extrabold tracking-tight text-ink">{t('Barcha xizmatlar')}</h3>
+            <p className="text-[13px] text-muted">{t('Yo‘l, avtomobil va kundalik xizmatlar — bir joyda')}</p>
           </div>
           <Link to="/map" className="flex items-center gap-1 text-[13px] font-bold text-brand-dark hover:underline">
-            Xaritada ko‘rish <ChevronRight className="h-4 w-4" />
+            {t('Xaritada ko‘rish')}{' '}<ChevronRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="grid grid-cols-6 gap-3 xl:grid-cols-8">
@@ -314,7 +315,7 @@ export function DesktopHome() {
               className="group relative flex flex-col items-center gap-2 rounded-[22px] bg-canvas px-2 pb-3 pt-4 transition hover:-translate-y-0.5 hover:bg-brand-soft/60"
             >
               {badge ? (
-                <span className="absolute -top-2 rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">{badge}</span>
+                <span className="absolute -top-2 rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">{t(badge)}</span>
               ) : null}
               <span className="flex h-16 w-16 items-center justify-center">
                 <img
@@ -325,7 +326,7 @@ export function DesktopHome() {
                   }`}
                 />
               </span>
-              <span className="w-full truncate text-center text-[13px] font-semibold text-ink">{label}</span>
+              <span className="w-full truncate text-center text-[13px] font-semibold text-ink">{t(label)}</span>
             </Link>
           ))}
         </div>
@@ -334,8 +335,8 @@ export function DesktopHome() {
       {/* ── Bannerlar ── */}
       <section className="grid grid-cols-2 gap-5">
         <div className="relative flex min-h-[230px] flex-col overflow-hidden rounded-[32px] bg-gradient-to-br from-brand to-brand-dark p-7 text-white">
-          <p className="relative z-10 max-w-[300px] text-[26px] font-black leading-[1.1] tracking-tight">Tez va qulay safar TaxiLine bilan</p>
-          <p className="relative z-10 mt-2 max-w-[260px] text-[13px] text-white/85">Ishonchli haydovchilar, aniq narx va onlayn kuzatuv</p>
+          <p className="relative z-10 max-w-[300px] text-[26px] font-black leading-[1.1] tracking-tight">{t('Tez va qulay safar TaxiLine bilan')}</p>
+          <p className="relative z-10 mt-2 max-w-[260px] text-[13px] text-white/85">{t('Ishonchli haydovchilar, aniq narx va onlayn kuzatuv')}</p>
           <img
             src="/landing/taxi-car-sm.webp"
             alt=""
@@ -346,12 +347,12 @@ export function DesktopHome() {
             onClick={() => navigate('/ride')}
             className="relative z-10 mt-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-[14px] font-bold text-ink"
           >
-            Sinab ko‘ring <ArrowRight className="h-4 w-4" />
+            {t('Sinab ko‘ring')}{' '}<ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
         <div className="flex min-h-[230px] flex-col overflow-hidden rounded-[32px] bg-gradient-to-br from-[#a78bfa] to-[#7c3aed] p-7 text-white">
-          <p className="text-[24px] font-black leading-[1.1] tracking-tight">Tez orada yangi xizmatlar TaxiLine da</p>
+          <p className="text-[24px] font-black leading-[1.1] tracking-tight">{t('Tez orada yangi xizmatlar TaxiLine da')}</p>
           <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[14px] font-medium">
             {[
               [Wrench, 'Avtoservis'],
@@ -364,7 +365,7 @@ export function DesktopHome() {
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/15">
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="truncate">{label}</span>
+                <span className="truncate">{t(label)}</span>
               </li>
             ))}
           </ul>

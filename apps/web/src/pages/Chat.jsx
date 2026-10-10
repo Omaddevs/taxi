@@ -7,6 +7,7 @@ import { useSocket } from '../lib/socket'
 import { useAuth } from '../context/AuthContext'
 import { LocationPreview } from '../components/chat/LocationPreview'
 import { ChatAttachSheet } from '../components/chat/ChatAttachSheet'
+import { t } from '../i18n'
 
 function timeLabel(iso) {
   return new Date(iso).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
@@ -15,10 +16,10 @@ function timeLabel(iso) {
 function dayLabel(iso) {
   const d = new Date(iso)
   const now = new Date()
-  if (d.toDateString() === now.toDateString()) return 'Bugun'
+  if (d.toDateString() === now.toDateString()) return t('Bugun')
   const y = new Date(now)
   y.setDate(now.getDate() - 1)
-  if (d.toDateString() === y.toDateString()) return 'Kecha'
+  if (d.toDateString() === y.toDateString()) return t('Kecha')
   return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long' })
 }
 
@@ -104,10 +105,10 @@ export default function Chat() {
   }
 
   if (isLoading || !conv) {
-    return <p className="p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
+    return <p className="p-6 text-center text-sm text-muted">{t('Yuklanmoqda…')}</p>
   }
 
-  const name = conv.otherParticipant?.name || conv.otherParticipant?.phone || 'Suhbat'
+  const name = conv.otherParticipant?.name || conv.otherParticipant?.phone || t('Suhbat')
   const initial = String(name).slice(0, 2).toUpperCase()
 
   return (
@@ -117,7 +118,7 @@ export default function Chat() {
           type="button"
           onClick={() => navigate(inDriver ? '/driver/messages' : '/messages')}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-          aria-label="Orqaga"
+          aria-label={t('Orqaga')}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -129,14 +130,14 @@ export default function Chat() {
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[16px] font-extrabold leading-5">{name}</p>
-          <p className="truncate text-[11px] text-white/75">TaxiLine chat</p>
+          <p className="truncate text-[16px] font-extrabold leading-5">{t(name)}</p>
+          <p className="truncate text-[11px] text-white/75">{t('TaxiLine chat')}</p>
         </div>
         {conv.otherParticipant?.phone ? (
           <a
             href={`tel:${conv.otherParticipant.phone.replace(/\s/g, '')}`}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-            aria-label="Qo‘ng‘iroq qilish"
+            aria-label={t('Qo‘ng‘iroq qilish')}
           >
             <Phone className="h-5 w-5" />
           </a>
@@ -165,7 +166,7 @@ export default function Chat() {
                   {isLoc ? (
                     <LocationPreview lat={m.lat} lng={m.lng} label={m.locationLabel || m.text} mine={mine} />
                   ) : (
-                    <p className="whitespace-pre-wrap break-words text-[15px] leading-5">{m.text}</p>
+                    <p className="whitespace-pre-wrap break-words text-[15px] leading-5">{t(m.text)}</p>
                   )}
                   <p className={`mt-0.5 flex items-center justify-end gap-0.5 text-[10px] ${mine ? 'text-white/80' : 'text-muted'}`}>
                     {timeLabel(m.createdAt)}
@@ -186,7 +187,7 @@ export default function Chat() {
                     onClick={() => setAttachOpen(true)}
                     className="rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-brand shadow-sm"
                   >
-                    📍 Manzilimni yuborish
+                    {t('📍 Manzilimni yuborish')}
                   </button>
                 </div>
               ) : null}
@@ -217,21 +218,21 @@ export default function Chat() {
           type="button"
           onClick={() => setAttachOpen(true)}
           className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-500"
-          aria-label="Lokatsiya"
+          aria-label={t('Lokatsiya')}
         >
           <Paperclip className="h-5 w-5" />
         </button>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Xabar yozing"
+          placeholder={t('Xabar yozing')}
           className="min-h-11 min-w-0 flex-1 rounded-[22px] border-0 bg-white px-4 py-2.5 text-[15px] outline-none"
         />
         <button
           type="submit"
           className="mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#075E54] text-white disabled:opacity-40"
           disabled={!text.trim() || sendMessage.isPending}
-          aria-label="Yuborish"
+          aria-label={t('Yuborish')}
         >
           <Send className="h-5 w-5" />
         </button>

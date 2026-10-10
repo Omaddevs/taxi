@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SERVICES } from '../../data/services'
+import { t } from '../../i18n'
 
 // Yandex Go uslubidagi gorizontal xizmatlar qatori.
 
@@ -41,11 +42,11 @@ export function ServiceStrip() {
               />
               {badge ? (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
-                  {badge}
+                  {t(badge)}
                 </span>
               ) : null}
             </span>
-            <span className="w-full truncate text-center text-[13px] font-medium text-ink">{label}</span>
+            <span className="w-full truncate text-center text-[13px] font-medium text-ink">{t(label)}</span>
           </Link>
         ))}
       </div>

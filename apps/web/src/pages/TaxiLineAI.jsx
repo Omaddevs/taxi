@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
+import { t } from '../i18n'
 
 export default function TaxiLineAI() {
-  const [q, setQ] = useState('Cobalt mashinam ertalab zo‘rg‘a o‘t oldi.')
+  const [q, setQ] = useState(() => t('Cobalt mashinam ertalab zo‘rg‘a o‘t oldi.'))
   const [answer, setAnswer] = useState(null)
   const navigate = useNavigate()
 
   return (
     <div className="mx-auto max-w-2xl">
-      <ScreenHeader title="TaxiLine AI" subtitle="Taxminiy yo‘nalish, aniq tashxis emas" />
-      <PageTitle title="TaxiLine AI" subtitle="Avto muammo, safar va xizmat bo‘yicha yordamchi" />
+      <ScreenHeader title={t('TaxiLine AI')} subtitle={t('Taxminiy yo‘nalish, aniq tashxis emas')} />
+      <PageTitle title={t('TaxiLine AI')} subtitle={t('Avto muammo, safar va xizmat bo‘yicha yordamchi')} />
 
       <Card className="p-4">
         <textarea
@@ -29,13 +30,13 @@ export default function TaxiLineAI() {
             })
           }
         >
-          Tahlil qilish
+          {t('Tahlil qilish')}
         </Button>
       </Card>
 
       {answer ? (
         <Card className="mt-4 space-y-3 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Ehtimoliy sabablar</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t('Ehtimoliy sabablar')}</p>
           <ul className="space-y-2 text-sm">
             {answer.hints.map((h) => (
               <li key={h} className="rounded-xl bg-canvas px-3 py-2">
@@ -45,9 +46,9 @@ export default function TaxiLineAI() {
           </ul>
           <p className="text-xs text-muted">{answer.next}</p>
           <div className="grid grid-cols-2 gap-2">
-            <Button onClick={() => navigate('/roadside')}>Yo‘lda yordam</Button>
+            <Button onClick={() => navigate('/roadside')}>{t('Yo‘lda yordam')}</Button>
             <Button variant="outline" onClick={() => navigate('/hub/auto-service')}>
-              Servis
+              {t('Servis')}
             </Button>
           </div>
         </Card>

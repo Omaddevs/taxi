@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 const NOMINATIM = 'https://nominatim.openstreetmap.org'
 
 export const DEFAULT_LOCATION = {
@@ -33,8 +34,8 @@ function formatRoad(road) {
     .replace(/^(улица|ул\.|проспект|переулок|ulitsa|prospekt)\s+/i, '')
     .replace(/\s+(улица|проспект|ulitsa|prospekt)$/i, '')
   r = toLatin(r).trim()
-  if (isProspect && !/shohko['‘’]cha/i.test(r)) return `${r} shohko‘chasi`
-  if (isStreet && !/ko['‘’]cha/i.test(r)) return `${r} ko‘chasi`
+  if (isProspect && !/shohko['‘’]cha/i.test(r)) return t('{0} shohko‘chasi', r)
+  if (isStreet && !/ko['‘’]cha/i.test(r)) return t('{0} ko‘chasi', r)
   return r
 }
 
@@ -46,7 +47,7 @@ function nominatimHeaders() {
 }
 
 export function formatAddress(data) {
-  if (!data) return 'Tanlangan nuqta'
+  if (!data) return t('Tanlangan nuqta')
   const a = data.address || {}
   const road = formatRoad(a.road || a.pedestrian || a.residential || a.street)
   const house = a.house_number
@@ -57,7 +58,7 @@ export function formatAddress(data) {
   if (area) return area
   if (city) return city
   const short = toLatin((data.display_name || '').split(',').slice(0, 2).join(',').trim())
-  return short || 'Tanlangan nuqta'
+  return short || t('Tanlangan nuqta')
 }
 
 export function polishLocationLabel(label) {
@@ -77,7 +78,7 @@ export function extractCity(data) {
 export async function reverseGeocode(lat, lng) {
   const url = `${NOMINATIM}/reverse?lat=${lat}&lon=${lng}&format=jsonv2&addressdetails=1&zoom=18&accept-language=uz`
   const res = await fetch(url, { headers: nominatimHeaders() })
-  if (!res.ok) throw new Error('Manzil topilmadi')
+  if (!res.ok) throw new Error(t('Manzil topilmadi'))
   return res.json()
 }
 
@@ -86,7 +87,7 @@ export async function searchPlaces(query) {
   if (q.length < 2) return []
   const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=jsonv2&addressdetails=1&limit=6&countrycodes=uz&accept-language=uz&viewbox=55.9,45.6,73.2,37.1`
   const res = await fetch(url, { headers: nominatimHeaders() })
-  if (!res.ok) throw new Error('Qidiruv ishlamadi')
+  if (!res.ok) throw new Error(t('Qidiruv ishlamadi'))
   return res.json()
 }
 

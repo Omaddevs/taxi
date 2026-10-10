@@ -1,4 +1,5 @@
 import L from 'leaflet'
+import { t } from '../i18n'
 
 // lucide "person-standing", inlined: Leaflet divIcons are plain HTML strings, not React.
 const PERSON_SVG =
@@ -11,7 +12,7 @@ const H = 72
  * "Siz shu yerdasiz" — the passenger's own position on every map: a card with the person badge,
  * a stem and a pulsing foot. The foot (not the card) sits exactly on the GPS point.
  */
-export function meLocationIcon({ color = '#00c7d4', label = 'Siz shu yerdasiz' } = {}) {
+export function meLocationIcon({ color = '#00c7d4', label = t('Siz shu yerdasiz') } = {}) {
   const safe = String(label).replace(/</g, '')
   return L.divIcon({
     className: 'me-marker',

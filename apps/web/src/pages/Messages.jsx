@@ -8,6 +8,7 @@ import { Input } from '../components/ui/Input'
 import { avatarOrFallback } from '../lib/adapters'
 import { api } from '../lib/api'
 import { useSocket } from '../lib/socket'
+import { t } from '../i18n'
 
 function timeLabel(iso) {
   if (!iso) return ''
@@ -18,14 +19,14 @@ function timeLabel(iso) {
   }
   const yesterday = new Date(now)
   yesterday.setDate(now.getDate() - 1)
-  if (d.toDateString() === yesterday.toDateString()) return 'Kecha'
+  if (d.toDateString() === yesterday.toDateString()) return t('Kecha')
   return d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
 }
 
 function lastPreview(msg) {
-  if (!msg) return 'Hali xabar yo‘q'
-  if (msg.type === 'LOCATION') return '📍 Joylashuv'
-  return msg.text || 'Hali xabar yo‘q'
+  if (!msg) return t('Hali xabar yo‘q')
+  if (msg.type === 'LOCATION') return t('📍 Joylashuv')
+  return msg.text || t('Hali xabar yo‘q')
 }
 
 function SkeletonRow() {
@@ -51,8 +52,8 @@ function EmptyState({ icon: Icon, image, title, subtitle }) {
         </span>
       )}
       <div>
-        <p className="font-bold">{title}</p>
-        {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
+        <p className="font-bold">{t(title)}</p>
+        {subtitle ? <p className="mt-1 text-sm text-muted">{t(subtitle)}</p> : null}
       </div>
     </div>
   )
@@ -97,17 +98,17 @@ export default function Messages() {
       {inDriver ? (
         <div className="px-4 pb-2 pt-[max(12px,env(safe-area-inset-top))]">
           <div className="flex items-center justify-center gap-2">
-            <h1 className="text-center text-[17px] font-extrabold">Xabarlar</h1>
+            <h1 className="text-center text-[17px] font-extrabold">{t('Xabarlar')}</h1>
             {totalUnread > 0 ? <Badge tone="pink">{totalUnread}</Badge> : null}
           </div>
         </div>
       ) : (
         <>
-          <ScreenHeader title="Xabarlar" back={false} right={totalUnread > 0 ? <Badge tone="pink">{totalUnread}</Badge> : undefined} />
+          <ScreenHeader title={t('Xabarlar')} back={false} right={totalUnread > 0 ? <Badge tone="pink">{totalUnread}</Badge> : undefined} />
           <PageTitle
-            title="Xabarlar"
-            subtitle="Haydovchi va yo‘lovchi suhbatlari"
-            right={totalUnread > 0 ? <Badge tone="pink">{totalUnread} ta o‘qilmagan</Badge> : undefined}
+            title={t('Xabarlar')}
+            subtitle={t('Haydovchi va yo‘lovchi suhbatlari')}
+            right={totalUnread > 0 ? <Badge tone="pink">{t('{0} ta o‘qilmagan', totalUnread)}</Badge> : undefined}
           />
         </>
       )}
@@ -119,8 +120,8 @@ export default function Messages() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ism yoki telefon bo‘yicha qidirish"
-              aria-label="Suhbatlarni qidirish"
+              placeholder={t('Ism yoki telefon bo‘yicha qidirish')}
+              aria-label={t('Suhbatlarni qidirish')}
               className="pl-10"
             />
           </div>
@@ -135,14 +136,14 @@ export default function Messages() {
         ) : conversations.length === 0 ? (
           <EmptyState
             image="/empty/messages.webp"
-            title="Hali suhbatlar yo‘q"
-            subtitle="Buyurtma bergan yoki qabul qilgan haydovchi bilan yozishmalar shu yerda ko‘rinadi."
+            title={t('Hali suhbatlar yo‘q')}
+            subtitle={t('Buyurtma bergan yoki qabul qilgan haydovchi bilan yozishmalar shu yerda ko‘rinadi.')}
           />
         ) : filtered.length === 0 ? (
-          <EmptyState icon={SearchX} title="Hech narsa topilmadi" subtitle={`«${query}» bo‘yicha suhbat topilmadi.`} />
+          <EmptyState icon={SearchX} title={t('Hech narsa topilmadi')} subtitle={t('«{0}» bo‘yicha suhbat topilmadi.', query)} />
         ) : (
           filtered.map((item) => {
-            const name = item.otherParticipant?.name || item.otherParticipant?.phone || 'Suhbat'
+            const name = item.otherParticipant?.name || item.otherParticipant?.phone || t('Suhbat')
             return (
               <Link
                 key={item.id}
@@ -161,7 +162,7 @@ export default function Messages() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate font-semibold">{name}</p>
+                    <p className="truncate font-semibold">{t(name)}</p>
                     <span className={`shrink-0 text-[11px] ${item.unreadCount ? 'font-bold text-brand' : 'text-muted'}`}>
                       {timeLabel(item.lastMessageAt)}
                     </span>

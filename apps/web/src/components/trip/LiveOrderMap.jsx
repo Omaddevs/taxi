@@ -7,6 +7,7 @@ import { fetchDrivingRoute } from '../../lib/geo'
 import { findCity } from '../../data/uzCities'
 import { RouteMap } from './RouteMap'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 export function pinIcon(color, label, size = 30) {
   const safe = String(label || '').replace(/</g, '')
@@ -30,8 +31,8 @@ export function driverDotIcon() {
 function FitBounds({ points, fitKey }) {
   const map = useMap()
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => map.invalidateSize(), 80)
+    return () => clearTimeout(timer)
   }, [map])
   useEffect(() => {
     if (points.length > 1) map.fitBounds(points, { padding: [36, 36] })
@@ -158,7 +159,7 @@ export function LiveOrderMap({ order, driverPos, className = '', interactive = f
         {dest ? <Marker position={[dest.lat, dest.lng]} icon={pinIcon('#1c1c28', 'Manzil', 26)} /> : null}
       </MapContainer>
       <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-extrabold shadow-sm">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Jonli xarita
+        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> {t('Jonli xarita')}
       </div>
     </div>
   )

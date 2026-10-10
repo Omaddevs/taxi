@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { DEFAULT_LOCATION, polishLocationLabel } from '../lib/geocode'
 import { api } from '../lib/api'
 import { avatarOrFallback } from '../lib/adapters'
 import { useAuth } from './AuthContext'
+import { getLanguage, isSupportedLanguage, setI18nLanguage } from '../i18n'
 
 const AppContext = createContext(null)
 const LOCATION_KEY = 'taxiline-location'
@@ -15,13 +16,7 @@ const AUTO_ACCEPT_KEY = 'taxiline-auto-accept'
 const REGIONS_KEY = 'taxiline-work-regions'
 
 function loadLanguage() {
-  try {
-    const raw = localStorage.getItem(LANG_KEY)
-    if (raw && ['uz', 'ru', 'en'].includes(raw)) return raw
-  } catch {
-    /* ignore */
-  }
-  return 'uz'
+  return getLanguage()
 }
 
 function loadBool(key, fallback) {
@@ -178,6 +173,8 @@ export function AppProvider({ children }) {
   const [gpsStatus, setGpsStatus] = useState('idle')
   const [plusPlan, setPlusPlan] = useState(loadPlusPlan)
   const [language, setLanguage] = useState(loadLanguage)
+  // t() o‘qiydigan til render paytida yangilanadi — pastdagi daraxt shu renderdayoq yangi tilni ko‘radi.
+  setI18nLanguage(language)
   const [theme, setTheme] = useState(loadTheme)
   const [notifsEnabled, setNotifsEnabled] = useState(() => loadBool(NOTIFS_KEY, true))
   const [autoAccept, setAutoAccept] = useState(() => loadBool(AUTO_ACCEPT_KEY, false))
@@ -186,11 +183,10 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem(LANG_KEY, language)
-    document.documentElement.lang = language
   }, [language])
 
   useEffect(() => {
-    if (rawUser?.language && ['uz', 'ru', 'en'].includes(rawUser.language)) {
+    if (isSupportedLanguage(rawUser?.language)) {
       setLanguage(rawUser.language)
     }
   }, [rawUser?.id, rawUser?.language])
@@ -371,7 +367,13 @@ export function AppProvider({ children }) {
     ],
   )
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+  // Til almashganda butun ilova qayta quriladi, shunda har bir t('…') yangi tilda chiqadi.
+  // Server ma’lumotlari react-query keshida, manzil esa URL’da qoladi — hech narsa yo‘qolmaydi.
+  return (
+    <AppContext.Provider value={value}>
+      <Fragment key={language}>{children}</Fragment>
+    </AppContext.Provider>
+  )
 }
 
 export function useApp() {

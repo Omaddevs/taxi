@@ -1,4 +1,5 @@
-const MONTHS_SHORT = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+import { t } from '../i18n'
+import { shortMonth } from './utils'
 
 export const FALLBACK_AVATAR = 'https://i.pravatar.cc/160?img=68'
 export const FALLBACK_CAR_IMAGE = '/cars/cobalt.png'
@@ -16,7 +17,7 @@ function formatTime(iso) {
 function formatShortDate(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`
+  return `${d.getDate()} ${shortMonth(d.getMonth())}`
 }
 
 // Adapts a backend RideOffer into the flat "trip" shape TripCard/TripDetails/
@@ -42,7 +43,7 @@ export function offerToTrip(offer) {
     plate: offer.driver?.plate,
     carImage: offer.driver?.carImageUrl || FALLBACK_CAR_IMAGE,
     driver: {
-      name: offer.driver?.user?.name || offer.driver?.user?.phone || 'Haydovchi',
+      name: offer.driver?.user?.name || offer.driver?.user?.phone || t('Haydovchi'),
       // 0 alongside ratingCount 0 means "no real ratings yet" — never a fabricated default;
       // consuming UI must check ratingCount before rendering rating as a number.
       rating: offer.driver?.ratingAvg ?? 0,
@@ -58,7 +59,7 @@ export function offerToTrip(offer) {
 // TripHistory/TripCard(compact) already render.
 export function bookingToHistoryItem(booking) {
   const d = new Date(booking.departAt)
-  const dateLabel = `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}, ${formatTime(booking.departAt)}`
+  const dateLabel = `${d.getDate()} ${shortMonth(d.getMonth())}, ${formatTime(booking.departAt)}`
   return {
     id: booking.id,
     from: booking.fromLabel,
@@ -87,7 +88,7 @@ const BOT_ORDER_STATUS_TO_BOOKING_STATUS = {
 // bookingToHistoryItem, so TripHistory can render both in one merged, sorted list.
 export function botOrderToHistoryItem(order) {
   const d = new Date(order.createdAt)
-  const dateLabel = `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}, ${formatTime(order.createdAt)}`
+  const dateLabel = `${d.getDate()} ${shortMonth(d.getMonth())}, ${formatTime(order.createdAt)}`
   return {
     id: `bot-${order.id}`,
     from: `${order.fromRegion}, ${order.fromDistrict}`,

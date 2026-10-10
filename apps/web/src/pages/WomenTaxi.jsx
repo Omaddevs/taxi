@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { isDriverUser } from '../lib/role'
+import { t } from '../i18n'
 
 // Landing sahifasidagi hero bilan bir xil vizual til, lekin pushti rangda (mashina ham hue-rotate bilan pushti): kulrang + pushti panel, katta "T" shakli,
 // qorong‘i "nega biz" bloki va varaqlanadigan kartalar.
@@ -26,7 +27,7 @@ function CarImage({ className = '' }) {
       <source type="image/webp" srcSet="/landing/taxi-car-sm.webp 520w, /landing/taxi-car.webp 1400w" sizes="(min-width: 1024px) 560px, 100vw" />
       <img
         src="/landing/taxi-car.png"
-        alt="TaxiLine avtomobili"
+        alt={t('TaxiLine avtomobili')}
         width={2017}
         height={694}
         className={`select-none ${className}`}
@@ -46,8 +47,8 @@ function FeatureCard({ icon: Icon, title, text, tone }) {
       }`}
     >
       <Icon className={`h-9 w-9 ${brand ? 'text-ink' : 'text-[#f5559a]'}`} strokeWidth={1.7} />
-      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] tracking-tight">{title}</h3>
-      <p className={`mt-2 text-[12px] leading-[1.4] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{text}</p>
+      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] tracking-tight">{t(title)}</h3>
+      <p className={`mt-2 text-[12px] leading-[1.4] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{t(text)}</p>
     </article>
   )
 }
@@ -107,13 +108,13 @@ export default function WomenTaxi() {
             </svg>
 
             <span className="relative inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] text-[#d6337f] shadow-sm">
-              <ShieldCheck className="h-4 w-4" /> TaxiLine Women
+              <ShieldCheck className="h-4 w-4" /> {t('TaxiLine Women')}
             </span>
 
             <h1 className="relative mt-6 text-[38px] font-extrabold leading-[1.06] tracking-tight text-ink sm:text-[50px] lg:mt-10 lg:text-[52px] xl:text-[60px]">
-              Ayollar uchun
+              {t('Ayollar uchun')}
               <br />
-              xavfsiz taxi
+              {t('xavfsiz taxi')}
             </h1>
 
             <div className="relative z-20 -mx-3 -mb-14 mt-4 sm:mx-6 sm:-mb-20 lg:hidden">
@@ -133,13 +134,12 @@ export default function WomenTaxi() {
             </svg>
 
             <h2 className="relative text-[30px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[40px] lg:mt-[68px] lg:text-[36px] xl:text-[42px]">
-              Avval —
+              {t('Avval —')}
               <br />
-              ayol haydovchilar
+              {t('ayol haydovchilar')}
             </h2>
             <p className="relative mt-4 max-w-[420px] text-[15px] leading-[1.5] text-ink/85 sm:text-[17px]">
-              Buyurtmangiz avval tasdiqlangan ayol haydovchilarga yuboriladi. 5 daqiqada hech kim olmasa, barcha haydovchilarga
-              ochiladi — kutib qolmaysiz.
+              {t('Buyurtmangiz avval tasdiqlangan ayol haydovchilarga yuboriladi. 5 daqiqada hech kim olmasa, barcha haydovchilarga ochiladi — kutib qolmaysiz.')}
             </p>
 
             <div className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -148,7 +148,7 @@ export default function WomenTaxi() {
                 onClick={start}
                 className="spin-border flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-ink px-8 text-[14px] font-bold uppercase tracking-[0.03em] text-white shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a]"
               >
-                {isDriver ? 'Tushunarli' : 'Taxi chaqirish'}
+                {isDriver ? t('Tushunarli') : t('Taxi chaqirish')}
                 {isDriver ? null : <ArrowRight className="h-4 w-4" />}
               </button>
               {isDriver ? null : (
@@ -156,7 +156,7 @@ export default function WomenTaxi() {
                   to="/become-driver"
                   className="flex h-12 items-center justify-center rounded-full bg-white/25 px-6 text-[14px] font-bold text-ink transition hover:bg-white/40"
                 >
-                  Haydovchi bo‘lish
+                  {t('Haydovchi bo‘lish')}
                 </Link>
               )}
             </div>
@@ -172,13 +172,13 @@ export default function WomenTaxi() {
           <div className="grid gap-8 px-5 pb-8 pt-12 sm:px-10 sm:pb-10 sm:pt-16 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10 lg:px-12 lg:pb-14 lg:pt-20">
             <div className="min-w-0">
               <h2 className="text-[28px] font-extrabold leading-[1.12] tracking-tight text-white sm:text-[38px] xl:text-[44px]">
-                Nega ayollar
+                {t('Nega ayollar')}
                 <br />
-                bizni tanlashadi
+                {t('bizni tanlashadi')}
               </h2>
               <p className="mt-4 text-[15px] leading-[1.5] text-white/75 sm:text-[17px]">
-                xavfsizlik uchun nimalar qilinganini
-                <br className="hidden sm:block" /> kartalarga jamladik
+                {t('xavfsizlik uchun nimalar qilinganini')}
+                <br className="hidden sm:block" /> {t('kartalarga jamladik')}
               </p>
               <div className="mt-10 hidden lg:block">{dots}</div>
             </div>
@@ -197,7 +197,7 @@ export default function WomenTaxi() {
                 <button
                   type="button"
                   onClick={next}
-                  aria-label="Keyingi"
+                  aria-label={t('Keyingi')}
                   className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/10 sm:flex"
                 >
                   <ArrowRight className="h-5 w-5" />
@@ -211,7 +211,7 @@ export default function WomenTaxi() {
 
       {/* ── Qanday ishlaydi ── */}
       <section className="mt-6 px-4 lg:mt-8 lg:px-0">
-        <h2 className="text-[24px] font-extrabold tracking-tight text-ink sm:text-[30px]">Qanday ishlaydi</h2>
+        <h2 className="text-[24px] font-extrabold tracking-tight text-ink sm:text-[30px]">{t('Qanday ishlaydi')}</h2>
         <ol className="mt-4 grid gap-3 sm:grid-cols-3">
           {STEPS.map((step, i) => (
             <li key={step.title} className="flex gap-4 rounded-[20px] bg-white p-5 sm:flex-col sm:gap-6">
@@ -219,8 +219,8 @@ export default function WomenTaxi() {
                 {i + 1}
               </span>
               <span className="min-w-0">
-                <span className="block text-[17px] font-extrabold leading-tight tracking-tight text-ink">{step.title}</span>
-                <span className="mt-1 block text-[13px] leading-[1.45] text-muted">{step.text}</span>
+                <span className="block text-[17px] font-extrabold leading-tight tracking-tight text-ink">{t(step.title)}</span>
+                <span className="mt-1 block text-[13px] leading-[1.45] text-muted">{t(step.text)}</span>
               </span>
             </li>
           ))}
@@ -228,7 +228,7 @@ export default function WomenTaxi() {
 
         <div className="mt-3 flex items-center gap-3 rounded-[20px] bg-white p-4 text-[13px] text-muted">
           <BadgeCheck className="h-5 w-5 shrink-0 text-[#f5559a]" />
-          Har bir ayol haydovchi hujjat va shaxsini tasdiqlash bosqichidan o‘tadi.
+          {t('Har bir ayol haydovchi hujjat va shaxsini tasdiqlash bosqichidan o‘tadi.')}
         </div>
       </section>
     </div>

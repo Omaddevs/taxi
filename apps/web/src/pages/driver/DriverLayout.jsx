@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
 import { useNewOrderAlerts } from './useNewOrderAlerts'
 import { RentMarketHost } from '../../components/rent/RentMarketHost'
+import { t } from '../../i18n'
 
 export function DriverLayout() {
   const { user } = useApp()
@@ -14,7 +15,7 @@ export function DriverLayout() {
 
   if (!user) {
     return (
-      <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+      <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">{t('Yuklanmoqda…')}</div>
     )
   }
 
@@ -42,9 +43,7 @@ function NewOrderBanner() {
   return (
     <div className="fixed inset-x-0 top-0 z-[60] px-3 pt-[max(10px,env(safe-area-inset-top))]">
       <div
-        className={`mx-auto max-w-lg animate-[slideDown_.3s_ease-out] rounded-2xl p-3 text-white shadow-2xl ${
-          order.womenOnly ? 'bg-gradient-to-br from-[#d6337f] to-[#f5559a]' : 'bg-ink'
-        }`}
+        className={`mx-auto max-w-lg animate-[slideDown_.3s_ease-out] rounded-2xl p-3 text-white shadow-2xl ${order.womenOnly ? 'bg-gradient-to-br from-[#d6337f] to-[#f5559a]' : 'bg-ink'}`}
       >
         <div className="flex items-start gap-3">
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${order.womenOnly ? 'bg-white/25' : 'bg-brand'}`}>
@@ -52,14 +51,14 @@ function NewOrderBanner() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-extrabold">
-              {order.womenOnly ? 'Ayollar uchun taxi — yangi buyurtma!' : 'TaxiLine — yangi mijoz!'}
+              {order.womenOnly ? t('Ayollar uchun taxi — yangi buyurtma!') : t('TaxiLine — yangi mijoz!')}
               {count > 1 ? ` (+${count - 1})` : ''}
             </p>
             <p className="truncate text-sm text-white/80">
               {order.from} → {order.to}
             </p>
           </div>
-          <button type="button" onClick={dismiss} aria-label="Yopish" className="rounded-full p-1 text-white/60 hover:text-white">
+          <button type="button" onClick={dismiss} aria-label={t('Yopish')} className="rounded-full p-1 text-white/60 hover:text-white">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -72,11 +71,11 @@ function NewOrderBanner() {
             }}
             className={`h-9 flex-1 rounded-xl px-3 text-sm font-extrabold ${order.womenOnly ? 'bg-white text-[#d6337f]' : 'bg-brand'}`}
           >
-            Ko‘rish
+            {t('Ko‘rish')}
           </button>
           {soundBlocked ? (
             <button type="button" onClick={enableSound} className="flex h-9 items-center gap-1.5 rounded-xl bg-white/10 px-3 text-sm font-bold">
-              <Volume2 className="h-4 w-4" /> Ovozni yoqish
+              <Volume2 className="h-4 w-4" /> {t('Ovozni yoqish')}
             </button>
           ) : null}
           {canAskPermission ? (
@@ -85,7 +84,7 @@ function NewOrderBanner() {
               onClick={() => Notification.requestPermission().catch(() => {})}
               className="h-9 rounded-xl bg-white/10 px-3 text-sm font-bold"
             >
-              Bildirishnomani yoqish
+              {t('Bildirishnomani yoqish')}
             </button>
           ) : null}
         </div>
@@ -107,18 +106,18 @@ function DriverNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-4 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
       <div className="relative mx-auto flex max-w-lg items-end justify-between">
-        <NavItem to="/driver" icon={Home} label="Bosh sahifa" end />
-        <NavItem to="/driver/post" icon={Send} label="Safar" />
+        <NavItem to="/driver" icon={Home} label={t('Bosh sahifa')} end />
+        <NavItem to="/driver/post" icon={Send} label={t('Safar')} />
         <div className="w-16" />
-        <NavItem to="/driver/messages" icon={MessageCircle} label="Xabarlar" badge={unread} />
-        <NavItem to="/driver/settings" icon={UserRound} label="Profil" />
+        <NavItem to="/driver/messages" icon={MessageCircle} label={t('Xabarlar')} badge={unread} />
+        <NavItem to="/driver/settings" icon={UserRound} label={t('Profil')} />
         <button
           type="button"
           onClick={() => navigate('/driver/orders')}
           className={`absolute left-1/2 top-[-22px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-lg shadow-brand/40 ${
             orderActive ? 'ring-4 ring-brand/25' : ''
           }`}
-          aria-label="Buyurtma"
+          aria-label={t('Buyurtma')}
         >
           <LogoPin size={40} />
         </button>
@@ -144,7 +143,7 @@ function NavItem({ to, icon: Icon, label, end, badge }) {
           </span>
         ) : null}
       </span>
-      {label}
+      {t(label)}
     </NavLink>
   )
 }

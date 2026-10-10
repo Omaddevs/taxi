@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, ChevronLeft, ChevronRight, MapPin, Search, X } from 'lucide-react'
 import { REGIONS } from '../../data/uzbekistan'
+import { t } from '../../i18n'
 
 // Region → district dropdown for the Haydovchilar filters. `value` is { region, district } (either
 // may be null). Picking a region shows its districts, with "Butun viloyat" on top; the list is
@@ -79,7 +80,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
           <span
             role="button"
             tabIndex={0}
-            aria-label="Tozalash"
+            aria-label={t('Tozalash')}
             onClick={(e) => {
               e.stopPropagation()
               onChange({ region: null, district: null })
@@ -99,7 +100,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
         )}
       </button>
 
-      {open ? <button type="button" aria-label="Yopish" onClick={() => setOpen(false)} className="fixed inset-0 z-[140] bg-black/30 sm:hidden" /> : null}
+      {open ? <button type="button" aria-label={t('Yopish')} onClick={() => setOpen(false)} className="fixed inset-0 z-[140] bg-black/30 sm:hidden" /> : null}
       {open ? (
         <div
           role="listbox"
@@ -114,7 +115,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
                   setQuery('')
                 }}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-canvas text-ink"
-                aria-label="Viloyatlarga qaytish"
+                aria-label={t('Viloyatlarga qaytish')}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -124,7 +125,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={step === 'district' ? `${picked?.name}: tuman qidiring` : 'Viloyat yoki tuman qidiring'}
+                placeholder={step === 'district' ? t('{0}: tuman qidiring', picked?.name) : t('Viloyat yoki tuman qidiring')}
                 autoFocus
                 className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold outline-none placeholder:font-medium placeholder:text-muted"
               />
@@ -143,7 +144,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
                           <button type="button" onClick={() => choose(r.name, d)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left hover:bg-canvas">
                             <MapPin className="h-4 w-4 shrink-0 text-brand" />
                             <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{d}</span>
-                            <span className="shrink-0 text-[12px] text-muted">{r.name}</span>
+                            <span className="shrink-0 text-[12px] text-muted">{t(r.name)}</span>
                           </button>
                         </li>
                       ))
@@ -159,20 +160,20 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
                       }}
                       className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left hover:bg-canvas ${value?.region === r.name ? 'bg-brand-soft/60' : ''}`}
                     >
-                      <span className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink">{r.name}</span>
-                      <span className="shrink-0 text-[12px] text-muted">{r.districts.length} ta tuman</span>
+                      <span className="min-w-0 flex-1 truncate text-[14px] font-bold text-ink">{t(r.name)}</span>
+                      <span className="shrink-0 text-[12px] text-muted">{t('{0} ta tuman', r.districts.length)}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
                     </button>
                   </li>
                 ))}
-                {!regions.length && q ? <li className="px-3 py-6 text-center text-sm text-muted">Hech narsa topilmadi</li> : null}
+                {!regions.length && q ? <li className="px-3 py-6 text-center text-sm text-muted">{t('Hech narsa topilmadi')}</li> : null}
               </>
             ) : (
               <>
                 {!q ? (
                   <li>
                     <button type="button" onClick={() => choose(picked.name, null)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left hover:bg-canvas">
-                      <span className="min-w-0 flex-1 text-[14px] font-extrabold text-brand-dark">Butun viloyat — {picked?.name}</span>
+                      <span className="min-w-0 flex-1 text-[14px] font-extrabold text-brand-dark">{t('Butun viloyat —')}{' '}{t(picked?.name)}</span>
                       {value?.region === picked?.name && !value?.district ? <Check className="h-4 w-4 text-brand" /> : null}
                     </button>
                   </li>
@@ -185,7 +186,7 @@ export function PlaceSelect({ value, onChange, placeholder, icon: Icon = MapPin 
                     </button>
                   </li>
                 ))}
-                {!districts.length && q ? <li className="px-3 py-6 text-center text-sm text-muted">Bunday tuman topilmadi</li> : null}
+                {!districts.length && q ? <li className="px-3 py-6 text-center text-sm text-muted">{t('Bunday tuman topilmadi')}</li> : null}
               </>
             )}
           </ul>

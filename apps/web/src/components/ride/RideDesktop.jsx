@@ -24,6 +24,7 @@ import {
   SeatPicker,
   TimePicker,
 } from '../ui/SearchPickers'
+import { t } from '../../i18n'
 
 // Laptop/desktop "Taxi chaqirish": the home page's visual language (white 32px cards, canvas
 // fields, brand gradient art) instead of the old full-width teal form.
@@ -76,11 +77,11 @@ export function RideDesktop() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="text-[30px] font-black leading-tight tracking-tight text-ink">
-                {women ? 'Ayollar uchun taxi' : 'Qayerga boramiz?'}
+                {women ? t('Ayollar uchun taxi') : t('Qayerga boramiz?')}
               </h2>
-              <p className="mt-1 text-[14px] text-muted">Shahar ichida va viloyatlararo — haydovchini o‘zingiz tanlaysiz</p>
+              <p className="mt-1 text-[14px] text-muted">{t('Shahar ichida va viloyatlararo — haydovchini o‘zingiz tanlaysiz')}</p>
             </div>
-            <div className="flex rounded-full bg-canvas p-1" role="tablist" aria-label="Xizmat turi">
+            <div className="flex rounded-full bg-canvas p-1" role="tablist" aria-label={t('Xizmat turi')}>
               {[
                 ['passenger', 'Yo‘lovchi'],
                 ['cargo', 'Yuk jo‘natish'],
@@ -98,7 +99,7 @@ export function RideDesktop() {
                       active ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink',
                     )}
                   >
-                    {label}
+                    {t(label)}
                   </button>
                 )
               })}
@@ -113,7 +114,7 @@ export function RideDesktop() {
                 onClick={() => update({ service: 'all' })}
                 className="text-xs font-bold text-muted underline underline-offset-2 hover:text-ink"
               >
-                Oddiy taxiga o‘tish
+                {t('Oddiy taxiga o‘tish')}
               </button>
             </div>
           ) : null}
@@ -124,7 +125,7 @@ export function RideDesktop() {
             <RegionPicker
               variant="row"
               icon={PersonStanding}
-              label="Qayerdan"
+              label={t('Qayerdan')}
               region={search.fromRegion}
               place={search.fromPlace}
               onChange={({ region, place, label }) => {
@@ -139,7 +140,7 @@ export function RideDesktop() {
             <RegionPicker
               variant="row"
               icon={Flag}
-              label="Qayerga"
+              label={t('Qayerga')}
               region={search.toRegion}
               place={search.toPlace}
               onChange={({ region, place, label }) => update({ toRegion: region, toPlace: place, to: label })}
@@ -152,7 +153,7 @@ export function RideDesktop() {
             <button
               type="button"
               onClick={swap}
-              aria-label="Manzillarni almashtirish"
+              aria-label={t('Manzillarni almashtirish')}
               className="absolute right-12 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-4 border-canvas bg-brand text-white shadow-md transition hover:rotate-180"
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -160,7 +161,7 @@ export function RideDesktop() {
           </div>
 
           {/* Tafsilotlar */}
-          <p className="mb-2.5 mt-6 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Safar tafsilotlari</p>
+          <p className="mb-2.5 mt-6 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{t('Safar tafsilotlari')}</p>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <DatePicker value={search.date} onChange={(date) => update({ date })} open={open === 'date'} onToggle={() => toggle('date')} onClose={close} />
             <TimePicker value={search.time} onChange={(time) => update({ time })} open={open === 'time'} onToggle={() => toggle('time')} onClose={close} />
@@ -191,14 +192,14 @@ export function RideDesktop() {
           {/* Yakun */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
             <p className="min-w-0 flex-1 truncate text-[14px] text-muted">
-              {ready ? <span className="font-semibold text-ink">{summary}</span> : 'Qayerdan va qayerga ketishingizni tanlang'}
+              {ready ? <span className="font-semibold text-ink">{t(summary)}</span> : t('Qayerdan va qayerga ketishingizni tanlang')}
             </p>
             <button
               type="button"
               onClick={find}
               className="inline-flex h-14 items-center gap-2 rounded-[18px] bg-brand px-8 text-[15px] font-extrabold text-white shadow-[0_10px_24px_rgba(0,199,212,0.35)] transition hover:bg-brand-dark"
             >
-              Safar topish <ArrowRight className="h-5 w-5" />
+              {t('Safar topish')}{' '}<ArrowRight className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -207,7 +208,7 @@ export function RideDesktop() {
         <aside className="col-span-12 grid gap-5 md:grid-cols-2 xl:col-span-4 xl:grid-cols-1 xl:content-start">
           <div className="relative overflow-hidden rounded-[32px] bg-[linear-gradient(150deg,#00d2de_0%,#00b5c2_55%,#0098a6_100%)] p-6 text-white">
             <span aria-hidden className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10" />
-            <p className="relative text-[22px] font-black leading-tight tracking-tight">Nega TaxiLine?</p>
+            <p className="relative text-[22px] font-black leading-tight tracking-tight">{t('Nega TaxiLine?')}</p>
             <ul className="relative mt-4 space-y-3">
               {BENEFITS.map(([Icon, title, hint]) => (
                 <li key={title} className="flex items-center gap-3">
@@ -215,8 +216,8 @@ export function RideDesktop() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <span>
-                    <span className="block text-[14px] font-bold">{title}</span>
-                    <span className="block text-[12px] text-white/80">{hint}</span>
+                    <span className="block text-[14px] font-bold">{t(title)}</span>
+                    <span className="block text-[12px] text-white/80">{t(hint)}</span>
                   </span>
                 </li>
               ))}
@@ -237,9 +238,9 @@ export function RideDesktop() {
             )}
           >
             <span className="relative z-10">
-              <span className="block text-[19px] font-extrabold tracking-tight">Ayollar uchun taxi</span>
+              <span className="block text-[19px] font-extrabold tracking-tight">{t('Ayollar uchun taxi')}</span>
               <span className={cn('mt-1 block text-[13px]', women ? 'text-white/85' : 'text-muted')}>
-                {women ? 'Yoqilgan — avval ayol haydovchilarga' : 'Avval ayol haydovchilarga yuboriladi'}
+                {women ? t('Yoqilgan — avval ayol haydovchilarga') : t('Avval ayol haydovchilarga yuboriladi')}
               </span>
             </span>
             <span
@@ -248,7 +249,7 @@ export function RideDesktop() {
                 women ? 'bg-white text-[#c2185b]' : 'bg-[#f5559a] text-white',
               )}
             >
-              <Sparkles className="h-3.5 w-3.5" /> {women ? 'O‘chirish' : 'Yoqish'}
+              <Sparkles className="h-3.5 w-3.5" /> {women ? t('O‘chirish') : t('Yoqish')}
             </span>
             <img
               src="/landing/taxi-car-sm.webp"
@@ -270,8 +271,8 @@ export function PopularTripsEmpty() {
         <Car className="h-6 w-6" />
       </span>
       <div>
-        <p className="text-[15px] font-bold text-ink">Hozircha e’lon qilingan reyslar yo‘q</p>
-        <p className="text-[13px] text-muted">Haydovchilar yo‘nalish e’lon qilishi bilan shu yerda chiqadi.</p>
+        <p className="text-[15px] font-bold text-ink">{t('Hozircha e’lon qilingan reyslar yo‘q')}</p>
+        <p className="text-[13px] text-muted">{t('Haydovchilar yo‘nalish e’lon qilishi bilan shu yerda chiqadi.')}</p>
       </div>
     </div>
   )

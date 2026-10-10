@@ -4,6 +4,7 @@ import { TopHeader } from './TopHeader'
 import { LocationPicker } from '../location/LocationPicker'
 import { RentMarketHost } from '../rent/RentMarketHost'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 const fullBleed = ['/driver', '/sos']
 const hideTopMobile = ['/', '/taxi', '/women/taxi', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet']
@@ -31,7 +32,7 @@ export function AppLayout() {
   const hideChrome = fullBleed.includes(pathname)
 
   if (!user) {
-    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">{t('Yuklanmoqda…')}</div>
   }
   const mobileHome = pathname === '/'
   const hideHeaderMobile = hideTopMobile.includes(pathname) || isHubMap(pathname) || isChat(pathname)

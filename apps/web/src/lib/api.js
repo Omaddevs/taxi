@@ -1,4 +1,5 @@
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokens'
+import { t } from '../i18n'
 
 export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
@@ -58,7 +59,7 @@ async function request(path, options = {}, retry = true) {
     if (refreshed) return request(path, options, false)
     clearTokens()
     onUnauthorized?.()
-    throw new ApiError(401, 'Session expired')
+    throw new ApiError(401, t('Session expired'))
   }
 
   if (res.status === 204) return undefined
@@ -71,7 +72,7 @@ async function request(path, options = {}, retry = true) {
     if (body?.error?.code === 'PHONE_REQUIRED' && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('taxiline:phone-required', { detail: { message: body.error.message } }))
     }
-    throw new ApiError(res.status, body?.error?.message ?? 'Xatolik yuz berdi', body?.error?.code)
+    throw new ApiError(res.status, body?.error?.message ?? t('Xatolik yuz berdi'), body?.error?.code)
   }
 
   return body

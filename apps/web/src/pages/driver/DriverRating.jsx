@@ -4,23 +4,24 @@ import { ChevronRight, Info, Star } from 'lucide-react'
 import { api } from '../../lib/api'
 import { avatarOrFallback } from '../../lib/adapters'
 import { DriverHeader } from './ui'
+import { t } from '../../i18n'
 
 function qualityLabel(avg) {
-  if (avg >= 4.8) return 'Ajoyib'
-  if (avg >= 4.5) return 'Juda yaxshi'
-  if (avg >= 4) return 'Yaxshi'
-  if (avg >= 3) return 'O‘rtacha'
-  return 'Yaxshilash kerak'
+  if (avg >= 4.8) return t('Ajoyib')
+  if (avg >= 4.5) return t('Juda yaxshi')
+  if (avg >= 4) return t('Yaxshi')
+  if (avg >= 3) return t('O‘rtacha')
+  return t('Yaxshilash kerak')
 }
 
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (days <= 0) return 'Bugun'
-  if (days === 1) return 'Kecha'
-  if (days < 30) return `${days} kun oldin`
+  if (days <= 0) return t('Bugun')
+  if (days === 1) return t('Kecha')
+  if (days < 30) return t('{0} kun oldin', days)
   const months = Math.floor(days / 30)
-  return `${months} oy oldin`
+  return t('{0} oy oldin', months)
 }
 
 export default function DriverRating() {
@@ -34,7 +35,7 @@ export default function DriverRating() {
   return (
     <div className="overflow-x-clip bg-canvas">
       <DriverHeader
-        title="Reyting detallari"
+        title={t('Reyting detallari')}
         right={
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas text-muted">
             <Info className="h-4 w-4" />
@@ -46,9 +47,9 @@ export default function DriverRating() {
         <div className="flex items-center gap-3 rounded-2xl bg-white p-4">
           <div className="flex-1">
             <p className="flex items-center gap-2 text-4xl font-extrabold">
-              {count > 0 ? avg.toFixed(1) : 'Yangi'} <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
+              {count > 0 ? avg.toFixed(1) : t('Yangi')} <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
             </p>
-            <p className="mt-1 text-sm text-muted">{count > 0 ? `${count} ta baho` : 'Hali baho yo‘q'}</p>
+            <p className="mt-1 text-sm text-muted">{count > 0 ? t('{0} ta baho', count) : t('Hali baho yo‘q')}</p>
           </div>
           {count > 0 ? (
             <div className="rounded-2xl bg-amber-50 px-3 py-2 text-center">
@@ -60,7 +61,7 @@ export default function DriverRating() {
         </div>
 
         <section className="rounded-2xl bg-white p-4">
-          <p className="mb-3 font-extrabold">Reyting taqsimoti</p>
+          <p className="mb-3 font-extrabold">{t('Reyting taqsimoti')}</p>
           <div className="flex gap-4">
             <div className="flex-1 space-y-1.5">
               {[5, 4, 3, 2, 1].map((star) => {
@@ -79,19 +80,19 @@ export default function DriverRating() {
             </div>
             <div className="w-24 rounded-xl border border-line p-2 text-center">
               <p className="text-lg font-extrabold">{count > 0 ? avg.toFixed(1) : '—'}</p>
-              <p className="text-[10px] text-muted">Umumiy reyting</p>
-              <p className="mt-1 text-[10px] text-muted">{count} baho</p>
+              <p className="text-[10px] text-muted">{t('Umumiy reyting')}</p>
+              <p className="mt-1 text-[10px] text-muted">{t('{0} baho', count)}</p>
             </div>
           </div>
         </section>
 
         <section>
-          <p className="mb-2 font-extrabold">Oxirgi baholar</p>
+          <p className="mb-2 font-extrabold">{t('Oxirgi baholar')}</p>
           {isLoading ? (
-            <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
+            <p className="rounded-2xl bg-white p-6 text-center text-sm text-muted">{t('Yuklanmoqda…')}</p>
           ) : recent.length === 0 ? (
             <div className="rounded-2xl bg-white p-6 text-center text-sm text-muted">
-              Hali yo‘lovchi izohlari yo‘q. Baholar safar yakunlangach paydo bo‘ladi.
+              {t('Hali yo‘lovchi izohlari yo‘q. Baholar safar yakunlangach paydo bo‘ladi.')}
             </div>
           ) : (
             <div className="space-y-2">
@@ -104,7 +105,7 @@ export default function DriverRating() {
                       className="h-9 w-9 rounded-full object-cover"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold">{r.riderName || 'Yo‘lovchi'}</p>
+                      <p className="truncate text-sm font-bold">{r.riderName || t('Yo‘lovchi')}</p>
                       <p className="flex items-center gap-0.5">
                         {Array.from({ length: 5 }, (_, i) => (
                           <Star
@@ -120,7 +121,7 @@ export default function DriverRating() {
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {r.tags.map((tag) => (
                         <span key={tag} className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand">
-                          {tag}
+                          {t(tag)}
                         </span>
                       ))}
                     </div>
@@ -135,8 +136,8 @@ export default function DriverRating() {
         <Link to="/driver" className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3">
           <span className="text-2xl">🏅</span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold">Yaxshi reyting — ko‘proq buyurtma!</p>
-            <p className="text-[11px] text-muted">Yuqori baho ko‘proq buyurtma va bonus olib keladi.</p>
+            <p className="text-sm font-extrabold">{t('Yaxshi reyting — ko‘proq buyurtma!')}</p>
+            <p className="text-[11px] text-muted">{t('Yuqori baho ko‘proq buyurtma va bonus olib keladi.')}</p>
           </div>
           <ChevronRight className="h-4 w-4 text-amber-500" />
         </Link>

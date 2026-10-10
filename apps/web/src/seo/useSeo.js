@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { OG_IMAGE, SEO_PAGES, SITE_NAME, absoluteUrl } from './pages'
+import { t } from '../i18n'
 
 function setMeta(attr, key, content) {
   let el = document.head.querySelector(`meta[${attr}="${key}"]`)
@@ -28,8 +29,9 @@ function setCanonical(href) {
  */
 export function useSeo(path, override) {
   const base = SEO_PAGES[path] || SEO_PAGES['/']
-  const title = override?.title ?? base.title
-  const description = override?.description ?? base.description
+  // Statik (build) teglar o‘zbekcha qoladi; SPA ichida sarlavha foydalanuvchi tilida bo‘ladi.
+  const title = t(override?.title ?? base.title)
+  const description = t(override?.description ?? base.description)
   const url = override?.url ?? absoluteUrl(path)
   const image = override?.image ?? OG_IMAGE
   const type = override?.type ?? 'website'

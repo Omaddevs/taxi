@@ -9,6 +9,7 @@ import { BaseTiles } from '../map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from './GeoAskSheet'
 import 'leaflet/dist/leaflet.css'
 import { lockScroll } from '../../lib/scrollLock'
+import { t } from '../../i18n'
 
 function MapController({ focus, onDragging, onIdle }) {
   const map = useMap()
@@ -99,10 +100,10 @@ export function LocationPicker() {
     if (gpsFix.error) {
       setHint(
         gpsStatus === 'denied'
-          ? 'Joylashuvga ruxsat berilmadi. Xaritadan o‘zingiz belgilang.'
+          ? t('Joylashuvga ruxsat berilmadi. Xaritadan o‘zingiz belgilang.')
           : gpsStatus === 'unsupported'
-            ? 'Brauzer geolokatsiyani qo‘llab-quvvatlamaydi. Xaritadan tanlang.'
-            : 'Joylashuv olinmadi. Xaritadan tanlang yoki qayta urinib ko‘ring.',
+            ? t('Brauzer geolokatsiyani qo‘llab-quvvatlamaydi. Xaritadan tanlang.')
+            : t('Joylashuv olinmadi. Xaritadan tanlang yoki qayta urinib ko‘ring.'),
       )
       return
     }
@@ -148,7 +149,7 @@ export function LocationPicker() {
         })
         setHint((prev) => (gpsStatus === 'denied' ? prev : ''))
       } catch {
-        setDraft((prev) => ({ ...prev, lat, lng, label: 'Tanlangan nuqta' }))
+        setDraft((prev) => ({ ...prev, lat, lng, label: t('Tanlangan nuqta') }))
       } finally {
         setGeocoding(false)
       }
@@ -187,7 +188,7 @@ export function LocationPicker() {
           type="button"
           onClick={closeLocationPicker}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"
-          aria-label="Orqaga"
+          aria-label={t('Orqaga')}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -196,7 +197,7 @@ export function LocationPicker() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Manzil, ko‘cha yoki joy qidiring"
+            placeholder={t('Manzil, ko‘cha yoki joy qidiring')}
             className="h-11 w-full rounded-2xl bg-canvas pl-9 pr-9 text-sm font-medium outline-none ring-brand/20 focus:bg-white focus:ring-2"
           />
           {query ? (
@@ -232,7 +233,7 @@ export function LocationPicker() {
           ))}
         </div>
       ) : searching ? (
-        <p className="relative z-30 bg-white px-4 py-2 text-xs text-muted">Qidirilmoqda…</p>
+        <p className="relative z-30 bg-white px-4 py-2 text-xs text-muted">{t('Qidirilmoqda…')}</p>
       ) : null}
 
       <div className="relative min-h-0 flex-1">
@@ -258,9 +259,9 @@ export function LocationPicker() {
 
         {gpsStatus === 'pending' ? (
           <div className="absolute left-3 right-16 top-3 z-[420] rounded-2xl bg-white/95 px-3 py-2.5 shadow-lg ring-1 ring-black/5">
-            <p className="text-sm font-extrabold">Joylashuvga ruxsat bering</p>
+            <p className="text-sm font-extrabold">{t('Joylashuvga ruxsat bering')}</p>
             <p className="mt-0.5 text-xs leading-snug text-muted">
-              Brauzer so‘rovini tasdiqlang — igna hozirgi joyingizga tushadi.
+              {t('Brauzer so‘rovini tasdiqlang — igna hozirgi joyingizga tushadi.')}
             </p>
           </div>
         ) : null}
@@ -272,7 +273,7 @@ export function LocationPicker() {
             else geo.reopen()
           }}
           className="absolute right-4 top-4 z-[410] flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink shadow-md"
-          aria-label="Mening joyim"
+          aria-label={t('Mening joyim')}
         >
           {gpsStatus === 'pending' ? (
             <LoaderCircle className="h-5 w-5 animate-spin text-brand" />
@@ -289,16 +290,16 @@ export function LocationPicker() {
       <div className="z-20 border-t border-line bg-white px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
         {hint ? (
           <div className="mb-2 flex items-start justify-between gap-2">
-            <p className="text-xs text-amber-700">{hint}</p>
+            <p className="text-xs text-amber-700">{t(hint)}</p>
             {gpsStatus === 'denied' || gpsStatus === 'error' ? (
               <button type="button" onClick={geo.reopen} className="shrink-0 text-xs font-bold text-brand">
-                Qayta so‘rash
+                {t('Qayta so‘rash')}
               </button>
             ) : null}
           </div>
         ) : null}
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-          {locationPickerRequest?.title || 'Joriy manzil'}
+          {locationPickerRequest?.title || t('Joriy manzil')}
         </p>
         <p className="mt-1 flex items-center gap-2 text-[17px] font-extrabold leading-snug">
           {geocoding || dragging ? (
@@ -306,16 +307,16 @@ export function LocationPicker() {
           ) : (
             <MapPin className="h-4 w-4 shrink-0 text-brand" />
           )}
-          <span className="min-w-0">{dragging ? 'Belgilash…' : draft.label}</span>
+          <span className="min-w-0">{dragging ? t('Belgilash…') : draft.label}</span>
         </p>
-        <p className="mt-1 text-[11px] text-muted">Xaritani siljiting — igna yetib olish nuqtasini belgilaydi.</p>
+        <p className="mt-1 text-[11px] text-muted">{t('Xaritani siljiting — igna yetib olish nuqtasini belgilaydi.')}</p>
         <button
           type="button"
           onClick={confirm}
           disabled={geocoding || dragging}
           className="mt-3 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
         >
-          Shu yerni tasdiqlash
+          {t('Shu yerni tasdiqlash')}
         </button>
       </div>
       <GeoAskSheet open={locationPickerOpen && geo.open} status={geo.status} onAllow={geo.allow} onSkip={geo.skip} />

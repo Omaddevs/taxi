@@ -7,6 +7,7 @@ import { api } from '../../lib/api'
 import { getAccessToken } from '../../lib/tokens'
 import { FlagGb, FlagRu, FlagUz } from './Flags'
 import { lockScroll } from '../../lib/scrollLock'
+import { t } from '../../i18n'
 
 const FLAGS = { uz: FlagUz, ru: FlagRu, en: FlagGb }
 
@@ -84,7 +85,7 @@ function LanguageSheet({ onClose }) {
       <button
         type="button"
         className={`absolute inset-0 bg-ink/40 backdrop-blur-[2px] transition-opacity duration-200 ${shown ? 'opacity-100' : 'opacity-0'}`}
-        aria-label="Yopish"
+        aria-label={t('Yopish')}
         onClick={onClose}
       />
       <div
@@ -104,7 +105,7 @@ function LanguageSheet({ onClose }) {
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas text-ink transition hover:bg-line"
-            aria-label="Yopish"
+            aria-label={t('Yopish')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -201,7 +202,8 @@ function LanguageMenu({ onClose, anchorRef }) {
   )
 }
 
-export function LanguageChip({ className = '' }) {
+// `compact` — faqat bayroq va qisqa kod (UZ / ЎЗ / RU / EN): tor sarlavhalar uchun.
+export function LanguageChip({ className = '', wrapperClassName = '', compact = false }) {
   const { active } = useChooseLanguage()
   const isDesktop = useIsDesktop()
   const { openSheet, sheet } = useLanguageSheet()
@@ -209,24 +211,55 @@ export function LanguageChip({ className = '' }) {
   const btnRef = useRef(null)
 
   return (
-    <div className="relative">
+    <div className={`relative shrink-0 ${wrapperClassName}`}>
       <button
         ref={btnRef}
         type="button"
         onClick={() => (isDesktop ? setMenuOpen((v) => !v) : openSheet())}
         aria-haspopup={isDesktop ? 'listbox' : 'dialog'}
         aria-expanded={isDesktop ? menuOpen : undefined}
-        aria-label={`Til: ${active.name}`}
-        className={`inline-flex items-center gap-2 rounded-full bg-white py-1.5 pl-2 pr-2.5 text-xs font-bold text-ink shadow-[0_2px_8px_rgba(15,29,42,0.08)] ring-1 ring-black/5 transition hover:shadow-[0_4px_14px_rgba(15,29,42,0.12)] ${
-          menuOpen ? 'ring-brand/40' : ''
-        } ${className}`}
+        aria-label={t('Til: {0}', active.name)}
+        className={`inline-flex items-center rounded-full bg-white text-ink shadow-[0_2px_8px_rgba(15,29,42,0.08)] ring-1 ring-black/5 transition hover:shadow-[0_4px_14px_rgba(15,29,42,0.12)] ${
+          compact ? 'h-10 gap-1.5 pl-2.5 pr-2 text-[13px] font-extrabold' : 'gap-2 py-1.5 pl-2 pr-2.5 text-xs font-bold'
+        } ${menuOpen ? 'ring-brand/40' : ''} ${className}`}
       >
-        <LanguageFlag code={active.code} className="h-3.5 w-5 overflow-hidden rounded-[3px] ring-1 ring-black/5" />
-        {active.name}
-        <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
+        <LanguageFlag code={active.code} className="h-3.5 w-5 shrink-0 overflow-hidden rounded-[3px] ring-1 ring-black/5" />
+        {compact ? active.short : active.name}
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
       </button>
       {menuOpen && isDesktop ? <LanguageMenu anchorRef={btnRef} onClose={() => setMenuOpen(false)} /> : null}
       {sheet}
+    </div>
+  )
+}
+
+// Ochiladigan mobil menyular ichidagi to‘rt tugmali tanlov: bir bosishda til almashadi.
+export function LanguageSwitch({ className = '', onChange }) {
+  const { active, choose } = useChooseLanguage()
+  return (
+    <div role="radiogroup" aria-label={active.sheetTitle} className={`grid grid-cols-4 gap-1 rounded-2xl bg-canvas p-1 ${className}`}>
+      {LANGUAGES.map((lang) => {
+        const selected = lang.code === active.code
+        return (
+          <button
+            key={lang.code}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-label={lang.name}
+            onClick={() => {
+              if (!selected) choose(lang.code)
+              onChange?.(lang.code)
+            }}
+            className={`flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl text-[13px] font-extrabold transition ${
+              selected ? 'bg-white text-ink shadow-[0_2px_8px_rgba(15,29,42,0.1)] ring-1 ring-black/5' : 'text-muted hover:text-ink'
+            }`}
+          >
+            <LanguageFlag code={lang.code} className="h-3 w-[18px] shrink-0 overflow-hidden rounded-[2px] ring-1 ring-black/5" />
+            {lang.short}
+          </button>
+        )
+      })}
     </div>
   )
 }

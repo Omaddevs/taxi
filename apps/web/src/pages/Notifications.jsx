@@ -6,6 +6,7 @@ import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Card } from '../components/ui/Button'
 import { api, ApiError } from '../lib/api'
 import { DriverHeader } from './driver/ui'
+import { t } from '../i18n'
 
 function SatisfactionRating({ ticketId }) {
   const [rating, setRating] = useState(0)
@@ -20,11 +21,11 @@ function SatisfactionRating({ ticketId }) {
         setDone(true)
         return
       }
-      setError('Xatolik yuz berdi, keyinroq urinib ko‘ring')
+      setError(t('Xatolik yuz berdi, keyinroq urinib ko‘ring'))
     },
   })
 
-  if (done) return <p className="mt-2 text-xs font-semibold text-emerald-600">Rahmat! Bahoyingiz qabul qilindi.</p>
+  if (done) return <p className="mt-2 text-xs font-semibold text-emerald-600">{t('Rahmat! Bahoyingiz qabul qilindi.')}</p>
 
   return (
     <div className="mt-2">
@@ -42,7 +43,7 @@ function SatisfactionRating({ ticketId }) {
           </button>
         ))}
       </div>
-      {error ? <p className="mt-1 text-xs text-red-500">{error}</p> : null}
+      {error ? <p className="mt-1 text-xs text-red-500">{t(error)}</p> : null}
     </div>
   )
 }
@@ -63,7 +64,7 @@ function AdminContactButton() {
       className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white"
     >
       <UserRound className="h-4 w-4" />
-      Admin
+      {t('Admin')}
     </a>
   )
 }
@@ -72,10 +73,10 @@ function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diffMs / 60000)
   if (mins < 1) return 'hozir'
-  if (mins < 60) return `${mins} daqiqa oldin`
+  if (mins < 60) return t('{0} daqiqa oldin', mins)
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours} soat oldin`
-  return `${Math.floor(hours / 24)} kun oldin`
+  if (hours < 24) return t('{0} soat oldin', hours)
+  return t('{0} kun oldin', Math.floor(hours / 24))
 }
 
 export default function Notifications() {
@@ -98,19 +99,19 @@ export default function Notifications() {
 
   return (
     <div className={inDriver ? 'overflow-x-clip bg-canvas' : 'mx-auto max-w-xl'}>
-      {inDriver ? <DriverHeader title="Xabarnomalar" /> : <ScreenHeader title="Xabarnomalar" />}
-      {inDriver ? null : <PageTitle title="Xabarnomalar" subtitle="Buyurtma, promo va to‘lov yangiliklari" />}
+      {inDriver ? <DriverHeader title={t('Xabarnomalar')} /> : <ScreenHeader title={t('Xabarnomalar')} />}
+      {inDriver ? null : <PageTitle title={t('Xabarnomalar')} subtitle={t('Buyurtma, promo va to‘lov yangiliklari')} />}
       <div className={inDriver ? 'px-5 pb-6 pt-3' : ''}>
       {notifications.length === 0 ? (
-        <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">Hozircha xabarnomalar yo‘q.</p>
+        <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">{t('Hozircha xabarnomalar yo‘q.')}</p>
       ) : (
         <Card className="divide-y divide-line">
           {notifications.map((n) => (
             <div key={n.id} className="flex gap-3 px-4 py-3">
               {!n.readAt ? <span className="mt-2 h-2 w-2 rounded-full bg-brand" /> : <span className="mt-2 h-2 w-2" />}
               <div>
-                <p className="text-sm font-semibold">{n.title}</p>
-                <p className="text-sm text-muted">{n.text}</p>
+                <p className="text-sm font-semibold">{t(n.title)}</p>
+                <p className="text-sm text-muted">{t(n.text)}</p>
                 <p className="mt-1 text-[11px] text-muted">{timeAgo(n.createdAt)}</p>
                 {n.type === 'TICKET_SATISFACTION' && n.refId ? <SatisfactionRating ticketId={n.refId} /> : null}
                 {isSubscriptionNotice(n) ? <AdminContactButton /> : null}

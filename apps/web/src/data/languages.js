@@ -1,13 +1,28 @@
+// i18n-ignore-file
+// Til nomlari har doim o‘z tilida ko‘rsatiladi, shuning uchun t() orqali tarjima qilinmaydi.
 export const LANGUAGES = [
   {
     code: 'uz',
+    short: 'UZ',
+    flag: 'uz',
     name: 'O‘zbekcha',
-    native: 'O‘zbek tili',
+    native: 'Lotin alifbosi',
     hint: 'Tilni o‘zgartirish',
     sheetTitle: 'Tilni tanlang',
   },
   {
+    code: 'oz',
+    short: 'ЎЗ',
+    flag: 'uz',
+    name: 'Ўзбекча',
+    native: 'Кирилл алифбоси',
+    hint: 'Тилни ўзгартириш',
+    sheetTitle: 'Тилни танланг',
+  },
+  {
     code: 'ru',
+    short: 'RU',
+    flag: 'ru',
     name: 'Русский',
     native: 'Русский язык',
     hint: 'Изменить язык',
@@ -15,6 +30,8 @@ export const LANGUAGES = [
   },
   {
     code: 'en',
+    short: 'EN',
+    flag: 'en',
     name: 'English',
     native: 'English (UK)',
     hint: 'Change language',

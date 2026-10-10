@@ -13,6 +13,7 @@ import { findCity } from '../../data/uzCities'
 import { DriverHeader, RouteStops, SeatChips } from './ui'
 import { bookingToDriverOrder, mergeDriverOrders } from './orders'
 import { OrderAudience } from '../../components/trip/OrderAudience'
+import { t } from '../../i18n'
 
 const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
 
@@ -56,8 +57,8 @@ export default function DriverOrder() {
   const [toast, setToast] = useState(null)
   useEffect(() => {
     if (!toast) return undefined
-    const t = setTimeout(() => setToast(null), 3200)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setToast(null), 3200)
+    return () => clearTimeout(timer)
   }, [toast])
   const notify = (type, text) => setToast({ type, text })
   const { openRating, sheet: ratingSheet } = useRateSheet()
@@ -67,13 +68,13 @@ export default function DriverOrder() {
     queryClient.invalidateQueries({ queryKey: ['driver-bot-orders'] })
     queryClient.invalidateQueries({ queryKey: ['driver-stats'] })
   }
-  const onErr = () => notify('error', 'Xatolik yuz berdi, qaytadan urinib ko‘ring')
+  const onErr = () => notify('error', t('Xatolik yuz berdi, qaytadan urinib ko‘ring'))
 
   const reject = useMutation({
     mutationFn: (oid) => api.patch(`/bookings/${oid}/reject`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma bekor qilindi')
+      notify('success', t('Buyurtma bekor qilindi'))
     },
     onError: onErr,
   })
@@ -81,7 +82,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.patch(`/bookings/${oid}/accept`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma qabul qilindi')
+      notify('success', t('Buyurtma qabul qilindi'))
     },
     onError: onErr,
   })
@@ -89,7 +90,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.post(`/bot-orders/driver/${oid}/claim`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma qabul qilindi')
+      notify('success', t('Buyurtma qabul qilindi'))
     },
     onError: onErr,
   })
@@ -97,7 +98,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.patch(`/bookings/${oid}/start`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz')
+      notify('success', t('Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz'))
     },
     onError: onErr,
   })
@@ -105,7 +106,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.patch(`/bookings/${oid}/complete`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Safar yakunlandi')
+      notify('success', t('Safar yakunlandi'))
       promptRatePassenger()
     },
     onError: onErr,
@@ -114,7 +115,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.post(`/bot-orders/driver/${oid}/enroute`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz')
+      notify('success', t('Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz'))
     },
     onError: onErr,
   })
@@ -122,7 +123,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.post(`/bot-orders/driver/${oid}/complete`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Safar yakunlandi')
+      notify('success', t('Safar yakunlandi'))
     },
     onError: onErr,
   })
@@ -132,7 +133,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.patch(`/bookings/${oid}/cancel`, { reason: 'Haydovchi tomonidan bekor qilindi' }),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma bekor qilindi')
+      notify('success', t('Buyurtma bekor qilindi'))
     },
     onError: onErr,
   })
@@ -140,7 +141,7 @@ export default function DriverOrder() {
     mutationFn: (oid) => api.post(`/bot-orders/driver/${oid}/cancel`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma bekor qilindi')
+      notify('success', t('Buyurtma bekor qilindi'))
     },
     onError: onErr,
   })
@@ -148,9 +149,9 @@ export default function DriverOrder() {
   if (!order?.from) {
     return (
       <div className="p-8 text-center text-sm text-muted">
-        Buyurtma topilmadi.
+        {t('Buyurtma topilmadi.')}
         <button type="button" className="mt-3 block w-full font-bold text-brand" onClick={() => navigate('/driver/orders')}>
-          Ro‘yxatga qaytish
+          {t('Ro‘yxatga qaytish')}
         </button>
       </div>
     )
@@ -170,7 +171,7 @@ export default function DriverOrder() {
         ? haversineKm(origin, dest)
         : null
   const eta = km ? Math.max(4, Math.round((km / 28) * 60)) : null
-  const riderName = order.rider?.name || order.rider?.phone || 'Yo‘lovchi'
+  const riderName = order.rider?.name || order.rider?.phone || t('Yo‘lovchi')
   const phone = order.rider?.phone
   const goingToDropoff = order.status === 'ONGOING' || (order.kind === 'bot' && order.confirmed)
   const navTo = goingToDropoff ? dest : pickupPos || dest
@@ -196,10 +197,10 @@ export default function DriverOrder() {
 
   const primaryLabel =
     order.status === 'PENDING'
-      ? 'Qabul qilish'
+      ? t('Qabul qilish')
       : order.status === 'ACCEPTED' || (order.kind === 'bot' && !order.confirmed)
-        ? 'Yo‘lda ketdim'
-        : 'Safarni yakunlash'
+        ? t('Yo‘lda ketdim')
+        : t('Safarni yakunlash')
   const busy =
     accept.isPending ||
     claim.isPending ||
@@ -221,7 +222,7 @@ export default function DriverOrder() {
   function promptRatePassenger() {
     if (order.kind === 'bot') return
     openRating({
-      title: 'Yo‘lovchini baholang',
+      title: t('Yo‘lovchini baholang'),
       subtitle: riderName,
       tagOptions: PASSENGER_TAGS,
       onSubmit: ({ stars, tags, comment }) => api.post(`/bookings/${order.id}/rating`, { stars, tags, comment }),
@@ -238,11 +239,11 @@ export default function DriverOrder() {
   return (
     <div className="overflow-x-clip bg-white">
       <DriverHeader
-        title={`Buyurtma #${order.code}`}
+        title={t('Buyurtma #{0}', order.code)}
         right={
           <div className="flex gap-1">
             {phone ? (
-              <a href={`tel:${phone}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas" aria-label="Qo‘ng‘iroq">
+              <a href={`tel:${phone}`} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas" aria-label={t('Qo‘ng‘iroq')}>
                 <Phone className="h-4 w-4" />
               </a>
             ) : null}
@@ -251,7 +252,7 @@ export default function DriverOrder() {
                 type="button"
                 onClick={() => navigate(`/driver/messages/${order.conversationId}`)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white"
-                aria-label="Chat"
+                aria-label={t('Chat')}
               >
                 <MessageCircle className="h-4 w-4" />
               </button>
@@ -262,17 +263,17 @@ export default function DriverOrder() {
 
       {goingToDropoff && order.status !== 'COMPLETED' && order.status !== 'CANCELLED' ? (
         <div className="mx-4 mt-2 flex items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-700">
-          <Navigation className="h-4 w-4" /> Yo‘lda — yo‘lovchiga xabar berildi
+          <Navigation className="h-4 w-4" /> {t('Yo‘lda — yo‘lovchiga xabar berildi')}
         </div>
       ) : null}
 
       <OrderAudience order={order} className="mx-4 mb-3" />
 
       <div className="grid grid-cols-4 gap-2 px-4">
-        <Metric icon={Wallet} color="bg-brand-soft text-brand" label="Yo‘l haqi" value={order.price != null ? formatSom(order.price) : '—'} />
-        <Metric icon={Route} color="bg-sky-50 text-sky-600" label="Masofa" value={km ? `${km.toFixed(1)} km` : '—'} />
-        <Metric icon={Clock} color="bg-emerald-50 text-emerald-600" label="Kutilgan vaqt" value={eta ? `${eta} daq` : '—'} />
-        <Metric icon={Banknote} color="bg-amber-50 text-amber-600" label="To‘lov turi" value="Naqd" />
+        <Metric icon={Wallet} color="bg-brand-soft text-brand" label={t('Yo‘l haqi')} value={order.price != null ? formatSom(order.price) : '—'} />
+        <Metric icon={Route} color="bg-sky-50 text-sky-600" label={t('Masofa')} value={km ? `${km.toFixed(1)} km` : '—'} />
+        <Metric icon={Clock} color="bg-emerald-50 text-emerald-600" label={t('Kutilgan vaqt')} value={eta ? `${eta} daq` : '—'} />
+        <Metric icon={Banknote} color="bg-amber-50 text-amber-600" label={t('To‘lov turi')} value="Naqd" />
       </div>
 
       <div className="mt-4 flex items-start justify-between gap-3 px-4">
@@ -287,7 +288,7 @@ export default function DriverOrder() {
             rel="noopener noreferrer"
             className="flex items-center justify-center rounded-xl bg-[#FC3F1D] px-2 py-2 text-center text-[10px] font-extrabold leading-tight text-white"
           >
-            Yandex Map
+            {t('Yandex Map')}
           </a>
           <a
             href={googleMapsDirUrl(mapsArgs)}
@@ -295,7 +296,7 @@ export default function DriverOrder() {
             rel="noopener noreferrer"
             className="flex items-center justify-center rounded-xl bg-[#1A73E8] px-2 py-2 text-center text-[10px] font-extrabold leading-tight text-white"
           >
-            Google Map
+            {t('Google Map')}
           </a>
         </div>
       </div>
@@ -307,7 +308,7 @@ export default function DriverOrder() {
             {km != null ? (
               <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
                 <span className="rounded-full bg-ink/90 px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
-                  Sizdan {goingToDropoff ? 'manzilgacha' : 'mijozgacha'} ≈ {km.toFixed(1)} km
+                  {t('Sizdan')}{' '}{goingToDropoff ? t('manzilgacha') : t('mijozgacha')} ≈ {km.toFixed(1)} {t('km')}
                 </span>
               </div>
             ) : null}
@@ -315,9 +316,9 @@ export default function DriverOrder() {
         ) : (
           <div className="rounded-2xl border border-dashed border-line bg-canvas p-5 text-center">
             <MapPin className="mx-auto h-6 w-6 text-brand" />
-            <p className="mt-2 text-sm font-extrabold">Manzilini ko‘rish</p>
+            <p className="mt-2 text-sm font-extrabold">{t('Manzilini ko‘rish')}</p>
             <p className="mx-auto mt-1 max-w-[280px] text-xs text-muted">
-              Yo‘lovchigacha bo‘lgan masofani xaritada ko‘rish uchun joylashuvingizni yoqing
+              {t('Yo‘lovchigacha bo‘lgan masofani xaritada ko‘rish uchun joylashuvingizni yoqing')}
             </p>
             <button
               type="button"
@@ -330,21 +331,21 @@ export default function DriverOrder() {
               ) : (
                 <Navigation className="h-4 w-4" />
               )}
-              {gpsStatus === 'denied' || gpsStatus === 'timeout' || gpsStatus === 'error' ? 'Qayta urinish' : 'Joylashuvni yoqish'}
+              {gpsStatus === 'denied' || gpsStatus === 'timeout' || gpsStatus === 'error' ? t('Qayta urinish') : t('Joylashuvni yoqish')}
             </button>
             {gpsStatus === 'denied' ? (
               <p className="mt-2 text-[11px] font-semibold text-red-500">
-                Brauzer sozlamalaridan geolokatsiyaga ruxsat bering
+                {t('Brauzer sozlamalaridan geolokatsiyaga ruxsat bering')}
               </p>
             ) : gpsStatus === 'unsupported' ? (
-              <p className="mt-2 text-[11px] font-semibold text-red-500">Qurilmangiz geolokatsiyani qo‘llamaydi</p>
+              <p className="mt-2 text-[11px] font-semibold text-red-500">{t('Qurilmangiz geolokatsiyani qo‘llamaydi')}</p>
             ) : null}
           </div>
         )}
       </div>
 
       <div className="mx-4 mt-4 rounded-2xl border border-line p-3">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted">Mijoz</p>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted">{t('Mijoz')}</p>
         <div className="flex items-center gap-3">
           <img
             src={avatarOrFallback(order.rider?.avatarUrl, riderName)}
@@ -358,11 +359,11 @@ export default function DriverOrder() {
                 {formatPhoneUz(phone)}
               </a>
             ) : (
-              <p className="mt-0.5 text-xs text-muted">Telefon raqami ko‘rsatilmagan</p>
+              <p className="mt-0.5 text-xs text-muted">{t('Telefon raqami ko‘rsatilmagan')}</p>
             )}
           </div>
           {phone ? (
-            <a href={`tel:${phone}`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm shadow-brand/30" aria-label="Qo‘ng‘iroq qilish">
+            <a href={`tel:${phone}`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm shadow-brand/30" aria-label={t('Qo‘ng‘iroq qilish')}>
               <Phone className="h-4 w-4" />
             </a>
           ) : null}
@@ -371,7 +372,7 @@ export default function DriverOrder() {
               type="button"
               onClick={() => navigate(`/driver/messages/${order.conversationId}`)}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas"
-              aria-label="Chat"
+              aria-label={t('Chat')}
             >
               <MessageCircle className="h-4 w-4" />
             </button>
@@ -388,7 +389,7 @@ export default function DriverOrder() {
           onClick={onCancel}
           className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-line bg-white text-sm font-bold disabled:opacity-50"
         >
-          {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} Bekor qilish
+          {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} {t('Bekor qilish')}
         </button>
         <button
           type="button"
@@ -412,7 +413,7 @@ export default function DriverOrder() {
             }`}
           >
             {toast.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0" /> : <CheckCircle2 className="h-4 w-4 shrink-0" />}
-            {toast.text}
+            {t(toast.text)}
           </div>
         ) : null}
       </div>
@@ -437,15 +438,15 @@ function PassengerDetails({ details }) {
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         {rows.map(([label, value]) => (
           <div key={label} className="min-w-0">
-            <p className="text-[11px] font-semibold text-muted">{label}</p>
+            <p className="text-[11px] font-semibold text-muted">{t(label)}</p>
             <p className="truncate text-sm font-bold">{value}</p>
           </div>
         ))}
       </div>
       {details.note ? (
         <div className="mt-2 rounded-xl bg-canvas px-3 py-2">
-          <p className="text-[11px] font-semibold text-muted">Izoh</p>
-          <p className="whitespace-pre-line text-sm">{details.note}</p>
+          <p className="text-[11px] font-semibold text-muted">{t('Izoh')}</p>
+          <p className="whitespace-pre-line text-sm">{t(details.note)}</p>
         </div>
       ) : null}
     </div>
@@ -458,7 +459,7 @@ function Metric({ icon: Icon, color, label, value }) {
       <span className={`mx-auto mb-1 flex h-7 w-7 items-center justify-center rounded-lg ${color}`}>
         <Icon className="h-3.5 w-3.5" />
       </span>
-      <p className="truncate text-[10px] font-semibold text-muted">{label}</p>
+      <p className="truncate text-[10px] font-semibold text-muted">{t(label)}</p>
       <p className="truncate text-[11px] font-extrabold">{value}</p>
     </div>
   )

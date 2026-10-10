@@ -12,6 +12,7 @@ import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
 import { haversineKm } from '../lib/geo'
 import { meLocationIcon } from '../lib/meMarker'
 import { RegionPicker } from '../components/ui/SearchPickers'
+import { t } from '../i18n'
 
 // Xarita surilib to‘xtaganda markazdagi nuqtani "olib ketish" manzili qilib olamiz.
 function CenterWatcher({ onMoveStart, onMoveEnd, onDragStart }) {
@@ -95,8 +96,8 @@ export default function TaxiMap({ women = false }) {
 
   useEffect(() => {
     if (!notice) return
-    const t = setTimeout(() => setNotice(''), 4000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setNotice(''), 4000)
+    return () => clearTimeout(timer)
   }, [notice])
 
   const resolvePickup = async ({ lat, lng }) => {
@@ -110,12 +111,12 @@ export default function TaxiMap({ women = false }) {
       const label = formatAddress(data)
       const region = matchRegion(data?.address?.state, extractCity(data), label)
       if (!region) {
-        setNotice('Bu joy hududini aniqlab bo‘lmadi.')
+        setNotice(t('Bu joy hududini aniqlab bo‘lmadi.'))
         return
       }
       update({ fromRegion: region, fromPlace: label, from: formatPlace(region, label) })
     } catch {
-      if (id === requestId.current) setNotice('Manzilni aniqlab bo‘lmadi.')
+      if (id === requestId.current) setNotice(t('Manzilni aniqlab bo‘lmadi.'))
     } finally {
       if (id === requestId.current) setResolving(false)
     }
@@ -137,8 +138,8 @@ export default function TaxiMap({ women = false }) {
     if (!result.ok) {
       setNotice(
         result.status === 'denied'
-          ? 'Joylashuvga ruxsat berilmagan. Brauzer sozlamalaridan ruxsat bering.'
-          : 'Joylashuvni aniqlab bo‘lmadi. GPS yoqilganini tekshiring.',
+          ? t('Joylashuvga ruxsat berilmagan. Brauzer sozlamalaridan ruxsat bering.')
+          : t('Joylashuvni aniqlab bo‘lmadi. GPS yoqilganini tekshiring.'),
       )
     }
   }
@@ -171,7 +172,7 @@ export default function TaxiMap({ women = false }) {
     navigate('/ride')
   }
 
-  const headerText = moving || resolving ? 'Aniqlanmoqda…' : search.fromPlace || 'Manzilni tanlang'
+  const headerText = moving || resolving ? t('Aniqlanmoqda…') : search.fromPlace || t('Manzilni tanlang')
 
   return (
     <div className="relative isolate h-svh overflow-hidden bg-canvas lg:h-[calc(100svh-7rem)] lg:rounded-2xl">
@@ -221,9 +222,9 @@ export default function TaxiMap({ women = false }) {
             <PersonStanding className="h-6 w-6" strokeWidth={2.4} />
           </span>
           <span className="leading-tight">
-            <span className="block text-[13px] font-semibold text-muted">Olib ketish</span>
+            <span className="block text-[13px] font-semibold text-muted">{t('Olib ketish')}</span>
             <span className="block whitespace-nowrap text-[16px] font-extrabold text-ink">
-              {moving || resolving ? 'Aniqlanmoqda…' : onMe ? 'Turgan joyingiz' : 'Shu yerdan'}
+              {moving || resolving ? t('Aniqlanmoqda…') : onMe ? t('Turgan joyingiz') : t('Shu yerdan')}
             </span>
           </span>
         </div>
@@ -252,10 +253,10 @@ export default function TaxiMap({ women = false }) {
           <p className="flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-center text-[12px] font-semibold text-ink shadow-md">
             {gpsStatus === 'pending' ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" /> Joylashuv aniqlanmoqda…
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" /> {t('Joylashuv aniqlanmoqda…')}
               </>
             ) : (
-              <>Joylashuv taxminiy (±{Math.round(gpsFix.accuracy)} m). Pinni aniq joyga suring</>
+              <>{t('Joylashuv taxminiy (±')}{Math.round(gpsFix.accuracy)} {t('m). Pinni aniq joyga suring')}</>
             )}
           </p>
         </div>
@@ -276,7 +277,7 @@ export default function TaxiMap({ women = false }) {
             type="button"
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
-            aria-label="Orqaga"
+            aria-label={t('Orqaga')}
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={2.4} />
           </button>
@@ -285,7 +286,7 @@ export default function TaxiMap({ women = false }) {
             onClick={showMyLocation}
             disabled={locating}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
-            aria-label="Joriy joylashuv"
+            aria-label={t('Joriy joylashuv')}
           >
             {locating ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -301,19 +302,19 @@ export default function TaxiMap({ women = false }) {
           {women ? (
             <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#fde7f1] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
               <ShieldCheck className="h-4 w-4 shrink-0" />
-              Ayollar uchun Taxi · avval ayol haydovchilarga
+              {t('Ayollar uchun Taxi · avval ayol haydovchilarga')}
             </div>
           ) : null}
 
           <div className="flex h-14 items-center gap-3 rounded-2xl bg-canvas pl-4 pr-2">
             <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
             <button type="button" onClick={() => setPicker('to')} className="min-w-0 flex-1 text-center">
-              <span className="block truncate text-[16px] font-bold text-ink">Qayerga?</span>
+              <span className="block truncate text-[16px] font-bold text-ink">{t('Qayerga?')}</span>
             </button>
             <Link
               to="/favorites"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-ink shadow-sm"
-              aria-label="Sevimlilar"
+              aria-label={t('Sevimlilar')}
             >
               <Heart className="h-5 w-5" />
             </Link>
@@ -343,7 +344,7 @@ export default function TaxiMap({ women = false }) {
       <RegionPicker
         variant="headless"
         kind="from"
-        label="Qayerdan"
+        label={t('Qayerdan')}
         forceSheet
         region={search.fromRegion}
         place={search.fromPlace}
@@ -358,7 +359,7 @@ export default function TaxiMap({ women = false }) {
       <RegionPicker
         variant="headless"
         kind="to"
-        label="Qayerga"
+        label={t('Qayerga')}
         forceSheet
         region={search.toRegion}
         place={search.toPlace}
@@ -378,7 +379,7 @@ export default function TaxiMap({ women = false }) {
         status={geo.status}
         onAllow={geo.allow}
         onSkip={geo.skip}
-        text="Haydovchi sizni aynan turgan joyingizdan olib ketishi uchun joylashuvingiz kerak. U faqat buyurtma uchun ishlatiladi."
+        text={t('Haydovchi sizni aynan turgan joyingizdan olib ketishi uchun joylashuvingiz kerak. U faqat buyurtma uchun ishlatiladi.')}
       />
     </div>
   )

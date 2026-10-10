@@ -4,6 +4,7 @@ import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button, Card } from '../components/ui/Button'
 import { hubs } from '../data/ecosystem'
 import { AutoServiceMap, EvMap, FoodMap, ParkingMap, WashMap } from './hubMaps'
+import { t } from '../i18n'
 
 export default function ServiceHub() {
   const { slug } = useParams()
@@ -22,9 +23,9 @@ function HubFallback({ slug }) {
   if (!hub) {
     return (
       <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-center">
-        <p className="font-bold">Bo‘lim topilmadi</p>
+        <p className="font-bold">{t('Bo‘lim topilmadi')}</p>
         <Button className="mt-4" onClick={() => navigate('/')}>
-          Bosh sahifa
+          {t('Bosh sahifa')}
         </Button>
       </div>
     )
@@ -32,14 +33,14 @@ function HubFallback({ slug }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <ScreenHeader title={hub.title} subtitle={hub.subtitle} />
-      <PageTitle title={hub.title} subtitle={hub.subtitle} />
+      <ScreenHeader title={t(hub.title)} subtitle={t(hub.subtitle)} />
+      <PageTitle title={t(hub.title)} subtitle={t(hub.subtitle)} />
       <div className="grid gap-3 sm:grid-cols-2">
         {hub.items.map((item) => (
           <Card key={item.title} className="flex items-center justify-between p-4">
             <div>
-              <p className="font-bold">{item.title}</p>
-              <p className="text-sm text-muted">{item.desc}</p>
+              <p className="font-bold">{t(item.title)}</p>
+              <p className="text-sm text-muted">{t(item.desc)}</p>
             </div>
             <ChevronRight className="h-4 w-4 text-slate-400" />
           </Card>

@@ -11,6 +11,7 @@ import { searchUzPlaces } from '../../data/uzbekistan'
 import { api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
 import { formatPhoneUz, formatSom, maskPhoneUz } from '../../lib/utils'
+import { t } from '../../i18n'
 
 const SEAT_LAYOUT = ['FRONT', 'REAR_LEFT', 'REAR_MIDDLE', 'REAR_RIGHT']
 
@@ -43,28 +44,28 @@ function ActiveOfferView({ offer, onClosed }) {
 
   return (
     <div className="mx-auto max-w-lg pb-8">
-      <DriverHeader title="Safar" />
+      <DriverHeader title={t('Safar')} />
       <div className="space-y-4 px-4 pt-3">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-extrabold">{offer.fromLabel} → {offer.toLabel}</p>
-            <Badge>Faol</Badge>
+            <Badge>{t('Faol')}</Badge>
           </div>
           <p className="mt-1 text-xs text-muted">{departLabel(offer.departAt)}</p>
-          <p className="mt-2 text-lg font-extrabold">{formatSom(offer.pricePerSeat)}<span className="text-xs font-semibold text-muted"> / joy</span></p>
+          <p className="mt-2 text-lg font-extrabold">{formatSom(offer.pricePerSeat)}<span className="text-xs font-semibold text-muted">{t(' / joy')}</span></p>
         </Card>
 
         <p className="rounded-2xl bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
-          Yangi elon joylash uchun avval shu safaringizni to‘ldiring (barcha o‘rindiqlar band bo‘lishi) yoki quyidan yoping.
+          {t('Yangi elon joylash uchun avval shu safaringizni to‘ldiring (barcha o‘rindiqlar band bo‘lishi) yoki quyidan yoping.')}
         </p>
 
         <div>
-          <p className="mb-2 text-sm font-extrabold">O‘rindiqlar holati</p>
+          <p className="mb-2 text-sm font-extrabold">{t('O‘rindiqlar holati')}</p>
           <CarSeatMap mode="book" seats={offer.seats || []} readOnly />
         </div>
 
         <Button variant="outline" className="w-full" disabled={closeOffer.isPending} onClick={() => closeOffer.mutate()}>
-          {closeOffer.isPending ? 'Yopilmoqda…' : 'Safarni yopish'}
+          {closeOffer.isPending ? t('Yopilmoqda…') : t('Safarni yopish')}
         </Button>
       </div>
     </div>
@@ -114,14 +115,14 @@ export default function PostOffer() {
       queryClient.invalidateQueries({ queryKey: ['driver-offers'] })
       navigate('/driver/orders')
     },
-    onError: (err) => setError(err.message || 'Xatolik yuz berdi'),
+    onError: (err) => setError(err.message || t('Xatolik yuz berdi')),
   })
 
   function submit() {
     setError('')
-    if (!from.label || !to.label) return setError('Qayerdan va qayerga manzillarini tanlang')
-    if (!serviceId) return setError('Avtomobil turini tanlang')
-    if (!pricePerSeat || Number(pricePerSeat) < 1000) return setError('Narxni to‘g‘ri kiriting')
+    if (!from.label || !to.label) return setError(t('Qayerdan va qayerga manzillarini tanlang'))
+    if (!serviceId) return setError(t('Avtomobil turini tanlang'))
+    if (!pricePerSeat || Number(pricePerSeat) < 1000) return setError(t('Narxni to‘g‘ri kiriting'))
 
     const preOccupiedSeats = seats
       .filter((s) => s.status !== 'AVAILABLE')
@@ -145,7 +146,7 @@ export default function PostOffer() {
   }
 
   if (offersLoading) {
-    return <p className="p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
+    return <p className="p-6 text-center text-sm text-muted">{t('Yuklanmoqda…')}</p>
   }
 
   if (activeOffer) {
@@ -154,14 +155,14 @@ export default function PostOffer() {
 
   return (
     <div className="mx-auto max-w-lg pb-8">
-      <DriverHeader title="Yangi elon joylash" />
+      <DriverHeader title={t('Yangi elon joylash')} />
 
       <div className="space-y-4 px-4 pt-3">
         <div className="rounded-2xl border border-line bg-white">
           <RegionPicker
-            label="Qayerdan"
+            label={t('Qayerdan')}
             region={from.region}
-            place={from.place}
+            place={t(from.place)}
             onChange={({ region, place, label }) => {
               setFrom({ region, place, label })
               setOpen('to')
@@ -174,9 +175,9 @@ export default function PostOffer() {
           />
           <div className="mx-3.5 h-px bg-line" />
           <RegionPicker
-            label="Qayerga"
+            label={t('Qayerga')}
             region={to.region}
-            place={to.place}
+            place={t(to.place)}
             onChange={({ region, place, label }) => setTo({ region, place, label })}
             origin={from}
             onEditOrigin={() => setOpen('from')}
@@ -189,12 +190,12 @@ export default function PostOffer() {
         </div>
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-muted">Qo‘shimcha tumanlar (ixtiyoriy)</p>
+          <p className="mb-1.5 text-xs font-medium text-muted">{t('Qo‘shimcha tumanlar (ixtiyoriy)')}</p>
           <div className="relative">
             <Input
               value={districtQuery}
               onChange={(e) => setDistrictQuery(e.target.value)}
-              placeholder="Tuman qidirish"
+              placeholder={t('Tuman qidirish')}
             />
             {districtHits.length > 0 ? (
               <div className="absolute inset-x-0 top-12 z-20 max-h-56 overflow-y-auto rounded-2xl border border-line bg-white p-1.5 shadow-lg">
@@ -209,7 +210,7 @@ export default function PostOffer() {
                     }}
                     className="flex w-full flex-col rounded-xl px-3 py-2 text-left hover:bg-canvas"
                   >
-                    <span className="text-sm font-semibold">{hit.place}</span>
+                    <span className="text-sm font-semibold">{t(hit.place)}</span>
                     <span className="text-xs text-muted">{hit.region}</span>
                   </button>
                 ))}
@@ -231,7 +232,7 @@ export default function PostOffer() {
         </div>
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-muted">Avtomobil turi</p>
+          <p className="mb-1.5 text-xs font-medium text-muted">{t('Avtomobil turi')}</p>
           <div className="flex flex-wrap gap-2">
             {services.map((s) => (
               <button
@@ -242,7 +243,7 @@ export default function PostOffer() {
                   serviceId === s.id ? 'border-brand bg-brand-soft text-brand' : 'border-line bg-white text-ink'
                 }`}
               >
-                {s.title}
+                {t(s.title)}
               </button>
             ))}
           </div>
@@ -269,26 +270,26 @@ export default function PostOffer() {
           />
         </div>
 
-        <Field label="O‘rindiq narxi (so‘m)">
+        <Field label={t('O‘rindiq narxi (so‘m)')}>
           <Input type="number" inputMode="numeric" value={pricePerSeat} onChange={(e) => setPricePerSeat(e.target.value)} placeholder="50000" />
         </Field>
 
-        <Field label="Yuk sig‘imi (ixtiyoriy)">
+        <Field label={t('Yuk sig‘imi (ixtiyoriy)')}>
           <Input type="number" inputMode="numeric" value={luggageCapacity} onChange={(e) => setLuggageCapacity(e.target.value)} />
         </Field>
 
-        <Field label="Izoh va qulayliklar (ixtiyoriy)">
+        <Field label={t('Izoh va qulayliklar (ixtiyoriy)')}>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Konditsioner, muzika, chekilmaydi..."
+            placeholder={t('Konditsioner, muzika, chekilmaydi...')}
             rows={3}
             className="w-full rounded-2xl border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
         </Field>
 
         <div>
-          <p className="mb-1.5 text-xs font-medium text-muted">Aloqa raqami</p>
+          <p className="mb-1.5 text-xs font-medium text-muted">{t('Aloqa raqami')}</p>
           <div className="flex h-11 items-center rounded-2xl border border-line bg-canvas px-3 text-sm font-semibold text-muted">
             {formatPhoneUz(user?.phone)}
           </div>
@@ -317,21 +318,21 @@ export default function PostOffer() {
               onClick={() => setExtraPhones((prev) => [...prev, '+998'])}
               className="mt-2 flex items-center gap-1.5 text-sm font-bold text-brand"
             >
-              <Plus className="h-4 w-4" /> Raqam qo‘shish
+              <Plus className="h-4 w-4" /> {t('Raqam qo‘shish')}
             </button>
           ) : null}
         </div>
 
         <div>
-          <p className="mb-1 text-sm font-extrabold">Band o‘rindiqlar (bo‘lsa)</p>
-          <p className="mb-2 text-xs text-muted">Agar mashinada allaqachon yo‘lovchi bo‘lsa, o‘rindiqni bosib jinsini belgilang.</p>
+          <p className="mb-1 text-sm font-extrabold">{t('Band o‘rindiqlar (bo‘lsa)')}</p>
+          <p className="mb-2 text-xs text-muted">{t('Agar mashinada allaqachon yo‘lovchi bo‘lsa, o‘rindiqni bosib jinsini belgilang.')}</p>
           <CarSeatMap mode="manage" seats={seats} onChange={setSeats} />
         </div>
 
-        {error ? <p className="text-sm font-semibold text-red-500">{error}</p> : null}
+        {error ? <p className="text-sm font-semibold text-red-500">{t(error)}</p> : null}
 
         <Button size="lg" className="w-full" disabled={createOffer.isPending} onClick={submit}>
-          {createOffer.isPending ? 'Joylanmoqda…' : 'Elonni joylash'}
+          {createOffer.isPending ? t('Joylanmoqda…') : t('Elonni joylash')}
         </Button>
       </div>
     </div>

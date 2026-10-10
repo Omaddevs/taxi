@@ -9,6 +9,7 @@ import { useApp } from '../../context/AppContext'
 import { DriverHeader, DriverSheet, DriverTabs, StatusBadge, RouteStops, SeatChips, remainingSeconds, formatMmSs, timeHm } from './ui'
 import { mergeDriverOrders, isActiveStatus, filterByWorkRegions, isToday } from './orders'
 import { OrderAudience, WOMEN_CARD_CLASS } from '../../components/trip/OrderAudience'
+import { t } from '../../i18n'
 
 const TABS = [
   { id: 'all', label: 'Barchasi' },
@@ -84,7 +85,7 @@ export default function DriverOrders() {
   return (
     <div className="overflow-x-clip bg-canvas">
       <DriverHeader
-        title="Buyurtmalar"
+        title={t('Buyurtmalar')}
         right={
           <button
             type="button"
@@ -93,23 +94,23 @@ export default function DriverOrders() {
               todayOnly ? 'bg-brand text-white' : 'bg-brand-soft text-brand'
             }`}
           >
-            <Calendar className="h-3.5 w-3.5" /> {todayOnly ? 'Bugun' : 'Barchasi'}
+            <Calendar className="h-3.5 w-3.5" /> {todayOnly ? t('Bugun') : t('Barchasi')}
           </button>
         }
       />
 
       <DriverTabs>
-        {TABS.map((t) => {
-          const count = t.id === 'active' ? counts.active : null
-          const active = tab === t.id
+        {TABS.map((item) => {
+          const count = item.id === 'active' ? counts.active : null
+          const active = tab === item.id
           return (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
-              onClick={() => setTab(t.id)}
+              onClick={() => setTab(item.id)}
               className={`truncate border-b-2 pb-2.5 text-center text-[13px] font-bold outline-none ${active ? 'border-brand text-ink' : 'border-transparent text-muted'}`}
             >
-              {t.label}
+              {t(item.label)}
               {count ? ` (${count})` : ''}
             </button>
           )
@@ -122,7 +123,7 @@ export default function DriverOrders() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buyurtma raqami yoki manzil"
+            placeholder={t('Buyurtma raqami yoki manzil')}
             className="w-full bg-transparent text-sm outline-none"
           />
         </label>
@@ -131,21 +132,21 @@ export default function DriverOrders() {
           onClick={() => setFilterOpen(true)}
           className="relative flex h-11 items-center gap-1 rounded-2xl bg-white px-3 text-sm font-bold shadow-sm"
         >
-          <Filter className="h-4 w-4" /> Filtr
+          <Filter className="h-4 w-4" /> {t('Filtr')}
           {todayOnly ? <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-brand" /> : null}
         </button>
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-2 px-4">
-        <StatChip icon={ShoppingBag} color="bg-brand-soft text-brand" value={counts.all} label="Barchasi" />
-        <StatChip icon={Play} color="bg-emerald-50 text-emerald-600" value={counts.active} label="Faol" />
-        <StatChip icon={CheckCircle2} color="bg-sky-50 text-sky-600" value={counts.completed} label="Bajarilgan" />
-        <StatChip icon={XCircle} color="bg-orange-50 text-orange-500" value={counts.cancelled} label="Bekor qilingan" />
+        <StatChip icon={ShoppingBag} color="bg-brand-soft text-brand" value={counts.all} label={t('Barchasi')} />
+        <StatChip icon={Play} color="bg-emerald-50 text-emerald-600" value={counts.active} label={t('Faol')} />
+        <StatChip icon={CheckCircle2} color="bg-sky-50 text-sky-600" value={counts.completed} label={t('Bajarilgan')} />
+        <StatChip icon={XCircle} color="bg-orange-50 text-orange-500" value={counts.cancelled} label={t('Bekor qilingan')} />
       </div>
 
       <div className="mt-3 space-y-3 px-4 pb-4">
         {filtered.length === 0 ? (
-          <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">Buyurtmalar yo‘q.</p>
+          <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted">{t('Buyurtmalar yo‘q.')}</p>
         ) : (
           filtered.map((order) => (
             <OrderCard
@@ -161,7 +162,7 @@ export default function DriverOrders() {
       </div>
 
       {filterOpen ? (
-        <DriverSheet title="Filtr" onClose={() => setFilterOpen(false)}>
+        <DriverSheet title={t('Filtr')} onClose={() => setFilterOpen(false)}>
           <div className="space-y-2">
             <button
               type="button"
@@ -173,7 +174,7 @@ export default function DriverOrders() {
                 !todayOnly ? 'bg-brand-soft text-brand' : 'bg-canvas'
               }`}
             >
-              Barcha kunlar
+              {t('Barcha kunlar')}
             </button>
             <button
               type="button"
@@ -185,7 +186,7 @@ export default function DriverOrders() {
                 todayOnly ? 'bg-brand-soft text-brand' : 'bg-canvas'
               }`}
             >
-              Faqat bugun
+              {t('Faqat bugun')}
             </button>
           </div>
         </DriverSheet>
@@ -201,7 +202,7 @@ function StatChip({ icon: Icon, color, value, label }) {
         <Icon className="h-3.5 w-3.5" />
       </span>
       <p className="text-sm font-extrabold">{value}</p>
-      <p className="text-[9px] font-semibold leading-tight text-muted">{label}</p>
+      <p className="text-[9px] font-semibold leading-tight text-muted">{t(label)}</p>
     </div>
   )
 }
@@ -258,16 +259,16 @@ function OrderCard({ order, onDetails, onAccept, onReject, busy }) {
             }}
             className="rounded-xl border border-brand px-3 py-2 text-xs font-bold text-brand"
           >
-            Batafsil
+            {t('Batafsil')}
           </button>
         </div>
       ) : cancelled ? (
         <p className="mt-3 text-xs font-semibold text-red-500">
-          {order.cancelledBy === 'driver' || order.cancelReason ? 'Haydovchi tomonidan bekor qilingan' : 'Bekor qilingan'}
+          {order.cancelledBy === 'driver' || order.cancelReason ? t('Haydovchi tomonidan bekor qilingan') : t('Bekor qilingan')}
         </p>
       ) : (
         <div className="mt-3 flex items-center justify-between text-xs font-bold text-muted">
-          <span>{order.price != null ? formatSom(order.price) : `${order.seats || 1} yo‘lovchi`}</span>
+          <span>{order.price != null ? formatSom(order.price) : t('{0} yo‘lovchi', order.seats || 1)}</span>
           <button
             type="button"
             onClick={(e) => {
@@ -276,7 +277,7 @@ function OrderCard({ order, onDetails, onAccept, onReject, busy }) {
             }}
             className="rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white"
           >
-            Batafsil
+            {t('Batafsil')}
           </button>
         </div>
       )}
@@ -294,7 +295,7 @@ function PendingActions({ order, onAccept, onReject, busy }) {
   return (
     <div className="mt-3">
       <div className="mb-2 flex items-center justify-between text-sm font-extrabold">
-        <span>{order.price != null ? formatSom(order.price) : `${order.seats || 1} yo‘lovchi`}</span>
+        <span>{order.price != null ? formatSom(order.price) : t('{0} yo‘lovchi', order.seats || 1)}</span>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <button
@@ -306,7 +307,7 @@ function PendingActions({ order, onAccept, onReject, busy }) {
           }}
           className="h-11 rounded-2xl border border-line bg-white text-sm font-bold"
         >
-          Bekor qilish
+          {t('Bekor qilish')}
         </button>
         <button
           type="button"
@@ -317,7 +318,7 @@ function PendingActions({ order, onAccept, onReject, busy }) {
           }}
           className="h-11 rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
         >
-          Qabul qilish {left > 0 ? formatMmSs(left) : ''}
+          {t('Qabul qilish')}{' '}{left > 0 ? formatMmSs(left) : ''}
         </button>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { api } from '../lib/api'
 import { bookingToHistoryItem, botOrderToHistoryItem, BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../lib/adapters'
 import { formatSom } from '../lib/utils'
 import { DriverHeader } from './driver/ui'
+import { t } from '../i18n'
 
 const DRIVER_TAGS = ['Toza salon', 'Xushmuomala', 'Vaqtida keldi', 'Xavfsiz haydash', 'Yoqimli suhbat']
 
@@ -49,7 +50,7 @@ export default function TripHistory() {
 
   function handleRate(item) {
     openRating({
-      title: 'Haydovchini baholang',
+      title: t('Haydovchini baholang'),
       subtitle: `${item.from} → ${item.to}`,
       tagOptions: DRIVER_TAGS,
       onSubmit: async ({ stars, tags, comment }) => {
@@ -62,11 +63,11 @@ export default function TripHistory() {
   return (
     <div className={inDriver ? 'min-h-[calc(100svh-88px)] overflow-x-clip bg-canvas' : 'mx-auto max-w-2xl'}>
       {inDriver ? (
-        <DriverHeader title="Safar tarixi" />
+        <DriverHeader title={t('Safar tarixi')} />
       ) : (
         <>
-          <ScreenHeader title="Safar tarixi" back={false} />
-          <PageTitle title="Safar tarixi" subtitle="Yakunlangan va bekor qilingan buyurtmalar" />
+          <ScreenHeader title={t('Safar tarixi')} back={false} />
+          <PageTitle title={t('Safar tarixi')} subtitle={t('Yakunlangan va bekor qilingan buyurtmalar')} />
         </>
       )}
 
@@ -81,15 +82,15 @@ export default function TripHistory() {
                 tab === item.id ? 'bg-brand text-white' : 'bg-white text-ink shadow-sm'
               }`}
             >
-              {item.label}
+              {t(item.label)}
             </button>
           ))}
         </div>
 
-        {isLoading ? <p className="text-sm text-muted">Yuklanmoqda…</p> : null}
+        {isLoading ? <p className="text-sm text-muted">{t('Yuklanmoqda…')}</p> : null}
         {!isLoading && list.length === 0 ? (
           <p className="rounded-2xl bg-white p-8 text-center text-sm text-muted shadow-[0_8px_30px_rgba(28,28,40,0.04)]">
-            Bu bo‘limda safarlar yo‘q.
+            {t('Bu bo‘limda safarlar yo‘q.')}
           </p>
         ) : null}
 
@@ -104,12 +105,12 @@ export default function TripHistory() {
                     </p>
                     {item.womenOnly ? (
                       <span className="mt-0.5 shrink-0 rounded-full bg-[#fde7f1] px-2 py-0.5 text-[10px] font-bold text-[#c2185b]">
-                        🌸 Ayollar uchun
+                        {t('🌸 Ayollar uchun')}
                       </span>
                     ) : null}
                     {item.source === 'bot' ? (
                       <span className="mt-0.5 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted">
-                        Bot
+                        {t('Bot')}
                       </span>
                     ) : null}
                   </div>
@@ -120,14 +121,14 @@ export default function TripHistory() {
                   </p>
                 </div>
                 <Badge tone={BOOKING_STATUS_TONE[item.status]} className="shrink-0">
-                  {BOOKING_STATUS_LABEL[item.status]}
+                  {t(BOOKING_STATUS_LABEL[item.status])}
                 </Badge>
               </div>
               {item.price != null ? <p className="mt-3 text-sm font-extrabold text-brand">{formatSom(item.price)}</p> : null}
               {!inDriver && item.status === 'COMPLETED' ? (
                 ratedIds.has(item.id) ? (
                   <p className="mt-3 flex items-center gap-1 text-xs font-bold text-emerald-600">
-                    <Star className="h-3.5 w-3.5 fill-emerald-600" /> Baholandi
+                    <Star className="h-3.5 w-3.5 fill-emerald-600" /> {t('Baholandi')}
                   </p>
                 ) : (
                   <button
@@ -135,7 +136,7 @@ export default function TripHistory() {
                     onClick={() => handleRate(item)}
                     className="mt-3 flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand"
                   >
-                    <Star className="h-3.5 w-3.5" /> Haydovchini baholash
+                    <Star className="h-3.5 w-3.5" /> {t('Haydovchini baholash')}
                   </button>
                 )
               ) : null}

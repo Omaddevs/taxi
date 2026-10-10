@@ -27,6 +27,7 @@ import { VEHICLE_TYPE, VEHICLE_TYPES } from '../data/rentals'
 import { breadcrumbJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
 import { FaqItem } from './Landing'
+import { t } from '../i18n'
 
 // "Skuter ijara" ommaviy sahifasi — asosiy landing bilan bir xil vizual til (kulrang + brend
 // panelli hero, qorong‘i afzalliklar bloki), lekin ijaraga moslangan. E’lonlar jonli: /rentals
@@ -97,7 +98,7 @@ function useRentLinks() {
 }
 
 function ScooterImage({ className = '' }) {
-  return <img src="/rent/scooter.webp" alt="TaxiLine skuteri" width={720} height={502} fetchPriority="high" draggable={false} className={`select-none ${className}`} />
+  return <img src="/rent/scooter.webp" alt={t('TaxiLine skuteri')} width={720} height={502} fetchPriority="high" draggable={false} className={`select-none ${className}`} />
 }
 
 function NavLinks({ className = '', onNavigate }) {
@@ -109,7 +110,7 @@ function NavLinks({ className = '', onNavigate }) {
       aria-current={item.active ? 'page' : undefined}
       className={`${className} ${item.active ? 'underline decoration-ink decoration-2 underline-offset-[6px]' : ''}`}
     >
-      {item.label}
+      {t(item.label)}
     </Link>
   ))
 }
@@ -123,8 +124,8 @@ function AdvantageCard({ icon: Icon, title, text, tone }) {
       } text-ink`}
     >
       <Icon className={`h-9 w-9 ${brand ? 'text-ink' : 'text-brand'}`} strokeWidth={1.7} />
-      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] tracking-tight 2xl:text-[23px]">{title}</h3>
-      <p className={`mt-2.5 text-[12px] leading-[1.4] 2xl:text-[14px] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{text}</p>
+      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] tracking-tight 2xl:text-[23px]">{t(title)}</h3>
+      <p className={`mt-2.5 text-[12px] leading-[1.4] 2xl:text-[14px] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{t(text)}</p>
     </article>
   )
 }
@@ -178,13 +179,13 @@ function Hero({ total }) {
               </Link>
               <div className="flex items-center gap-1.5 lg:hidden">
                 <Link to="/login" className="spin-border flex h-10 items-center gap-1.5 rounded-full bg-ink px-4 text-[13px] font-extrabold text-white">
-                  <LogIn className="h-4 w-4" /> Kirish
+                  <LogIn className="h-4 w-4" /> {t('Kirish')}
                 </Link>
                 <button
                   type="button"
                   onClick={() => setMenuOpen((v) => !v)}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-ink"
-                  aria-label="Menyu"
+                  aria-label={t('Menyu')}
                   aria-expanded={menuOpen}
                 >
                   {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -196,18 +197,18 @@ function Hero({ total }) {
               <div className="absolute inset-x-4 top-[68px] z-40 rounded-2xl bg-white p-2 shadow-[0_20px_40px_rgba(15,29,42,0.18)] sm:inset-x-10 lg:hidden">
                 <NavLinks onNavigate={() => setMenuOpen(false)} className="block rounded-xl px-4 py-3 text-[15px] font-bold text-ink hover:bg-canvas" />
                 <Link to="/aksiyalar#random" className="flex items-center gap-2 rounded-xl px-4 py-3 text-[15px] font-bold text-brand-dark hover:bg-canvas">
-                  <Gift className="h-4 w-4" /> Random mijoz
+                  <Gift className="h-4 w-4" /> {t('Random mijoz')}
                 </Link>
               </div>
             ) : null}
 
             <p className="relative mt-12 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.08em] text-brand-dark shadow-sm sm:mt-14 lg:mt-[70px] 2xl:mt-[96px] 2xl:text-[14px]">
-              <span className="h-2 w-2 rounded-full bg-brand" /> Skuter ijara
+              <span className="h-2 w-2 rounded-full bg-brand" /> {t('Skuter ijara')}
             </p>
             <h1 className="relative mt-4 text-[38px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[52px] lg:text-[54px] xl:text-[60px] 2xl:text-[78px]">
-              Shahar bo‘ylab
+              {t('Shahar bo‘ylab')}
               <br />
-              erkin harakat
+              {t('erkin harakat')}
             </h1>
 
             <div className="relative z-20 mx-auto -mb-10 mt-6 w-[86%] max-w-[480px] sm:-mb-14 lg:hidden">
@@ -229,23 +230,23 @@ function Hero({ total }) {
                 to="/aksiyalar#random"
                 className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/30 px-3.5 py-1.5 text-[14px] font-bold text-ink ring-1 ring-ink/10 transition hover:bg-white/50 2xl:text-[16px]"
               >
-                <Gift className="h-4 w-4" /> Random mijoz
+                <Gift className="h-4 w-4" /> {t('Random mijoz')}
               </Link>
               <Link
                 to="/login"
                 className="spin-border flex h-10 items-center gap-1.5 rounded-full bg-ink px-5 text-[13px] font-extrabold text-white shadow-[0_8px_18px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a]"
               >
-                <LogIn className="h-4 w-4" /> Kirish
+                <LogIn className="h-4 w-4" /> {t('Kirish')}
               </Link>
             </nav>
 
             <h2 className="relative text-[32px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[44px] lg:mt-[92px] lg:text-[38px] xl:text-[44px] 2xl:mt-[120px] 2xl:text-[64px]">
-              Skuter, samokat
+              {t('Skuter, samokat')}
               <br />
-              va velosiped ijarasi
+              {t('va velosiped ijarasi')}
             </h2>
             <p className="relative mt-4 max-w-[460px] text-[15px] leading-[1.5] text-ink/85 sm:text-[17px] 2xl:max-w-[560px] 2xl:text-[21px]">
-              soatbay yoki kunlik — yaqin atrofdagi transportni toping va egasi bilan to‘g‘ridan-to‘g‘ri kelishing
+              {t('soatbay yoki kunlik — yaqin atrofdagi transportni toping va egasi bilan to‘g‘ridan-to‘g‘ri kelishing')}
             </p>
 
             <div className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -253,18 +254,18 @@ function Hero({ total }) {
                 to={links.browse}
                 className="spin-border inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-ink px-8 text-[14px] font-bold uppercase tracking-[0.03em] text-white shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a] 2xl:h-14 2xl:px-10 2xl:text-[16px]"
               >
-                <Search className="h-4 w-4" /> Ijaraga olish
+                <Search className="h-4 w-4" /> {t('Ijaraga olish')}
               </Link>
               <Link
                 to={links.post}
                 className="inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-white px-7 text-[14px] font-bold uppercase tracking-[0.03em] text-ink transition hover:bg-white/85 2xl:h-14 2xl:px-9 2xl:text-[16px]"
               >
-                <Plus className="h-4 w-4" /> E’lon joylash
+                <Plus className="h-4 w-4" /> {t('E’lon joylash')}
               </Link>
             </div>
             {total > 0 ? (
               <p className="relative mt-5 text-[13px] font-semibold text-ink/75 2xl:text-[15px]">
-                Hozir <span className="font-extrabold text-ink">{total} ta</span> e’lon ijaraga tayyor
+                {t('Hozir')}{' '}<span className="font-extrabold text-ink">{t('{0} ta', total)}</span> {t('e’lon ijaraga tayyor')}
               </p>
             ) : null}
           </div>
@@ -279,19 +280,19 @@ function Hero({ total }) {
           <div className="grid gap-9 px-5 pb-8 pt-12 sm:px-10 sm:pb-12 sm:pt-16 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10 lg:px-14 lg:pb-16 lg:pt-24 2xl:px-20 2xl:pb-20 2xl:pt-32">
             <div className="min-w-0">
               <h2 className="text-[30px] font-extrabold leading-[1.12] tracking-tight text-white sm:text-[40px] xl:text-[46px] 2xl:text-[60px]">
-                Nega TaxiLine
+                {t('Nega TaxiLine')}
                 <br />
-                ijarasi qulay
+                {t('ijarasi qulay')}
               </h2>
               <p className="mt-4 text-[15px] leading-[1.5] text-white/75 sm:text-[17px] 2xl:text-[21px]">
-                ijara oluvchi va beruvchi uchun —
-                <br className="hidden sm:block" /> kartalarni varaqlang
+                {t('ijara oluvchi va beruvchi uchun —')}
+                <br className="hidden sm:block" /> {t('kartalarni varaqlang')}
               </p>
               <a
                 href="#elonlar"
                 className="mt-8 inline-flex h-12 items-center rounded-full bg-brand px-8 text-[12px] font-extrabold uppercase tracking-[0.06em] text-ink transition hover:bg-[#5ee3eb]"
               >
-                E’lonlarni ko‘rish
+                {t('E’lonlarni ko‘rish')}
               </a>
               <div className="mt-14 hidden lg:block">{dots}</div>
             </div>
@@ -310,7 +311,7 @@ function Hero({ total }) {
                 <button
                   type="button"
                   onClick={() => goTo(active >= DOTS - 1 ? 0 : active + 1)}
-                  aria-label="Keyingi"
+                  aria-label={t('Keyingi')}
                   className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/10 sm:flex"
                 >
                   <ArrowRight className="h-5 w-5" />
@@ -329,11 +330,11 @@ function SectionTitle({ eyebrow, title, text, action }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-5">
       <div className="max-w-[720px]">
-        <p className="text-[13px] font-extrabold uppercase tracking-[0.1em] text-brand-dark 2xl:text-[15px]">{eyebrow}</p>
-        <h2 className="mt-3 text-[32px] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-[44px] 2xl:text-[58px]">{title}</h2>
-        {text ? <p className="mt-4 text-[15px] leading-[1.55] text-ink/70 sm:text-[17px] 2xl:text-[20px]">{text}</p> : null}
+        <p className="text-[13px] font-extrabold uppercase tracking-[0.1em] text-brand-dark 2xl:text-[15px]">{t(eyebrow)}</p>
+        <h2 className="mt-3 text-[32px] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-[44px] 2xl:text-[58px]">{t(title)}</h2>
+        {text ? <p className="mt-4 text-[15px] leading-[1.55] text-ink/70 sm:text-[17px] 2xl:text-[20px]">{t(text)}</p> : null}
       </div>
-      {action}
+      {t(action)}
     </div>
   )
 }
@@ -343,7 +344,7 @@ function VehicleTypes({ counts }) {
   return (
     <section id="turlar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
-        <SectionTitle eyebrow="Turlari" title="Har kimga mos transport" text="Qisqa masofaga samokat, kun bo‘yi skuter, sayr uchun velosiped." />
+        <SectionTitle eyebrow={t('Turlari')} title={t('Har kimga mos transport')} text={t('Qisqa masofaga samokat, kun bo‘yi skuter, sayr uchun velosiped.')} />
         <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 2xl:gap-5">
           {VEHICLE_TYPES.map((type, i) => {
             const Icon = type.icon
@@ -359,9 +360,9 @@ function VehicleTypes({ counts }) {
                 <span className={`flex h-12 w-12 items-center justify-center rounded-2xl 2xl:h-14 2xl:w-14 ${brand ? 'bg-white/40' : 'bg-white text-brand-dark'}`}>
                   <Icon className="h-6 w-6 2xl:h-7 2xl:w-7" strokeWidth={1.8} />
                 </span>
-                <span className="mt-10 text-[17px] font-extrabold leading-tight tracking-tight sm:text-[19px] 2xl:text-[23px]">{type.label}</span>
+                <span className="mt-10 text-[17px] font-extrabold leading-tight tracking-tight sm:text-[19px] 2xl:text-[23px]">{t(type.label)}</span>
                 <span className={`mt-1.5 flex items-center justify-between text-[13px] font-semibold 2xl:text-[15px] ${brand ? 'text-ink/75' : 'text-ink/55'}`}>
-                  {counts[type.id] ? `${counts[type.id]} ta e’lon` : 'Tez orada'}
+                  {counts[type.id] ? t('{0} ta e’lon', counts[type.id]) : t('Tez orada')}
                   <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                 </span>
               </Link>
@@ -381,14 +382,14 @@ function ListingTile({ listing, href }) {
       <div className="relative aspect-[4/3] overflow-hidden bg-[#f3f4f6]">
         <Cover src={listing.cover} className="h-full w-full transition duration-500 group-hover:scale-[1.04]" iconClass="h-12 w-12" />
         {type ? (
-          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[12px] font-bold text-ink backdrop-blur">{type.label}</span>
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[12px] font-bold text-ink backdrop-blur">{t(type.label)}</span>
         ) : null}
         {listing.featured ? (
           <span className="absolute right-3 top-3 rounded-full bg-brand px-3 py-1 text-[12px] font-extrabold text-ink">TOP</span>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col p-5 2xl:p-6">
-        <h3 className="line-clamp-1 text-[17px] font-extrabold tracking-tight text-ink 2xl:text-[20px]">{listing.title}</h3>
+        <h3 className="line-clamp-1 text-[17px] font-extrabold tracking-tight text-ink 2xl:text-[20px]">{t(listing.title)}</h3>
         {listing.address ? (
           <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-ink/60 2xl:text-[15px]">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -399,10 +400,10 @@ function ListingTile({ listing, href }) {
           {price ? (
             <p className="text-ink">
               <span className="text-[22px] font-extrabold tracking-tight 2xl:text-[26px]">{som(price.amount)}</span>
-              <span className="ml-1 text-[13px] font-semibold text-ink/55">so‘m / {price.unit}</span>
+              <span className="ml-1 text-[13px] font-semibold text-ink/55">{t('so‘m /')}{' '}{t(price.unit)}</span>
             </p>
           ) : (
-            <p className="text-[14px] font-semibold text-ink/55">Narx kelishiladi</p>
+            <p className="text-[14px] font-semibold text-ink/55">{t('Narx kelishiladi')}</p>
           )}
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] text-ink transition group-hover:bg-brand">
             <ArrowRight className="h-4 w-4" />
@@ -420,15 +421,15 @@ function Listings({ listings, isLoading }) {
     <section id="elonlar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="rounded-[28px] bg-[#f3f4f6] px-5 py-10 sm:rounded-[40px] sm:px-10 sm:py-14 lg:px-14 2xl:px-20 2xl:py-20">
         <SectionTitle
-          eyebrow="Jonli e’lonlar"
-          title="Hozir ijarada"
-          text="Moderatsiyadan o‘tgan, egasi faol saqlab turgan e’lonlar."
+          eyebrow={t('Jonli e’lonlar')}
+          title={t('Hozir ijarada')}
+          text={t('Moderatsiyadan o‘tgan, egasi faol saqlab turgan e’lonlar.')}
           action={
             <Link
               to={links.browse}
               className="inline-flex h-12 items-center gap-2 rounded-full bg-ink px-7 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white transition hover:bg-black"
             >
-              Barchasini ko‘rish <ArrowRight className="h-4 w-4" />
+              {t('Barchasini ko‘rish')}{' '}<ArrowRight className="h-4 w-4" />
             </Link>
           }
         />
@@ -447,10 +448,10 @@ function Listings({ listings, isLoading }) {
         ) : (
           <div className="mt-9 flex flex-col items-center rounded-[22px] bg-white px-6 py-12 text-center">
             <img src="/rent/bike.webp" alt="" width={720} height={421} className="h-auto w-[220px] select-none" draggable={false} />
-            <h3 className="mt-6 text-[22px] font-extrabold tracking-tight text-ink">Birinchi bo‘lib e’lon joylang</h3>
-            <p className="mt-2 max-w-[420px] text-[15px] text-ink/65">Hozircha faol e’lon yo‘q — skuter yoki velosipedingiz bo‘lsa, ijaraga bering va birinchi mijozlarni oling.</p>
+            <h3 className="mt-6 text-[22px] font-extrabold tracking-tight text-ink">{t('Birinchi bo‘lib e’lon joylang')}</h3>
+            <p className="mt-2 max-w-[420px] text-[15px] text-ink/65">{t('Hozircha faol e’lon yo‘q — skuter yoki velosipedingiz bo‘lsa, ijaraga bering va birinchi mijozlarni oling.')}</p>
             <Link to={links.post} className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-brand px-7 text-[13px] font-extrabold uppercase tracking-[0.05em] text-ink">
-              <Plus className="h-4 w-4" /> E’lon joylash
+              <Plus className="h-4 w-4" /> {t('E’lon joylash')}
             </Link>
           </div>
         )}
@@ -466,8 +467,8 @@ function StepList({ steps }) {
         <li key={step.title} className="flex gap-4">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-[16px] font-bold text-ink">{i + 1}</span>
           <div>
-            <h3 className="text-[19px] font-extrabold leading-[1.15] tracking-tight text-ink sm:text-[22px] 2xl:text-[27px]">{step.title}</h3>
-            <p className="mt-2 text-[14px] leading-[1.5] text-ink/70 2xl:text-[17px]">{step.text}</p>
+            <h3 className="text-[19px] font-extrabold leading-[1.15] tracking-tight text-ink sm:text-[22px] 2xl:text-[27px]">{t(step.title)}</h3>
+            <p className="mt-2 text-[14px] leading-[1.5] text-ink/70 2xl:text-[17px]">{t(step.text)}</p>
           </div>
         </li>
       ))}
@@ -480,25 +481,25 @@ function HowItWorks() {
   return (
     <section id="qanday" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
-        <SectionTitle eyebrow="Qanday ishlaydi" title="Uch qadam — va yo‘ldasiz" />
+        <SectionTitle eyebrow={t('Qanday ishlaydi')} title={t('Uch qadam — va yo‘ldasiz')} />
       </div>
       <div className="mt-9 grid gap-4 lg:grid-cols-2 2xl:gap-5">
         <div className="rounded-[28px] bg-brand-soft px-6 py-9 sm:rounded-[36px] sm:px-10 sm:py-12 2xl:px-14 2xl:py-14">
           <p className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.08em] text-brand-dark">
-            <Search className="h-3.5 w-3.5" /> Ijaraga oluvchi
+            <Search className="h-3.5 w-3.5" /> {t('Ijaraga oluvchi')}
           </p>
           <StepList steps={RENTER_STEPS} />
           <Link to={links.browse} className="mt-9 inline-flex h-12 items-center gap-2 rounded-full bg-ink px-7 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white">
-            Transport tanlash <ArrowRight className="h-4 w-4" />
+            {t('Transport tanlash')}{' '}<ArrowRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="rounded-[28px] bg-[#f3f4f6] px-6 py-9 sm:rounded-[36px] sm:px-10 sm:py-12 2xl:px-14 2xl:py-14">
           <p className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.08em] text-ink">
-            <Wallet className="h-3.5 w-3.5" /> Ijaraga beruvchi
+            <Wallet className="h-3.5 w-3.5" /> {t('Ijaraga beruvchi')}
           </p>
           <StepList steps={OWNER_STEPS} />
           <Link to={links.post} className="mt-9 inline-flex h-12 items-center gap-2 rounded-full bg-brand px-7 text-[13px] font-extrabold uppercase tracking-[0.05em] text-ink">
-            <Plus className="h-4 w-4" /> E’lon joylash
+            <Plus className="h-4 w-4" /> {t('E’lon joylash')}
           </Link>
         </div>
       </div>
@@ -515,21 +516,21 @@ function OwnerBanner() {
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
           <div>
             <h2 className="text-[30px] font-extrabold leading-[1.1] tracking-tight text-white sm:text-[42px] 2xl:text-[56px]">
-              Skuteringiz bekor turibdimi?
+              {t('Skuteringiz bekor turibdimi?')}
             </h2>
             <p className="mt-4 max-w-[520px] text-[15px] leading-[1.55] text-white/70 sm:text-[17px] 2xl:text-[20px]">
-              Ijaraga bering — e’lon joylash bepul. Narx, muddat va garovni o‘zingiz belgilaysiz, mijozlar o‘zi qo‘ng‘iroq qiladi.
+              {t('Ijaraga bering — e’lon joylash bepul. Narx, muddat va garovni o‘zingiz belgilaysiz, mijozlar o‘zi qo‘ng‘iroq qiladi.')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={links.post} className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-8 text-[13px] font-extrabold uppercase tracking-[0.05em] text-ink transition hover:bg-[#5ee3eb]">
-                <Plus className="h-4 w-4" /> E’lon joylash
+                <Plus className="h-4 w-4" /> {t('E’lon joylash')}
               </Link>
               <span className="inline-flex h-12 items-center gap-2 rounded-full px-2 text-[14px] font-semibold text-white/70">
-                <ShieldCheck className="h-4 w-4 text-brand" /> Har bir e’lon moderatsiyadan o‘tadi
+                <ShieldCheck className="h-4 w-4 text-brand" /> {t('Har bir e’lon moderatsiyadan o‘tadi')}
               </span>
             </div>
           </div>
-          <img src="/rent/bike.webp" alt="TaxiLine velosipedi" width={720} height={421} loading="lazy" draggable={false} className="relative mx-auto h-auto w-full max-w-[520px] select-none drop-shadow-[0_26px_22px_rgba(0,0,0,0.4)]" />
+          <img src="/rent/bike.webp" alt={t('TaxiLine velosipedi')} width={720} height={421} loading="lazy" draggable={false} className="relative mx-auto h-auto w-full max-w-[520px] select-none drop-shadow-[0_26px_22px_rgba(0,0,0,0.4)]" />
         </div>
       </div>
     </section>
@@ -541,7 +542,7 @@ function RentFaq() {
   return (
     <section id="savollar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
-        <SectionTitle eyebrow="Savol-javob" title="Ijara haqida savollar" />
+        <SectionTitle eyebrow={t('Savol-javob')} title={t('Ijara haqida savollar')} />
         <div className="mt-6">
           {RENT_FAQ.map((item, i) => (
             <FaqItem key={item.q} id={`rent-faq-${i}`} item={item} open={open === i} onToggle={() => setOpen(open === i ? -1 : i)} />
@@ -554,7 +555,7 @@ function RentFaq() {
 
 export default function ScooterRent() {
   useSeo('/skuter-ijara')
-  useJsonLd('breadcrumb', breadcrumbJsonLd('/skuter-ijara', 'Skuter ijara'))
+  useJsonLd('breadcrumb', breadcrumbJsonLd('/skuter-ijara', t('Skuter ijara')))
   // Only counts + 6 cards (GET /rentals/showcase) — the full market carries every photo.
   const { data, isLoading } = useQuery({ queryKey: ['rentals-showcase'], queryFn: () => api.get('/rentals/showcase'), staleTime: 60_000 })
   const listings = Array.isArray(data?.latest) ? data.latest : []

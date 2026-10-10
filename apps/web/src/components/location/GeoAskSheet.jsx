@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { LoaderCircle, LocateFixed, MapPin, Navigation, ShieldAlert } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 export function useMapGeo(enabled = true) {
   const { gpsStatus, requestUserLocation, queryGeoPermission, watchUserLocation, stopWatchingLocation } = useApp()
@@ -80,44 +81,44 @@ export function GeoAskSheet({ open, status, onAllow, onSkip, text }) {
 
         <h2 className="mt-4 text-center text-xl font-extrabold">
           {pending
-            ? 'Joylashuv aniqlanmoqda…'
+            ? t('Joylashuv aniqlanmoqda…')
             : denied
-              ? 'Joylashuvga ruxsat berilmadi'
+              ? t('Joylashuvga ruxsat berilmadi')
               : unsupported
-                ? 'Brauzer joylashuvni qo‘llab-quvvatlamaydi'
+                ? t('Brauzer joylashuvni qo‘llab-quvvatlamaydi')
                 : error
-                  ? 'Joylashuv olinmadi'
-                  : 'Joylashuvni yoqing'}
+                  ? t('Joylashuv olinmadi')
+                  : t('Joylashuvni yoqing')}
         </h2>
         <p className="mt-2 text-center text-sm leading-relaxed text-muted">
           {pending
-            ? 'Brauzer oynasida “Ruxsat berish” ni bosing. Bu yaqin xizmatlarni aniq ko‘rsatadi.'
+            ? t('Brauzer oynasida “Ruxsat berish” ni bosing. Bu yaqin xizmatlarni aniq ko‘rsatadi.')
             : denied
-              ? 'Brauzer sozlamalarida ushbu sayt uchun Joylashuv ni yoqing, so‘ng qayta urinib ko‘ring.'
+              ? t('Brauzer sozlamalarida ushbu sayt uchun Joylashuv ni yoqing, so‘ng qayta urinib ko‘ring.')
               : unsupported
-                ? 'Xaritadan saqlangan manzil atrofini ko‘rsatamiz. Manzilni qo‘lda tanlashingiz mumkin.'
+                ? t('Xaritadan saqlangan manzil atrofini ko‘rsatamiz. Manzilni qo‘lda tanlashingiz mumkin.')
                 : error
-                  ? 'Signal zaif bo‘lishi mumkin. Qayta urinib ko‘ring yoki saqlangan manzildan davom eting.'
-                  : text || 'Yaqin shahobcha, moyka, parking va oshxonani xaritada to‘g‘ri belgilash uchun geolokatsiya kerak.'}
+                  ? t('Signal zaif bo‘lishi mumkin. Qayta urinib ko‘ring yoki saqlangan manzildan davom eting.')
+                  : text || t('Yaqin shahobcha, moyka, parking va oshxonani xaritada to‘g‘ri belgilash uchun geolokatsiya kerak.')}
         </p>
 
         {!text && !pending && !denied && !error && !unsupported ? (
           <ul className="mt-4 space-y-2.5 rounded-2xl bg-canvas px-4 py-3 text-sm font-semibold">
             <li className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-brand" /> Yaqinlar yashil, uzoqlar alohida rangda
+              <MapPin className="h-4 w-4 text-brand" /> {t('Yaqinlar yashil, uzoqlar alohida rangda')}
             </li>
             <li className="flex items-center gap-2">
-              <Navigation className="h-4 w-4 text-brand" /> Yo‘nalish aniqroq hisoblanadi
+              <Navigation className="h-4 w-4 text-brand" /> {t('Yo‘nalish aniqroq hisoblanadi')}
             </li>
             <li className="flex items-center gap-2">
-              <LocateFixed className="h-4 w-4 text-brand" /> Siz xaritada ko‘k nuqta bo‘lib chiqasiz
+              <LocateFixed className="h-4 w-4 text-brand" /> {t('Siz xaritada ko‘k nuqta bo‘lib chiqasiz')}
             </li>
           </ul>
         ) : null}
 
         {denied ? (
           <p className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-800">
-            Chrome: qulf belgisini bosing → Sayt sozlamalari → Joylashuv → Ruxsat. Keyin “Qayta urinish”.
+            {t('Chrome: qulf belgisini bosing → Sayt sozlamalari → Joylashuv → Ruxsat. Keyin “Qayta urinish”.')}
           </p>
         ) : null}
 
@@ -130,7 +131,7 @@ export function GeoAskSheet({ open, status, onAllow, onSkip, text }) {
               className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-70"
             >
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
-              {pending ? 'Kuting…' : denied || error ? 'Qayta urinish' : 'Joylashuvni yoqish'}
+              {pending ? t('Kuting…') : denied || error ? t('Qayta urinish') : t('Joylashuvni yoqish')}
             </button>
           )}
           <button
@@ -139,7 +140,7 @@ export function GeoAskSheet({ open, status, onAllow, onSkip, text }) {
             onClick={onSkip}
             className="flex h-11 w-full items-center justify-center rounded-2xl bg-canvas text-sm font-bold text-ink disabled:opacity-50"
           >
-            Saqlangan manzildan davom etish
+            {t('Saqlangan manzildan davom etish')}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, CarFront } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { t } from '../../i18n'
 
 const POSITIONS = ['FRONT', 'REAR_LEFT', 'REAR_MIDDLE', 'REAR_RIGHT']
 
@@ -9,6 +10,14 @@ const POSITION_LABEL = {
   REAR_LEFT: 'Orqa chap',
   REAR_MIDDLE: 'Orqa o‘rta',
   REAR_RIGHT: 'Orqa o‘ng',
+}
+
+// O‘rindiq tugmasidagi qisqa yozuv (16×16 tugmaga sig‘adi)
+const POSITION_SHORT = {
+  FRONT: 'o‘rindiq',
+  REAR_LEFT: 'chap',
+  REAR_MIDDLE: 'o‘rta',
+  REAR_RIGHT: 'o‘ng',
 }
 
 function seatTone(status, gender) {
@@ -38,7 +47,7 @@ function SeatButton({ position, status, gender, selectable, selected, disabled, 
         selectable && !disabled ? 'active:scale-95' : '',
         disabled && status === 'AVAILABLE' ? 'opacity-70' : '',
       )}
-      aria-label={POSITION_LABEL[position]}
+      aria-label={t(POSITION_LABEL[position])}
     >
       {selected ? (
         <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-ink shadow ring-1 ring-black/5">
@@ -49,7 +58,7 @@ function SeatButton({ position, status, gender, selectable, selected, disabled, 
         <path d="M6 13V8.5A2.5 2.5 0 0 1 8.5 6h3A2.5 2.5 0 0 1 14 8.5V13" />
         <path d="M5 13h14v2.5a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 15.5V13z" fill="currentColor" stroke="none" />
       </svg>
-      <span className="leading-none">{POSITION_LABEL[position].split(' ').slice(-1)[0]}</span>
+      <span className="max-w-full truncate px-1 leading-none">{t(POSITION_SHORT[position])}</span>
     </button>
   )
 }
@@ -68,14 +77,14 @@ function SeatGenderPopup({ onPickMale, onPickFemale, onClear, showClear }) {
         onClick={onPickMale}
         className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-[13px] font-bold hover:bg-seat-male-soft"
       >
-        <span className="h-3 w-3 shrink-0 rounded-full bg-seat-male" /> Erkak
+        <span className="h-3 w-3 shrink-0 rounded-full bg-seat-male" /> {t('Erkak')}
       </button>
       <button
         type="button"
         onClick={onPickFemale}
         className="mt-0.5 flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-[13px] font-bold hover:bg-seat-female-soft"
       >
-        <span className="h-3 w-3 shrink-0 rounded-full bg-seat-female" /> Ayol
+        <span className="h-3 w-3 shrink-0 rounded-full bg-seat-female" /> {t('Ayol')}
       </button>
       {showClear ? (
         <button
@@ -83,7 +92,7 @@ function SeatGenderPopup({ onPickMale, onPickFemale, onClear, showClear }) {
           onClick={onClear}
           className="mt-0.5 flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-[13px] font-bold text-muted hover:bg-canvas"
         >
-          <span className="h-3 w-3 shrink-0 rounded-full border border-slate-300" /> Bo‘sh qilish
+          <span className="h-3 w-3 shrink-0 rounded-full border border-slate-300" /> {t('Bo‘sh qilish')}
         </button>
       ) : null}
       <span className="absolute left-1/2 top-full -mt-[5px] h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-white" />
@@ -206,7 +215,7 @@ export function CarSeatMap({
         <button
           type="button"
           className="fixed inset-0 z-30"
-          aria-label="Yopish"
+          aria-label={t('Yopish')}
           onClick={() => setActivePosition(null)}
         />
       ) : null}
@@ -216,7 +225,7 @@ export function CarSeatMap({
         <div className="mb-3 flex justify-center gap-3">
           <span className="flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-2xl bg-slate-100 text-[10px] font-bold text-slate-400">
             <CarFront className="h-5 w-5" />
-            Haydovchi
+            {t('Haydovchi')}
           </span>
           {POSITIONS.slice(0, 1).map(renderSeat)}
         </div>
@@ -224,9 +233,9 @@ export function CarSeatMap({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted">
-        <Legend tone="available" label="Bo‘sh" />
-        <Legend tone="male" label="Band (erkak)" />
-        <Legend tone="female" label="Band (ayol)" />
+        <Legend tone="available" label={t('Bo‘sh')} />
+        <Legend tone="male" label={t('Band (erkak)')} />
+        <Legend tone="female" label={t('Band (ayol)')} />
       </div>
 
       {mode === 'book' && !readOnly ? (
@@ -236,7 +245,7 @@ export function CarSeatMap({
           onClick={selectWholeCar}
           className="mt-3 flex h-11 w-full items-center justify-center rounded-2xl border border-brand text-sm font-extrabold text-brand disabled:opacity-40"
         >
-          Butun mashinani band qilish
+          {t('Butun mashinani band qilish')}
         </button>
       ) : null}
     </div>
@@ -253,7 +262,7 @@ function Legend({ tone, label }) {
   return (
     <span className="flex items-center gap-1.5">
       <span className={cn('h-2.5 w-2.5 rounded-full', LEGEND_DOT_CLASS[tone])} />
-      {label}
+      {t(label)}
     </span>
   )
 }

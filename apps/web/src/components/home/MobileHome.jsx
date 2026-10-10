@@ -21,6 +21,7 @@ import { formatPlace, isRegionActive, matchRegion } from '../../data/uzbekistan'
 import { Logo, Wordmark } from '../ui/Logo'
 import { RegionPicker } from '../ui/SearchPickers'
 import { ServiceStrip } from './ServiceStrip'
+import { t } from '../../i18n'
 
 function TileBadge({ tone = 'soon', children }) {
   const cls = tone === 'hot' ? 'bg-brand text-white' : 'bg-slate-500/80 text-white backdrop-blur'
@@ -44,13 +45,13 @@ function Tile({ to, title, hint, badge, badgeTone, soon = false, className = '',
       } ${className}`}
     >
       <div className="relative z-10">
-        <p className="text-[15px] font-bold leading-tight text-ink">{title}</p>
-        <p className="mt-0.5 text-[12px] text-muted">{hint}</p>
+        <p className="text-[15px] font-bold leading-tight text-ink">{t(title)}</p>
+        <p className="mt-0.5 text-[12px] text-muted">{t(hint)}</p>
       </div>
       {children}
       {soon || badge ? (
         <div className="relative z-10">
-          <TileBadge tone={soon ? 'soon' : badgeTone}>{soon ? 'Tez orada' : badge}</TileBadge>
+          <TileBadge tone={soon ? 'soon' : badgeTone}>{soon ? t('Tez orada') : badge}</TileBadge>
         </div>
       ) : null}
     </Root>
@@ -89,7 +90,7 @@ export function MobileHome() {
 
   const pickOriginOnMap = () =>
     openLocationPicker({
-      title: 'Mo‘ljal',
+      title: t('Mo‘ljal'),
       onPick: (loc) => {
         const region = matchRegion(loc.state, loc.city, loc.label)
         if (!region) return
@@ -104,7 +105,7 @@ export function MobileHome() {
           type="button"
           onClick={() => setDrawerOpen(true)}
           className="absolute left-3 top-[max(14px,env(safe-area-inset-top))] flex h-11 w-11 items-center justify-center rounded-full text-ink"
-          aria-label="Menyu"
+          aria-label={t('Menyu')}
         >
           <Menu className="h-6 w-6" strokeWidth={2.4} />
         </button>
@@ -117,30 +118,30 @@ export function MobileHome() {
             type="button"
             onClick={openLocationPicker}
             className="mt-1 flex max-w-[230px] items-center gap-0.5 text-[14px] text-muted"
-            aria-label="Manzilni o‘zgartirish"
+            aria-label={t('Manzilni o‘zgartirish')}
           >
-            <span className="truncate">{hasLocation ? location.label : 'Manzilni aniqlang'}</span>
+            <span className="truncate">{hasLocation ? location.label : t('Manzilni aniqlang')}</span>
             <ChevronRight className="h-4 w-4 shrink-0" />
           </button>
         </div>
       </header>
 
       <section className="grid grid-cols-3 gap-2.5 px-3">
-        <Tile to="/taxi" title="Taxi" hint="Shahar va viloyat" badge="Tez" badgeTone="hot">
+        <Tile to="/taxi" title={t('Taxi')} hint={t('Shahar va viloyat')} badge={t('Tez')} badgeTone="hot">
           <img
             src="/landing/taxi-car-sm.webp"
             alt=""
             className="pointer-events-none absolute -right-10 bottom-9 w-[150px] max-w-none drop-shadow-lg"
           />
         </Tile>
-        <Tile to="/cargo" title="Yetkazish" hint="Posilka, hujjat">
+        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')}>
           <img
             src="/home/box.webp"
             alt=""
             className="pointer-events-none absolute -bottom-3 -right-3 w-[108px] max-w-none drop-shadow-lg"
           />
         </Tile>
-        <Tile to="/map" title="Smart Xarita" hint="Yangi">
+        <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')}>
           <img
             src="/home/smart-map.png"
             alt=""
@@ -150,9 +151,9 @@ export function MobileHome() {
 
         <Tile
           to="/women/taxi"
-          title="Ayollar uchun Taxi"
-          hint="Avval ayol haydovchilarga"
-          badge="Xavfsiz"
+          title={t('Ayollar uchun Taxi')}
+          hint={t('Avval ayol haydovchilarga')}
+          badge={t('Xavfsiz')}
           badgeTone="hot"
           className="col-span-2 bg-gradient-to-br from-[#fff0f5] to-[#fde2ec]"
         >
@@ -163,7 +164,7 @@ export function MobileHome() {
             style={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
           />
         </Tile>
-        <Tile to="/drivers" title="Haydovchilar" hint="E’lonlar va aloqa" badge="Yangi" badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] to-[#ffe7a3]">
+        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] to-[#ffe7a3]">
           <img
             src="/home/driver-mascot.webp"
             alt=""
@@ -177,7 +178,7 @@ export function MobileHome() {
           <PersonStanding className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
           <button type="button" onClick={() => openPicker('from')} className="min-w-0 flex-1 text-left">
             <span className={`block truncate text-[16px] font-semibold ${originText ? 'text-ink' : 'text-muted'}`}>
-              {originText || 'Qayerdan?'}
+              {originText || t('Qayerdan?')}
             </span>
           </button>
           <button
@@ -185,12 +186,12 @@ export function MobileHome() {
             onClick={pickOriginOnMap}
             className="h-9 shrink-0 rounded-xl bg-white px-3 text-[13px] font-semibold text-ink shadow-sm"
           >
-            Mo‘ljal
+            {t('Mo‘ljal')}
           </button>
           <Link
             to="/favorites"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-ink shadow-sm"
-            aria-label="Saqlangan manzillar"
+            aria-label={t('Saqlangan manzillar')}
           >
             <Bookmark className="h-4 w-4" />
           </Link>
@@ -203,14 +204,14 @@ export function MobileHome() {
         >
           <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
           <span className={`min-w-0 flex-1 truncate text-[16px] font-semibold ${search.to ? 'text-ink' : 'text-muted'}`}>
-            {search.to || 'Qayerga?'}
+            {search.to || t('Qayerga?')}
           </span>
         </button>
 
         <RegionPicker
           variant="headless"
           kind="from"
-          label="Qayerdan"
+          label={t('Qayerdan')}
           forceSheet
           region={search.fromRegion}
           place={search.fromPlace}
@@ -225,7 +226,7 @@ export function MobileHome() {
         <RegionPicker
           variant="headless"
           kind="to"
-          label="Qayerga"
+          label={t('Qayerga')}
           forceSheet
           region={search.toRegion}
           place={search.toPlace}
@@ -245,7 +246,7 @@ export function MobileHome() {
 
       <section className="mt-4 grid grid-cols-2 gap-2.5 px-3">
         <div className="relative flex min-h-[200px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-brand to-brand-dark p-4 text-white">
-          <p className="relative z-10 text-[19px] font-extrabold leading-[1.15]">Tez va qulay safar TaxiLine bilan</p>
+          <p className="relative z-10 text-[19px] font-extrabold leading-[1.15]">{t('Tez va qulay safar TaxiLine bilan')}</p>
           <img
             src="/landing/taxi-car-sm.webp"
             alt=""
@@ -256,12 +257,12 @@ export function MobileHome() {
             onClick={() => navigate('/ride')}
             className="relative z-10 mt-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[13px] font-bold text-ink"
           >
-            Sinab ko‘ring <ArrowRight className="h-4 w-4" />
+            {t('Sinab ko‘ring')}{' '}<ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
         <div className="flex min-h-[200px] flex-col overflow-hidden rounded-[24px] bg-gradient-to-br from-[#a78bfa] to-[#7c3aed] p-4 text-white">
-          <p className="text-[17px] font-extrabold leading-[1.15]">Tez orada yangi xizmatlar TaxiLine da</p>
+          <p className="text-[17px] font-extrabold leading-[1.15]">{t('Tez orada yangi xizmatlar TaxiLine da')}</p>
           <ul className="mt-3 space-y-2 text-[13px] font-medium">
             {[
               [Wrench, 'Avtoservis'],
@@ -272,7 +273,7 @@ export function MobileHome() {
             ].map(([Icon, label]) => (
               <li key={label} className="flex items-center gap-2">
                 <Icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{label}</span>
+                <span className="truncate">{t(label)}</span>
               </li>
             ))}
           </ul>

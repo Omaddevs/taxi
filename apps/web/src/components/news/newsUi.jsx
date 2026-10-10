@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Clock, Pin } from 'lucide-react'
+import { t } from '../../i18n'
+import { dayMonth } from '../../lib/utils'
 
 export const NEWS_CATEGORIES = [
   { id: '', label: 'Barchasi' },
@@ -16,14 +18,13 @@ export const CATEGORY_LABEL = {
   DRIVERS: 'Haydovchilar uchun',
 }
 
-const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr']
 
 export function formatNewsDate(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const sameYear = d.getFullYear() === new Date().getFullYear()
-  return `${d.getDate()}-${MONTHS[d.getMonth()]}${sameYear ? '' : ` ${d.getFullYear()}`}`
+  return `${dayMonth(d.getDate(), d.getMonth(), { dash: true, lower: true })}${sameYear ? '' : ` ${d.getFullYear()}`}`
 }
 
 export function CategoryChip({ category, onDark = false, className = '' }) {
@@ -33,7 +34,7 @@ export function CategoryChip({ category, onDark = false, className = '' }) {
         onDark ? 'bg-white/15 text-white backdrop-blur' : 'bg-brand-soft text-brand-dark'
       } ${className}`}
     >
-      {CATEGORY_LABEL[category] ?? 'Yangilik'}
+      {CATEGORY_LABEL[category] ?? t('Yangilik')}
     </span>
   )
 }
@@ -44,7 +45,7 @@ export function Meta({ post, className = '' }) {
       <span>{formatNewsDate(post.publishedAt)}</span>
       <span aria-hidden="true">·</span>
       <span className="inline-flex items-center gap-1">
-        <Clock className="h-3.5 w-3.5" /> {post.readingMinutes} daqiqa
+        <Clock className="h-3.5 w-3.5" /> {t('{0} daqiqa', post.readingMinutes)}
       </span>
     </p>
   )
@@ -85,17 +86,17 @@ export function NewsCard({ post }) {
         <NewsCover post={post} />
         <CategoryChip category={post.category} onDark className="absolute left-4 top-4" />
         {post.pinned ? (
-          <span className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink shadow" title="Muhim">
+          <span className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink shadow" title={t('Muhim')}>
             <Pin className="h-4 w-4" />
           </span>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col p-6 2xl:p-7">
         <Meta post={post} />
-        <h3 className="mt-2.5 line-clamp-2 text-[19px] font-extrabold leading-snug tracking-tight text-ink 2xl:text-[22px]">{post.title}</h3>
-        <p className="mt-2 line-clamp-3 text-[14.5px] leading-[1.55] text-ink/65 2xl:text-[16px]">{post.excerpt}</p>
+        <h3 className="mt-2.5 line-clamp-2 text-[19px] font-extrabold leading-snug tracking-tight text-ink 2xl:text-[22px]">{t(post.title)}</h3>
+        <p className="mt-2 line-clamp-3 text-[14.5px] leading-[1.55] text-ink/65 2xl:text-[16px]">{t(post.excerpt)}</p>
         <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[14px] font-bold text-ink">
-          O‘qish
+          {t('O‘qish')}
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </span>
       </div>

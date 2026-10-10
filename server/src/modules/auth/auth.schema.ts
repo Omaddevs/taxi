@@ -8,7 +8,7 @@ const phoneSchema = z
 const otpProfileFields = {
   intent: z.enum(['login', 'register']).optional(),
   name: z.string().trim().min(2).max(120).optional(),
-  language: z.enum(['uz', 'ru', 'en']).optional(),
+  language: z.enum(['uz', 'oz', 'ru', 'en']).optional(),
 }
 
 export const otpRequestSchema = z.object({

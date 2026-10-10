@@ -7,6 +7,7 @@ import { roadside } from '../data/ecosystem'
 import { DriverHeader } from './driver/ui'
 import { cn } from '../lib/utils'
 import { SOS_ENABLED } from '../lib/features'
+import { t } from '../i18n'
 
 const ICONS = {
   usta: Wrench,
@@ -27,15 +28,15 @@ export default function Roadside() {
   return (
     <div className={inDriver ? 'overflow-x-clip bg-canvas' : 'mx-auto max-w-3xl'}>
       {inDriver ? (
-        <DriverHeader title="Yo‘lda yordam" />
+        <DriverHeader title={t('Yo‘lda yordam')} />
       ) : (
-        <ScreenHeader title="Yo‘lda yordam" subtitle="Usta, evakuator, shina, yoqilg‘i" />
+        <ScreenHeader title={t('Yo‘lda yordam')} subtitle={t('Usta, evakuator, shina, yoqilg‘i')} />
       )}
-      {inDriver ? null : <PageTitle title="Yo‘lda yordam" subtitle="Joylashuvingizga eng yaqin mutaxassis" />}
+      {inDriver ? null : <PageTitle title={t('Yo‘lda yordam')} subtitle={t('Joylashuvingizga eng yaqin mutaxassis')} />}
 
       <div className={inDriver ? 'px-5 pb-6 pt-4' : ''}>
         {inDriver ? (
-          <p className="mb-4 text-sm leading-5 text-muted">Joylashuvingizga eng yaqin mutaxassis</p>
+          <p className="mb-4 text-sm leading-5 text-muted">{t('Joylashuvingizga eng yaqin mutaxassis')}</p>
         ) : null}
 
         <Card className="mb-5 flex items-start gap-3 border-red-100 bg-red-50 px-4 py-3.5">
@@ -44,12 +45,12 @@ export default function Roadside() {
           </span>
           <div className="min-w-0 pt-0.5">
             <p className="text-[15px] font-bold leading-snug text-red-600">
-              {SOS_ENABLED ? 'Favqulodda holatda SOS ni bosing' : 'Favqulodda holatda 112 ga qo‘ng‘iroq qiling'}
+              {SOS_ENABLED ? t('Favqulodda holatda SOS ni bosing') : t('Favqulodda holatda 112 ga qo‘ng‘iroq qiling')}
             </p>
             <p className="mt-1 text-[13px] leading-5 text-muted">
               {SOS_ENABLED
-                ? 'YTH yoki xavf bo‘lsa joylashuv ishonchli kontaktlarga yuboriladi.'
-                : 'YTH yoki xavf bo‘lsa darhol 112 yagona xizmatiga murojaat qiling. SOS tugmasi tez orada qo‘shiladi.'}
+                ? t('YTH yoki xavf bo‘lsa joylashuv ishonchli kontaktlarga yuboriladi.')
+                : t('YTH yoki xavf bo‘lsa darhol 112 yagona xizmatiga murojaat qiling. SOS tugmasi tez orada qo‘shiladi.')}
             </p>
           </div>
         </Card>
@@ -78,8 +79,8 @@ export default function Roadside() {
                 >
                   <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
                 </span>
-                <p className="mt-2.5 text-[13px] font-bold leading-tight text-ink">{item.title}</p>
-                <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted">{item.desc}</p>
+                <p className="mt-2.5 text-[13px] font-bold leading-tight text-ink">{t(item.title)}</p>
+                <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted">{t(item.desc)}</p>
               </button>
             )
           })}
@@ -94,10 +95,10 @@ export default function Roadside() {
             setTimeout(() => setSent(false), 2500)
           }}
         >
-          Yordam chaqirish
+          {t('Yordam chaqirish')}
         </Button>
         {sent ? (
-          <p className="mt-3 text-center text-sm font-semibold text-success">Buyurtma yuborildi. 8–12 daqiqada bog‘lanamiz.</p>
+          <p className="mt-3 text-center text-sm font-semibold text-success">{t('Buyurtma yuborildi. 8–12 daqiqada bog‘lanamiz.')}</p>
         ) : null}
       </div>
     </div>

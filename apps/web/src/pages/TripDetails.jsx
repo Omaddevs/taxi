@@ -12,6 +12,7 @@ import { offerToTrip, BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '../lib/a
 import { formatSom } from '../lib/utils'
 import { useShare } from '../components/ui/ShareSheet'
 import { useApp } from '../context/AppContext'
+import { t } from '../i18n'
 
 export default function TripDetails() {
   const { id } = useParams()
@@ -48,7 +49,7 @@ export default function TripDetails() {
   })
 
   if (isLoading || !offer) {
-    return <p className="p-6 text-center text-sm text-muted">Yuklanmoqda…</p>
+    return <p className="p-6 text-center text-sm text-muted">{t('Yuklanmoqda…')}</p>
   }
 
   const trip = offerToTrip(offer)
@@ -59,7 +60,7 @@ export default function TripDetails() {
 
   const onShare = () =>
     share({
-      title: `TaxiLine: ${trip.from} → ${trip.to}`,
+      title: t('TaxiLine: {0} → {1}', trip.from, trip.to),
       text: [
         `${trip.from} → ${trip.to}`,
         `${trip.date}, ${trip.time} – ${trip.arrive}`,
@@ -72,8 +73,8 @@ export default function TripDetails() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <ScreenHeader title="Safar tafsilotlari" subtitle={`${trip.from} → ${trip.to}`} />
-      <PageTitle title="Safar tafsilotlari" subtitle={`${trip.from} → ${trip.to}`} />
+      <ScreenHeader title={t('Safar tafsilotlari')} subtitle={`${trip.from} → ${trip.to}`} />
+      <PageTitle title={t('Safar tafsilotlari')} subtitle={`${trip.from} → ${trip.to}`} />
 
       <RouteMap from={trip.from} to={trip.to} className="h-52 lg:h-64" />
 
@@ -90,10 +91,10 @@ export default function TripDetails() {
       <Card className="mt-4 flex items-center gap-3 p-4">
         <img src={trip.driver.avatar} alt="" className="h-14 w-14 rounded-full object-cover" />
         <div className="flex-1">
-          <p className="font-bold">{trip.driver.name}</p>
+          <p className="font-bold">{t(trip.driver.name)}</p>
           <p className="flex items-center gap-1 text-xs text-muted">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'} · {trip.car} · {trip.plate}
+            {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : t('Yangi')} · {trip.car} · {trip.plate}
           </p>
           {trip.driver.phone ? <p className="mt-0.5 text-xs text-muted">{trip.driver.phone}</p> : null}
         </div>
@@ -102,18 +103,18 @@ export default function TripDetails() {
 
       {!booking ? (
         <Card className="mt-4 p-4">
-          <p className="mb-1 text-sm font-extrabold">O‘rindiq tanlang</p>
-          <p className="mb-3 text-xs text-muted">O‘zingiz uchun va hamrohingiz uchun alohida o‘rindiq va jins tanlashingiz mumkin.</p>
+          <p className="mb-1 text-sm font-extrabold">{t('O‘rindiq tanlang')}</p>
+          <p className="mb-3 text-xs text-muted">{t('O‘zingiz uchun va hamrohingiz uchun alohida o‘rindiq va jins tanlashingiz mumkin.')}</p>
           <CarSeatMap mode="book" seats={trip.seatMap} selected={selectedSeats} defaultGender={myGender} onChange={setSelectedSeats} />
         </Card>
       ) : null}
 
       <div className="mt-4 grid grid-cols-4 gap-2">
         {[
-          { icon: Phone, label: 'Qo‘ng‘iroq', action: 'call' },
-          { icon: MessageCircle, label: 'Xabar', action: 'chat' },
-          { icon: Share2, label: 'Ulashish', action: 'share' },
-          { icon: X, label: 'Bekor', action: 'cancel' },
+          { icon: Phone, label: t('Qo‘ng‘iroq'), action: 'call' },
+          { icon: MessageCircle, label: t('Xabar'), action: 'chat' },
+          { icon: Share2, label: t('Ulashish'), action: 'share' },
+          { icon: X, label: t('Bekor'), action: 'cancel' },
         ].map((item) => (
           <button
             key={item.label}
@@ -132,26 +133,26 @@ export default function TripDetails() {
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft text-brand">
               <item.icon className="h-4 w-4" />
             </span>
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
 
       <Card className="mt-4 flex items-center justify-between p-4">
         <div>
-          <p className="text-xs text-muted">Jami to‘lov · {seats} joy</p>
+          <p className="text-xs text-muted">{t('Jami to‘lov ·')}{' '}{t('{0} joy', seats)}</p>
           <p className="text-xl font-extrabold">{formatSom(totalPrice)}</p>
         </div>
         <button type="button" onClick={() => navigate('/payment')} className="text-right">
-          <p className="text-xs text-muted">To‘lov usuli</p>
+          <p className="text-xs text-muted">{t('To‘lov usuli')}</p>
           <p className="font-semibold text-brand">{payLabel[paymentMethod]}</p>
         </button>
       </Card>
 
       {booking ? (
         <Card className="mt-4 flex items-center justify-between p-4">
-          <p className="text-sm font-semibold">Bron holati</p>
-          <Badge tone={BOOKING_STATUS_TONE[booking.status]}>{BOOKING_STATUS_LABEL[booking.status]}</Badge>
+          <p className="text-sm font-semibold">{t('Bron holati')}</p>
+          <Badge tone={BOOKING_STATUS_TONE[booking.status]}>{t(BOOKING_STATUS_LABEL[booking.status])}</Badge>
         </Card>
       ) : (
         <Button
@@ -161,10 +162,10 @@ export default function TripDetails() {
           onClick={() => createBooking.mutate()}
         >
           {createBooking.isPending
-            ? 'Yuborilmoqda…'
+            ? t('Yuborilmoqda…')
             : selectedSeats.length === 0
-              ? 'Avval o‘rindiq tanlang'
-              : 'Bog‘lanish'}
+              ? t('Avval o‘rindiq tanlang')
+              : t('Bog‘lanish')}
         </Button>
       )}
 
@@ -178,8 +179,8 @@ function Stop({ color, title, text }) {
     <div className="flex gap-3">
       <span className={`mt-1 h-3 w-3 rounded-full ${color}`} />
       <div>
-        <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-muted">{text}</p>
+        <p className="text-sm font-semibold">{t(title)}</p>
+        <p className="text-xs text-muted">{t(text)}</p>
       </div>
     </div>
   )

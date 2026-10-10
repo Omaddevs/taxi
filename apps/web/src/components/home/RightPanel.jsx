@@ -8,6 +8,7 @@ import { Badge, Button, Card } from '../ui/Button'
 import { ONLINE_PAYMENTS } from '../../lib/features'
 import { REFERRAL_ENABLED, SOS_ENABLED } from '../../lib/features'
 import { SoonBadge } from '../ui/SoonBadge'
+import { t } from '../../i18n'
 
 export function RightPanel() {
   const { user } = useApp()
@@ -20,7 +21,7 @@ export function RightPanel() {
       <Card className="p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted">Hisobingiz</p>
+            <p className="text-sm text-muted">{t('Hisobingiz')}</p>
             <p className="mt-1 text-2xl font-extrabold">{formatSom(user.balance)}</p>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-soft text-brand">
@@ -29,23 +30,23 @@ export function RightPanel() {
         </div>
         {ONLINE_PAYMENTS ? (
           <Link to="/wallet">
-            <Button className="mt-4 w-full">To‘ldirish</Button>
+            <Button className="mt-4 w-full">{t('To‘ldirish')}</Button>
           </Link>
         ) : (
           <Button className="mt-4 w-full" disabled>
-            To‘ldirish · Tez orada
+            {t('To‘ldirish · Tez orada')}
           </Button>
         )}
         <div className="mt-4 grid grid-cols-4 gap-2 text-center">
           {[
-            { to: '/wallet', icon: Wallet, label: 'To‘lov' },
-            { to: '/favorites', icon: Heart, label: 'Sevimli' },
-            { to: '/promo', icon: Gift, label: 'Promo' },
-            { to: '/history', icon: History, label: 'Tarix' },
+            { to: '/wallet', icon: Wallet, label: t('To‘lov') },
+            { to: '/favorites', icon: Heart, label: t('Sevimli') },
+            { to: '/promo', icon: Gift, label: t('Promo') },
+            { to: '/history', icon: History, label: t('Tarix') },
           ].map((item) => (
             <Link key={item.to} to={item.to} className="rounded-xl bg-canvas px-1 py-2">
               <item.icon className="mx-auto h-4 w-4 text-brand" />
-              <span className="mt-1 block text-[10px] font-medium text-muted">{item.label}</span>
+              <span className="mt-1 block text-[10px] font-medium text-muted">{t(item.label)}</span>
             </Link>
           ))}
         </div>
@@ -56,28 +57,28 @@ export function RightPanel() {
           <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ${REFERRAL_ENABLED ? '' : 'grayscale'}`}>🎁</div>
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-1.5 font-bold">
-              Do‘stingizni taklif qiling {REFERRAL_ENABLED ? null : <SoonBadge />}
+              {t('Do‘stingizni taklif qiling')}{' '}{REFERRAL_ENABLED ? null : <SoonBadge />}
             </p>
-            <p className="text-xs text-muted">{REFERRAL_ENABLED ? 'Har bir taklif uchun 20 000 so‘m' : 'Taklif bonuslari tez orada ishga tushadi'}</p>
+            <p className="text-xs text-muted">{REFERRAL_ENABLED ? t('Har bir taklif uchun 20 000 so‘m') : t('Taklif bonuslari tez orada ishga tushadi')}</p>
           </div>
         </div>
         {REFERRAL_ENABLED ? (
           <Link to="/promo">
             <Button size="sm" className="mt-4 w-full">
-              Taklif qilish
+              {t('Taklif qilish')}
             </Button>
           </Link>
         ) : (
           <span className="mt-4 flex h-9 w-full cursor-not-allowed items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
-            Tez orada
+            {t('Tez orada')}
           </span>
         )}
       </Card>
 
       <Card className="p-5">
-        <h3 className="font-bold">So‘nggi safarlar</h3>
+        <h3 className="font-bold">{t('So‘nggi safarlar')}</h3>
         <div className="mt-2 divide-y divide-line">
-          {recentTrips.length === 0 ? <p className="py-3 text-sm text-muted">Hali safarlar yo‘q</p> : null}
+          {recentTrips.length === 0 ? <p className="py-3 text-sm text-muted">{t('Hali safarlar yo‘q')}</p> : null}
           {recentTrips.map((item) => (
             <div key={item.id} className="flex items-center justify-between py-3">
               <div>
@@ -88,7 +89,7 @@ export function RightPanel() {
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold">{formatSom(item.price)}</p>
-                <Badge tone={BOOKING_STATUS_TONE[item.status]}>{BOOKING_STATUS_LABEL[item.status]}</Badge>
+                <Badge tone={BOOKING_STATUS_TONE[item.status]}>{t(BOOKING_STATUS_LABEL[item.status])}</Badge>
               </div>
             </div>
           ))}
@@ -105,9 +106,9 @@ export function RightPanel() {
           </Link>
           <div>
             <p className="flex items-center gap-1 font-bold">
-              <Siren className="h-4 w-4 text-red-500" /> Favqulodda
+              <Siren className="h-4 w-4 text-red-500" /> {t('Favqulodda')}
             </p>
-            <p className="text-xs text-muted">Xavfli vaziyatda yordam chaqiring. GPS va ishonchli kontaktlar yuboriladi.</p>
+            <p className="text-xs text-muted">{t('Xavfli vaziyatda yordam chaqiring. GPS va ishonchli kontaktlar yuboriladi.')}</p>
           </div>
         </Card>
       ) : (
@@ -117,9 +118,9 @@ export function RightPanel() {
           </span>
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-1.5 font-bold text-ink/60">
-              <Siren className="h-4 w-4 text-slate-400" /> Favqulodda <SoonBadge />
+              <Siren className="h-4 w-4 text-slate-400" /> {t('Favqulodda')}{' '}<SoonBadge />
             </p>
-            <p className="text-xs text-muted">Favqulodda yordam xizmati tez orada ishga tushadi.</p>
+            <p className="text-xs text-muted">{t('Favqulodda yordam xizmati tez orada ishga tushadi.')}</p>
           </div>
         </Card>
       )}
@@ -131,7 +132,7 @@ export function RightPanel() {
         ].map(([Icon, label]) => (
           <div key={label} className="flex items-center gap-2 rounded-xl bg-white px-3 py-2">
             <Icon className="h-4 w-4 text-brand" />
-            {label}
+            {t(label)}
           </div>
         ))}
       </div>

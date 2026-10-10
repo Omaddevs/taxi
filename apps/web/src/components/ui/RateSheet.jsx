@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Star, X } from 'lucide-react'
+import { t } from '../../i18n'
 
 function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
   const [stars, setStars] = useState(0)
@@ -10,7 +11,7 @@ function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
-  const toggleTag = (tag) => setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+  const toggleTag = (tag) => setTags((prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]))
 
   async function submit() {
     if (stars < 1 || submitting) return
@@ -20,26 +21,26 @@ function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
       await onSubmit({ stars, tags, comment: comment.trim() || undefined })
       onClose()
     } catch {
-      setError('Xatolik yuz berdi, qaytadan urinib ko‘ring')
+      setError(t('Xatolik yuz berdi, qaytadan urinib ko‘ring'))
       setSubmitting(false)
     }
   }
 
   return createPortal(
     <div className="fixed inset-0 z-[11000]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-base font-extrabold">{title}</p>
-            {subtitle ? <p className="truncate text-xs text-muted">{subtitle}</p> : null}
+            <p className="text-base font-extrabold">{t(title)}</p>
+            {subtitle ? <p className="truncate text-xs text-muted">{t(subtitle)}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-2xl bg-canvas"
-            aria-label="Yopish"
+            aria-label={t('Yopish')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -76,7 +77,7 @@ function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
                   tags.includes(tag) ? 'bg-brand text-white' : 'bg-canvas text-ink'
                 }`}
               >
-                {tag}
+                {t(tag)}
               </button>
             ))}
           </div>
@@ -85,13 +86,13 @@ function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Izoh qoldiring (ixtiyoriy)"
+          placeholder={t('Izoh qoldiring (ixtiyoriy)')}
           rows={2}
           maxLength={500}
           className="mt-4 w-full resize-none rounded-2xl border border-line bg-canvas p-3 text-sm outline-none"
         />
 
-        {error ? <p className="mt-2 text-xs font-semibold text-red-500">{error}</p> : null}
+        {error ? <p className="mt-2 text-xs font-semibold text-red-500">{t(error)}</p> : null}
 
         <button
           type="button"
@@ -99,7 +100,7 @@ function RateSheet({ title, subtitle, tagOptions, onSubmit, onClose }) {
           onClick={submit}
           className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
         >
-          {submitting ? 'Yuborilmoqda…' : 'Yuborish'}
+          {submitting ? t('Yuborilmoqda…') : t('Yuborish')}
         </button>
       </div>
     </div>,

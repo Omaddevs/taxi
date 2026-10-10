@@ -12,6 +12,7 @@ import { useRateSheet } from '../../components/ui/RateSheet'
 import { DriverHeader, RouteStops, StatusBadge } from './ui'
 import { mergeDriverOrders, isActiveStatus, filterByWorkRegions } from './orders'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 const UZ_CENTER = [41.3, 64.6]
 const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
@@ -22,8 +23,8 @@ const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
 function FitToPins({ points, fitKey }) {
   const map = useMap()
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => map.invalidateSize(), 80)
+    return () => clearTimeout(timer)
   }, [map])
   useEffect(() => {
     if (points.length > 1) map.fitBounds(points, { padding: [48, 48] })
@@ -85,8 +86,8 @@ export default function DriverMap() {
   const [toast, setToast] = useState(null)
   useEffect(() => {
     if (!toast) return undefined
-    const t = setTimeout(() => setToast(null), 3200)
-    return () => clearTimeout(t)
+    const timerId = setTimeout(() => setToast(null), 3200)
+    return () => clearTimeout(timerId)
   }, [toast])
   const notify = (type, text) => setToast({ type, text })
   const { openRating, sheet: ratingSheet } = useRateSheet()
@@ -96,13 +97,13 @@ export default function DriverMap() {
     queryClient.invalidateQueries({ queryKey: ['driver-bot-orders'] })
     queryClient.invalidateQueries({ queryKey: ['driver-stats'] })
   }
-  const onErr = () => notify('error', 'Xatolik yuz berdi, qaytadan urinib ko‘ring')
+  const onErr = () => notify('error', t('Xatolik yuz berdi, qaytadan urinib ko‘ring'))
 
   const accept = useMutation({
     mutationFn: (id) => api.patch(`/bookings/${id}/accept`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma qabul qilindi')
+      notify('success', t('Buyurtma qabul qilindi'))
     },
     onError: onErr,
   })
@@ -110,7 +111,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.post(`/bot-orders/driver/${id}/claim`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma qabul qilindi')
+      notify('success', t('Buyurtma qabul qilindi'))
     },
     onError: onErr,
   })
@@ -118,7 +119,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.patch(`/bookings/${id}/start`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz')
+      notify('success', t('Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz'))
     },
     onError: onErr,
   })
@@ -126,7 +127,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.patch(`/bookings/${id}/complete`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Safar yakunlandi')
+      notify('success', t('Safar yakunlandi'))
       setSelectedId(null)
     },
     onError: onErr,
@@ -135,7 +136,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.post(`/bot-orders/driver/${id}/enroute`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz')
+      notify('success', t('Yo‘lovchiga xabar yuborildi: siz yo‘lga chiqdingiz'))
     },
     onError: onErr,
   })
@@ -143,7 +144,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.post(`/bot-orders/driver/${id}/complete`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Safar yakunlandi')
+      notify('success', t('Safar yakunlandi'))
       setSelectedId(null)
     },
     onError: onErr,
@@ -152,7 +153,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.patch(`/bookings/${id}/cancel`, { reason: 'Haydovchi tomonidan bekor qilindi' }),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma bekor qilindi')
+      notify('success', t('Buyurtma bekor qilindi'))
       setSelectedId(null)
     },
     onError: onErr,
@@ -161,7 +162,7 @@ export default function DriverMap() {
     mutationFn: (id) => api.post(`/bot-orders/driver/${id}/cancel`),
     onSuccess: () => {
       invalidate()
-      notify('success', 'Buyurtma bekor qilindi')
+      notify('success', t('Buyurtma bekor qilindi'))
       setSelectedId(null)
     },
     onError: onErr,
@@ -179,8 +180,8 @@ export default function DriverMap() {
   // (see taxiline-bot's perform_complete) — only native webapp bookings need it prompted here.
   function promptRatePassenger(order) {
     openRating({
-      title: 'Yo‘lovchini baholang',
-      subtitle: order.rider?.name || order.rider?.phone || 'Yo‘lovchi',
+      title: t('Yo‘lovchini baholang'),
+      subtitle: order.rider?.name || order.rider?.phone || t('Yo‘lovchi'),
       tagOptions: PASSENGER_TAGS,
       onSubmit: ({ stars, tags, comment }) => api.post(`/bookings/${order.id}/rating`, { stars, tags, comment }),
     })
@@ -202,11 +203,11 @@ export default function DriverMap() {
   }
 
   const primaryLabelFor = (order) =>
-    order.status === 'ACCEPTED' || (order.kind === 'bot' && !order.confirmed) ? 'Yo‘lda ketdim' : 'Safarni yakunlash'
+    order.status === 'ACCEPTED' || (order.kind === 'bot' && !order.confirmed) ? t('Yo‘lda ketdim') : t('Safarni yakunlash')
 
   return (
     <div className="flex h-svh flex-col bg-white">
-      <DriverHeader title="Xarita" />
+      <DriverHeader title={t('Xarita')} />
 
       <div className="relative min-h-[320px] flex-1">
         <MapContainer center={driverPos ? [driverPos.lat, driverPos.lng] : UZ_CENTER} zoom={driverPos ? 14 : 6} className="h-full w-full" zoomControl={false} attributionControl={false}>
@@ -224,13 +225,13 @@ export default function DriverMap() {
         </MapContainer>
 
         <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold shadow-sm">
-          {pinned.length > 0 ? `${pinned.length} ta jonli manzil xaritada` : 'Hozircha jonli manzil yo‘q'}
+          {pinned.length > 0 ? t('{0} ta jonli manzil xaritada', pinned.length) : t('Hozircha jonli manzil yo‘q')}
         </div>
       </div>
 
       {unpinned.length > 0 ? (
         <div className="max-h-40 overflow-y-auto border-t border-line bg-white px-4 py-2">
-          <p className="mb-1.5 text-[11px] font-bold text-muted">Manzili aniq bo‘lmagan faol buyurtmalar</p>
+          <p className="mb-1.5 text-[11px] font-bold text-muted">{t('Manzili aniq bo‘lmagan faol buyurtmalar')}</p>
           <div className="space-y-1.5">
             {unpinned.map((o) => (
               <button
@@ -252,7 +253,7 @@ export default function DriverMap() {
       {selected
         ? createPortal(
             <div className="fixed inset-0 z-[10000]">
-              <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={() => setSelectedId(null)} />
+              <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={() => setSelectedId(null)} />
               <div className="absolute inset-x-0 bottom-0 z-10 max-h-[70vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.28)]">
                 <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
                 <div className="mb-2 flex items-center justify-between">
@@ -262,10 +263,10 @@ export default function DriverMap() {
                 <RouteStops from={selected.from} fromHint={selected.fromHint} to={selected.to} toHint={selected.toHint} whenText={selected.whenText} />
                 <div className="mt-3 flex items-center justify-between">
                   <p className="text-sm font-bold text-muted">
-                    {selected.rider?.name || 'Yo‘lovchi'}
+                    {selected.rider?.name || t('Yo‘lovchi')}
                     {selected.rider?.phone ? ` · ${selected.rider.phone}` : ''}
                   </p>
-                  <p className="text-sm font-extrabold">{selected.price != null ? formatSom(selected.price) : `${selected.seats || 1} yo‘lovchi`}</p>
+                  <p className="text-sm font-extrabold">{selected.price != null ? formatSom(selected.price) : t('{0} yo‘lovchi', selected.seats || 1)}</p>
                 </div>
                 {selected.status === 'PENDING' ? (
                   <button
@@ -274,7 +275,7 @@ export default function DriverMap() {
                     onClick={() => onAccept(selected)}
                     className="mt-4 flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
                   >
-                    {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Qabul qilish
+                    {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} {t('Qabul qilish')}
                   </button>
                 ) : (
                   <div className="mt-4 grid grid-cols-2 gap-2">
@@ -284,7 +285,7 @@ export default function DriverMap() {
                       onClick={() => onCancel(selected)}
                       className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-line bg-white text-sm font-bold disabled:opacity-50"
                     >
-                      {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} Bekor qilish
+                      {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} {t('Bekor qilish')}
                     </button>
                     <button
                       type="button"
@@ -314,7 +315,7 @@ export default function DriverMap() {
             }`}
           >
             {toast.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0" /> : <CheckCircle2 className="h-4 w-4 shrink-0" />}
-            {toast.text}
+            {t(toast.text)}
           </div>
         ) : null}
       </div>

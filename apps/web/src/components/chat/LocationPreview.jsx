@@ -1,8 +1,9 @@
 import { MapPin } from 'lucide-react'
 import { googleMapsUrl, osmTilePreview, yandexMapsUrl } from '../../lib/geo'
+import { t } from '../../i18n'
 
 export function LocationPreview({ lat, lng, label, mine }) {
-  const title = label || 'Joylashuv'
+  const title = label || t('Joylashuv')
   return (
     <div className="w-[220px] overflow-hidden">
       <div className="relative h-[110px] w-full bg-slate-200">
@@ -11,7 +12,7 @@ export function LocationPreview({ lat, lng, label, mine }) {
           <MapPin className="h-8 w-8 fill-brand text-white" />
         </span>
       </div>
-      <p className={`mt-2 text-[13px] font-bold leading-snug ${mine ? 'text-white' : 'text-ink'}`}>{title}</p>
+      <p className={`mt-2 text-[13px] font-bold leading-snug ${mine ? 'text-white' : 'text-ink'}`}>{t(title)}</p>
       <div className="mt-1.5 flex gap-1.5">
         <a
           href={googleMapsUrl(lat, lng)}

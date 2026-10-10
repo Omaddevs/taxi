@@ -5,6 +5,7 @@ import { api } from '../../lib/api'
 import { haversineKm } from '../../lib/geo'
 import { DEFAULT_LOCATION } from '../../lib/geocode'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 // ---------------------------------------------------------------------------------------------
 // URL state — every screen of the market lives in the query string, so the phone's back button
@@ -140,6 +141,6 @@ export function dailyPrice(l) {
 }
 
 export function ownerName(l) {
-  if (l.ownerType === 'COMPANY') return l.companyName || 'Tashkilot'
-  return l.contactName || 'Shaxsiy e’lon'
+  if (l.ownerType === 'COMPANY') return l.companyName || t('Tashkilot')
+  return l.contactName || t('Shaxsiy e’lon')
 }

@@ -1,8 +1,0 @@
-{
-  "allFilter": "All",
-  "title": "Search results",
-  "resultsCount_one": "{{count}} trip found",
-  "resultsCount_other": "{{count}} trips found",
-  "loading": "Loading…",
-  "empty": "No trips found."
-}

@@ -33,6 +33,16 @@ body {
   color: #1c1c28;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Tarjimada so‘zlar uzunroq bo‘lishi mumkin ("Электровелосипед"): sig‘magan so‘z tor
+     kartadan chiqib ketmasdan keyingi qatorga bo‘linadi. Sig‘adigan matnga ta’sir qilmaydi. */
+  overflow-wrap: break-word;
+}
+
+/* Sarlavhalar katta shriftda — uzun so‘zni <html lang> bo‘yicha bo‘g‘inga bo‘lib ko‘chiramiz. */
+:is(h1, h2, h3, h4) {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 /* iOS 16px dan kichik shriftda inputga bosilsa sahifani zoom qiladi — shuning uchun

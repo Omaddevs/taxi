@@ -5,6 +5,7 @@ import { UZ_BOUNDS, findCity } from '../../data/uzCities'
 import { haversineKm } from '../../lib/geo'
 import { BaseTiles } from '../map/BaseTiles'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 function cityPin(color, label) {
   return L.divIcon({
@@ -26,10 +27,10 @@ function arcPoints(a, b, steps = 48) {
   const ctrlLat = midLat + dLng * 0.12
   const ctrlLng = midLng - dLat * 0.12
   return Array.from({ length: steps + 1 }, (_, i) => {
-    const t = i / steps
-    const k = (1 - t) ** 2
-    const m = 2 * (1 - t) * t
-    const n = t ** 2
+    const progress = i / steps
+    const k = (1 - progress) ** 2
+    const m = 2 * (1 - progress) * progress
+    const n = progress ** 2
     return [k * a.lat + m * ctrlLat + n * b.lat, k * a.lng + m * ctrlLng + n * b.lng]
   })
 }
@@ -37,8 +38,8 @@ function arcPoints(a, b, steps = 48) {
 function FitRoute({ points }) {
   const map = useMap()
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => map.invalidateSize(), 80)
+    return () => clearTimeout(timer)
   }, [map])
   useEffect(() => {
     if (points?.length) map.fitBounds(points, { padding: [42, 42] })
@@ -47,7 +48,7 @@ function FitRoute({ points }) {
   return null
 }
 
-export function RouteMap({ from = 'Qarshi', to = 'Toshkent', className = '' }) {
+export function RouteMap({ from = t('Qarshi'), to = t('Toshkent'), className = '' }) {
   const origin = useMemo(() => findCity(from), [from])
   const target = useMemo(() => findCity(to), [to])
   const line = useMemo(() => (origin && target ? arcPoints(origin, target) : null), [origin, target])
@@ -87,7 +88,7 @@ export function RouteMap({ from = 'Qarshi', to = 'Toshkent', className = '' }) {
       </div>
       {km ? (
         <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-ink px-3 py-1 text-xs font-extrabold text-white shadow-sm">
-          ≈ {km} km
+          ≈ {km} {t('km')}
         </div>
       ) : null}
     </div>
@@ -101,7 +102,7 @@ export function CarArt() {
       <span aria-hidden="true" className="absolute inset-x-6 bottom-1 h-3 rounded-full bg-black/20 blur-md" />
       <img
         src="/landing/taxi-car-sm.webp"
-        alt="TaxiLine taksisi"
+        alt={t('TaxiLine taksisi')}
         draggable={false}
         className="absolute inset-x-0 bottom-0 w-full select-none drop-shadow-[0_10px_12px_rgba(15,29,42,0.3)]"
       />

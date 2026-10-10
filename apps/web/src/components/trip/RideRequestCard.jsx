@@ -6,6 +6,7 @@ import { api, ApiError } from '../../lib/api'
 import { CARS } from '../ui/SearchPickers'
 import { Button } from '../ui/Button'
 import { WomenOrderRibbon } from './OrderAudience'
+import { t } from '../../i18n'
 
 /**
  * "Mashina qidiryapman" — turns the home search form into a request that drivers receive in
@@ -45,27 +46,27 @@ export function RideRequestCard({ search, prominent = false }) {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
         <p className="flex items-center gap-2 font-extrabold text-emerald-700">
-          <CheckCircle2 className="h-5 w-5" /> So‘rovingiz yuborildi
+          <CheckCircle2 className="h-5 w-5" /> {t('So‘rovingiz yuborildi')}
         </p>
         <p className="mt-1 text-sm text-emerald-800">
           {womenOnly
             ? result.sent > 0
               ? result.order?.femaleOnly
-                ? 'So‘rovingiz avval ayol haydovchilarga yuborildi. 5 daqiqada hech kim qabul qilmasa, barcha haydovchilarga ochiladi.'
-                : 'Hozir bu yo‘nalishda bo‘sh ayol haydovchi yo‘q, shuning uchun so‘rovingiz barcha haydovchilarga yuborildi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
-              : 'So‘rovingiz saqlandi — bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'
+                ? t('So‘rovingiz avval ayol haydovchilarga yuborildi. 5 daqiqada hech kim qabul qilmasa, barcha haydovchilarga ochiladi.')
+                : t('Hozir bu yo‘nalishda bo‘sh ayol haydovchi yo‘q, shuning uchun so‘rovingiz barcha haydovchilarga yuborildi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.')
+              : t('So‘rovingiz saqlandi — bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.')
             : result.sent > 0
-              ? 'Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.'
-              : 'So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.'}
+              ? t('Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.')
+              : t('So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.')}
         </p>
         <Link to="/orders" className="mt-3 inline-block text-sm font-bold text-brand">
-          Buyurtmalarimni ko‘rish →
+          {t('Buyurtmalarimni ko‘rish →')}
         </Link>
       </div>
     )
   }
 
-  const error = send.error instanceof ApiError ? send.error.message : send.error ? 'Xatolik yuz berdi, qayta urinib ko‘ring' : ''
+  const error = send.error instanceof ApiError ? send.error.message : send.error ? t('Xatolik yuz berdi, qayta urinib ko‘ring') : ''
   const ready = Boolean(search.fromRegion && search.toRegion)
 
   return (
@@ -79,27 +80,26 @@ export function RideRequestCard({ search, prominent = false }) {
       }`}
     >
       {womenOnly ? <WomenOrderRibbon className="mb-3" /> : null}
-      <p className="font-extrabold text-ink">{prominent ? 'Mos reys topilmadi' : 'Mos reys yo‘qmi?'}</p>
+      <p className="font-extrabold text-ink">{prominent ? t('Mos reys topilmadi') : t('Mos reys yo‘qmi?')}</p>
       <p className="mt-1 text-sm text-muted">
-        So‘rov yuboring — {search.fromRegion || '…'} → {search.toRegion || '…'} yo‘nalishidagi{' '}
-        {womenOnly ? 'avval ayol haydovchilar, 5 daqiqadan keyin esa barcha haydovchilar' : 'haydovchilar'} ko‘radi va qabul
-        qilgan haydovchi o‘zi bog‘lanadi.
+        {t('So‘rov yuboring —')}{' '}{search.fromRegion || '…'} → {search.toRegion || '…'} {t('yo‘nalishidagi')}{' '}
+        {womenOnly ? t('avval ayol haydovchilar, 5 daqiqadan keyin esa barcha haydovchilar') : 'haydovchilar'} {t('ko‘radi va qabul qilgan haydovchi o‘zi bog‘lanadi.')}
       </p>
       <input
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={300}
-        placeholder="Izoh (ixtiyoriy): olib ketish joyi, yuk, qo‘shimcha talab…"
+        placeholder={t('Izoh (ixtiyoriy): olib ketish joyi, yuk, qo‘shimcha talab…')}
         className="mt-3 h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-brand"
       />
-      {error ? <p className="mt-2 text-sm font-semibold text-red-500">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm font-semibold text-red-500">{t(error)}</p> : null}
       <Button
         className={`mt-3 w-full ${womenOnly ? 'bg-[#f5559a]! hover:bg-[#d6337f]!' : ''}`}
         onClick={() => send.mutate()}
         disabled={!ready || send.isPending}
       >
         <Send className="h-4 w-4" />
-        {send.isPending ? 'Yuborilmoqda…' : womenOnly ? 'Avval ayol haydovchilarga yuborish' : 'Haydovchilarga so‘rov yuborish'}
+        {send.isPending ? t('Yuborilmoqda…') : womenOnly ? t('Avval ayol haydovchilarga yuborish') : t('Haydovchilarga so‘rov yuborish')}
       </Button>
     </div>
   )

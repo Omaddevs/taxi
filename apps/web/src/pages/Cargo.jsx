@@ -10,8 +10,9 @@ import { cargoTypes, cargoVehicles } from '../data/mock'
 import { formatPlace, isRegionActive, matchRegion } from '../data/uzbekistan'
 import { api } from '../lib/api'
 import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
-import { MONTHS, cn, formatSom, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
+import { cn, dayMonth, formatSom, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
 import { lockScroll } from '../lib/scrollLock'
+import { t } from '../i18n'
 
 function formatAmount(n) {
   if (!n) return ''
@@ -29,11 +30,11 @@ function formatWhen(iso) {
   if (Number.isNaN(d.getTime())) return ''
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()}, ${hh}:${mm}`
+  return `${dayMonth(d.getDate(), d.getMonth(), { lower: true })}, ${hh}:${mm}`
 }
 
 const weights = ['1 kg', '5 kg', '10 kg', '20 kg+']
-const typeById = Object.fromEntries(cargoTypes.map((t) => [t.id, t]))
+const typeById = Object.fromEntries(cargoTypes.map((entry) => [entry.id, entry]))
 
 const STATUS = {
   NEW: { label: 'Kuryer qidirilmoqda', className: 'bg-amber-50 text-amber-700' },
@@ -48,10 +49,10 @@ const VEHICLE_FACTOR = { moto: 1, car: 1.6, van: 2.6 }
 function SectionTitle({ title, action, onAction }) {
   return (
     <div className="mb-2.5 mt-5 flex items-center justify-between">
-      <h2 className="text-[17px] font-extrabold text-ink">{title}</h2>
+      <h2 className="text-[17px] font-extrabold text-ink">{t(title)}</h2>
       {action ? (
         <button type="button" onClick={onAction} className="flex items-center gap-0.5 text-sm font-semibold text-brand">
-          {action}
+          {t(action)}
           <ChevronRight className="h-4 w-4" />
         </button>
       ) : null}
@@ -64,9 +65,9 @@ function AddressRow({ dotClass, title, value, mapIcon: MapIcon, onPick, onMap })
     <div className="flex items-center gap-3 py-3">
       <span className={cn('relative z-10 h-3.5 w-3.5 shrink-0 rounded-full', dotClass)} />
       <button type="button" onClick={onPick} className="min-w-0 flex-1 text-left">
-        <span className="block text-[15px] font-bold text-ink">{title}</span>
+        <span className="block text-[15px] font-bold text-ink">{t(title)}</span>
         <span className={cn('mt-0.5 block truncate text-sm', value ? 'font-medium text-ink/80' : 'text-muted')}>
-          {value || 'Manzilni kiriting'}
+          {value || t('Manzilni kiriting')}
         </span>
       </button>
       <button
@@ -75,7 +76,7 @@ function AddressRow({ dotClass, title, value, mapIcon: MapIcon, onPick, onMap })
         className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-brand-soft px-3 text-sm font-bold text-brand-dark"
       >
         <MapIcon className="h-4 w-4" />
-        Xarita
+        {t('Xarita')}
       </button>
     </div>
   )
@@ -101,9 +102,9 @@ function ChoiceCard({ item, active, onClick, className, imageClassName = 'w-14' 
           {item.emoji}
         </span>
       )}
-      <span className="mt-2 text-[13px] font-bold text-ink">{item.title}</span>
+      <span className="mt-2 text-[13px] font-bold text-ink">{t(item.title)}</span>
       <span className={cn('mt-0.5 text-[10.5px] leading-tight', active ? 'text-brand-dark' : 'text-muted')}>
-        {item.hint}
+        {t(item.hint)}
       </span>
     </button>
   )
@@ -131,7 +132,7 @@ function RecentOrder({ order, onOpen }) {
         <span className="block truncate text-[13px] text-muted">{order.toLabel}</span>
       </span>
       <span className="flex shrink-0 flex-col items-end">
-        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', status.className)}>{status.label}</span>
+        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', status.className)}>{t(status.label)}</span>
         <span className="mt-1 text-[11px] text-muted">{formatWhen(order.createdAt)}</span>
         <span className="mt-0.5 text-[15px] font-extrabold text-ink">{formatSom(order.price)}</span>
       </span>
@@ -145,11 +146,11 @@ function PromoBanner() {
     <div className="relative mt-5 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-soft via-[#eaf8f6] to-[#d3f0eb] p-5">
       <div className="relative max-w-[60%]">
         <p className="text-lg font-extrabold leading-snug text-ink">
-          Nimaligidan qat’i nazar,
+          {t('Nimaligidan qat’i nazar,')}
           <br />
-          Biz yetkazib beramiz!
+          {t('Biz yetkazib beramiz!')}
         </p>
-        <p className="mt-2 text-[13px] font-semibold text-brand-dark">Tezkor • Xavfsiz • Ishonchli</p>
+        <p className="mt-2 text-[13px] font-semibold text-brand-dark">{t('Tezkor • Xavfsiz • Ishonchli')}</p>
       </div>
       <img
         src="/cargo/banner.webp"
@@ -171,11 +172,11 @@ function OrderSheet({ open, onClose, children }) {
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-[120]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[90vh] max-w-2xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(28,28,40,0.18)]">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-ink">Buyurtma tafsilotlari</h3>
+          <h3 className="text-lg font-extrabold text-ink">{t('Buyurtma tafsilotlari')}</h3>
           <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas">
             <X className="h-4 w-4" />
           </button>
@@ -265,15 +266,15 @@ export default function Cargo() {
     setAddrNotice('')
     const current = side === 'from' ? from : to
     openLocationPicker({
-      title: side === 'from' ? 'Qayerdan olamiz?' : 'Qayerga yetkazamiz?',
+      title: side === 'from' ? t('Qayerdan olamiz?') : t('Qayerga yetkazamiz?'),
       initial: current?.lat ? current : null,
       onPick: (loc) => {
         const region = matchRegion(loc.state, loc.city, loc.label)
         if (!region || !isRegionActive(region)) {
           setAddrNotice(
             region
-              ? `${region} — tez orada ishga tushadi. Hozircha Toshkent, Andijon va Samarqand.`
-              : 'Bu manzil hududini aniqlab bo‘lmadi. Ro‘yxatdan tanlang.',
+              ? t('{0} — tez orada ishga tushadi. Hozircha Toshkent, Andijon va Samarqand.', region)
+              : t('Bu manzil hududini aniqlab bo‘lmadi. Ro‘yxatdan tanlang.'),
           )
           return
         }
@@ -300,24 +301,24 @@ export default function Cargo() {
     <div className="mx-auto max-w-2xl pb-4">
       <header className="flex items-start justify-between gap-3 pt-1">
         <div className="min-w-0">
-          <h1 className="text-[26px] font-extrabold tracking-tight text-ink">Yetkazib berish</h1>
-          <p className="mt-0.5 text-[13px] text-muted">Yuklaringizni tez va ishonchli manzilga yetkazamiz</p>
+          <h1 className="text-[26px] font-extrabold tracking-tight text-ink">{t('Yetkazib berish')}</h1>
+          <p className="mt-0.5 text-[13px] text-muted">{t('Yuklaringizni tez va ishonchli manzilga yetkazamiz')}</p>
         </div>
         <Link
           to="/history?tab=cargo"
           className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-brand-soft px-3.5 text-sm font-bold text-brand-dark"
         >
           <CalendarCheck className="h-[18px] w-[18px]" />
-          Buyurtmalarim
+          {t('Buyurtmalarim')}
         </Link>
       </header>
 
       <div className="relative mt-4 rounded-2xl bg-white px-4 py-1 shadow-[0_6px_24px_rgba(28,28,40,0.06)]">
         {/* Dashed connector between the two route dots. */}
         <span className="absolute left-[22px] top-[38px] bottom-[38px] border-l-2 border-dashed border-brand/60" aria-hidden />
-        <AddressRow dotClass="bg-brand ring-4 ring-brand/15" title="Qayerdan olamiz?" value={from?.label} mapIcon={House} onPick={pickFrom} onMap={() => pickOnMap('from')} />
+        <AddressRow dotClass="bg-brand ring-4 ring-brand/15" title={t('Qayerdan olamiz?')} value={from?.label} mapIcon={House} onPick={pickFrom} onMap={() => pickOnMap('from')} />
         <div className="ml-7 h-px bg-line" />
-        <AddressRow dotClass="bg-slate-400 ring-4 ring-slate-200" title="Qayerga yetkazamiz?" value={to?.label} mapIcon={MapPin} onPick={pickTo} onMap={() => pickOnMap('to')} />
+        <AddressRow dotClass="bg-slate-400 ring-4 ring-slate-200" title={t('Qayerga yetkazamiz?')} value={to?.label} mapIcon={MapPin} onPick={pickTo} onMap={() => pickOnMap('to')} />
       </div>
       {addrNotice ? (
         <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">{addrNotice}</p>
@@ -327,9 +328,9 @@ export default function Cargo() {
         variant="headless"
         forceSheet
         kind="from"
-        label="Qayerdan"
+        label={t('Qayerdan')}
         region={from?.region}
-        place={from?.place}
+        place={t(from?.place)}
         onChange={(next) => {
           setAddrNotice('')
           setFrom(next)
@@ -342,9 +343,9 @@ export default function Cargo() {
         variant="headless"
         forceSheet
         kind="to"
-        label="Qayerga"
+        label={t('Qayerga')}
         region={to?.region}
-        place={to?.place}
+        place={t(to?.place)}
         origin={from}
         onEditOrigin={() => setAddrOpen('from')}
         onChange={(next) => {
@@ -356,8 +357,8 @@ export default function Cargo() {
       />
 
       <SectionTitle
-        title="Yuk turi"
-        action={showAllTypes ? 'Yig‘ish' : 'Barchasi'}
+        title={t('Yuk turi')}
+        action={showAllTypes ? t('Yig‘ish') : t('Barchasi')}
         onAction={() => setShowAllTypes((v) => !v)}
       />
       <div className={cn(showAllTypes ? 'grid grid-cols-4 gap-2 sm:grid-cols-5' : 'no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1')}>
@@ -372,7 +373,7 @@ export default function Cargo() {
         ))}
       </div>
 
-      <SectionTitle title="Transport turi" />
+      <SectionTitle title={t('Transport turi')} />
       <div className="grid grid-cols-3 gap-2">
         {cargoVehicles.map((item) => (
           <ChoiceCard
@@ -391,7 +392,7 @@ export default function Cargo() {
           onClick={startOrder}
           className="h-14 flex-1 rounded-2xl bg-brand text-[17px] font-bold text-white shadow-[0_8px_20px_rgba(0,199,212,0.28)] transition active:scale-[0.99]"
         >
-          Buyurtma berish
+          {t('Buyurtma berish')}
         </button>
         <button
           type="button"
@@ -400,20 +401,20 @@ export default function Cargo() {
             setSheetOpen(true)
           }}
           className="flex h-14 w-16 items-center justify-center rounded-2xl bg-brand-soft text-brand-dark"
-          aria-label="Qo‘shimcha sozlamalar"
+          aria-label={t('Qo‘shimcha sozlamalar')}
         >
           <SlidersHorizontal className="h-5 w-5" />
         </button>
       </div>
       {ok ? (
         <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-success">
-          Buyurtma qabul qilindi — kuryer qidirilmoqda
+          {t('Buyurtma qabul qilindi — kuryer qidirilmoqda')}
         </p>
       ) : null}
 
       {recent.length > 0 ? (
         <>
-          <SectionTitle title="So‘nggi buyurtmalar" action="Barchasi" onAction={() => navigate('/history?tab=cargo')} />
+          <SectionTitle title={t('So‘nggi buyurtmalar')} action={t('Barchasi')} onAction={() => navigate('/history?tab=cargo')} />
           <div className="space-y-2">
             {recent.map((order) => (
               <RecentOrder key={order.id} order={order} onOpen={() => setDetailId(order.id)} />
@@ -429,15 +430,15 @@ export default function Cargo() {
         <div className="space-y-4">
           <div className="rounded-2xl bg-canvas p-3 text-sm">
             <p className="truncate">
-              <span className="font-semibold text-muted">Qayerdan: </span>
+              <span className="font-semibold text-muted">{t('Qayerdan:')}{' '}</span>
               <button type="button" onClick={pickFrom} className="font-bold text-ink">
-                {from?.label || 'Tanlang'}
+                {from?.label || t('Tanlang')}
               </button>
             </p>
             <p className="mt-1 truncate">
-              <span className="font-semibold text-muted">Qayerga: </span>
+              <span className="font-semibold text-muted">{t('Qayerga:')}{' '}</span>
               <button type="button" onClick={pickTo} className="font-bold text-ink">
-                {to?.label || 'Tanlang'}
+                {to?.label || t('Tanlang')}
               </button>
             </p>
             <p className="mt-1.5 flex items-center gap-2 text-muted">
@@ -452,13 +453,13 @@ export default function Cargo() {
                 <span aria-hidden>{typeById[type]?.emoji}</span>
               )}
               <span className="min-w-0 truncate">
-                {typeById[type]?.title} · {cargoVehicles.find((v) => v.id === vehicle)?.title}
+                {t(typeById[type]?.title)} · {t(cargoVehicles.find((v) => v.id === vehicle)?.title)}
               </span>
             </p>
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium text-muted">Og‘irlik</p>
+            <p className="mb-2 text-xs font-medium text-muted">{t('Og‘irlik')}</p>
             <div className="grid grid-cols-4 gap-2">
               {weights.map((w) => (
                 <button
@@ -473,10 +474,10 @@ export default function Cargo() {
             </div>
           </div>
 
-          <Field label="Qabul qiluvchi ismi">
-            <Input placeholder="Ism familiya" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
+          <Field label={t('Qabul qiluvchi ismi')}>
+            <Input placeholder={t('Ism familiya')} value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
           </Field>
-          <Field label="Qabul qiluvchi telefoni">
+          <Field label={t('Qabul qiluvchi telefoni')}>
             <div
               className={cn(
                 'flex h-12 items-center gap-2 rounded-2xl border bg-white px-4 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15',
@@ -495,25 +496,25 @@ export default function Cargo() {
               />
             </div>
             {recipientPhone && !phoneOk ? (
-              <p className="mt-1 text-[12px] font-semibold text-amber-600">Raqamni to‘liq kiriting: 9 ta raqam</p>
+              <p className="mt-1 text-[12px] font-semibold text-amber-600">{t('Raqamni to‘liq kiriting: 9 ta raqam')}</p>
             ) : null}
           </Field>
-          <Field label="Izoh">
-            <Input placeholder="Yuk haqida qisqacha" value={note} onChange={(e) => setNote(e.target.value)} />
+          <Field label={t('Izoh')}>
+            <Input placeholder={t('Yuk haqida qisqacha')} value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
 
           <div>
-            <p className="text-xs font-medium text-muted">Sizning narxingiz</p>
+            <p className="text-xs font-medium text-muted">{t('Sizning narxingiz')}</p>
             <label className="mt-2 flex items-end gap-2 rounded-2xl bg-canvas px-4 py-3 ring-1 ring-transparent focus-within:bg-white focus-within:ring-brand/25">
               <input
                 value={formatAmount(amount)}
                 onChange={(e) => setAmount(parseAmount(e.target.value))}
                 inputMode="numeric"
                 placeholder="0"
-                aria-label="Yetkazish narxi"
+                aria-label={t('Yetkazish narxi')}
                 className="min-w-0 flex-1 bg-transparent text-[26px] font-extrabold leading-none tracking-tight text-ink outline-none placeholder:text-slate-300"
               />
-              <span className="mb-0.5 shrink-0 text-sm font-bold text-muted">so‘m</span>
+              <span className="mb-0.5 shrink-0 text-sm font-bold text-muted">{t('so‘m')}</span>
             </label>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {quick.map((n) => (
@@ -526,7 +527,7 @@ export default function Cargo() {
                     amount === n ? 'bg-brand text-white' : n === suggested ? 'bg-brand-soft text-brand' : 'bg-canvas text-ink',
                   )}
                 >
-                  {n === suggested ? `Taklif ${formatSom(n)}` : formatAmount(n)}
+                  {n === suggested ? t('Taklif {0}', formatSom(n)) : formatAmount(n)}
                 </button>
               ))}
             </div>
@@ -534,7 +535,7 @@ export default function Cargo() {
 
           {submit.isError ? (
             <p className="text-center text-sm font-semibold text-danger">
-              {submit.error?.message || 'Xatolik yuz berdi, qaytadan urinib ko‘ring'}
+              {submit.error?.message || t('Xatolik yuz berdi, qaytadan urinib ko‘ring')}
             </p>
           ) : null}
 
@@ -544,7 +545,7 @@ export default function Cargo() {
             onClick={() => submit.mutate()}
             className="h-14 w-full rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50"
           >
-            {submit.isPending ? 'Yuborilmoqda…' : `${formatSom(amount || 0)} · tasdiqlash`}
+            {submit.isPending ? t('Yuborilmoqda…') : t('{0} · tasdiqlash', formatSom(amount || 0))}
           </button>
         </div>
       </OrderSheet>

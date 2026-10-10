@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Button'
 import { formatSom } from '../../lib/utils'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 export function TripCard({ trip, compact = false }) {
   const { favoriteIds, toggleFavorite } = useApp()
@@ -22,7 +23,7 @@ export function TripCard({ trip, compact = false }) {
         </div>
         <div className="text-right">
           <p className="text-sm font-bold text-brand">{formatSom(trip.price)}</p>
-          <Badge tone="green">Bajarilgan</Badge>
+          <Badge tone="green">{t('Bajarilgan')}</Badge>
         </div>
       </Link>
     )
@@ -49,7 +50,7 @@ export function TripCard({ trip, compact = false }) {
               <p className="text-sm font-bold">{trip.serviceTitle}</p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : 'Yangi'} · {trip.car}
+                {trip.driver.ratingCount > 0 ? trip.driver.rating.toFixed(1) : t('Yangi')} · {trip.car}
               </p>
             </div>
             <button
@@ -65,9 +66,9 @@ export function TripCard({ trip, compact = false }) {
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
             <span className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" /> {trip.seats} joy
+              <Users className="h-3.5 w-3.5" /> {t('{0} joy', trip.seats)}
             </span>
-            <span>{trip.luggage} bagaj</span>
+            <span>{t('{0} bagaj', trip.luggage)}</span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" /> {trip.time}
             </span>
@@ -87,7 +88,7 @@ export function TripCard({ trip, compact = false }) {
           to={`/trip/${trip.id}`}
           className="inline-flex h-9 items-center justify-center rounded-xl bg-brand px-3 text-sm font-semibold text-white shadow-sm shadow-brand/20 hover:bg-brand-dark"
         >
-          Joy band qilish
+          {t('Joy band qilish')}
         </Link>
       </div>
     </article>

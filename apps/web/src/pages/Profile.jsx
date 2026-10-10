@@ -9,6 +9,7 @@ import { useApp } from '../context/AppContext'
 import { useAuth } from '../context/AuthContext'
 import { useMyBookings } from '../lib/queries'
 import { formatSom } from '../lib/utils'
+import { t } from '../i18n'
 
 const menu = [
   { to: '/settings', icon: User, label: 'Shaxsiy ma’lumotlar' },
@@ -27,7 +28,7 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <ScreenHeader title="Profil" back={false} right={<Link to="/settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"><Settings className="h-5 w-5" /></Link>} />
+      <ScreenHeader title={t('Profil')} back={false} right={<Link to="/settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"><Settings className="h-5 w-5" /></Link>} />
 
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-br from-brand to-brand-dark px-5 pb-10 pt-8 text-white">
@@ -41,16 +42,16 @@ export default function Profile() {
                 // Google sign-ups start without a number; it's needed for bookings.
                 <button
                   type="button"
-                  onClick={() => askForPhone('Buyurtma berish uchun raqam kerak')}
+                  onClick={() => askForPhone(t('Buyurtma berish uchun raqam kerak'))}
                   className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/40 transition hover:bg-white/30"
                 >
-                  <Phone className="h-3.5 w-3.5" /> Telefon raqam qo‘shish
+                  <Phone className="h-3.5 w-3.5" /> {t('Telefon raqam qo‘shish')}
                 </button>
               )}
               {user.verified ? (
                 <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white py-1 pl-1 pr-3 text-xs font-bold text-brand">
                   <img src="/badges/verified.webp" alt="" aria-hidden className="h-5 w-5 object-contain" />
-                  Tasdiqlangan
+                  {t('Tasdiqlangan')}
                 </span>
               ) : null}
             </div>
@@ -64,7 +65,7 @@ export default function Profile() {
           ].map(([value, label]) => (
             <div key={label} className="py-4 text-center">
               <p className="truncate px-1 text-lg font-extrabold">{value}</p>
-              <p className="text-xs text-muted">{label}</p>
+              <p className="text-xs text-muted">{t(label)}</p>
             </div>
           ))}
         </div>
@@ -81,14 +82,14 @@ export default function Profile() {
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
               <item.icon className="h-4 w-4" />
             </span>
-            <span className="flex-1 text-sm font-semibold">{item.label}</span>
+            <span className="flex-1 text-sm font-semibold">{t(item.label)}</span>
             <ChevronRight className="h-4 w-4 text-slate-400" />
           </Link>
         ))}
       </Card>
 
       <Button variant="soft" className="mt-4 w-full" onClick={logout}>
-        <LogOut className="h-4 w-4" /> Chiqish
+        <LogOut className="h-4 w-4" /> {t('Chiqish')}
       </Button>
     </div>
   )

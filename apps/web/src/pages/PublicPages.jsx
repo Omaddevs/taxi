@@ -7,13 +7,14 @@ import { faqs } from '../data/mock'
 import { SEO_PAGES, breadcrumbJsonLd, faqJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
 import { Business, Earn, Faq, Join, Promotions, RandomClient } from './Landing'
+import { t } from '../i18n'
 
 // Landing bo‘limlaridan yasalgan alohida ommaviy sahifalar. Har biri o‘z URL, sarlavha va
 // tavsifiga ega — Google ularni sitelinks (qidiruvdagi pastki havolalar) sifatida ko‘rsata oladi.
 function PublicPage({ path, children, extraJsonLd }) {
   const page = SEO_PAGES[path]
   useSeo(path)
-  useJsonLd('breadcrumb', breadcrumbJsonLd(path, page.label || page.h1))
+  useJsonLd('breadcrumb', breadcrumbJsonLd(path, t(page.label || page.h1)))
   useJsonLd('page', extraJsonLd)
 
   const { hash } = useLocation()
@@ -24,8 +25,8 @@ function PublicPage({ path, children, extraJsonLd }) {
       window.scrollTo(0, 0)
       return undefined
     }
-    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
+    return () => clearTimeout(timer)
   }, [path, hash])
 
   return (
@@ -35,24 +36,24 @@ function PublicPage({ path, children, extraJsonLd }) {
         <section className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-6 sm:pt-10">
           <div className="relative overflow-hidden rounded-[32px] bg-[#1d2229] px-6 pb-10 pt-8 text-white sm:rounded-[40px] sm:px-12 sm:pb-14 sm:pt-10 lg:px-14 2xl:px-20 2xl:pb-16">
             <div aria-hidden="true" className="pointer-events-none absolute -bottom-56 -right-40 h-[340px] w-[340px] rounded-full bg-brand sm:bottom-auto sm:-right-28 sm:-top-36 sm:h-[520px] sm:w-[520px]" />
-            <nav aria-label="Breadcrumb" className="relative">
+            <nav aria-label={t('Breadcrumb')} className="relative">
               <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-white/60 2xl:text-[15px]">
                 <li>
                   <Link to="/" className="transition hover:text-white">
-                    Bosh sahifa
+                    {t('Bosh sahifa')}
                   </Link>
                 </li>
                 <li aria-hidden="true">
                   <ChevronRight className="h-3.5 w-3.5" />
                 </li>
                 <li aria-current="page" className="text-brand">
-                  {page.label || page.h1}
+                  {t(page.label || page.h1)}
                 </li>
               </ol>
             </nav>
             <div className="relative mt-8 max-w-[720px] sm:mt-10">
-              <h1 className="text-[36px] font-extrabold leading-[1.05] tracking-tight sm:text-[52px] 2xl:text-[68px]">{page.h1}</h1>
-              <p className="mt-4 text-[16px] leading-[1.55] text-white/70 sm:text-[18px] 2xl:text-[21px]">{page.description}</p>
+              <h1 className="text-[36px] font-extrabold leading-[1.05] tracking-tight sm:text-[52px] 2xl:text-[68px]">{t(page.h1)}</h1>
+              <p className="mt-4 text-[16px] leading-[1.55] text-white/70 sm:text-[18px] 2xl:text-[21px]">{t(page.description)}</p>
             </div>
           </div>
         </section>
@@ -245,35 +246,35 @@ function LegalPage({ path, sections }) {
   return (
     <PublicPage path={path}>
       <article className="mx-auto max-w-[860px] px-5 pb-16 pt-10 sm:px-6 sm:pt-14">
-        <p className="text-[14px] font-semibold text-ink/50">Oxirgi yangilanish: {LEGAL_UPDATED}</p>
+        <p className="text-[14px] font-semibold text-ink/50">{t('Oxirgi yangilanish:')}{' '}{LEGAL_UPDATED}</p>
         {sections.map((s, i) => (
           <section key={s.title} className="mt-9">
             <h2 className="text-[22px] font-extrabold tracking-tight sm:text-[26px]">
-              {i + 1}. {s.title}
+              {i + 1}. {t(s.title)}
             </h2>
             {s.body?.map((p) => (
               <p key={p} className="mt-3 text-[16px] leading-[1.65] text-ink/75">
-                {p}
+                {t(p)}
               </p>
             ))}
             {s.list ? (
               <ul className="mt-3 list-disc space-y-2 pl-5 text-[16px] leading-[1.6] text-ink/75 marker:text-brand">
                 {s.list.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>{t(item)}</li>
                 ))}
               </ul>
             ) : null}
-            {s.after ? <p className="mt-3 text-[16px] font-semibold leading-[1.65] text-ink">{s.after}</p> : null}
+            {s.after ? <p className="mt-3 text-[16px] font-semibold leading-[1.65] text-ink">{t(s.after)}</p> : null}
           </section>
         ))}
         <section className="mt-12 rounded-3xl bg-canvas p-6 sm:p-8">
-          <h2 className="text-[20px] font-extrabold">Bog‘lanish</h2>
+          <h2 className="text-[20px] font-extrabold">{t('Bog‘lanish')}</h2>
           <p className="mt-2 text-[16px] leading-[1.6] text-ink/75">
-            Savol yoki so‘rovlar uchun: telefon{' '}
+            {t('Savol yoki so‘rovlar uchun: telefon')}{' '}
             <a href="tel:+998877353636" className="font-semibold text-ink underline decoration-brand underline-offset-4">
               +998 87 735 36 36
             </a>
-            , Telegram{' '}
+            {t(', Telegram')}{' '}
             <a href="https://t.me/taxilines_bot" target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline decoration-brand underline-offset-4">
               @taxilines_bot
             </a>

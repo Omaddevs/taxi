@@ -7,6 +7,7 @@ import { RideRequestCard } from '../components/trip/RideRequestCard'
 import { useApp } from '../context/AppContext'
 import { useOffersSearch } from '../lib/queries'
 import { services } from '../data/mock'
+import { t } from '../i18n'
 
 const filters = [{ id: 'all', title: 'Barchasi' }, ...services.filter((s) => s.id !== 'cargo')]
 
@@ -20,7 +21,7 @@ export default function SearchResults() {
   })
 
   const list = useMemo(
-    () => trips.filter((t) => t.from === search.from && t.to === search.to),
+    () => trips.filter((entry) => entry.from === search.from && entry.to === search.to),
     [trips, search.from, search.to],
   )
 
@@ -28,8 +29,8 @@ export default function SearchResults() {
 
   return (
     <div>
-      <ScreenHeader title="Safar natijalari" subtitle={`${search.from} → ${search.to} · ${search.time}`} />
-      <PageTitle title={`${search.from} → ${search.to}`} subtitle={`${shown.length} ta safar topildi`} />
+      <ScreenHeader title={t('Safar natijalari')} subtitle={`${search.from} → ${search.to} · ${search.time}`} />
+      <PageTitle title={`${search.from} → ${search.to}`} subtitle={t('{0} ta safar topildi', shown.length)} />
 
       <div className="mb-4 flex items-center gap-2">
         <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
@@ -42,7 +43,7 @@ export default function SearchResults() {
                 filter === item.id ? 'bg-brand text-white' : 'bg-white text-ink'
               }`}
             >
-              {item.title}
+              {t(item.title)}
             </button>
           ))}
         </div>
@@ -51,7 +52,7 @@ export default function SearchResults() {
         </button>
       </div>
 
-      {isLoading ? <p className="text-sm text-muted">Yuklanmoqda…</p> : null}
+      {isLoading ? <p className="text-sm text-muted">{t('Yuklanmoqda…')}</p> : null}
       {!isLoading && shown.length === 0 ? <RideRequestCard search={search} prominent /> : null}
 
       <div className="grid gap-3 lg:grid-cols-2">

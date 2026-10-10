@@ -1,4 +1,5 @@
 import { api } from './api'
+import { t } from '../i18n'
 
 // "Google orqali kirish" — Google Identity Services, authorization-code popup flow. The page
 // gets a one-time code which the API swaps for the profile (server/src/modules/auth/google.ts),
@@ -30,7 +31,7 @@ function loadScript() {
       el.onload = () => resolve()
       el.onerror = () => {
         scriptPromise = null
-        reject(new Error('Google xizmatini yuklab bo‘lmadi. Internetni tekshiring'))
+        reject(new Error(t('Google xizmatini yuklab bo‘lmadi. Internetni tekshiring')))
       }
       document.head.appendChild(el)
     })
@@ -43,7 +44,7 @@ export class GoogleCancelled extends Error {}
 /** Opens Google's account chooser; resolves with the authorization code. */
 export async function requestGoogleCode() {
   const config = await getGoogleConfig()
-  if (!config?.enabled || !config.clientId) throw new Error('Google orqali kirish hozircha yoqilmagan')
+  if (!config?.enabled || !config.clientId) throw new Error(t('Google orqali kirish hozircha yoqilmagan'))
   await loadScript()
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initCodeClient({
@@ -53,13 +54,13 @@ export async function requestGoogleCode() {
       select_account: true,
       callback: (response) => {
         if (response?.code) resolve(response.code)
-        else reject(new Error(response?.error_description || 'Google orqali kirish bekor qilindi'))
+        else reject(new Error(response?.error_description || t('Google orqali kirish bekor qilindi')))
       },
       error_callback: (err) => {
         // Closing the popup is the user's choice, not an error worth a red message.
         if (err?.type === 'popup_closed') reject(new GoogleCancelled())
-        else if (err?.type === 'popup_failed_to_open') reject(new Error('Brauzer oynani to‘sib qo‘ydi — qalqib chiquvchi oynalarga ruxsat bering'))
-        else reject(new Error('Google oynasini ochib bo‘lmadi'))
+        else if (err?.type === 'popup_failed_to_open') reject(new Error(t('Brauzer oynani to‘sib qo‘ydi — qalqib chiquvchi oynalarga ruxsat bering')))
+        else reject(new Error(t('Google oynasini ochib bo‘lmadi')))
       },
     })
     client.requestCode()

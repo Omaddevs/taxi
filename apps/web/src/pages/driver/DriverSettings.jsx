@@ -37,6 +37,7 @@ import { Field, Input } from '../../components/ui/Input'
 import { PlateInput, isValidPlateUz } from '../../components/ui/PlateInput'
 import { UZ_REGIONS } from '../../data/regions'
 import { DriverHeader, DriverSheet, Toggle } from './ui'
+import { t } from '../../i18n'
 
 const driverServices = [
   { id: 'map', to: '/driver/smart-map', title: 'Smart xarita', icon: Map },
@@ -69,7 +70,7 @@ export default function DriverSettings() {
   const ratingCount = stats?.ratingCount ?? 0
   const code = driverCode(user.id)
   const online = stats?.online ?? user?.driver?.online ?? false
-  const carModel = user?.driver?.carModel || 'Avtomobil'
+  const carModel = user?.driver?.carModel || t('Avtomobil')
   const plate = user?.driver?.plate || 'raqam'
 
   async function copyId() {
@@ -90,7 +91,7 @@ export default function DriverSettings() {
 
   return (
     <div className="overflow-x-clip bg-canvas">
-      <DriverHeader title="Sozlamalar" />
+      <DriverHeader title={t('Sozlamalar')} />
 
       <div className="space-y-3 px-5 pb-6 pt-4">
         <button
@@ -104,9 +105,9 @@ export default function DriverSettings() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="truncate text-base font-extrabold">{name}</p>
+              <p className="truncate text-base font-extrabold">{t(name)}</p>
               <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-soft px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                {ratingCount > 0 ? Number(rating).toFixed(1) : 'Yangi'} <Star className="h-3 w-3 fill-brand" />
+                {ratingCount > 0 ? Number(rating).toFixed(1) : t('Yangi')} <Star className="h-3 w-3 fill-brand" />
               </span>
             </div>
             <button
@@ -117,8 +118,8 @@ export default function DriverSettings() {
               }}
               className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-muted"
             >
-              Haydovchi ID: {code} <Copy className="h-3 w-3" />
-              {copied ? <span className="text-brand">nusxalandi</span> : null}
+              {t('Haydovchi ID:')}{' '}{code} <Copy className="h-3 w-3" />
+              {copied ? <span className="text-brand">{t('nusxalandi')}</span> : null}
             </button>
             <p className="text-xs text-muted">{formatPhoneUz(user.phone)}</p>
           </div>
@@ -126,23 +127,23 @@ export default function DriverSettings() {
         </button>
 
         <section>
-          <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted">Foydali xizmatlar</p>
+          <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted">{t('Foydali xizmatlar')}</p>
           <div className="grid grid-cols-2 gap-3">
             <Link to="/driver/roadside" className="relative overflow-hidden rounded-2xl bg-[#ffecec] p-4">
               <span className="absolute right-3 top-3 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">SOS</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-red-500">
                 <Siren className="h-5 w-5" />
               </span>
-              <p className="mt-3 text-sm font-extrabold">Yo‘lda yordam</p>
-              <p className="mt-0.5 text-[11px] text-muted">Usta · evakuator</p>
+              <p className="mt-3 text-sm font-extrabold">{t('Yo‘lda yordam')}</p>
+              <p className="mt-0.5 text-[11px] text-muted">{t('Usta · evakuator')}</p>
             </Link>
             <Link to="/driver/fuel" className="relative overflow-hidden rounded-2xl bg-[#eef8f0] p-4">
               <span className="absolute right-3 top-3 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">-3%</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-600">
                 <Fuel className="h-5 w-5" />
               </span>
-              <p className="mt-3 text-sm font-extrabold">Yoqilg‘i</p>
-              <p className="mt-0.5 text-[11px] text-muted">Yoqilg‘i shahobchasi</p>
+              <p className="mt-3 text-sm font-extrabold">{t('Yoqilg‘i')}</p>
+              <p className="mt-0.5 text-[11px] text-muted">{t('Yoqilg‘i shahobchasi')}</p>
             </Link>
           </div>
 
@@ -152,25 +153,25 @@ export default function DriverSettings() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-canvas text-slate-700">
                   <item.icon className="h-5 w-5" />
                 </span>
-                <span className="text-[10px] font-bold leading-tight">{item.title}</span>
+                <span className="text-[10px] font-bold leading-tight">{t(item.title)}</span>
               </Link>
             ))}
           </div>
         </section>
 
         <Group>
-          <Row icon={User} color="bg-brand-soft text-brand" title="Profil ma’lumotlari" sub="Shaxsiy ma’lumotlarni tahrirlash" onClick={() => setSheet('profile')} />
-          <Row icon={Car} color="bg-sky-50 text-sky-600" title="Avtomobil ma’lumotlari" sub={`${carModel} · ${plate}`} onClick={() => setSheet('car')} />
-          <Row icon={FileText} color="bg-emerald-50 text-emerald-600" title="Hujjatlar va sertifikatlar" sub={user?.driver?.licenseNumber || 'Guvohnoma, texpassport va boshqalar'} onClick={() => setSheet('docs')} />
-          <Row to="/driver/cargo" icon={Box} color="bg-brand-soft text-brand" title="Yuklar" sub="Yetkazib berish uchun ochiq yuklar" />
-          <Row to="/driver/wallet" icon={CreditCard} color="bg-orange-50 text-orange-500" title="To‘lov usullari" sub="Daromad yechish va karta boshqaruvi" />
+          <Row icon={User} color="bg-brand-soft text-brand" title={t('Profil ma’lumotlari')} sub={t('Shaxsiy ma’lumotlarni tahrirlash')} onClick={() => setSheet('profile')} />
+          <Row icon={Car} color="bg-sky-50 text-sky-600" title={t('Avtomobil ma’lumotlari')} sub={`${carModel} · ${plate}`} onClick={() => setSheet('car')} />
+          <Row icon={FileText} color="bg-emerald-50 text-emerald-600" title={t('Hujjatlar va sertifikatlar')} sub={user?.driver?.licenseNumber || t('Guvohnoma, texpassport va boshqalar')} onClick={() => setSheet('docs')} />
+          <Row to="/driver/cargo" icon={Box} color="bg-brand-soft text-brand" title={t('Yuklar')} sub={t('Yetkazib berish uchun ochiq yuklar')} />
+          <Row to="/driver/wallet" icon={CreditCard} color="bg-orange-50 text-orange-500" title={t('To‘lov usullari')} sub={t('Daromad yechish va karta boshqaruvi')} />
         </Group>
 
         <Group>
           <ToggleRow
             icon={Bell}
             color="bg-violet-50 text-violet-600"
-            title="Bildirishnomalar"
+            title={t('Bildirishnomalar')}
             on={notifsEnabled}
             onChange={(on) => {
               setNotifsEnabled(on)
@@ -182,26 +183,26 @@ export default function DriverSettings() {
           <Row
             icon={MapPin}
             color="bg-brand-soft text-brand"
-            title="Navbat va hududlar"
-            sub={workRegions.length ? `${workRegions.length} ta hudud tanlangan` : 'Qaysi hududlardan buyurtma olish'}
+            title={t('Navbat va hududlar')}
+            sub={workRegions.length ? t('{0} ta hudud tanlangan', workRegions.length) : t('Qaysi hududlardan buyurtma olish')}
             onClick={() => setSheet('regions')}
           />
           <Row
             icon={Gauge}
             color="bg-sky-50 text-sky-600"
-            title="Ish rejimi"
-            sub={`${online ? 'Onlayn' : 'Oflayn'}${autoAccept ? ' · avto-qabul' : ''}`}
+            title={t('Ish rejimi')}
+            sub={`${online ? t('Onlayn') : t('Oflayn')}${autoAccept ? t(' · avto-qabul') : ''}`}
             onClick={() => setSheet('work')}
           />
           <div className="border-b border-line px-4 py-2">
             <LanguageRow className="border-0 px-0" />
           </div>
-          <ToggleRow icon={Moon} color="bg-amber-50 text-amber-600" title="Tungi mavzu" on={theme === 'dark'} onChange={(on) => setTheme(on ? 'dark' : 'light')} />
+          <ToggleRow icon={Moon} color="bg-amber-50 text-amber-600" title={t('Tungi mavzu')} on={theme === 'dark'} onChange={(on) => setTheme(on ? 'dark' : 'light')} />
         </Group>
 
         <Group>
-          <Row icon={Shield} color="bg-indigo-50 text-indigo-700" title="Xavfsizlik" sub="Telefon, ID va maxfiylik" onClick={() => setSheet('security')} />
-          <Row to="/driver/help" icon={HelpCircle} color="bg-sky-50 text-sky-600" title="Yordam va qo‘llab-quvvatlash" sub="Yordam markazi va tez aloqa" />
+          <Row icon={Shield} color="bg-indigo-50 text-indigo-700" title={t('Xavfsizlik')} sub={t('Telefon, ID va maxfiylik')} onClick={() => setSheet('security')} />
+          <Row to="/driver/help" icon={HelpCircle} color="bg-sky-50 text-sky-600" title={t('Yordam va qo‘llab-quvvatlash')} sub={t('Yordam markazi va tez aloqa')} />
         </Group>
 
         <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-left">
@@ -209,19 +210,19 @@ export default function DriverSettings() {
             <LogOut className="h-4 w-4" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-extrabold text-red-500">Onlayn rejimdan chiqish</span>
-            <span className="block text-[11px] text-muted">Ilovadan chiqish va onlayn rejimni o‘chirish</span>
+            <span className="block text-sm font-extrabold text-red-500">{t('Onlayn rejimdan chiqish')}</span>
+            <span className="block text-[11px] text-muted">{t('Ilovadan chiqish va onlayn rejimni o‘chirish')}</span>
           </span>
         </button>
 
         <p className="pt-2 text-center text-[11px] text-muted">
-          TaxiLine Haydovchi ilovasi
+          {t('TaxiLine Haydovchi ilovasi')}
           <br />
-          Versiya 2.1.0
+          {t('Versiya 2.1.0')}
         </p>
       </div>
 
-      {sheet === 'profile' ? <ProfileSheet user={user} name={name} onClose={() => setSheet(null)} /> : null}
+      {sheet === 'profile' ? <ProfileSheet user={user} name={t(name)} onClose={() => setSheet(null)} /> : null}
       {sheet === 'car' ? <CarSheet user={user} onClose={() => setSheet(null)} /> : null}
       {sheet === 'docs' ? <DocsSheet user={user} onClose={() => setSheet(null)} /> : null}
       {sheet === 'regions' ? <RegionsSheet onClose={() => setSheet(null)} /> : null}
@@ -244,8 +245,8 @@ function Row({ to, icon: Icon, color, title, sub, onClick }) {
         <Icon className="h-4 w-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold">{title}</span>
-        {sub ? <span className="block text-[11px] text-muted">{sub}</span> : null}
+        <span className="block text-sm font-bold">{t(title)}</span>
+        {sub ? <span className="block text-[11px] text-muted">{t(sub)}</span> : null}
       </span>
       <ChevronRight className="h-4 w-4 text-slate-300" />
     </>
@@ -270,7 +271,7 @@ function ToggleRow({ icon: Icon, color, title, on, onChange }) {
       <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
         <Icon className="h-4 w-4" />
       </span>
-      <span className="min-w-0 flex-1 text-sm font-bold">{title}</span>
+      <span className="min-w-0 flex-1 text-sm font-bold">{t(title)}</span>
       <Toggle on={on} onChange={onChange} />
     </div>
   )
@@ -279,14 +280,14 @@ function ToggleRow({ icon: Icon, color, title, on, onChange }) {
 function SaveButton({ pending, saved, onClick, disabled, error }) {
   return (
     <div>
-      {error ? <p className="mb-2 text-center text-xs font-semibold text-red-500">{error}</p> : null}
+      {error ? <p className="mb-2 text-center text-xs font-semibold text-red-500">{t(error)}</p> : null}
       <button
         type="button"
         disabled={disabled || pending}
         onClick={onClick}
         className="flex h-12 w-full items-center justify-center rounded-2xl bg-brand text-sm font-extrabold text-white disabled:opacity-50"
       >
-        {pending ? 'Saqlanmoqda…' : saved ? 'Saqlandi ✓' : 'Saqlash'}
+        {pending ? t('Saqlanmoqda…') : saved ? t('Saqlandi ✓') : t('Saqlash')}
       </button>
     </div>
   )
@@ -308,26 +309,26 @@ function ProfileSheet({ user, name, onClose }) {
   })
   return (
     <DriverSheet
-      title="Profil ma’lumotlari"
+      title={t('Profil ma’lumotlari')}
       onClose={onClose}
       footer={
         <SaveButton
           pending={save.isPending}
           saved={save.isSuccess}
-          error={save.error?.message}
+          error={t(save.error?.message)}
           onClick={() => save.mutate()}
           disabled={form.name.trim().length < 2}
         />
       }
     >
       <div className="space-y-3">
-        <Field label="Ism familiya">
+        <Field label={t('Ism familiya')}>
           <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </Field>
-        <Field label="Telefon">
+        <Field label={t('Telefon')}>
           <Input value={formatPhoneUz(user.phone)} disabled />
         </Field>
-        <Field label="Email">
+        <Field label={t('Email')}>
           <Input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="email@mail.uz" />
         </Field>
       </div>
@@ -347,23 +348,23 @@ function CarSheet({ user, onClose }) {
   })
   return (
     <DriverSheet
-      title="Avtomobil ma’lumotlari"
+      title={t('Avtomobil ma’lumotlari')}
       onClose={onClose}
       footer={
         <SaveButton
           pending={save.isPending}
           saved={save.isSuccess}
-          error={save.error?.message}
+          error={t(save.error?.message)}
           onClick={() => save.mutate()}
           disabled={!form.carModel.trim() || !isValidPlateUz(form.plate)}
         />
       }
     >
       <div className="space-y-3">
-        <Field label="Model">
-          <Input value={form.carModel} onChange={(e) => setForm((f) => ({ ...f, carModel: e.target.value }))} placeholder="Chevrolet Cobalt" />
+        <Field label={t('Model')}>
+          <Input value={form.carModel} onChange={(e) => setForm((f) => ({ ...f, carModel: e.target.value }))} placeholder={t('Chevrolet Cobalt')} />
         </Field>
-        <Field label="Davlat raqami">
+        <Field label={t('Davlat raqami')}>
           <PlateInput value={form.plate} onChange={(plate) => setForm((f) => ({ ...f, plate }))} />
         </Field>
       </div>
@@ -380,22 +381,22 @@ function DocsSheet({ user, onClose }) {
   })
   return (
     <DriverSheet
-      title="Hujjatlar"
+      title={t('Hujjatlar')}
       onClose={onClose}
       footer={
         <SaveButton
           pending={save.isPending}
           saved={save.isSuccess}
-          error={save.error?.message}
+          error={t(save.error?.message)}
           onClick={() => save.mutate()}
           disabled={!licenseNumber.trim()}
         />
       }
     >
       <p className="mb-3 rounded-2xl bg-canvas px-3 py-2 text-xs font-semibold text-muted">
-        Holat: {user?.driver?.approved ? 'Haydovchi tasdiqlangan' : 'Ko‘rib chiqilmoqda'}
+        {t('Holat:')}{' '}{user?.driver?.approved ? t('Haydovchi tasdiqlangan') : t('Ko‘rib chiqilmoqda')}
       </p>
-      <Field label="Haydovchilik guvohnomasi raqami">
+      <Field label={t('Haydovchilik guvohnomasi raqami')}>
         <Input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value.toUpperCase())} placeholder="AA1234567" />
       </Field>
     </DriverSheet>
@@ -412,7 +413,7 @@ function RegionsSheet({ onClose }) {
 
   return (
     <DriverSheet
-      title="Navbat va hududlar"
+      title={t('Navbat va hududlar')}
       onClose={onClose}
       footer={
         <SaveButton
@@ -425,7 +426,7 @@ function RegionsSheet({ onClose }) {
         />
       }
     >
-      <p className="mb-3 text-xs text-muted">Tanlangan hududlardan yangi buyurtmalar keladi. Bo‘sh qoldirsangiz — barchasi.</p>
+      <p className="mb-3 text-xs text-muted">{t('Tanlangan hududlardan yangi buyurtmalar keladi. Bo‘sh qoldirsangiz — barchasi.')}</p>
       <div className="space-y-1.5">
         {UZ_REGIONS.map((region) => {
           const on = picked.includes(region)
@@ -451,19 +452,19 @@ function RegionsSheet({ onClose }) {
 function WorkSheet({ online, toggling, onToggleOnline, onClose }) {
   const { autoAccept, setAutoAccept } = useApp()
   return (
-    <DriverSheet title="Ish rejimi" onClose={onClose}>
+    <DriverSheet title={t('Ish rejimi')} onClose={onClose}>
       <div className="space-y-2">
         <div className="flex items-center justify-between rounded-2xl bg-canvas px-4 py-3">
           <div>
-            <p className="text-sm font-extrabold">{online ? 'Onlayn' : 'Oflayn'}</p>
-            <p className="text-[11px] text-muted">{online ? 'Buyurtmalar qabul qilinyapti' : 'Buyurtmalar kelmaydi'}</p>
+            <p className="text-sm font-extrabold">{online ? t('Onlayn') : t('Oflayn')}</p>
+            <p className="text-[11px] text-muted">{online ? t('Buyurtmalar qabul qilinyapti') : t('Buyurtmalar kelmaydi')}</p>
           </div>
           <Toggle on={online} disabled={toggling} onChange={onToggleOnline} />
         </div>
         <div className="flex items-center justify-between rounded-2xl bg-canvas px-4 py-3">
           <div>
-            <p className="text-sm font-extrabold">Avtomatik qabul</p>
-            <p className="text-[11px] text-muted">Yangi buyurtma kelishi bilan qabul qilinadi</p>
+            <p className="text-sm font-extrabold">{t('Avtomatik qabul')}</p>
+            <p className="text-[11px] text-muted">{t('Yangi buyurtma kelishi bilan qabul qilinadi')}</p>
           </div>
           <Toggle on={autoAccept} onChange={setAutoAccept} />
         </div>
@@ -474,19 +475,19 @@ function WorkSheet({ online, toggling, onToggleOnline, onClose }) {
 
 function SecuritySheet({ user, code, onLogout, onClose }) {
   return (
-    <DriverSheet title="Xavfsizlik" onClose={onClose}>
+    <DriverSheet title={t('Xavfsizlik')} onClose={onClose}>
       <div className="space-y-2 text-sm">
         <p className="rounded-2xl bg-canvas px-4 py-3">
-          <span className="block text-[11px] text-muted">Telefon</span>
+          <span className="block text-[11px] text-muted">{t('Telefon')}</span>
           <span className="font-extrabold">{formatPhoneUz(user.phone)}</span>
         </p>
         <p className="rounded-2xl bg-canvas px-4 py-3">
-          <span className="block text-[11px] text-muted">Haydovchi ID</span>
+          <span className="block text-[11px] text-muted">{t('Haydovchi ID')}</span>
           <span className="font-extrabold">{code}</span>
         </p>
-        <p className="text-xs text-muted">Kirish SMS yoki Telegram tasdiqlash kodi orqali. Alohida parol yo‘q.</p>
+        <p className="text-xs text-muted">{t('Kirish SMS yoki Telegram tasdiqlash kodi orqali. Alohida parol yo‘q.')}</p>
         <button type="button" onClick={onLogout} className="mt-2 flex h-12 w-full items-center justify-center rounded-2xl bg-red-50 text-sm font-extrabold text-red-500">
-          Hisobdan chiqish
+          {t('Hisobdan chiqish')}
         </button>
       </div>
     </DriverSheet>

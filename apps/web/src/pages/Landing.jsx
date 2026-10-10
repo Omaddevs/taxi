@@ -28,6 +28,7 @@ import { TELEGRAM_BOT } from '../components/auth/AuthChrome'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { Regions } from '../components/landing/Regions'
 import { Logo, Wordmark } from '../components/ui/Logo'
+import { LanguageChip, LanguageSwitch } from '../components/ui/LanguagePicker'
 import { useAuth } from '../context/AuthContext'
 import { faqs } from '../data/mock'
 import { api } from '../lib/api'
@@ -36,6 +37,7 @@ import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../l
 import { REFERRAL_ENABLED } from '../lib/features'
 import { siteJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
+import { t } from '../i18n'
 
 // `highlight` — ajralib turadigan band.
 const NAV = [
@@ -60,7 +62,7 @@ function CarImage({ className = '', sizes = '(min-width: 1024px) 720px, 100vw' }
       <source type="image/webp" srcSet="/landing/taxi-car-sm.webp 520w, /landing/taxi-car.webp 1400w" sizes={sizes} />
       <img
         src="/landing/taxi-car.png"
-        alt="TaxiLine avtomobili"
+        alt={t('TaxiLine avtomobili')}
         width={2017}
         height={694}
         fetchPriority="high"
@@ -84,7 +86,7 @@ function NavLinks({ onNavigate, className = '', desktop = false }) {
             : `${className} flex items-center gap-2`
         }
       >
-        <Gift className="h-4 w-4" /> {item.label}
+        <Gift className="h-4 w-4" /> {t(item.label)}
       </a>
     ) : (
       <a
@@ -94,7 +96,7 @@ function NavLinks({ onNavigate, className = '', desktop = false }) {
         {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         className={className}
       >
-        {item.label}
+        {t(item.label)}
       </a>
     ),
   )
@@ -109,8 +111,8 @@ function FeatureCard({ icon: Icon, title, text, tone }) {
       } text-ink`}
     >
       <Icon className={`h-9 w-9 ${brand ? 'text-ink' : 'text-brand'}`} strokeWidth={1.7} />
-      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] 2xl:text-[23px] tracking-tight">{title}</h3>
-      <p className={`mt-2.5 text-[12px] leading-[1.4] 2xl:text-[14px] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{text}</p>
+      <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] 2xl:text-[23px] tracking-tight">{t(title)}</h3>
+      <p className={`mt-2.5 text-[12px] leading-[1.4] 2xl:text-[14px] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{t(text)}</p>
     </article>
   )
 }
@@ -183,18 +185,19 @@ function Showcase() {
                 <Logo size={40} className="sm:h-12! sm:w-12! 2xl:h-14! 2xl:w-14!" />
                 <Wordmark className="text-[21px] sm:text-[25px] 2xl:text-[29px]" />
               </Link>
-              <div className="flex items-center gap-1.5 lg:hidden">
+              <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
+                <LanguageChip compact wrapperClassName="hidden sm:block" />
                 <Link
                   to="/login"
-                  className="spin-border flex h-10 items-center gap-1.5 rounded-full bg-ink px-4 text-[13px] font-extrabold text-white"
+                  className="spin-border flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-4 text-[13px] font-extrabold text-white"
                 >
-                  <LogIn className="h-4 w-4" /> Kirish
+                  <LogIn className="h-4 w-4" /> {t('Kirish')}
                 </Link>
                 <button
                   type="button"
                   onClick={() => setMenuOpen((v) => !v)}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-ink"
-                  aria-label="Menyu"
+                  aria-label={t('Menyu')}
                   aria-expanded={menuOpen}
                 >
                   {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -204,20 +207,21 @@ function Showcase() {
 
             {menuOpen ? (
               <div className="absolute inset-x-4 top-[68px] z-40 rounded-2xl bg-white p-2 shadow-[0_20px_40px_rgba(15,29,42,0.18)] sm:inset-x-10 lg:hidden">
+                <LanguageSwitch className="mb-1 sm:hidden" onChange={() => setMenuOpen(false)} />
                 <NavLinks
                   onNavigate={() => setMenuOpen(false)}
                   className="block rounded-xl px-4 py-3 text-[15px] font-bold text-ink hover:bg-canvas"
                 />
                 <Link to="/register" className="block rounded-xl px-4 py-3 text-[15px] font-extrabold text-brand-dark hover:bg-canvas">
-                  Ro‘yxatdan o‘tish
+                  {t('Ro‘yxatdan o‘tish')}
                 </Link>
               </div>
             ) : null}
 
             <h1 className="relative mt-12 text-[38px] font-extrabold leading-[1.08] tracking-tight text-ink sm:mt-16 sm:text-[52px] lg:mt-[92px] lg:text-[54px] xl:text-[60px] 2xl:mt-[120px] 2xl:text-[78px]">
-              Viloyatlararo
+              {t('Viloyatlararo')}
               <br />
-              qulay taxi
+              {t('qulay taxi')}
             </h1>
 
             <div className="relative z-20 -mx-3 -mb-16 mt-4 sm:mx-6 sm:-mb-24 lg:hidden">
@@ -238,23 +242,24 @@ function Showcase() {
 
             <nav className="relative z-30 hidden items-center justify-end gap-5 lg:flex xl:gap-7">
               <NavLinks desktop className="whitespace-nowrap text-[14px] font-semibold text-ink/90 transition 2xl:text-[16px] hover:text-ink hover:underline hover:underline-offset-4" />
+              <LanguageChip compact />
               <Link
                 to="/login"
                 className="spin-border flex h-10 items-center gap-1.5 rounded-full bg-ink px-5 text-[13px] font-extrabold text-white shadow-[0_8px_18px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a]"
               >
-                <LogIn className="h-4 w-4" /> Kirish
+                <LogIn className="h-4 w-4" /> {t('Kirish')}
               </Link>
             </nav>
 
             <h2 className="relative text-[32px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[44px] lg:mt-[92px] lg:text-[38px] xl:text-[44px] 2xl:mt-[120px] 2xl:text-[64px]">
-              Har bir safarda
+              {t('Har bir safarda')}
               <br />
-              qulaylik va ishonch
+              {t('qulaylik va ishonch')}
             </h2>
             <p className="relative mt-4 text-[15px] leading-[1.5] text-ink/85 sm:text-[17px] 2xl:text-[21px]">
-              platformada buyurtmalarni bajaring
+              {t('platformada buyurtmalarni bajaring')}
               <br />
-              va daromad oling!
+              {t('va daromad oling!')}
             </p>
 
             <form onSubmit={onSubmit} className="relative mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -263,12 +268,12 @@ function Showcase() {
                 <input
                   value={maskLocalPhoneUz(phone)}
                   onChange={(e) => setPhone(maskPhoneUz(e.target.value))}
-                  placeholder="Telefon raqam"
+                  placeholder={t('Telefon raqam')}
                   type="tel"
                   inputMode="numeric"
                   autoComplete="tel"
                   maxLength={12}
-                  aria-label="Telefon raqam"
+                  aria-label={t('Telefon raqam')}
                   className="min-w-0 flex-1 bg-transparent font-semibold tracking-wide text-ink outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400"
                 />
               </label>
@@ -276,7 +281,7 @@ function Showcase() {
                 type="submit"
                 className="spin-border h-12 whitespace-nowrap rounded-full bg-ink px-8 text-[14px] font-bold uppercase tracking-[0.03em] text-white lg:px-6 xl:px-8 shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a] 2xl:h-14 2xl:px-10 2xl:text-[16px]"
               >
-                Ariza qoldirish
+                {t('Ariza qoldirish')}
               </button>
             </form>
           </div>
@@ -291,19 +296,19 @@ function Showcase() {
           <div className="grid gap-9 px-5 pb-8 pt-12 sm:px-10 sm:pb-12 sm:pt-16 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-10 lg:px-14 lg:pb-16 lg:pt-24 2xl:px-20 2xl:pb-20 2xl:pt-32">
             <div className="min-w-0">
               <h2 className="text-[30px] font-extrabold leading-[1.12] tracking-tight text-white sm:text-[40px] xl:text-[46px] 2xl:text-[60px]">
-                Aytib beramiz, nega
+                {t('Aytib beramiz, nega')}
                 <br />
-                bizni tanlashadi
+                {t('bizni tanlashadi')}
               </h2>
               <p className="mt-4 text-[15px] leading-[1.5] text-white/75 sm:text-[17px] 2xl:text-[21px]">
-                afzalliklarimizni kartalarga jamladik,
-                <br className="hidden sm:block" /> strelkani bosib varaqlang
+                {t('afzalliklarimizni kartalarga jamladik,')}
+                <br className="hidden sm:block" /> {t('strelkani bosib varaqlang')}
               </p>
               <Link
                 to="/register"
                 className="mt-8 inline-flex h-12 items-center rounded-full bg-brand px-8 text-[12px] font-extrabold uppercase tracking-[0.06em] text-ink transition hover:bg-[#5ee3eb]"
               >
-                Ro‘yxatdan o‘tish
+                {t('Ro‘yxatdan o‘tish')}
               </Link>
               <div className="mt-14 hidden lg:block">{dots}</div>
             </div>
@@ -322,7 +327,7 @@ function Showcase() {
                 <button
                   type="button"
                   onClick={next}
-                  aria-label="Keyingi"
+                  aria-label={t('Keyingi')}
                   className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/10 sm:flex"
                 >
                   <ArrowRight className="h-5 w-5" />
@@ -344,15 +349,15 @@ function Steps() {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-[16px] font-bold text-ink">1</span>
         <div>
           <h3 className="break-words text-[19px] font-extrabold leading-[1.15] tracking-tight text-ink min-[400px]:text-[21px] sm:text-[24px] 2xl:text-[30px]">
-            Onlayn ro‘yxatdan
+            {t('Onlayn ro‘yxatdan')}
             <br />
-            o‘ting
+            {t('o‘ting')}
           </h3>
           <p className="mt-2.5 text-[14px] leading-[1.45] text-ink/75 2xl:text-[17px]">
-            Shunchaki oddiy formani
+            {t('Shunchaki oddiy formani')}
             <br />
             <span className="inline-flex items-center gap-2">
-              to‘ldiring
+              {t('to‘ldiring')}
               <ArrowRight className="h-4 w-7 text-ink" strokeWidth={1.6} />
             </span>
           </p>
@@ -362,24 +367,24 @@ function Steps() {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-[16px] font-bold text-ink">2</span>
         <div>
           <h3 className="break-words text-[19px] font-extrabold leading-[1.15] tracking-tight text-ink min-[400px]:text-[21px] sm:text-[24px] 2xl:text-[30px]">
-            Ilovani telefoningizga
+            {t('Ilovani telefoningizga')}
             <br />
-            o‘rnating
+            {t('o‘rnating')}
           </h3>
           <p className="mt-2.5 text-[14px] leading-[1.45] text-ink/75 2xl:text-[17px]">
-            O‘rnating:{' '}
+            {t('O‘rnating:')}{' '}
             <a href="/" className="font-extrabold text-ink underline underline-offset-2">
               TaxiLine
             </a>
             <br />
-            va{' '}
+            {t('va')}{' '}
             <a
               href="https://t.me/taxilines_bot"
               target="_blank"
               rel="noopener noreferrer"
               className="font-extrabold text-ink underline underline-offset-2"
             >
-              Telegram bot
+              {t('Telegram bot')}
             </a>
           </p>
         </div>
@@ -388,14 +393,14 @@ function Steps() {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-[16px] font-bold text-ink">3</span>
         <div>
           <h3 className="break-words text-[19px] font-extrabold leading-[1.15] tracking-tight text-ink min-[400px]:text-[21px] sm:text-[24px] 2xl:text-[30px]">
-            Bugunoq ishlashni
+            {t('Bugunoq ishlashni')}
             <br />
-            boshlang!
+            {t('boshlang!')}
           </h3>
           <p className="mt-2.5 text-[14px] leading-[1.45] text-ink/75 2xl:text-[17px]">
-            Qancha ko‘p safar qilsangiz,
+            {t('Qancha ko‘p safar qilsangiz,')}
             <br />
-            daromadingiz shuncha ko‘p bo‘ladi
+            {t('daromadingiz shuncha ko‘p bo‘ladi')}
           </p>
         </div>
       </li>
@@ -470,7 +475,7 @@ function RoleSelect({ value, onChange }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-label="Faoliyat turi"
+        aria-label={t('Faoliyat turi')}
         aria-activedescendant={open ? `${listId}-${hi}` : undefined}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onKeyDown}
@@ -482,7 +487,7 @@ function RoleSelect({ value, onChange }) {
           </span>
         ) : null}
         <span className={`min-w-0 flex-1 truncate ${selected ? 'font-semibold text-ink' : 'font-normal text-slate-400'}`}>
-          {selected ? selected.label : 'Faoliyat turi'}
+          {selected ? selected.label : t('Faoliyat turi')}
         </span>
         <ChevronDown className={`h-5 w-5 shrink-0 text-ink transition-transform duration-300 ${open ? 'rotate-180' : ''}`} strokeWidth={1.8} />
       </button>
@@ -490,7 +495,7 @@ function RoleSelect({ value, onChange }) {
       <ul
         id={listId}
         role="listbox"
-        aria-label="Faoliyat turi"
+        aria-label={t('Faoliyat turi')}
         className={`absolute inset-x-0 top-[calc(100%+8px)] z-40 origin-top rounded-[22px] bg-white p-2 shadow-[0_24px_48px_-12px_rgba(15,29,42,0.35)] ring-1 ring-black/5 transition duration-200 ease-out ${
           open ? 'visible scale-100 opacity-100' : 'invisible -translate-y-1 scale-[0.98] opacity-0'
         }`}
@@ -518,8 +523,8 @@ function RoleSelect({ value, onChange }) {
                 <Icon className="h-5 w-5" strokeWidth={1.9} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-bold text-ink 2xl:text-[16px]">{o.label}</span>
-                <span className="block truncate text-[12px] text-ink/60 2xl:text-[13px]">{o.hint}</span>
+                <span className="block text-[14px] font-bold text-ink 2xl:text-[16px]">{t(o.label)}</span>
+                <span className="block truncate text-[12px] text-ink/60 2xl:text-[13px]">{t(o.hint)}</span>
               </span>
               <Check className={`h-5 w-5 shrink-0 text-brand-dark transition-opacity ${isSel ? 'opacity-100' : 'opacity-0'}`} strokeWidth={2.4} />
             </li>
@@ -543,11 +548,11 @@ function JoinForm() {
   async function onSubmit(e) {
     e.preventDefault()
     if (name.trim().length < 2) {
-      setError('Ism va familiyangizni kiriting')
+      setError(t('Ism va familiyangizni kiriting'))
       return
     }
     if (!isCompletePhoneUz(phone)) {
-      setError('Telefon raqamini to‘liq kiriting')
+      setError(t('Telefon raqamini to‘liq kiriting'))
       return
     }
     setError('')
@@ -561,7 +566,7 @@ function JoinForm() {
       })
       setSent({ name: name.trim().split(' ')[0], phone })
     } catch (err) {
-      setError(err.message || 'Arizani yuborib bo‘lmadi. Qayta urinib ko‘ring.')
+      setError(err.message || t('Arizani yuborib bo‘lmadi. Qayta urinib ko‘ring.'))
     } finally {
       setSending(false)
     }
@@ -574,10 +579,9 @@ function JoinForm() {
           <span className="absolute inset-0 animate-ping rounded-full bg-white/50 [animation-duration:2.2s]" />
           <Check className="relative h-9 w-9" strokeWidth={3} />
         </span>
-        <h3 className="mt-7 text-[26px] font-extrabold tracking-tight text-ink 2xl:text-[32px]">Arizangiz qabul qilindi!</h3>
+        <h3 className="mt-7 text-[26px] font-extrabold tracking-tight text-ink 2xl:text-[32px]">{t('Arizangiz qabul qilindi!')}</h3>
         <p className="mt-3 max-w-[340px] text-[15px] leading-[1.55] text-ink/85 2xl:text-[17px]">
-          Rahmat, {sent.name}! Operatorimiz tez orada <b className="whitespace-nowrap font-extrabold text-ink">{sent.phone}</b> raqamiga qo‘ng‘iroq
-          qiladi.
+          {t('Rahmat,')}{' '}{t(sent.name)}{t('! Operatorimiz tez orada')}{' '}<b className="whitespace-nowrap font-extrabold text-ink">{sent.phone}</b> {t('raqamiga qo‘ng‘iroq qiladi.')}
         </p>
         <div className="mt-8 flex w-full flex-col gap-3">
           <Link
@@ -585,7 +589,7 @@ function JoinForm() {
             state={{ name, phone }}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1d2229] text-[13px] font-extrabold uppercase tracking-[0.05em] text-white transition hover:bg-black 2xl:h-14 2xl:text-[14px]"
           >
-            Hoziroq ilovaga kirish <ArrowRight className="h-4 w-4" />
+            {t('Hoziroq ilovaga kirish')}{' '}<ArrowRight className="h-4 w-4" />
           </Link>
           <button
             type="button"
@@ -598,7 +602,7 @@ function JoinForm() {
             }}
             className="text-[14px] font-bold text-ink/70 underline-offset-4 hover:text-ink hover:underline"
           >
-            Yana ariza yuborish
+            {t('Yana ariza yuborish')}
           </button>
         </div>
       </div>
@@ -607,34 +611,34 @@ function JoinForm() {
 
   return (
     <form onSubmit={onSubmit} className="relative z-10 min-w-0 rounded-[32px] bg-brand px-5 pb-8 pt-9 min-[400px]:px-6 sm:rounded-[40px] sm:px-9 sm:pb-10 sm:pt-11 2xl:px-12 2xl:pb-12 2xl:pt-14">
-      <h3 className="text-[24px] font-extrabold tracking-tight text-ink 2xl:text-[32px]">Ro‘yxatdan o‘tish</h3>
+      <h3 className="text-[24px] font-extrabold tracking-tight text-ink 2xl:text-[32px]">{t('Ro‘yxatdan o‘tish')}</h3>
       <p className="mt-2 text-[14px] leading-[1.45] text-ink/85 2xl:text-[17px]">
-        Oddiy formamizni to‘ldiring,
+        {t('Oddiy formamizni to‘ldiring,')}
         <br />
-        biz albatta siz bilan bog‘lanamiz!
+        {t('biz albatta siz bilan bog‘lanamiz!')}
       </p>
 
       <div className="mt-8 space-y-3.5">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ism familiya" autoComplete="name" aria-label="Ism familiya" className={FIELD} />
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Shahar" autoComplete="address-level2" aria-label="Shahar" className={FIELD} />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Ism familiya')} autoComplete="name" aria-label={t('Ism familiya')} className={FIELD} />
+        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('Shahar')} autoComplete="address-level2" aria-label={t('Shahar')} className={FIELD} />
         <label className={`${FIELD} flex items-center gap-1.5 focus-within:ring-2 focus-within:ring-ink/25`}>
           <span className={isCompletePhoneUz(phone) || phone.length > 5 ? 'text-ink' : 'text-slate-400'}>+998</span>
           <input
             value={maskLocalPhoneUz(phone)}
             onChange={(e) => setPhone(maskPhoneUz(e.target.value))}
-            placeholder="Telefon raqam"
+            placeholder={t('Telefon raqam')}
             type="tel"
             inputMode="numeric"
             autoComplete="tel"
             maxLength={12}
-            aria-label="Telefon raqam"
+            aria-label={t('Telefon raqam')}
             className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-400"
           />
         </label>
         <RoleSelect value={role} onChange={setRole} />
       </div>
 
-      {error ? <p className="mt-3 rounded-2xl bg-white/25 px-4 py-2 text-[13px] font-bold text-ink">{error}</p> : null}
+      {error ? <p className="mt-3 rounded-2xl bg-white/25 px-4 py-2 text-[13px] font-bold text-ink">{t(error)}</p> : null}
 
       <button
         type="submit"
@@ -642,7 +646,7 @@ function JoinForm() {
         className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1d2229] text-[12px] font-extrabold uppercase tracking-[0.06em] text-white transition hover:bg-black disabled:opacity-70 2xl:h-14 2xl:text-[14px]"
       >
         {sending ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
-        {sending ? 'Yuborilmoqda…' : 'Ariza yuborish'}
+        {sending ? t('Yuborilmoqda…') : t('Ariza yuborish')}
       </button>
     </form>
   )
@@ -688,9 +692,9 @@ export function Join() {
       <div className="grid grid-cols-[minmax(0,1fr)] gap-10 px-2 sm:px-6 lg:grid-cols-[1fr_minmax(0,460px)] lg:gap-14 lg:px-14 2xl:grid-cols-[1fr_minmax(0,560px)] 2xl:px-20">
         <div className="min-w-0">
           <h2 className="text-[34px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[44px] lg:text-[48px] 2xl:text-[64px]">
-            Haydovchi bo‘ling
+            {t('Haydovchi bo‘ling')}
             <br />
-            bugunoq!
+            {t('bugunoq!')}
           </h2>
           <Steps />
         </div>
@@ -704,7 +708,7 @@ export function Join() {
 function ScreenPhone({ src, alt, className = '' }) {
   return (
     <div className={`rounded-[30px] bg-white p-[5px] shadow-[0_30px_60px_rgba(0,0,0,0.45)] ${className}`}>
-      <img src={src} alt={alt} className="block w-full rounded-[26px]" draggable={false} />
+      <img src={src} alt={t(alt)} className="block w-full rounded-[26px]" draggable={false} />
     </div>
   )
 }
@@ -720,27 +724,27 @@ export function Earn() {
         <div className="relative grid lg:grid-cols-[1.15fr_1fr]">
           <div className="px-6 pt-12 sm:px-10 sm:pt-16 lg:px-14 lg:py-24 2xl:px-20 2xl:py-32">
             <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-tight sm:text-[44px] xl:text-[50px] 2xl:text-[66px]">
-              Kuniga 1 mln gacha
+              {t('Kuniga 1 mln gacha')}
               <br />
               <span className="whitespace-nowrap">
-                ishlang{' '}
+                {t('ishlang')}{' '}
                 <span className="relative -top-1.5 ml-1 inline-block rounded-[10px] bg-brand px-4 py-1.5 align-middle text-[13px] font-bold tracking-normal text-ink sm:text-[15px]">
-                  kuryerlarga
+                  {t('kuryerlarga')}
                 </span>
               </span>
             </h2>
             <p className="mt-4 max-w-[520px] text-[15px] leading-[1.5] text-white/85 sm:text-[17px] 2xl:max-w-[640px] 2xl:text-[21px]">
-              Mijozlardan kichik yuk va posilkalarni o‘zingizga qulay transportda TaxiLine Pochta bilan yetkazing
+              {t('Mijozlardan kichik yuk va posilkalarni o‘zingizga qulay transportda TaxiLine Pochta bilan yetkazing')}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {[
                 { icon: Car, label: 'mashina' },
                 { icon: Bike, label: 'velosiped' },
-                { icon: Truck, label: 'yuk mashina' },
+                { icon: Truck, label: t('yuk mashina') },
               ].map(({ icon: Icon, label }) => (
                 <span key={label} className="flex h-11 items-center gap-2.5 rounded-[12px] bg-white/[0.08] px-4 text-[13px] font-semibold">
                   <Icon className="h-5 w-5" strokeWidth={1.8} />
-                  {label}
+                  {t(label)}
                 </span>
               ))}
             </div>
@@ -748,7 +752,7 @@ export function Earn() {
               to="/register"
               className="mt-10 inline-flex items-center gap-4 text-[13px] font-extrabold uppercase tracking-[0.06em] text-brand transition-[gap] hover:gap-5"
             >
-              Batafsil bilish
+              {t('Batafsil bilish')}
               <svg viewBox="0 0 36 12" className="h-3 w-9" aria-hidden="true">
                 <path d="M0 6h33M28 1l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.8" />
               </svg>
@@ -757,10 +761,10 @@ export function Earn() {
 
           <div className="relative h-[420px] sm:h-[480px] lg:h-auto">
             <div className="absolute left-[44%] top-12 rotate-[9deg] sm:left-[46%] lg:left-[40%] lg:top-14">
-              <ScreenPhone src="/landing/app-login.webp" alt="TaxiLine — kirish ekrani" className="w-[190px] sm:w-[230px] 2xl:w-[290px]" />
+              <ScreenPhone src="/landing/app-login.webp" alt={t('TaxiLine — kirish ekrani')} className="w-[190px] sm:w-[230px] 2xl:w-[290px]" />
             </div>
             <div className="absolute left-[6%] top-6 rotate-[4deg] sm:left-[14%] lg:left-0 lg:top-8">
-              <ScreenPhone src="/landing/app-delivery.webp" alt="TaxiLine — yetkazib berish ekrani" className="w-[200px] sm:w-[240px] 2xl:w-[300px]" />
+              <ScreenPhone src="/landing/app-delivery.webp" alt={t('TaxiLine — yetkazib berish ekrani')} className="w-[200px] sm:w-[240px] 2xl:w-[300px]" />
             </div>
           </div>
         </div>
@@ -779,7 +783,7 @@ function InfoCard({ title, children, art }) {
   return (
     <article className="relative flex min-h-[150px] items-center overflow-hidden rounded-[24px] bg-[#f3f4f6] py-6 pl-6 pr-[130px] sm:min-h-[170px] sm:rounded-[28px] sm:py-8 sm:pl-9 sm:pr-[200px] 2xl:min-h-[210px] 2xl:pr-[250px]">
       <div className="relative z-10">
-        <h3 className="text-[21px] font-extrabold leading-tight tracking-tight text-ink sm:text-[26px] 2xl:text-[32px]">{title}</h3>
+        <h3 className="text-[21px] font-extrabold leading-tight tracking-tight text-ink sm:text-[26px] 2xl:text-[32px]">{t(title)}</h3>
         <div className="mt-2 text-[14px] leading-[1.5] text-ink/85 sm:text-[15px] 2xl:text-[18px]">{children}</div>
       </div>
       <div className="pointer-events-none absolute right-3 top-1/2 w-[120px] -translate-y-1/2 sm:right-5 sm:w-[180px] 2xl:w-[220px]">{art}</div>
@@ -792,13 +796,13 @@ function ServiceCard({ title, text, art }) {
     <article className="relative flex min-h-[220px] flex-col justify-center overflow-hidden rounded-[24px] bg-brand py-7 pl-6 pr-[140px] sm:min-h-[250px] sm:rounded-[28px] sm:py-9 sm:pl-9 sm:pr-[230px] lg:flex-1 2xl:pr-[290px]">
       <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
       <div className="relative z-10">
-        <h3 className="text-[22px] font-extrabold leading-tight tracking-tight text-ink sm:text-[28px] 2xl:text-[34px]">{title}</h3>
-        <p className="mt-2 max-w-[260px] text-[14px] leading-[1.5] text-ink/85 sm:text-[15px] 2xl:max-w-[320px] 2xl:text-[18px]">{text}</p>
+        <h3 className="text-[22px] font-extrabold leading-tight tracking-tight text-ink sm:text-[28px] 2xl:text-[34px]">{t(title)}</h3>
+        <p className="mt-2 max-w-[260px] text-[14px] leading-[1.5] text-ink/85 sm:text-[15px] 2xl:max-w-[320px] 2xl:text-[18px]">{t(text)}</p>
         <Link
           to="/register"
           className="mt-6 inline-flex h-11 items-center rounded-full bg-white px-7 text-[13px] font-bold text-ink shadow-[0_6px_16px_rgba(15,29,42,0.12)] transition hover:bg-ink hover:text-white 2xl:h-12 2xl:px-8 2xl:text-[15px]"
         >
-          maxsus tartib
+          {t('maxsus tartib')}
         </Link>
       </div>
       <div className="pointer-events-none absolute right-2 top-1/2 w-[140px] -translate-y-1/2 sm:right-4 sm:w-[220px] 2xl:w-[270px]">{art}</div>
@@ -852,21 +856,20 @@ export function Business() {
       <div className="grid gap-5 px-2 sm:px-6 lg:grid-cols-[1.08fr_1fr] lg:gap-6 lg:px-14 2xl:px-20">
         <div className="flex flex-col gap-5 lg:gap-6">
           <div className="pb-2 lg:pb-6">
-            <h2 className="text-[36px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">Biznes</h2>
+            <h2 className="text-[36px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">{t('Biznes')}</h2>
             <p className="mt-4 max-w-[540px] text-[15px] leading-[1.5] text-ink/85 sm:text-[17px] 2xl:max-w-[640px] 2xl:text-[20px]">
-              Jamoamiz Biznes tarifiga ulanishingizga yordam beradi va mijozlarimiz uchun foydali tayyorgarlik
-              jarayonlarini o‘tkazadi
+              {t('Jamoamiz Biznes tarifiga ulanishingizga yordam beradi va mijozlarimiz uchun foydali tayyorgarlik jarayonlarini o‘tkazadi')}
             </p>
           </div>
 
-          <InfoCard title="Savollar bo‘yicha qo‘ng‘iroq qiling" art={<img src="/empty/messages.webp" alt="" className="w-full" />}>
-            Jamoamiz doim mijozlar bilan aloqada!
+          <InfoCard title={t('Savollar bo‘yicha qo‘ng‘iroq qiling')} art={<img src="/empty/messages.webp" alt="" className="w-full" />}>
+            {t('Jamoamiz doim mijozlar bilan aloqada!')}
             <br />
             {OFFICE.phones.map((p, i) => (
               <span key={p.href}>
                 {i ? ', ' : null}
                 <a href={p.href} className="font-bold text-ink underline underline-offset-2 hover:text-brand-dark">
-                  {p.label}
+                  {t(p.label)}
                 </a>
               </span>
             ))}
@@ -875,13 +878,13 @@ export function Business() {
 
         <div className="flex flex-col gap-5 lg:gap-6">
           <ServiceCard
-            title="Avtomobil ko‘rigi"
-            text="Jamoamiz Biznes tarifiga ulanishingizga yordam beradi"
+            title={t('Avtomobil ko‘rigi')}
+            text={t('Jamoamiz Biznes tarifiga ulanishingizga yordam beradi')}
             art={<InspectionArt />}
           />
           <ServiceCard
-            title="Studiyada fotosurat"
-            text="Profilingiz uchun professional surat — Biznes tarifiga ulanishda"
+            title={t('Studiyada fotosurat')}
+            text={t('Profilingiz uchun professional surat — Biznes tarifiga ulanishda')}
             art={<PhotoArt />}
           />
         </div>
@@ -929,17 +932,17 @@ function PromoCard({ promo, active, onSelect }) {
       }`}
     >
       <span className="self-start rounded-full bg-white px-4 py-2 text-[12px] font-semibold shadow-[0_2px_6px_rgba(15,29,42,0.06)] 2xl:text-[14px]">
-        {promo.period}
+        {t(promo.period)}
       </span>
 
-      <h3 className="mt-7 text-[22px] font-extrabold tracking-tight 2xl:text-[27px]">Bizdan sovg‘alar</h3>
+      <h3 className="mt-7 text-[22px] font-extrabold tracking-tight 2xl:text-[27px]">{t('Bizdan sovg‘alar')}</h3>
       <ol className="mt-4 space-y-3 text-[14px] 2xl:text-[16px]">
         {promo.prizes.map((p, i) => (
           <li key={p.place} className="flex items-start gap-3">
             <span className="mt-[1px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[12px] font-bold">{i + 1}</span>
             <span className="leading-[1.45]">
-              {p.place} — <b className="font-extrabold">{p.reward}</b>
-              {p.tail ? ` ${p.tail}` : null}
+              {t(p.place)} — <b className="font-extrabold">{t(p.reward)}</b>
+              {p.tail ? ` ${t(p.tail)}` : null}
             </span>
           </li>
         ))}
@@ -947,9 +950,9 @@ function PromoCard({ promo, active, onSelect }) {
 
       <hr className={`my-7 ${active ? 'border-ink/20' : 'border-ink/10'}`} />
 
-      <h3 className="text-[22px] font-extrabold tracking-tight 2xl:text-[27px]">Shartlar</h3>
+      <h3 className="text-[22px] font-extrabold tracking-tight 2xl:text-[27px]">{t('Shartlar')}</h3>
       <p className="mt-3 text-[14px] leading-[1.5] text-ink/80 2xl:text-[16px]">
-        {promo.terms} <b className="font-extrabold text-ink">{promo.termsBold}</b>
+        {t(promo.terms)} <b className="font-extrabold text-ink">{t(promo.termsBold)}</b>
       </p>
 
       <div className="min-h-8 flex-1" />
@@ -959,7 +962,7 @@ function PromoCard({ promo, active, onSelect }) {
             active ? 'bg-white/60 text-ink/60' : 'bg-white text-ink/50'
           }`}
         >
-          Tez orada
+          {t('Tez orada')}
         </span>
       ) : (
         <Link
@@ -970,7 +973,7 @@ function PromoCard({ promo, active, onSelect }) {
             active ? 'bg-[#1d2229] text-white hover:bg-black' : 'bg-white text-ink'
           }`}
         >
-          Ishtirok etish!
+          {t('Ishtirok etish!')}
         </Link>
       )}
     </article>
@@ -1091,7 +1094,7 @@ export function Promotions() {
       ref={sectionRef}
       id="promos"
       aria-roledescription="karusel"
-      aria-label="Aksiyalar"
+      aria-label={t('Aksiyalar')}
       className="mx-auto max-w-[1600px] scroll-mt-24 pb-20"
     >
       <div className="px-5 sm:px-12 lg:px-20 2xl:px-24">
@@ -1104,11 +1107,11 @@ export function Promotions() {
               aria-haspopup="listbox"
               className="flex items-center gap-2 text-[36px] font-extrabold leading-none tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]"
             >
-              Aksiyalar
+              {t('Aksiyalar')}
               <ChevronDown className={`mt-1 h-7 w-7 transition-transform duration-300 sm:h-8 sm:w-8 ${menuOpen ? 'rotate-180' : ''}`} strokeWidth={1.8} />
             </button>
           ) : (
-            <h2 className="text-[36px] font-extrabold leading-none tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">Aksiyalar</h2>
+            <h2 className="text-[36px] font-extrabold leading-none tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">{t('Aksiyalar')}</h2>
           )}
           {menuOpen && PROMO_HAS_FILTER ? (
             <div role="listbox" className="absolute left-0 top-full z-30 mt-3 w-52 rounded-2xl bg-white p-2 shadow-[0_20px_40px_rgba(15,29,42,0.16)] ring-1 ring-black/5">
@@ -1123,7 +1126,7 @@ export function Promotions() {
                     filter === f.id ? 'text-brand-dark' : 'text-ink'
                   }`}
                 >
-                  {f.label}
+                  {t(f.label)}
                   {filter === f.id ? <Check className="h-4 w-4" /> : null}
                 </button>
               ))}
@@ -1159,10 +1162,10 @@ export function Promotions() {
 
         {loop ? (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Oldingi aksiya" className={`${arrow} hidden sm:flex left-[calc(50%-var(--w)/2-var(--g)/2)]`}>
+            <button type="button" onClick={() => go(-1)} aria-label={t('Oldingi aksiya')} className={`${arrow} hidden sm:flex left-[calc(50%-var(--w)/2-var(--g)/2)]`}>
               <ArrowLeft className="h-5 w-5" strokeWidth={2} />
             </button>
-            <button type="button" onClick={() => go(1)} aria-label="Keyingi aksiya" className={`${arrow} hidden sm:flex left-[calc(50%+var(--w)/2+var(--g)/2)]`}>
+            <button type="button" onClick={() => go(1)} aria-label={t('Keyingi aksiya')} className={`${arrow} hidden sm:flex left-[calc(50%+var(--w)/2+var(--g)/2)]`}>
               <ArrowRight className="h-5 w-5" strokeWidth={2} />
             </button>
           </>
@@ -1171,7 +1174,7 @@ export function Promotions() {
 
       {loop ? (
         <div className="-mt-8 flex items-center justify-center gap-4">
-          <button type="button" onClick={() => go(-1)} aria-label="Oldingi aksiya" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f4f6] text-ink sm:hidden">
+          <button type="button" onClick={() => go(-1)} aria-label={t('Oldingi aksiya')} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f4f6] text-ink sm:hidden">
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2">
@@ -1199,7 +1202,7 @@ export function Promotions() {
               </button>
             ))}
           </div>
-          <button type="button" onClick={() => go(1)} aria-label="Keyingi aksiya" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f4f6] text-ink sm:hidden">
+          <button type="button" onClick={() => go(1)} aria-label={t('Keyingi aksiya')} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f4f6] text-ink sm:hidden">
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -1253,10 +1256,10 @@ function StatusRow({ done, title, hint, action }) {
         {done ? <Check className="h-[18px] w-[18px]" strokeWidth={3} /> : <span className="h-2 w-2 rounded-full bg-current" />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold text-ink 2xl:text-[17px]">{title}</span>
-        <span className={`block text-[12.5px] 2xl:text-[14px] ${done ? 'text-brand-dark' : 'text-ink/55'}`}>{hint}</span>
+        <span className="block text-[15px] font-bold text-ink 2xl:text-[17px]">{t(title)}</span>
+        <span className={`block text-[12.5px] 2xl:text-[14px] ${done ? 'text-brand-dark' : 'text-ink/55'}`}>{t(hint)}</span>
       </span>
-      {done || !action ? null : <span className="w-full pl-[50px] sm:w-auto sm:pl-0">{action}</span>}
+      {done || !action ? null : <span className="w-full pl-[50px] sm:w-auto sm:pl-0">{t(action)}</span>}
     </li>
   )
 }
@@ -1302,11 +1305,11 @@ export function RandomClient() {
   async function onSubmit(e) {
     e.preventDefault()
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
-      setError('Ism va familiyangizni to‘liq kiriting')
+      setError(t('Ism va familiyangizni to‘liq kiriting'))
       return
     }
     if (!isCompletePhoneUz(phone)) {
-      setError('Telefon raqamini to‘liq kiriting')
+      setError(t('Telefon raqamini to‘liq kiriting'))
       return
     }
     setError('')
@@ -1321,7 +1324,7 @@ export function RandomClient() {
       setToken(res.token)
       setStatus(res.status)
     } catch (err) {
-      setError(err.message || 'Yuborib bo‘lmadi, qayta urinib ko‘ring')
+      setError(err.message || t('Yuborib bo‘lmadi, qayta urinib ko‘ring'))
     } finally {
       setSubmitting(false)
     }
@@ -1362,13 +1365,13 @@ export function RandomClient() {
         <div className="relative grid gap-10 px-6 py-12 sm:px-10 sm:py-16 lg:grid-cols-[1fr_minmax(0,500px)] lg:gap-14 lg:px-14 lg:py-20 2xl:grid-cols-[1fr_minmax(0,600px)] 2xl:px-20 2xl:py-24">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-semibold text-brand ring-1 ring-white/10">
-              <Gift className="h-4 w-4" /> Sovg‘ali o‘yin
+              <Gift className="h-4 w-4" /> {t('Sovg‘ali o‘yin')}
             </span>
             <h2 className="mt-5 text-[38px] font-extrabold leading-[1.05] tracking-tight sm:text-[50px] 2xl:text-[66px]">
-              {s?.title || 'Random mijoz'}
+              {s?.title || t('Random mijoz')}
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.55] text-white/75 sm:text-[18px] 2xl:max-w-[640px] 2xl:text-[21px]">
-              {s?.prizeText || 'Tasodifiy tanlangan mijozlarimizning borish yoki qaytish yo‘l haqini TaxiLine to‘lab beradi!'}
+              {s?.prizeText || t('Tasodifiy tanlangan mijozlarimizning borish yoki qaytish yo‘l haqini TaxiLine to‘lab beradi!')}
             </p>
 
             <ol className="mt-9 space-y-5">
@@ -1381,15 +1384,15 @@ export function RandomClient() {
                     </span>
                   </span>
                   <span>
-                    <span className="block text-[16px] font-bold sm:text-[17px] 2xl:text-[20px]">{title}</span>
-                    <span className="mt-0.5 block text-[14px] text-white/60 2xl:text-[16px]">{text}</span>
+                    <span className="block text-[16px] font-bold sm:text-[17px] 2xl:text-[20px]">{t(title)}</span>
+                    <span className="mt-0.5 block text-[14px] text-white/60 2xl:text-[16px]">{t(text)}</span>
                   </span>
                 </li>
               ))}
             </ol>
             <p className="mt-8 flex items-start gap-2 text-[13px] leading-[1.5] text-white/50 2xl:text-[15px]">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-              G‘olib tanlanishidan oldin obuna qayta tekshiriladi — obunani bekor qilganlar ishtirokdan chiqadi.
+              {t('G‘olib tanlanishidan oldin obuna qayta tekshiriladi — obunani bekor qilganlar ishtirokdan chiqadi.')}
             </p>
           </div>
 
@@ -1400,33 +1403,33 @@ export function RandomClient() {
                 <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f3f4f6]">
                   <Clock className="h-6 w-6 text-ink/60" />
                 </span>
-                <h3 className="mt-4 text-[22px] font-extrabold">Qabul vaqtincha yopiq</h3>
-                <p className="mt-2 text-[14px] text-ink/60">Keyingi o‘yin haqida Telegram kanalimizda e’lon qilamiz.</p>
+                <h3 className="mt-4 text-[22px] font-extrabold">{t('Qabul vaqtincha yopiq')}</h3>
+                <p className="mt-2 text-[14px] text-ink/60">{t('Keyingi o‘yin haqida Telegram kanalimizda e’lon qilamiz.')}</p>
                 {s?.channelUrl ? (
                   <a href={s.channelUrl} target="_blank" rel="noopener noreferrer" className={`${smallBtn} mt-5`}>
-                    <Send className="h-4 w-4" /> Kanalga o‘tish
+                    <Send className="h-4 w-4" /> {t('Kanalga o‘tish')}
                   </a>
                 ) : null}
               </div>
             ) : !status ? (
               <form onSubmit={onSubmit} noValidate>
-                <h3 className="text-[24px] font-extrabold tracking-tight 2xl:text-[30px]">Ishtirok etish</h3>
-                <p className="mt-1.5 text-[14px] text-ink/60 2xl:text-[16px]">Ma’lumotlaringiz faqat g‘olibni aniqlash uchun ishlatiladi.</p>
+                <h3 className="text-[24px] font-extrabold tracking-tight 2xl:text-[30px]">{t('Ishtirok etish')}</h3>
+                <p className="mt-1.5 text-[14px] text-ink/60 2xl:text-[16px]">{t('Ma’lumotlaringiz faqat g‘olibni aniqlash uchun ishlatiladi.')}</p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <input
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Ism"
+                    placeholder={t('Ism')}
                     autoComplete="given-name"
-                    aria-label="Ism"
+                    aria-label={t('Ism')}
                     className={`${FIELD_SOFT}`}
                   />
                   <input
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Familiya"
+                    placeholder={t('Familiya')}
                     autoComplete="family-name"
-                    aria-label="Familiya"
+                    aria-label={t('Familiya')}
                     className={`${FIELD_SOFT}`}
                   />
                   <label className={`${FIELD_SOFT} flex items-center gap-1.5 focus-within:ring-2 focus-within:ring-ink/25 sm:col-span-2`}>
@@ -1434,25 +1437,25 @@ export function RandomClient() {
                     <input
                       value={maskLocalPhoneUz(phone)}
                       onChange={(e) => setPhone(maskPhoneUz(e.target.value))}
-                      placeholder="Telefon raqam"
+                      placeholder={t('Telefon raqam')}
                       type="tel"
                       inputMode="numeric"
                       autoComplete="tel"
                       maxLength={12}
-                      aria-label="Telefon raqam"
+                      aria-label={t('Telefon raqam')}
                       className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-400"
                     />
                   </label>
                 </div>
-                {error ? <p className="mt-3 rounded-2xl bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">{error}</p> : null}
+                {error ? <p className="mt-3 rounded-2xl bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-600">{t(error)}</p> : null}
                 <button
                   type="submit"
                   disabled={submitting}
                   className="mt-6 flex h-13 w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-[14px] font-extrabold uppercase tracking-[0.04em] text-ink shadow-[0_12px_26px_-8px_rgba(0,199,212,0.7)] transition hover:bg-[#00b6c2] disabled:opacity-60 2xl:py-4 2xl:text-[16px]"
                 >
-                  {submitting ? 'Yuborilmoqda…' : 'Ishtirok etish'} <ArrowRight className="h-4 w-4" />
+                  {submitting ? t('Yuborilmoqda…') : t('Ishtirok etish')} <ArrowRight className="h-4 w-4" />
                 </button>
-                <p className="mt-4 text-center text-[12px] text-ink/45">Tugmani bosish orqali o‘yin shartlariga rozilik bildirasiz</p>
+                <p className="mt-4 text-center text-[12px] text-ink/45">{t('Tugmani bosish orqali o‘yin shartlariga rozilik bildirasiz')}</p>
               </form>
             ) : status.eligible ? (
               <div className="py-4 text-center">
@@ -1460,43 +1463,43 @@ export function RandomClient() {
                   <span className="absolute inset-0 animate-ping rounded-full bg-brand/40 [animation-duration:2.4s]" />
                   <PartyPopper className="relative h-9 w-9" />
                 </span>
-                <h3 className="mt-6 text-[26px] font-extrabold tracking-tight 2xl:text-[32px]">Siz ishtirokchisiz, {status.firstName}!</h3>
+                <h3 className="mt-6 text-[26px] font-extrabold tracking-tight 2xl:text-[32px]">{t('Siz ishtirokchisiz,')}{' '}{status.firstName}!</h3>
                 <p className="mx-auto mt-2 max-w-[360px] text-[14px] leading-[1.55] text-ink/60 2xl:text-[16px]">
-                  Barcha shartlar bajarildi. G‘oliblar e’lon qilinganda Telegram orqali xabar beramiz. Omad!
+                  {t('Barcha shartlar bajarildi. G‘oliblar e’lon qilinganda Telegram orqali xabar beramiz. Omad!')}
                 </p>
                 <ul className="mt-6 space-y-2 text-left">
-                  <StatusRow done title="Telegram bot" hint="Ulandi" />
-                  {requires.channel ? <StatusRow done title="Telegram kanal" hint="Obuna bo‘lgansiz" /> : null}
-                  {requires.group ? <StatusRow done title="Telegram guruh" hint="A’zosiz" /> : null}
+                  <StatusRow done title={t('Telegram bot')} hint={t('Ulandi')} />
+                  {requires.channel ? <StatusRow done title={t('Telegram kanal')} hint={t('Obuna bo‘lgansiz')} /> : null}
+                  {requires.group ? <StatusRow done title={t('Telegram guruh')} hint={t('A’zosiz')} /> : null}
                 </ul>
                 <button type="button" onClick={reset} className="mt-5 text-[13px] font-semibold text-ink/45 underline-offset-2 hover:text-ink hover:underline">
-                  Boshqa raqam bilan qatnashish
+                  {t('Boshqa raqam bilan qatnashish')}
                 </button>
               </div>
             ) : (
               <div>
-                <h3 className="text-[24px] font-extrabold tracking-tight 2xl:text-[30px]">Deyarli tayyor, {status.firstName}!</h3>
-                <p className="mt-1.5 text-[14px] text-ink/60 2xl:text-[16px]">Ishtirokchi bo‘lish uchun quyidagi shartlarni bajaring:</p>
+                <h3 className="text-[24px] font-extrabold tracking-tight 2xl:text-[30px]">{t('Deyarli tayyor,')}{' '}{status.firstName}!</h3>
+                <p className="mt-1.5 text-[14px] text-ink/60 2xl:text-[16px]">{t('Ishtirokchi bo‘lish uchun quyidagi shartlarni bajaring:')}</p>
                 <ul className="mt-6 space-y-2.5">
                   <StatusRow
                     done={status.linked}
-                    title="Telegram botga ulanish"
-                    hint={status.linked ? 'Ulandi' : 'Botda «Start»ni bosing'}
+                    title={t('Telegram botga ulanish')}
+                    hint={status.linked ? t('Ulandi') : t('Botda «Start»ni bosing')}
                     action={
                       <a href={botUrl} target="_blank" rel="noopener noreferrer" className={smallBtn}>
-                        <Send className="h-3.5 w-3.5" /> Botni ochish
+                        <Send className="h-3.5 w-3.5" /> {t('Botni ochish')}
                       </a>
                     }
                   />
                   {requires.channel ? (
                     <StatusRow
                       done={status.channelMember === true}
-                      title="Telegram kanal"
-                      hint={status.channelMember === true ? 'Obuna bo‘lgansiz' : 'Kanalga obuna bo‘ling'}
+                      title={t('Telegram kanal')}
+                      hint={status.channelMember === true ? t('Obuna bo‘lgansiz') : t('Kanalga obuna bo‘ling')}
                       action={
                         s?.channelUrl ? (
                           <a href={s.channelUrl} target="_blank" rel="noopener noreferrer" className={smallBtn}>
-                            Obuna bo‘lish
+                            {t('Obuna bo‘lish')}
                           </a>
                         ) : null
                       }
@@ -1505,12 +1508,12 @@ export function RandomClient() {
                   {requires.group ? (
                     <StatusRow
                       done={status.groupMember === true}
-                      title="Telegram guruh"
-                      hint={status.groupMember === true ? 'A’zosiz' : 'Guruhga qo‘shiling'}
+                      title={t('Telegram guruh')}
+                      hint={status.groupMember === true ? t('A’zosiz') : t('Guruhga qo‘shiling')}
                       action={
                         s?.groupUrl ? (
                           <a href={s.groupUrl} target="_blank" rel="noopener noreferrer" className={smallBtn}>
-                            Qo‘shilish
+                            {t('Qo‘shilish')}
                           </a>
                         ) : null
                       }
@@ -1524,17 +1527,17 @@ export function RandomClient() {
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-full border border-ink/15 py-3.5 text-[14px] font-bold text-ink transition hover:bg-[#f3f4f6] disabled:opacity-50 2xl:text-[16px]"
                 >
                   <RefreshCw className={`h-4 w-4 ${checking ? 'animate-spin' : ''}`} />
-                  {checking ? 'Tekshirilmoqda…' : 'Qayta tekshirish'}
+                  {checking ? t('Tekshirilmoqda…') : t('Qayta tekshirish')}
                 </button>
                 <p className="mt-3 flex items-center justify-center gap-2 text-[12px] text-ink/45">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-70" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
                   </span>
-                  Holat avtomatik yangilanadi
+                  {t('Holat avtomatik yangilanadi')}
                 </p>
                 <button type="button" onClick={reset} className="mx-auto mt-3 block text-[12.5px] font-semibold text-ink/40 hover:text-ink hover:underline">
-                  Boshqa raqam bilan qatnashish
+                  {t('Boshqa raqam bilan qatnashish')}
                 </button>
               </div>
             )}
@@ -1557,7 +1560,7 @@ export function FaqItem({ item, open, onToggle, id }) {
           id={`${id}-btn`}
           className="flex w-full items-center justify-between gap-6 py-6 text-left sm:py-7 2xl:py-8"
         >
-          <span className="text-[18px] font-extrabold leading-snug tracking-tight text-ink sm:text-[22px] 2xl:text-[27px]">{item.q}</span>
+          <span className="text-[18px] font-extrabold leading-snug tracking-tight text-ink sm:text-[22px] 2xl:text-[27px]">{t(item.q)}</span>
           <span
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300 2xl:h-12 2xl:w-12 ${
               open ? 'bg-brand text-ink' : 'bg-[#f0f1f3] text-ink hover:bg-[#e6e8eb]'
@@ -1579,7 +1582,7 @@ export function FaqItem({ item, open, onToggle, id }) {
       >
         <div className="overflow-hidden">
           <p className="max-w-[820px] pb-7 pr-14 text-[15px] leading-[1.6] text-ink/80 sm:text-[16px] 2xl:max-w-[1000px] 2xl:text-[19px]">
-            {item.a}
+            {t(item.a)}
           </p>
         </div>
       </div>
@@ -1593,7 +1596,7 @@ export function Faq() {
     <section id="faq" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="px-2 sm:px-6 lg:px-14 2xl:px-20">
         <h2 className="text-[36px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">
-          Ko‘p so‘raladigan savollar
+          {t('Ko‘p so‘raladigan savollar')}
         </h2>
         <div className="mt-6 sm:mt-8">
           {faqs.map((item, i) => (
@@ -1614,8 +1617,8 @@ export default function Landing() {
   // Boshqa sahifadan /#bo‘lim havolasi bilan kelinganda — bo‘lim chizilgach unga aylantiramiz.
   useEffect(() => {
     if (!hash) return undefined
-    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' }), 150)
+    return () => clearTimeout(timer)
   }, [hash])
 
   if (status === 'authed' && authUser) {

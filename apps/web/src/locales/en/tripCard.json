@@ -1,9 +1,0 @@
-{
-  "completed": "Completed",
-  "newDriver": "New",
-  "seatsCount_one": "{{count}} seat",
-  "seatsCount_other": "{{count}} seats",
-  "luggageCount_one": "{{count}} bag",
-  "luggageCount_other": "{{count}} bags",
-  "bookSeat": "Book a seat"
-}

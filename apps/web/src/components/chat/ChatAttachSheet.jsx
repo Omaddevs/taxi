@@ -6,12 +6,13 @@ import { BaseTiles } from '../map/BaseTiles'
 import { reverseGeocode } from '../../lib/geocode'
 import { useApp } from '../../context/AppContext'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 function MapSync({ center }) {
   const map = useMap()
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize(), 80)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => map.invalidateSize(), 80)
+    return () => clearTimeout(timer)
   }, [map])
   useEffect(() => {
     if (center) map.setView([center.lat, center.lng], Math.max(map.getZoom(), 16))
@@ -58,12 +59,12 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
       ? { lat: gpsFix.lat, lng: gpsFix.lng }
       : await new Promise((resolve, reject) => {
           if (!navigator.geolocation) {
-            reject(new Error('GPS mavjud emas'))
+            reject(new Error(t('GPS mavjud emas')))
             return
           }
           navigator.geolocation.getCurrentPosition(
             (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
-            () => reject(new Error('Joylashuv ruxsati berilmadi')),
+            () => reject(new Error(t('Joylashuv ruxsati berilmadi'))),
             { enableHighAccuracy: true, timeout: 8000 },
           )
         }).catch((err) => {
@@ -103,11 +104,11 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
             type="button"
             onClick={() => setPicking(false)}
             className="flex h-10 w-10 items-center justify-center rounded-full"
-            aria-label="Orqaga"
+            aria-label={t('Orqaga')}
           >
             <X className="h-5 w-5" />
           </button>
-          <p className="min-w-0 flex-1 truncate font-extrabold">Xaritadan tanlang</p>
+          <p className="min-w-0 flex-1 truncate font-extrabold">{t('Xaritadan tanlang')}</p>
         </header>
         <div className="relative min-h-0 flex-1">
           <MapContainer
@@ -124,7 +125,7 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
             <MapPin className="h-10 w-10 fill-brand drop-shadow" />
           </span>
           <p className="absolute inset-x-4 bottom-24 rounded-2xl bg-white/95 px-3 py-2 text-center text-xs font-semibold shadow">
-            {label || 'Xaritani siljiting'}
+            {label || t('Xaritani siljiting')}
           </p>
         </div>
         <div className="flex gap-2 px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
@@ -143,7 +144,7 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
             className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand text-sm font-extrabold text-white"
           >
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            Yuborish
+            {t('Yuborish')}
           </button>
         </div>
       </div>,
@@ -153,11 +154,11 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[11000]">
-      <button type="button" className="absolute inset-0 bg-ink/45" aria-label="Yopish" onClick={onClose} />
+      <button type="button" className="absolute inset-0 bg-ink/45" aria-label={t('Yopish')} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-white px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-200" />
-        <p className="mb-3 text-base font-extrabold">Lokatsiya yuborish</p>
-        {error ? <p className="mb-2 text-sm font-semibold text-red-500">{error}</p> : null}
+        <p className="mb-3 text-base font-extrabold">{t('Lokatsiya yuborish')}</p>
+        {error ? <p className="mb-2 text-sm font-semibold text-red-500">{t(error)}</p> : null}
         <button
           type="button"
           disabled={busy}
@@ -168,8 +169,8 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
             {busy ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
           </span>
           <span>
-            <span className="block text-sm font-extrabold">Mening joylashuvim</span>
-            <span className="block text-xs text-muted">GPS orqali yuborish</span>
+            <span className="block text-sm font-extrabold">{t('Mening joylashuvim')}</span>
+            <span className="block text-xs text-muted">{t('GPS orqali yuborish')}</span>
           </span>
         </button>
         <button
@@ -181,8 +182,8 @@ export function ChatAttachSheet({ onClose, onSendLocation }) {
             <MapPin className="h-5 w-5" />
           </span>
           <span>
-            <span className="block text-sm font-extrabold">Xaritadan tanlash</span>
-            <span className="block text-xs text-muted">Belgilab yuborish</span>
+            <span className="block text-sm font-extrabold">{t('Xaritadan tanlash')}</span>
+            <span className="block text-xs text-muted">{t('Belgilab yuborish')}</span>
           </span>
         </button>
       </div>

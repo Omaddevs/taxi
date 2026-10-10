@@ -202,7 +202,7 @@ model User {
   // and the row stays only so that history keeps its references (see people.service deletePerson).
   deletedAt        DateTime?
   telegramUsername String?
-  language         String? // 'uz' | 'ru' | 'en', set by taxiline-bot
+  language         String? // 'uz' | 'oz' (o‘zbek kirill, web only) | 'ru' | 'en', set by taxiline-bot or the web app
   signupSource     ChannelSource @default(WEBAPP)
   fromWebapp       Boolean       @default(false)
   fromBot          Boolean       @default(false)

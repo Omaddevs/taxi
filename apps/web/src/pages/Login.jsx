@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { homePathForRole } from '../lib/role'
 import { useSeo } from '../seo/useSeo'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
+import { t } from '../i18n'
 
 const POLL_INTERVAL_MS = 2000
 
@@ -54,7 +55,7 @@ export default function Login() {
   async function onRequestOtp(e) {
     e.preventDefault()
     if (!isCompletePhoneUz(phone)) {
-      setError('Raqam +998 XX XXX XX XX formatida, 9 xonali bo‘lishi kerak')
+      setError(t('Raqam +998 XX XXX XX XX formatida, 9 xonali bo‘lishi kerak'))
       return
     }
     setError('')
@@ -64,7 +65,7 @@ export default function Login() {
       setOtpRequestId(data.otpRequestId)
       setStep('code')
     } catch (err) {
-      setError(err.message || 'Kod yuborilmadi')
+      setError(err.message || t('Kod yuborilmadi'))
     } finally {
       setLoading(false)
     }
@@ -78,7 +79,7 @@ export default function Login() {
       const user = await verifyOtp(toE164Uz(phone), code, { intent: 'login' })
       navigate(homePathForRole(user), { replace: true })
     } catch (err) {
-      setError(err.message || 'Kod noto‘g‘ri')
+      setError(err.message || t('Kod noto‘g‘ri'))
     } finally {
       setLoading(false)
     }
@@ -86,7 +87,7 @@ export default function Login() {
 
   if (status === 'checking' || status === 'checking-telegram') {
     return (
-      <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+      <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">{t('Yuklanmoqda…')}</div>
     )
   }
 
@@ -100,11 +101,11 @@ export default function Login() {
     <AuthChrome>
       {step === 'phone' ? (
         <form onSubmit={onRequestOtp} className="flex flex-1 flex-col">
-          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Xush kelibsiz!</h1>
-          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">Telefon raqamingizni kiriting</p>
+          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">{t('Xush kelibsiz!')}</h1>
+          <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">{t('Telefon raqamingizni kiriting')}</p>
 
           <label className="relative mt-5 block">
-            <span className="absolute -top-2 left-3 z-10 bg-white px-1 text-[11px] font-bold text-brand">Telefon raqam</span>
+            <span className="absolute -top-2 left-3 z-10 bg-white px-1 text-[11px] font-bold text-brand">{t('Telefon raqam')}</span>
             <div
               className={`flex h-14 items-center gap-2 rounded-[16px] border-[1.5px] bg-white px-3 ${
                 phoneReady ? 'border-brand' : 'border-brand/50'
@@ -132,14 +133,14 @@ export default function Login() {
             </div>
           </label>
 
-          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{error}</p> : null}
+          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{t(error)}</p> : null}
           {notRegistered ? (
             <Link
               to="/register"
               state={{ phone }}
               className="mt-2 text-center text-[13px] font-extrabold text-brand"
             >
-              Ro‘yxatdan o‘tish
+              {t('Ro‘yxatdan o‘tish')}
             </Link>
           ) : null}
 
@@ -148,16 +149,16 @@ export default function Login() {
             disabled={loading || !phoneReady}
             className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
-            {loading ? 'Yuborilmoqda…' : 'Kod olish'}
+            {loading ? t('Yuborilmoqda…') : t('Kod olish')}
             <ArrowRight className="absolute right-5 h-5 w-5" />
           </button>
 
-          <GoogleAuthButton label="Google orqali kirish" divider />
+          <GoogleAuthButton label={t('Google orqali kirish')} divider />
 
           <p className="mt-auto pt-5 text-center text-[13px] text-muted">
-            Hisobingiz yo‘qmi?{' '}
+            {t('Hisobingiz yo‘qmi?')}{' '}
             <Link to="/register" state={{ phone }} className="font-extrabold text-brand">
-              Ro‘yxatdan o‘tish
+              {t('Ro‘yxatdan o‘tish')}
             </Link>
           </p>
         </form>
@@ -170,9 +171,9 @@ export default function Login() {
           >
             <ArrowLeft className="h-4 w-4" /> {phone}
           </button>
-          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">Tasdiqlash kodi</h1>
+          <h1 className="text-[20px] font-extrabold leading-7 tracking-tight">{t('Tasdiqlash kodi')}</h1>
           <p className="mt-1 text-[13px] leading-5 text-muted lg:mt-2 lg:text-[15px] lg:leading-6">
-            6 xonali kodni Telegram’dagi kirish botimizdan oling va shu yerga kiriting.
+            {t('6 xonali kodni Telegram’dagi kirish botimizdan oling va shu yerga kiriting.')}
           </p>
           <KirishBotButton start="kirish" />
           <input
@@ -182,13 +183,13 @@ export default function Login() {
             inputMode="numeric"
             className="mt-5 h-14 w-full rounded-[16px] border-[1.5px] border-brand/50 bg-white px-4 text-center text-[18px] font-extrabold tracking-[0.35em] outline-none focus:border-brand"
           />
-          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{error}</p> : null}
+          {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{t(error)}</p> : null}
           <button
             type="submit"
             disabled={loading || code.length !== 6}
             className="relative mt-4 flex h-[52px] w-full items-center justify-center rounded-full bg-brand text-[15px] font-extrabold text-ink shadow-[0_10px_22px_-6px_rgba(0,199,212,0.6)] transition hover:bg-[#00b6c2] active:scale-[0.99] disabled:bg-[#e9eef2] disabled:text-ink/35 disabled:shadow-none lg:h-14 lg:text-[16px]"
           >
-            {loading ? 'Tekshirilmoqda…' : 'Tasdiqlash'}
+            {loading ? t('Tekshirilmoqda…') : t('Tasdiqlash')}
             <ArrowRight className="absolute right-5 h-5 w-5" />
           </button>
         </form>

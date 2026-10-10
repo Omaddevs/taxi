@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ONLINE_PAYMENTS } from '../../lib/features'
 import { SoonBadge } from './SoonBadge'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 export function CoinIcon({ size = 28 }) {
   return (
@@ -43,7 +44,7 @@ export function CoinCard() {
       <div className="flex items-center gap-3">
         <CoinIcon size={46} />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Coin balans</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{t('Coin balans')}</p>
           <p className="truncate text-[24px] font-extrabold leading-tight">{coins}</p>
         </div>
         {ONLINE_PAYMENTS ? (
@@ -52,14 +53,14 @@ export function CoinCard() {
             className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 text-sm font-extrabold text-white shadow-sm shadow-brand/30"
           >
             <Plus className="h-4 w-4" strokeWidth={2.6} />
-            To‘ldirish
+            {t('To‘ldirish')}
           </Link>
         ) : (
           <SoonBadge className="px-3 py-1.5 text-xs" />
         )}
       </div>
       <p className="mt-3 rounded-2xl bg-canvas px-3 py-2 text-[11px] leading-snug text-muted">
-        Har safar va yoqilg‘i to‘lovidan coin yig‘iladi — keyin chegirmalarga almashtirasiz.
+        {t('Har safar va yoqilg‘i to‘lovidan coin yig‘iladi — keyin chegirmalarga almashtirasiz.')}
       </p>
     </div>
   )

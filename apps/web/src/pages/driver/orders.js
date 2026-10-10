@@ -1,4 +1,5 @@
 import { driverCode } from '../../lib/utils'
+import { t } from '../../i18n'
 import { orderInWorkRegions } from '../../data/regions'
 
 const SEAT_POSITION_LABEL = {
@@ -20,7 +21,7 @@ export function bookingToDriverOrder(b) {
     price: b.totalPrice,
     seats: b.seatsBooked,
     seatChips: (b.seats || []).map((s) => ({
-      label: SEAT_POSITION_LABEL[s.offerSeat?.position] || s.offerSeat?.position,
+      label: t(SEAT_POSITION_LABEL[s.offerSeat?.position]) || s.offerSeat?.position,
       gender: s.gender,
     })),
     status: b.status,
@@ -85,11 +86,11 @@ export function botToDriverOrder(o) {
     // What the passenger asked for — shown on the driver's order screen.
     details: {
       passengers: o.passengers,
-      seat: BOT_SEAT_LABEL[o.seat] || o.seat || null,
-      luggage: BOT_LUGGAGE_LABEL[o.luggageSize] || o.luggageSize || null,
+      seat: t(BOT_SEAT_LABEL[o.seat]) || o.seat || null,
+      luggage: t(BOT_LUGGAGE_LABEL[o.luggageSize]) || o.luggageSize || null,
       car: o.carBrand || null,
       note: o.contactNote || null,
-      source: BOT_SOURCE_LABEL[o.source] || null,
+      source: t(BOT_SOURCE_LABEL[o.source]) || null,
     },
     pickupLat: o.pickupLat,
     pickupLng: o.pickupLng,

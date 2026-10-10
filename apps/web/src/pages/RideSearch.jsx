@@ -5,6 +5,7 @@ import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { WomenOrderRibbon } from '../components/trip/OrderAudience'
 import { PopularTripsEmpty, RideDesktop } from '../components/ride/RideDesktop'
 import { useApp } from '../context/AppContext'
+import { t } from '../i18n'
 
 export default function RideSearch() {
   const { data: trips = [] } = useOffersSearch({})
@@ -13,11 +14,11 @@ export default function RideSearch() {
 
   return (
     <div>
-      <ScreenHeader title="Taxi chaqirish" subtitle="Qayerdan — qayerga" />
+      <ScreenHeader title={t('Taxi chaqirish')} subtitle={t('Qayerdan — qayerga')} />
 
       {/* Telefon va planshet: avvalgi forma */}
       <div className="lg:hidden">
-        <PageTitle title="Taxi chaqirish" subtitle="Shahar ichida va viloyatlararo" />
+        <PageTitle title={t('Taxi chaqirish')} subtitle={t('Shahar ichida va viloyatlararo')} />
         {women ? (
           <div className="mb-4 space-y-2">
             <WomenOrderRibbon />
@@ -26,7 +27,7 @@ export default function RideSearch() {
               onClick={() => setSearch((s) => ({ ...s, service: 'all' }))}
               className="text-xs font-bold text-muted underline underline-offset-2"
             >
-              Oddiy taxiga o‘tish
+              {t('Oddiy taxiga o‘tish')}
             </button>
           </div>
         ) : null}
@@ -42,7 +43,7 @@ export default function RideSearch() {
         <div className="mx-auto max-w-[1180px]">
           {trips.length ? <PopularTrips trips={trips.slice(0, 4)} /> : (
             <section>
-              <h2 className="mb-3 text-lg font-bold">Mashhur yo‘nalishlar</h2>
+              <h2 className="mb-3 text-lg font-bold">{t('Mashhur yo‘nalishlar')}</h2>
               <PopularTripsEmpty />
             </section>
           )}

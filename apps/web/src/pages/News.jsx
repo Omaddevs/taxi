@@ -5,6 +5,7 @@ import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/S
 import { CategoryChip, Meta, NEWS_CATEGORIES, NewsCard, NewsCardSkeleton, NewsCover } from '../components/news/newsUi'
 import { api } from '../lib/api'
 import { useSeo } from '../seo/useSeo'
+import { t } from '../i18n'
 
 const PAGE_SIZE = 9
 
@@ -19,13 +20,13 @@ function FeaturedPost({ post }) {
         <CategoryChip category={post.category} onDark className="absolute left-5 top-5" />
       </div>
       <div className="flex flex-col p-7 sm:p-10 2xl:p-14">
-        <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-brand-dark">Asosiy yangilik</span>
-        <h2 className="mt-3 text-[26px] font-extrabold leading-[1.15] tracking-tight text-ink sm:text-[34px] 2xl:text-[42px]">{post.title}</h2>
-        <p className="mt-4 line-clamp-4 text-[15px] leading-[1.6] text-ink/65 sm:text-[17px] 2xl:text-[19px]">{post.excerpt}</p>
+        <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-brand-dark">{t('Asosiy yangilik')}</span>
+        <h2 className="mt-3 text-[26px] font-extrabold leading-[1.15] tracking-tight text-ink sm:text-[34px] 2xl:text-[42px]">{t(post.title)}</h2>
+        <p className="mt-4 line-clamp-4 text-[15px] leading-[1.6] text-ink/65 sm:text-[17px] 2xl:text-[19px]">{t(post.excerpt)}</p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-4 pt-8">
           <Meta post={post} className="text-[14px]" />
           <span className="inline-flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-bold text-white transition group-hover:bg-black">
-            Batafsil o‘qish <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            {t('Batafsil o‘qish')}{' '}<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
@@ -71,15 +72,15 @@ export default function News() {
           <div aria-hidden="true" className="pointer-events-none absolute right-[18%] top-[30%] hidden h-48 w-48 rounded-full border-[26px] border-white/5 lg:block" />
           <div className="relative max-w-[640px]">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-semibold text-brand ring-1 ring-white/10">
-              <Newspaper className="h-4 w-4" /> TaxiLine yangiliklari
+              <Newspaper className="h-4 w-4" /> {t('TaxiLine yangiliklari')}
             </span>
-            <h1 className="mt-5 text-[40px] font-extrabold leading-[1.05] tracking-tight sm:text-[56px] 2xl:text-[72px]">Yangiliklar</h1>
+            <h1 className="mt-5 text-[40px] font-extrabold leading-[1.05] tracking-tight sm:text-[56px] 2xl:text-[72px]">{t('Yangiliklar')}</h1>
             <p className="mt-4 text-[16px] leading-[1.55] text-white/70 sm:text-[18px] 2xl:text-[21px]">
-              Yangi xizmatlar, ilova yangilanishlari, aksiyalar va haydovchilar uchun muhim e’lonlar — barchasi bir joyda.
+              {t('Yangi xizmatlar, ilova yangilanishlari, aksiyalar va haydovchilar uchun muhim e’lonlar — barchasi bir joyda.')}
             </p>
           </div>
 
-          <div role="tablist" aria-label="Kategoriyalar" className="no-scrollbar relative -mx-6 mt-9 flex gap-2 overflow-x-auto px-6 sm:mx-0 sm:flex-wrap sm:px-0">
+          <div role="tablist" aria-label={t('Kategoriyalar')} className="no-scrollbar relative -mx-6 mt-9 flex gap-2 overflow-x-auto px-6 sm:mx-0 sm:flex-wrap sm:px-0">
             {NEWS_CATEGORIES.map((c) => {
               const active = c.id === category
               return (
@@ -93,7 +94,7 @@ export default function News() {
                     active ? 'bg-brand text-ink' : 'bg-white/[0.08] text-white/80 ring-1 ring-white/10 hover:bg-white/15 hover:text-white'
                   }`}
                 >
-                  {c.label}
+                  {t(c.label)}
                 </button>
               )
             })}
@@ -109,22 +110,22 @@ export default function News() {
             </div>
           ) : query.isError ? (
             <div className="flex flex-col items-center rounded-[32px] bg-white px-6 py-16 text-center ring-1 ring-black/[0.06]">
-              <p className="text-[20px] font-extrabold">Yangiliklarni yuklab bo‘lmadi</p>
-              <p className="mt-2 text-[15px] text-ink/60">Internet aloqasini tekshirib, qayta urinib ko‘ring.</p>
+              <p className="text-[20px] font-extrabold">{t('Yangiliklarni yuklab bo‘lmadi')}</p>
+              <p className="mt-2 text-[15px] text-ink/60">{t('Internet aloqasini tekshirib, qayta urinib ko‘ring.')}</p>
               <button
                 type="button"
                 onClick={() => query.refetch()}
                 className="mt-6 inline-flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-bold text-white transition hover:bg-black"
               >
-                <RefreshCw className="h-4 w-4" /> Qayta urinish
+                <RefreshCw className="h-4 w-4" /> {t('Qayta urinish')}
               </button>
             </div>
           ) : !items.length ? (
             <div className="flex flex-col items-center rounded-[32px] bg-white px-6 py-16 text-center ring-1 ring-black/[0.06] sm:py-20">
               <img src="/empty/messages.webp" alt="" className="w-48 sm:w-56" />
-              <p className="mt-4 text-[22px] font-extrabold tracking-tight">Hozircha yangiliklar yo‘q</p>
+              <p className="mt-4 text-[22px] font-extrabold tracking-tight">{t('Hozircha yangiliklar yo‘q')}</p>
               <p className="mt-2 max-w-[420px] text-[15px] leading-[1.55] text-ink/60">
-                {category ? 'Bu bo‘limda hali yangilik e’lon qilinmagan. Boshqa bo‘limni tanlab ko‘ring.' : 'Tez orada birinchi yangiliklarimizni shu yerda e’lon qilamiz.'}
+                {category ? t('Bu bo‘limda hali yangilik e’lon qilinmagan. Boshqa bo‘limni tanlab ko‘ring.') : t('Tez orada birinchi yangiliklarimizni shu yerda e’lon qilamiz.')}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 {category ? (
@@ -133,7 +134,7 @@ export default function News() {
                     onClick={() => pickCategory('')}
                     className="inline-flex h-12 items-center rounded-full bg-ink px-6 text-[14px] font-bold text-white transition hover:bg-black"
                   >
-                    Barcha yangiliklar
+                    {t('Barcha yangiliklar')}
                   </button>
                 ) : null}
                 <a
@@ -142,7 +143,7 @@ export default function News() {
                   rel="noopener noreferrer"
                   className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 text-[14px] font-bold text-ink transition hover:bg-[#00b6c2]"
                 >
-                  <Send className="h-4 w-4" /> Telegram botimiz
+                  <Send className="h-4 w-4" /> {t('Telegram botimiz')}
                 </a>
               </div>
             </div>
@@ -166,11 +167,11 @@ export default function News() {
                     className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-7 text-[14px] font-bold text-ink ring-1 ring-black/10 transition hover:bg-ink hover:text-white disabled:opacity-60"
                   >
                     {query.isFetchingNextPage ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
-                    {query.isFetchingNextPage ? 'Yuklanmoqda…' : 'Yana ko‘rsatish'}
+                    {query.isFetchingNextPage ? t('Yuklanmoqda…') : t('Yana ko‘rsatish')}
                   </button>
                 ) : null}
                 <p className="text-[13px] text-ink/45">
-                  {items.length} / {total} ta yangilik
+                  {items.length} / {t('{0} ta yangilik', total)}
                 </p>
               </div>
             </>

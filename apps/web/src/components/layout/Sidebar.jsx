@@ -22,6 +22,7 @@ import { NavLink } from 'react-router-dom'
 import { BrandMark } from '../ui/Logo'
 import { LanguageRow } from '../ui/LanguagePicker'
 import { useApp } from '../../context/AppContext'
+import { t } from '../../i18n'
 
 const items = [
   { to: '/', icon: Home, label: 'Bosh sahifa' },
@@ -66,10 +67,10 @@ export function Sidebar({ embedded = false }) {
             {({ isActive }) => (
               <>
                 <item.icon className="h-[18px] w-[18px]" />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.label)}</span>
                 {item.badge ? (
                   <span className={`rounded-full px-1.5 text-[10px] font-bold ${isActive && !item.sheet ? 'bg-white text-brand' : 'bg-red-500 text-white'}`}>
-                    {item.badge}
+                    {t(item.badge)}
                   </span>
                 ) : null}
               </>
@@ -79,21 +80,21 @@ export function Sidebar({ embedded = false }) {
       </nav>
 
       <div className="rounded-2xl bg-gradient-to-br from-brand to-brand-dark p-4 text-white">
-        <p className="text-sm font-bold">Haydovchi bo‘lish</p>
-        <p className="mt-1 text-xs text-white/80">Daromadingizni oshiring</p>
+        <p className="text-sm font-bold">{t('Haydovchi bo‘lish')}</p>
+        <p className="mt-1 text-xs text-white/80">{t('Daromadingizni oshiring')}</p>
         <NavLink
           to="/become-driver"
           onClick={() => setDrawerOpen(false)}
           className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-brand hover:bg-brand-soft"
         >
-          Boshlash
+          {t('Boshlash')}
         </NavLink>
       </div>
 
       <LanguageRow className="mt-4" />
       <a href="tel:+998877353636" className="mt-3 flex items-center gap-2 px-1 text-xs text-muted">
         <Headset className="h-4 w-4 text-brand" />
-        24/7 Yordam · +998 87 735 36 36
+        {t('24/7 Yordam · +998 87 735 36 36')}
       </a>
     </aside>
   )

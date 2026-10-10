@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { t } from '../../i18n'
 
 // O‘zbekiston davlat raqami ko‘rinishidagi input: chapda hudud kodi (2 raqam), o‘ngda seriya va raqam,
 // oxirida bayroq + "UZ". Ikki format qo‘llanadi:
@@ -101,7 +102,7 @@ export function PlateInput({ value, onChange, className = '', autoFocus = false 
         placeholder="00"
         inputMode="numeric"
         autoFocus={autoFocus}
-        aria-label="Hudud kodi"
+        aria-label={t('Hudud kodi')}
         className="w-[64px] shrink-0 bg-transparent pl-3 text-center text-[34px] font-black leading-none tracking-wide outline-none placeholder:text-slate-300"
       />
 
@@ -114,11 +115,11 @@ export function PlateInput({ value, onChange, className = '', autoFocus = false 
         onKeyDown={(e) => {
           if (e.key === 'Backspace' && !series) regionRef.current?.focus()
         }}
-        placeholder="A 123 NN"
+        placeholder={t('A 123 NN')}
         autoCapitalize="characters"
         autoComplete="off"
         spellCheck={false}
-        aria-label="Seriya va raqam"
+        aria-label={t('Seriya va raqam')}
         className="min-w-0 flex-1 bg-transparent px-2 text-center text-[34px] font-black uppercase leading-none tracking-wide outline-none placeholder:text-slate-300"
       />
 

@@ -24,6 +24,7 @@ import { pinIcon } from '../places/PlacesMap'
 import { Cover, HeartButton } from './shared'
 import { distanceKm, formatKm, ownerName, som, useOrigin, useRental, useRentFavorites } from './rentData'
 import 'leaflet/dist/leaflet.css'
+import { t } from '../../i18n'
 
 const ROUND = 'flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-[0_4px_12px_rgba(16,42,67,0.16)] backdrop-blur active:scale-90 transition'
 
@@ -38,7 +39,7 @@ export function RentDetail({ id, onBack }) {
     return (
       <div className="flex h-full flex-col">
         <div className="flex items-center p-4">
-          <button type="button" onClick={onBack} className={ROUND} aria-label="Orqaga">
+          <button type="button" onClick={onBack} className={ROUND} aria-label={t('Orqaga')}>
             <ArrowLeft className="h-5 w-5" />
           </button>
         </div>
@@ -50,7 +51,7 @@ export function RentDetail({ id, onBack }) {
           </div>
         ) : (
           <p className="mt-16 px-6 text-center text-[15px] font-semibold text-muted">
-            E’lon topilmadi yoki olib tashlangan.
+            {t('E’lon topilmadi yoki olib tashlangan.')}
           </p>
         )}
       </div>
@@ -62,14 +63,14 @@ export function RentDetail({ id, onBack }) {
   const hasPoint = l.lat != null && l.lng != null
   const photos = l.photos?.length ? l.photos : [null]
   const prices = [
-    { label: 'Soatiga', value: l.pricePerHour },
-    { label: 'Kuniga', value: l.pricePerDay },
-    { label: 'Haftasiga', value: l.pricePerWeek },
+    { label: t('Soatiga'), value: l.pricePerHour },
+    { label: t('Kuniga'), value: l.pricePerDay },
+    { label: t('Haftasiga'), value: l.pricePerWeek },
   ].filter((p) => p.value)
   const specs = [
-    l.maxSpeed ? { icon: Gauge, label: `${l.maxSpeed} km/soat`, hint: 'Maks. tezlik' } : null,
-    l.rangeKm ? { icon: BatteryCharging, label: `${l.rangeKm} km`, hint: 'Bir zaryadda' } : null,
-    { icon: IdCard, label: l.licenseRequired ? 'Kerak' : 'Shart emas', hint: 'Guvohnoma' },
+    l.maxSpeed ? { icon: Gauge, label: `${l.maxSpeed} km/soat`, hint: t('Maks. tezlik') } : null,
+    l.rangeKm ? { icon: BatteryCharging, label: `${l.rangeKm} km`, hint: t('Bir zaryadda') } : null,
+    { icon: IdCard, label: l.licenseRequired ? t('Kerak') : t('Shart emas'), hint: t('Guvohnoma') },
   ].filter(Boolean)
   const telegram = l.telegram ? `https://t.me/${l.telegram}` : null
   const shareUrl = `${window.location.origin}/?ijara=1&elon=${l.id}`
@@ -90,14 +91,14 @@ export function RentDetail({ id, onBack }) {
             ))}
           </div>
           <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-            <button type="button" onClick={onBack} className={ROUND} aria-label="Orqaga">
+            <button type="button" onClick={onBack} className={ROUND} aria-label={t('Orqaga')}>
               <ArrowLeft className="h-5 w-5" strokeWidth={2.4} />
             </button>
             <div className="flex gap-2">
               <button
                 type="button"
                 className={ROUND}
-                aria-label="Ulashish"
+                aria-label={t('Ulashish')}
                 onClick={() => share({ title: l.title, text: `${l.title}\n${shareUrl}`, url: shareUrl })}
               >
                 <Share2 className="h-[18px] w-[18px]" />
@@ -118,19 +119,19 @@ export function RentDetail({ id, onBack }) {
           <div className="flex flex-wrap items-center gap-1.5">
             {type ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[12px] font-bold text-brand-dark">
-                <type.icon className="h-3.5 w-3.5" /> {type.label}
+                <type.icon className="h-3.5 w-3.5" /> {t(type.label)}
               </span>
             ) : null}
             {l.featured ? (
               <span className="rounded-full bg-[linear-gradient(135deg,#ffb020,#ff7a00)] px-2.5 py-1 text-[11px] font-extrabold uppercase text-white">
-                Top
+                {t('Top')}
               </span>
             ) : null}
             {Number.isFinite(km) ? (
-              <span className="rounded-full bg-canvas px-2.5 py-1 text-[12px] font-bold text-muted">{formatKm(km)} uzoqlikda</span>
+              <span className="rounded-full bg-canvas px-2.5 py-1 text-[12px] font-bold text-muted">{t('{0} uzoqlikda', formatKm(km))}</span>
             ) : null}
           </div>
-          <h1 className="mt-2.5 text-[22px] font-extrabold leading-tight tracking-tight text-ink">{l.title}</h1>
+          <h1 className="mt-2.5 text-[22px] font-extrabold leading-tight tracking-tight text-ink">{t(l.title)}</h1>
           {l.brand || l.model ? <p className="mt-0.5 text-[14px] text-muted">{[l.brand, l.model].filter(Boolean).join(' ')}</p> : null}
 
           {/* ── Narxlar ── */}
@@ -143,15 +144,15 @@ export function RentDetail({ id, onBack }) {
                   p.label === 'Kuniga' ? 'bg-[linear-gradient(140deg,#00c7d4,#00a3ae)] text-white' : 'bg-canvas text-ink',
                 )}
               >
-                <p className={cn('text-[11px] font-semibold', p.label === 'Kuniga' ? 'text-white/85' : 'text-muted')}>{p.label}</p>
+                <p className={cn('text-[11px] font-semibold', p.label === 'Kuniga' ? 'text-white/85' : 'text-muted')}>{t(p.label)}</p>
                 <p className="mt-0.5 text-[16px] font-extrabold leading-tight">{som(p.value)}</p>
-                <p className={cn('text-[11px] font-semibold', p.label === 'Kuniga' ? 'text-white/85' : 'text-muted')}>so‘m</p>
+                <p className={cn('text-[11px] font-semibold', p.label === 'Kuniga' ? 'text-white/85' : 'text-muted')}>{t('so‘m')}</p>
               </div>
             ))}
           </div>
           {l.deposit ? (
             <p className="mt-2 flex items-center gap-2 rounded-[16px] bg-amber-50 px-3 py-2.5 text-[13px] font-semibold text-amber-800">
-              <ShieldCheck className="h-4 w-4 shrink-0" /> Zalog (qaytariladigan depozit): {som(l.deposit)} so‘m
+              <ShieldCheck className="h-4 w-4 shrink-0" /> {t('Zalog (qaytariladigan depozit):')}{' '}{som(l.deposit)} {t('so‘m')}
             </p>
           ) : null}
 
@@ -160,23 +161,23 @@ export function RentDetail({ id, onBack }) {
             {specs.map((s) => (
               <div key={s.hint} className="rounded-[18px] border border-line px-3 py-3">
                 <s.icon className="h-5 w-5 text-brand-dark" />
-                <p className="mt-1.5 text-[14px] font-extrabold text-ink">{s.label}</p>
-                <p className="text-[11px] text-muted">{s.hint}</p>
+                <p className="mt-1.5 text-[14px] font-extrabold text-ink">{t(s.label)}</p>
+                <p className="text-[11px] text-muted">{t(s.hint)}</p>
               </div>
             ))}
           </div>
 
           {l.description ? (
             <section className="mt-5">
-              <h2 className="text-[16px] font-extrabold text-ink">Tavsif</h2>
-              <p className="mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-ink/90">{l.description}</p>
+              <h2 className="text-[16px] font-extrabold text-ink">{t('Tavsif')}</h2>
+              <p className="mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-ink/90">{t(l.description)}</p>
             </section>
           ) : null}
 
           {/* ── Joylashuv ── */}
           {hasPoint || l.address ? (
             <section className="mt-5">
-              <h2 className="text-[16px] font-extrabold text-ink">Qayerdan olish mumkin</h2>
+              <h2 className="text-[16px] font-extrabold text-ink">{t('Qayerdan olish mumkin')}</h2>
               {l.address ? (
                 <p className="mt-1 flex items-start gap-1.5 text-[14px] text-muted">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> {l.address}
@@ -207,7 +208,7 @@ export function RentDetail({ id, onBack }) {
                       rel="noreferrer"
                       className="flex h-11 items-center justify-center rounded-2xl bg-canvas text-[13px] font-extrabold text-ink"
                     >
-                      Yandex xarita
+                      {t('Yandex xarita')}
                     </a>
                     <a
                       href={googleMapsUrl(l.lat, l.lng)}
@@ -215,7 +216,7 @@ export function RentDetail({ id, onBack }) {
                       rel="noreferrer"
                       className="flex h-11 items-center justify-center rounded-2xl bg-canvas text-[13px] font-extrabold text-ink"
                     >
-                      Google xarita
+                      {t('Google xarita')}
                     </a>
                   </div>
                 </>
@@ -244,8 +245,7 @@ export function RentDetail({ id, onBack }) {
           </section>
 
           <p className="mt-3 rounded-[18px] border border-dashed border-line px-3.5 py-3 text-[12px] leading-relaxed text-muted">
-            <b className="text-ink">Xavfsiz ijara:</b> oldindan pul o‘tkazmang. Transportni ko‘rib, holatini tekshirib, shartnoma
-            yoki tilxat asosida oling. Shlem va qulf so‘rashni unutmang.
+            <b className="text-ink">{t('Xavfsiz ijara:')}</b> {t('oldindan pul o‘tkazmang. Transportni ko‘rib, holatini tekshirib, shartnoma yoki tilxat asosida oling. Shlem va qulf so‘rashni unutmang.')}
           </p>
         </div>
       </div>
@@ -258,7 +258,7 @@ export function RentDetail({ id, onBack }) {
             target="_blank"
             rel="noreferrer"
             className="flex h-13 w-14 shrink-0 items-center justify-center rounded-[18px] bg-[#e7f5fd] text-[#229ed9]"
-            aria-label="Telegramda yozish"
+            aria-label={t('Telegramda yozish')}
           >
             <Send className="h-5 w-5" />
           </a>
@@ -267,7 +267,7 @@ export function RentDetail({ id, onBack }) {
           href={`tel:${l.phone.replace(/[^\d+]/g, '')}`}
           className="flex h-13 flex-1 items-center justify-center gap-2 rounded-[18px] bg-brand text-[16px] font-extrabold text-white shadow-[0_8px_20px_rgba(0,199,212,0.35)]"
         >
-          <Phone className="h-5 w-5" /> Qo‘ng‘iroq qilish
+          <Phone className="h-5 w-5" /> {t('Qo‘ng‘iroq qilish')}
         </a>
       </div>
       {sheet}

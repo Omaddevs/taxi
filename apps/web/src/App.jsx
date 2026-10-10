@@ -53,6 +53,7 @@ import DriverRefer from './pages/driver/DriverRefer'
 import DriverMap from './pages/driver/DriverMap'
 import PostOffer from './pages/driver/PostOffer'
 import DriverCargo from './pages/driver/DriverCargo'
+import { t } from './i18n'
 
 function RequireAuth({ children }) {
   const { status } = useAuth()
@@ -62,7 +63,7 @@ function RequireAuth({ children }) {
   // Buyurtma berish va ilovaning qolgan qismi faqat kirgandan/ro‘yxatdan o‘tgandan keyin ochiladi.
   if (status === 'guest') return location.pathname === '/' ? <Landing /> : <Navigate to="/login" replace />
   if (status === 'checking' || status === 'checking-telegram') {
-    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">Yuklanmoqda…</div>
+    return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">{t('Yuklanmoqda…')}</div>
   }
   return children
 }
