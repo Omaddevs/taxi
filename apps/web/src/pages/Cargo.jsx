@@ -11,6 +11,7 @@ import { formatPlace, isRegionActive, matchRegion } from '../data/uzbekistan'
 import { api } from '../lib/api'
 import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
 import { MONTHS, cn, formatSom, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
+import { lockScroll } from '../lib/scrollLock'
 
 function formatAmount(n) {
   if (!n) return ''
@@ -164,11 +165,7 @@ function PromoBanner() {
 function OrderSheet({ open, onClose, children }) {
   useEffect(() => {
     if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
+    return lockScroll()
   }, [open])
 
   if (!open) return null

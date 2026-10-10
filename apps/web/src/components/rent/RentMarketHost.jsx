@@ -8,6 +8,7 @@ import { RentForm } from './RentForm'
 import { RentMap } from './RentMap'
 import { RentMine, RentSaved } from './RentMine'
 import { useRentNav } from './rentData'
+import { lockScroll } from '../../lib/scrollLock'
 
 const TABS = [
   { view: '1', label: 'Katalog', icon: LayoutGrid },
@@ -59,15 +60,13 @@ export function RentMarketHost() {
 
   useEffect(() => {
     if (!mounted) return
-    const root = document.documentElement
-    const prev = root.style.overflow
-    root.style.overflow = 'hidden'
+    const unlock = lockScroll()
     const onKey = (e) => {
       if (e.key === 'Escape') nav.close()
     }
     window.addEventListener('keydown', onKey)
     return () => {
-      root.style.overflow = prev
+      unlock()
       window.removeEventListener('keydown', onKey)
     }
     // nav.close is recreated every render; the listener only needs the latest params setter.

@@ -26,6 +26,7 @@ import {
 } from '../../data/uzbekistan'
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode } from '../../lib/geocode'
+import { lockScroll } from '../../lib/scrollLock'
 
 const WEEKDAYS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
 
@@ -54,11 +55,7 @@ function useDesktop() {
 function BottomSheet({ open, title, onClose, children, bare = false }) {
   useEffect(() => {
     if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
+    return lockScroll()
   }, [open])
 
   if (!open) return null

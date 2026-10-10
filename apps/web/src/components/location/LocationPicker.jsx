@@ -8,6 +8,7 @@ import { extractCity, formatAddress, reverseGeocode, searchPlaces } from '../../
 import { BaseTiles } from '../map/BaseTiles'
 import { GeoAskSheet, useMapGeo } from './GeoAskSheet'
 import 'leaflet/dist/leaflet.css'
+import { lockScroll } from '../../lib/scrollLock'
 
 function MapController({ focus, onDragging, onIdle }) {
   const map = useMap()
@@ -88,11 +89,7 @@ export function LocationPicker() {
     setResults([])
     setHint('')
     setFocus({ lat: start.lat, lng: start.lng, key: Date.now() })
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
+    return lockScroll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationPickerOpen])
 

@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext'
 import { api } from '../../lib/api'
 import { getAccessToken } from '../../lib/tokens'
 import { FlagGb, FlagRu, FlagUz } from './Flags'
+import { lockScroll } from '../../lib/scrollLock'
 
 const FLAGS = { uz: FlagUz, ru: FlagRu, en: FlagGb }
 
@@ -70,12 +71,11 @@ function LanguageSheet({ onClose }) {
     const id = requestAnimationFrame(() => setShown(true))
     const onKey = (e) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const unlock = lockScroll()
     return () => {
       cancelAnimationFrame(id)
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
+      unlock()
     }
   }, [onClose])
 

@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import GoogleFinish from './pages/GoogleFinish'
 import { PhoneRequiredDialog } from './components/auth/PhoneRequiredDialog'
+import { useScrollUnlockOnNavigate } from './lib/scrollLock'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
@@ -85,6 +86,8 @@ function DriverShell() {
 }
 
 export default function App() {
+  const { pathname } = useLocation()
+  useScrollUnlockOnNavigate(pathname)
   return (
     <>
     <PhoneRequiredDialog />

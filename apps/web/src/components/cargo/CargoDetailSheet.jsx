@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { cn, formatPhoneUz, formatSom } from '../../lib/utils'
 import { googleMapsUrl } from '../../lib/geo'
 import { cargoTypes, cargoVehicles } from '../../data/mock'
+import { lockScroll } from '../../lib/scrollLock'
 
 const typeById = Object.fromEntries(cargoTypes.map((t) => [t.id, t]))
 const vehicleById = Object.fromEntries(cargoVehicles.map((v) => [v.id, v]))
@@ -47,11 +48,7 @@ export function CargoDetailSheet({ orderId, onClose }) {
 
   useEffect(() => {
     if (!orderId) return undefined
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
+    return lockScroll()
   }, [orderId])
 
   if (!orderId) return null
