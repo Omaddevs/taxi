@@ -104,7 +104,9 @@ export function botToDriverOrder(o) {
 export function mergeDriverOrders(bookings = [], botOrders) {
   const list = bookings.map(bookingToDriverOrder)
   if (botOrders?.registered) {
-    if (botOrders.claimedOrder) list.unshift(botToDriverOrder(botOrders.claimedOrder))
+    // Older bot builds send only `claimedOrder`; newer ones list every claimed order.
+    const claimed = botOrders.claimedOrders ?? (botOrders.claimedOrder ? [botOrders.claimedOrder] : [])
+    for (const o of claimed) list.unshift(botToDriverOrder(o))
     for (const o of botOrders.openOrders || []) list.push(botToDriverOrder(o))
   }
   return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

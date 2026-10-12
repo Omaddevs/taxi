@@ -6,6 +6,9 @@ ad (questions, chatter), which is why `parse_ad` returns None for it.
 
 Used as the "is this an ad" gate and phone source by formatted_ads.py (which reposts the text
 unchanged) and for the field rows of the closed-group passenger card in group_ads.py.
+
+A route is not required when the message clearly is one anyway: a phone number plus a taxi word
+("Т дан А га юрамиз ... +99894...") — groups are per-route, so people often abbreviate the cities.
 """
 
 import re
@@ -80,6 +83,74 @@ _PLACES: dict[str, tuple[str, ...]] = {
     "Yangiyo'l": ("yangiyol",),
     "Ohangaron": ("ohangaron", "ahangaran"),
     "Chinoz": ("chinoz",),
+    # Tumanlar — taksi e'lonlarida tez-tez uchraydiganlari.
+    "Asaka": ("asaka",),
+    "Shahrixon": ("shahrixon", "shahrihan", "shaxrixon"),
+    "Xonobod": ("xonobod", "hanabad"),
+    "Qo'rg'ontepa": ("qorgontepa", "kurgantepa"),
+    "Baliqchi": ("baliqchi",),
+    "Paxtaobod": ("paxtaobod",),
+    "Izboskan": ("izboskan",),
+    "Marhamat": ("marhamat",),
+    "Jalaquduq": ("jalaquduq", "jalalkuduk"),
+    "Oltinko'l": ("oltinkol",),
+    "Xo'jaobod": ("xojaobod",),
+    "Buloqboshi": ("buloqboshi",),
+    "Chust": ("chust",),
+    "Kosonsoy": ("kosonsoy", "kasansay"),
+    "Uchqo'rg'on": ("uchqorgon", "uchkurgan"),
+    "Chortoq": ("chortoq", "chartak"),
+    "To'raqo'rg'on": ("toraqorgon", "turakurgan"),
+    "Yangiqo'rg'on": ("yangiqorgon",),
+    "Uychi": ("uychi",),
+    "Quva": ("quva", "kuva"),
+    "Quvasoy": ("quvasoy", "kuvasay"),
+    "Rishton": ("rishton", "rishtan"),
+    "Oltiariq": ("oltiariq",),
+    "Beshariq": ("beshariq",),
+    "Bag'dod": ("bagdod",),
+    "Yaypan": ("yaypan",),
+    "Uchko'prik": ("uchkoprik",),
+    "Dang'ara": ("dangara",),
+    "So'x": ("sox",),
+    "Parkent": ("parkent",),
+    "G'azalkent": ("gazalkent",),
+    "Nurafshon": ("nurafshon",),
+    "Zangiota": ("zangiota",),
+    "Qibray": ("qibray",),
+    "Bo'ka": ("boka",),
+    "Sergeli": ("sergeli",),
+    "Xonqa": ("xonqa",),
+    "Gurlan": ("gurlan",),
+    "Hazorasp": ("hazorasp",),
+    "Beruniy": ("beruniy",),
+    "To'rtko'l": ("tortkol",),
+    "Xo'jayli": ("xojayli",),
+    "Qo'ng'irot": ("qongirot", "kungrad"),
+    "Chimboy": ("chimboy",),
+    "Sherobod": ("sherobod",),
+    "Sho'rchi": ("shorchi",),
+    "Jarqo'rg'on": ("jarqorgon",),
+    "Boysun": ("boysun",),
+    "Qumqo'rg'on": ("qumqorgon",),
+    "Koson": ("koson",),
+    "Chiroqchi": ("chiroqchi",),
+    "Yakkabog'": ("yakkabog",),
+    "Qamashi": ("qamashi",),
+    "Karmana": ("karmana",),
+    "Uchquduq": ("uchquduq", "uchkuduk"),
+    "Nurota": ("nurota",),
+    "Qiziltepa": ("qiziltepa",),
+    "Vobkent": ("vobkent",),
+    "Romitan": ("romitan",),
+    "Qorako'l": ("qorakol",),
+    "Jondor": ("jondor",),
+    "Shofirkon": ("shofirkon",),
+    "Boyovut": ("boyovut",),
+    "Sirdaryo": ("sirdaryo", "sirdarya"),
+    "Do'stlik": ("dostlik",),
+    "Forish": ("forish",),
+    "Arnasoy": ("arnasoy",),
 }
 # (alias key, display) longest first so "kattakorgon" wins over any shorter prefix.
 _PLACE_ALIASES = sorted(
@@ -136,13 +207,15 @@ _CARS: dict[str, tuple[str, ...]] = {
     "BYD": ("byd",),
 }
 _CAR_ALIASES = [(_key(alias), name) for name, aliases in _CARS.items() for alias in aliases]
-_CARGO_WORDS = ("pochta", "posilka", "posylka", "pochtalar")
+_CARGO_WORDS = ("pochta", "posilka", "posylka", "pochtalar", "dokument", "hujjat")
 
 # Checked before passenger markers: drivers write "olib ketamiz", which contains "ketamiz".
-_DRIVER_MARKERS = ("yuramiz", "yuraman", "olamiz", "olaman", "olib ketamiz", "olib ketaman", "joy bor",
-                   "bosh joy", "haydovchi", "shofyor", "voditel")
-_PASSENGER_MARKERS = ("mashina kerak", "taksi kerak", "tahi kerak", "ketaman", "ketamiz", "boraman",
-                      "boramiz", "yolovchiman", "yolovchimiz", "olib ketadigan")
+_DRIVER_MARKERS = ("yuramiz", "yuraman", "yuryapmiz", "olamiz", "olaman", "olib ketamiz", "olib ketaman",
+                   "joy bor", "joylar bor", "bosh joy", "kamdamiz", "kammiz", "chiqamiz", "chiqaman",
+                   "jonaymiz", "jonayman", "haydovchi", "shofyor", "shofer", "voditel", "yetkazamiz")
+_PASSENGER_MARKERS = ("mashina kerak", "moshina kerak", "taksi kerak", "taxi kerak", "tahi kerak", "ketaman",
+                      "ketamiz", "ketishim kerak", "ketishimiz kerak", "boraman", "boramiz", "yolovchiman",
+                      "yolovchimiz", "olib ketadigan", "olib keting", "nujno", "nuzhno")
 
 
 @dataclass
@@ -190,6 +263,12 @@ def _parse_route(key_text: str) -> tuple[list[str], list[str]]:
         if found is None:
             continue
         name, role = found
+        # The suffix written apart: "Toshkent dan", "АНДИЖОН га".
+        if not role and i + 1 < len(tokens):
+            if tokens[i + 1] in _FROM_SUFFIXES:
+                role = "from"
+            elif tokens[i + 1] in _TO_SUFFIXES:
+                role = "to"
         if not role and i > 0:
             if tokens[i - 1] in _RU_FROM:
                 role = "from"
@@ -272,12 +351,25 @@ def _is_passenger(key_text: str) -> bool:
     return any(marker in flat for marker in _PASSENGER_MARKERS)
 
 
+def _has_taxi_word(key_text: str) -> bool:
+    flat = " ".join(re.findall(r"[a-z0-9]+", key_text))
+    return any(marker in flat for marker in _DRIVER_MARKERS + _PASSENGER_MARKERS)
+
+
 def parse_ad(raw: str) -> ParsedAd | None:
-    """None unless both ends of a route were recognised — the bar for treating a message as an ad."""
+    """None for anything that isn't a taxi ad. An ad is a message with both ends of a route, or —
+    when the cities are abbreviated or unknown ("Т дан А га") — a phone number together with a
+    taxi word, a car, a seat count, cargo or at least one recognised place."""
     if not raw or not raw.strip():
         return None
     ad = parse_ad_fields(raw)
-    return ad if ad.origins and ad.destinations else None
+    if ad.origins and ad.destinations:
+        return ad
+    if ad.phones:
+        key_text = _key(_PHONE_RE.sub(" ", raw))
+        if ad.origins or ad.destinations or ad.car or ad.seats or ad.takes_cargo or _has_taxi_word(key_text):
+            return ad
+    return None
 
 
 def parse_ad_fields(raw: str) -> ParsedAd:

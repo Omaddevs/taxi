@@ -68,6 +68,7 @@ export interface DriverOrdersResponse {
   gender?: string | null
   openOrders?: BotOrder[]
   claimedOrder?: BotOrder | null
+  claimedOrders?: BotOrder[]
 }
 
 export async function getDriverBotOrders(telegramId: string): Promise<DriverOrdersResponse> {

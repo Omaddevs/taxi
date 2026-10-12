@@ -2,8 +2,7 @@
 own text left exactly as written — the bot only adds a TaxiLine header with a freshness label
 (🟢 Faol → 🟡 30 daqiqa oldin → … → 🔴 Eskirgan), an "E'lon egasi" line, and write/call buttons.
 
-ad_format.parse_ad is still the gate (a message counts as an ad only if a route is recognised)
-and supplies the phone for the call button, but none of its parsed fields are printed.
+ad_format.parse_ad is still the gate (a recognised route, or a phone plus a taxi word) and supplies the phone for the call button, but none of its parsed fields are printed.
 Each repost is stored (formatted_ads) so the scheduler can move its label along as it ages.
 """
 
@@ -131,6 +130,10 @@ async def repost(bot: Bot, session: AsyncSession, event: Message, bot_user) -> b
         created_at=datetime.utcnow(),
         label="🟢 Faol",
     )
+    # A photo caption holds only 1024 characters: a longer photo ad is reposted as text (without
+    # the photo) rather than left unformatted.
+    if ad.has_photo and len(render(ad, ad.label)) > _CAPTION_LIMIT:
+        ad.has_photo = False
     limit = _CAPTION_LIMIT if ad.has_photo else _TEXT_LIMIT
     # The id goes into the call button's link, so the row exists before the send.
     session.add(ad)

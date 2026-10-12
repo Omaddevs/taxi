@@ -523,10 +523,15 @@ async def driver_orders(request: web.Request) -> web.Response:
             if groups_service.driver_serves(driver, o.from_region, o.to_region) and trips_service.driver_can_see(driver, o)
         ]
 
+        # A driver may hold several claimed orders (each "Qabul qildim" is its own claim), so this
+        # must not expect exactly one — scalar_one_or_none() used to 500 the whole orders page.
         claimed_result = await session.execute(
-            select(Order).where(Order.assigned_driver_id == driver.id, Order.status == "CLAIMED")
+            select(Order)
+            .where(Order.assigned_driver_id == driver.id, Order.status == "CLAIMED")
+            .order_by(Order.claimed_at.desc())
         )
-        claimed_order = claimed_result.scalar_one_or_none()
+        claimed_orders = list(claimed_result.scalars())
+        claimed_order = claimed_orders[0] if claimed_orders else None
 
         return web.json_response(
             {
@@ -535,6 +540,7 @@ async def driver_orders(request: web.Request) -> web.Response:
                 "gender": driver.gender,
                 "openOrders": open_orders,
                 "claimedOrder": _serialize_order(claimed_order) if claimed_order else None,
+                "claimedOrders": [_serialize_order(o) for o in claimed_orders],
             }
         )
 
