@@ -37,6 +37,7 @@ import { adminGeoRouter, adminMapPlacesRouter, mapPlacesRouter } from './modules
 import { adminRentalsRouter, rentalsRouter } from './modules/rentals/rentals.routes.js'
 import { adminGiveawayRouter, botGiveawayRouter, giveawayRouter } from './modules/giveaway/giveaway.routes.js'
 import { adminNewsRouter, newsRouter } from './modules/news/news.routes.js'
+import { adminLandingPromoRouter, landingPromoRouter } from './modules/landingPromo/landingPromo.routes.js'
 import { publicStatsRouter } from './modules/publicStats/publicStats.routes.js'
 import { seoRouter } from './modules/seo/seo.routes.js'
 
@@ -120,6 +121,8 @@ export function createApp() {
   app.use('/leads', publicLeadsRouter)
   app.use('/news', newsRouter)
   app.use('/admin/news', adminNewsRouter)
+  app.use('/promotions', landingPromoRouter)
+  app.use('/admin/promotions', adminLandingPromoRouter)
   app.use('/giveaway', giveawayRouter)
   app.use('/admin/giveaway', adminGiveawayRouter)
   app.use('/bot/giveaway', botGiveawayRouter)

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
@@ -34,7 +35,6 @@ import { faqs } from '../data/mock'
 import { api } from '../lib/api'
 import { homePathForRole } from '../lib/role'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
-import { REFERRAL_ENABLED } from '../lib/features'
 import { siteJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
 import { t } from '../i18n'
@@ -872,30 +872,9 @@ export function Business() {
   )
 }
 
-/* Aksiyalar. Hozircha faqat ilovada haqiqatan mavjud bo‘lgan taklif bonusi ko‘rsatiladi —
-   yangi aksiya qo‘shish uchun shu ro‘yxatga yozing (sovg‘a va shartlar haqiqiy bo‘lsin). */
-const PROMOS = [
-  {
-    id: 'referral',
-    period: 'doimiy',
-    prizes: [
-      { place: 'Siz', reward: 'bonus', tail: 'har bir do‘st uchun' },
-      { place: 'Do‘stingiz', reward: 'bonus', tail: 'birinchi safardan keyin' },
-    ],
-    terms: 'Do‘stingizni taklif qiling: u ro‘yxatdan o‘tib, birinchi buyurtmasini bajarsa, ikkalangiz ham bonus olasiz.',
-    termsBold: 'Bonus 24 soat ichida balansga tushadi',
-    // Referal hali ishga tushmagan — tugma "Tez orada"
-    soon: !REFERRAL_ENABLED,
-  },
-]
-
-// Saralash menyusi faqat mavjud davrlardan yasaladi; bitta aksiya bo‘lsa menyu ko‘rsatilmaydi.
+/* Aksiyalar admin paneldan boshqariladi (GET /promotions — faqat faol aksiyalar).
+   Faol aksiya bo‘lmasa butun bo‘lim, "Aksiyalar" sarlavhasi bilan birga, ko‘rsatilmaydi. */
 const PERIOD_LABEL = { haftalik: 'Haftalik', oylik: 'Oylik', doimiy: 'Doimiy' }
-const PROMO_FILTERS = [
-  { id: 'all', label: 'Barchasi' },
-  ...[...new Set(PROMOS.map((p) => p.period))].map((id) => ({ id, label: PERIOD_LABEL[id] ?? id })),
-]
-const PROMO_HAS_FILTER = PROMOS.length > 1
 
 const PROMO_AUTOPLAY_MS = 5000
 
@@ -917,7 +896,7 @@ function PromoCard({ promo, active, onSelect }) {
       <h3 className="mt-7 text-[22px] font-extrabold tracking-tight 2xl:text-[27px]">{t('Bizdan sovg‘alar')}</h3>
       <ol className="mt-4 space-y-3 text-[14px] 2xl:text-[16px]">
         {promo.prizes.map((p, i) => (
-          <li key={p.place} className="flex items-start gap-3">
+          <li key={i} className="flex items-start gap-3">
             <span className="mt-[1px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[12px] font-bold">{i + 1}</span>
             <span className="leading-[1.45]">
               {t(p.place)} — <b className="font-extrabold">{t(p.reward)}</b>
@@ -974,9 +953,23 @@ function usePrefersReducedMotion() {
 }
 
 export function Promotions() {
+  const { data } = useQuery({ queryKey: ['promotions'], queryFn: () => api.get('/promotions'), staleTime: 60_000 })
+  const promos = Array.isArray(data) ? data : []
+  if (!promos.length) return null
+  // Admin aksiyalarni o‘zgartirsa karusel holati boshidan boshlanadi.
+  return <PromoCarousel key={promos.map((p) => p.id).join()} promos={promos} />
+}
+
+function PromoCarousel({ promos }) {
+  // Saralash menyusi faqat mavjud davrlardan yasaladi; bitta aksiya bo‘lsa menyu ko‘rsatilmaydi.
+  const filters = [
+    { id: 'all', label: 'Barchasi' },
+    ...[...new Set(promos.map((p) => p.period))].map((id) => ({ id, label: PERIOD_LABEL[id] ?? id })),
+  ]
+  const hasFilter = promos.length > 1 && filters.length > 2
   const [filter, setFilter] = useState('all')
   const [menuOpen, setMenuOpen] = useState(false)
-  const list = filter === 'all' ? PROMOS : PROMOS.filter((p) => p.period === filter)
+  const list = filter === 'all' ? promos : promos.filter((p) => p.period === filter)
   const n = list.length
   const loop = n > 1
   // Cheksiz aylanish: ro‘yxat uch nusxada, pozitsiya doim o‘rtadagi nusxaga qaytariladi.
@@ -1037,7 +1030,7 @@ export function Promotions() {
   }
 
   function pickFilter(id) {
-    const next = id === 'all' ? PROMOS : PROMOS.filter((p) => p.period === id)
+    const next = id === 'all' ? promos : promos.filter((p) => p.period === id)
     setFilter(id)
     setAnimate(false)
     setPos(next.length > 1 ? next.length + Math.min(1, next.length - 1) : 0)
@@ -1078,7 +1071,7 @@ export function Promotions() {
     >
       <div className="px-5 sm:px-12 lg:px-20 2xl:px-24">
         <div className="relative inline-block">
-          {PROMO_HAS_FILTER ? (
+          {hasFilter ? (
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
@@ -1092,9 +1085,9 @@ export function Promotions() {
           ) : (
             <h2 className="text-[36px] font-extrabold leading-none tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">{t('Aksiyalar')}</h2>
           )}
-          {menuOpen && PROMO_HAS_FILTER ? (
+          {menuOpen && hasFilter ? (
             <div role="listbox" className="absolute left-0 top-full z-30 mt-3 w-52 rounded-2xl bg-white p-2 shadow-[0_20px_40px_rgba(15,29,42,0.16)] ring-1 ring-black/5">
-              {PROMO_FILTERS.map((f) => (
+              {filters.map((f) => (
                 <button
                   key={f.id}
                   type="button"

@@ -105,6 +105,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: 'Kontent',
     items: [
       { to: '/news', label: 'Yangiliklar', icon: Newspaper, roles: ['ADMIN'] },
+      { to: '/promotions', label: 'Aksiyalar', icon: Gift, roles: ['ADMIN'] },
       { to: '/services', label: 'Xizmatlar', icon: Layers, roles: ['ADMIN'] },
       { to: '/cars', label: 'Mashinalar', icon: CarFront, roles: ['ADMIN'] },
       { to: '/map-places', label: 'Xarita joylari', icon: MapPinned, roles: ['ADMIN'] },

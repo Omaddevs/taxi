@@ -1071,3 +1071,20 @@ model NewsImage {
   size      Int
   createdAt DateTime @default(now())
 }
+
+// Landingdagi "Aksiyalar" kartalari. Admin paneldan boshqariladi; faol aksiya bo‘lmasa bo‘lim saytda ko‘rinmaydi.
+model LandingPromo {
+  id         String   @id @default(cuid())
+  period     String // haftalik | oylik | doimiy
+  // [{ place, reward, tail? }] — "Bizdan sovg‘alar" ro‘yxati
+  prizes     Json
+  terms      String
+  termsBold  String?
+  soon       Boolean  @default(false) // tugma "Tez orada" bo‘lib turadi
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
