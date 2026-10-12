@@ -610,3 +610,28 @@ html.dark .bg-canvas {
     display: none;
   }
 }
+
+/* Landing — foydalanuvchilar fikrlari: ustunlar cheksiz vertikal suzadi (ro‘yxat ikki nusxada) */
+@keyframes testimonial-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+.testimonial-track {
+  animation: testimonial-scroll 40s linear infinite;
+  will-change: transform;
+}
+.testimonial-board:hover .testimonial-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-track {
+    animation: none;
+  }
+  .testimonial-col {
+    overflow-y: auto;
+  }
+}

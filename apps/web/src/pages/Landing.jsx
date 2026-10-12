@@ -25,6 +25,7 @@ import {
 import { TELEGRAM_BOT } from '../components/auth/AuthChrome'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { Regions } from '../components/landing/Regions'
+import { Testimonials } from '../components/landing/Testimonials'
 import { Logo, Wordmark } from '../components/ui/Logo'
 import { LanguageChip } from '../components/ui/LanguagePicker'
 import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
@@ -1612,6 +1613,7 @@ export default function Landing() {
         <Earn />
         <Business />
         <Promotions />
+        <Testimonials />
         <RandomClient />
         <Faq />
         <Regions />
