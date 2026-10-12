@@ -1,6 +1,6 @@
 """The `format_ads` group service: a member's taxi ad is reposted by the bot with the author's
 own text left exactly as written — the bot only adds a TaxiLine header with a freshness label
-(🟢 Faol → 🟡 30 daqiqa oldin → … → 🔴 Eskirgan), an "E'lon egasi" line, and write/call buttons.
+(🟢 Faol → 🟡 30 daqiqa oldin → 🟡 1 soat oldin … → 🔴 Eskirgan after a day), an "E'lon egasi" line, and write/call buttons.
 
 ad_format.parse_ad is still the gate (a recognised route, or a phone plus a taxi word) and supplies the phone for the call button, but none of its parsed fields are printed.
 Each repost is stored (formatted_ads) so the scheduler can move its label along as it ages.
@@ -30,24 +30,21 @@ _CAPTION_LIMIT = 1024
 _DIVIDER = "➖➖➖➖➖➖➖➖➖➖"
 
 
-def _humanize(minutes: int) -> str:
-    hours, mins = divmod(minutes, 60)
-    if not hours:
-        return f"{mins} daqiqa"
-    return f"{hours} soat {mins} daqiqa" if mins else f"{hours} soat"
-
-
 def status_label(created_at: datetime, now: datetime | None = None) -> tuple[str, bool]:
-    """(label, final). The label only changes once per `fresh_minutes` step, so a card is
-    edited a handful of times in its life rather than every minute."""
+    """(label, final): 🟢 Faol for the first `fresh_minutes`, then "🟡 30 daqiqa oldin" while under
+    an hour, then whole hours — "🟡 1 soat oldin" … "🟡 23 soat oldin" — and 🔴 Eskirgan from
+    `stale_minutes` (a day by default). The label changes at most once an hour after the first
+    hour, so a card is edited about once per hour of its life rather than every minute."""
     fresh = bot_config.get("format_ads.fresh_minutes")
     stale = bot_config.get("format_ads.stale_minutes")
     age = int(((now or datetime.utcnow()) - created_at).total_seconds() // 60)
-    if age < fresh:
-        return "🟢 Faol", False
     if age >= stale:
         return "🔴 Eskirgan", True
-    return f"🟡 {_humanize(age // fresh * fresh)} oldin", False
+    if age < fresh:
+        return "🟢 Faol", False
+    if age < 60:
+        return f"🟡 {age // fresh * fresh} daqiqa oldin", False
+    return f"🟡 {age // 60} soat oldin", False
 
 
 def render(ad: FormattedAd, label: str) -> str:
@@ -193,8 +190,9 @@ async def relabel(bot: Bot, session: AsyncSession) -> None:
         select(FormattedAd)
         .where(FormattedAd.final.is_(False), FormattedAd.created_at >= datetime.utcnow() - window)
         .order_by(FormattedAd.id)
-        .limit(200)
     )
+    # Every live card is checked (no LIMIT: with a day-long window a busy day exceeds any fixed
+    # page and the newest cards would never move); only the ones whose label changed are edited.
     for ad in result.scalars():
         label, final = status_label(ad.created_at)
         if label == ad.label:
