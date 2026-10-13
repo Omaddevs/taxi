@@ -54,3 +54,12 @@ export function useFareEstimate({ from, to, routeKm, passengers, wholeCar, enabl
     retry: 1,
   })
 }
+
+/**
+ * The promotions an admin has switched on (admin panel → Aksiyalar). Empty until one is active —
+ * the landing section and every "Aksiyalar" link stay hidden while it is.
+ */
+export function usePromotions() {
+  const { data } = useQuery({ queryKey: ['promotions'], queryFn: () => api.get('/promotions'), staleTime: 60_000 })
+  return Array.isArray(data) ? data : []
+}

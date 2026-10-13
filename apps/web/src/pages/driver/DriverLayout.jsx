@@ -5,7 +5,6 @@ import { LogoPin } from '../../components/ui/Logo'
 import { api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
 import { useNewOrderAlerts } from './useNewOrderAlerts'
-import { RentMarketHost } from '../../components/rent/RentMarketHost'
 import { t } from '../../i18n'
 
 export function DriverLayout() {
@@ -28,7 +27,6 @@ export function DriverLayout() {
         </main>
       </div>
       {chatOpen ? null : <DriverNav />}
-      <RentMarketHost />
     </div>
   )
 }

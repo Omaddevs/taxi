@@ -241,7 +241,6 @@ model User {
   leads               Lead[]                 @relation("LeadOwner")
   cannedResponses     CannedResponse[]       @relation("CannedResponseAuthor")
   instagramAccounts   InstagramAccount[]     @relation("InstagramConnectedBy")
-  rentalListings      RentalListing[]        @relation("RentalOwner")
 }
 
 // One row per (trip, rater) — a passenger rating their driver, or a driver rating their
@@ -359,6 +358,11 @@ model DriverApplication {
   // the bot's DriverProfile.blocked mirrors it.
   blocked         Boolean                 @default(false)
   blockedReason   String?
+  // Sayt formasida berilgan rozilik (shaxsiy ma’lumotlarni qayta ishlash va saqlash) va
+  // ariza bilan yuklangan hujjatlar.
+  consentAt       DateTime?
+  consentVersion  String?
+  documents       LeadDocument[]
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @default(now()) @updatedAt
 
@@ -374,7 +378,6 @@ enum MapPlaceCategory {
   EV
   FOOD
   HELP
-  SCOOTER
   OTHER
 }
 
@@ -399,65 +402,6 @@ model MapPlace {
   @@index([active, category])
 }
 
-enum RentalVehicleType {
-  SCOOTER
-  E_SCOOTER
-  BICYCLE
-  E_BIKE
-  MOTORCYCLE
-}
-
-enum RentalOwnerType {
-  COMPANY
-  PERSON
-}
-
-enum RentalListingStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-// "Skuter ijara" market on the website. Companies and private owners post their own listings
-// (status PENDING until a panel user approves them); admins/operators can also post on someone's
-// behalf (ownerId null, born APPROVED). Rental points themselves live on the Smart xarita as
-// MapPlace rows with category SCOOTER.
-model RentalListing {
-  id              String              @id @default(cuid())
-  ownerId         String?
-  owner           User?               @relation("RentalOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  ownerType       RentalOwnerType     @default(PERSON)
-  companyName     String?
-  contactName     String?
-  phone           String
-  telegram        String? // username without @
-  vehicleType     RentalVehicleType
-  title           String
-  brand           String?
-  model           String?
-  description     String?
-  photos          Json                @default("[]") // data: URIs from the uploaders, first one is the cover
-  pricePerHour    Int? // so'm
-  pricePerDay     Int?
-  pricePerWeek    Int?
-  deposit         Int?
-  maxSpeed        Int? // km/h
-  rangeKm         Int? // one charge / tank
-  licenseRequired Boolean             @default(false)
-  address         String?
-  lat             Float?
-  lng             Float?
-  status          RentalListingStatus @default(PENDING)
-  rejectionReason String?
-  active          Boolean             @default(true) // owner/panel "hide" switch, independent of moderation
-  featured        Boolean             @default(false) // pinned to the top of the market
-  views           Int                 @default(0)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-
-  @@index([status, active, vehicleType])
-  @@index([ownerId])
-}
 
 // Admin-managed car catalog shown to drivers when they register (admin panel → Mashinalar).
 model Car {
@@ -913,7 +857,13 @@ model Lead {
   adName     String?
   formName   String?
 
-  messages LeadMessage[]
+  // Sayt formasida berilgan rozilik: shaxsiy ma’lumotlarni qayta ishlash va serverda saqlashga
+  // qachon va shartlarning qaysi tahririga rozi bo‘lgani. Hujjat yuklangan ariza busiz qabul qilinmaydi.
+  consentAt      DateTime?
+  consentVersion String?
+
+  messages  LeadMessage[]
+  documents LeadDocument[]
 
   @@index([ownerId, status])
   @@index([followUpAt])
@@ -1098,4 +1048,26 @@ model FareSettings {
   spreadPercent           Int      @default(14) // "Tejamkor"/"Tez topiladi" o‘rtachadan necha % uzoq
   wholeCarDiscountPercent Int      @default(0) // butun mashina (4 o‘rindiq) uchun chegirma
   updatedAt               DateTime @updatedAt
+}
+
+// Ariza beruvchi yuklagan hujjat (pasport, guvohnoma, avtomobil hujjatlari). Faylning o‘zi diskda,
+// UPLOAD_DIR/lead-documents/<storageKey> da turadi — bazada faqat tavsifi. `leadId` ariza
+// yuborilguncha bo‘sh: yuklovchi `uploadToken` ni oladi va arizada shu token bilan biriktiradi.
+// Haydovchi arizasi bo‘lsa hujjat `applicationId` ga (Haydovchi arizalari), aks holda lidga tegishli.
+model LeadDocument {
+  id            String             @id @default(cuid())
+  leadId        String?
+  lead          Lead?              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   DriverApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  kind        String // PASSPORT | LICENSE | VEHICLE_DOCS | VEHICLE_INFO
+  fileName    String
+  mime        String
+  size        Int
+  storageKey  String   @unique
+  uploadToken String   @unique
+  createdAt   DateTime @default(now())
+
+  @@index([leadId])
+  @@index([applicationId])
 }

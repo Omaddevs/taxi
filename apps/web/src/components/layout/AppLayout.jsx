@@ -2,7 +2,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { MobileDrawer } from './MobileDrawer'
 import { TopHeader } from './TopHeader'
 import { LocationPicker } from '../location/LocationPicker'
-import { RentMarketHost } from '../rent/RentMarketHost'
 import { useApp } from '../../context/AppContext'
 import { t } from '../../i18n'
 
@@ -74,7 +73,6 @@ export function AppLayout() {
       </div>
       <MobileDrawer />
       <LocationPicker />
-      <RentMarketHost />
     </div>
   )
 }

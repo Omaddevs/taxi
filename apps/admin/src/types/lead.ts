@@ -17,8 +17,21 @@ export interface LeadRow {
   followUpAt: string | null
   ownerId: string
   owner: { id: string; name: string | null; phone: string }
+  // Sayt formasida berilgan rozilik va yuklangan hujjatlar (faqat tavsifi — fayl alohida olinadi).
+  consentAt?: string | null
+  consentVersion?: string | null
+  documents?: LeadDocumentRow[]
   createdAt: string
   updatedAt: string
+}
+
+export interface LeadDocumentRow {
+  id: string
+  kind: 'PASSPORT' | 'LICENSE' | 'VEHICLE_DOCS' | 'VEHICLE_INFO'
+  fileName: string
+  mime: string
+  size: number
+  createdAt: string
 }
 
 export type LeadMessageDirection = 'IN' | 'OUT'

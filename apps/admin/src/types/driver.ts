@@ -1,3 +1,4 @@
+import type { LeadDocumentRow } from './lead'
 import type { BookingStatus } from './booking'
 import type { RideOfferRow } from './offer'
 import type { DriverUser } from './user'
@@ -85,6 +86,10 @@ export interface DriverApplicationRow {
   source?: 'WEBAPP' | 'BOT' | 'PANEL'
   region?: string | null
   toRegion?: string | null
+  // Sayt formasidan: yuklangan hujjatlar (tavsifi) va berilgan rozilik.
+  documents?: LeadDocumentRow[]
+  consentAt?: string | null
+  consentVersion?: string | null
   blocked?: boolean
   blockedReason?: string | null
   createdAt: string

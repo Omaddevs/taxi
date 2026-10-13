@@ -18,6 +18,7 @@ import {
   UserPlus,
   Users,
   X,
+  Paperclip,
 } from 'lucide-react'
 import { api } from '../lib/api'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -44,6 +45,7 @@ import {
   withLostReason,
 } from '../lib/leads'
 import { useAuth } from '../context/AuthContext'
+import { LeadDocuments } from '../components/leads/LeadDocuments'
 import type { LeadMessageRow, LeadRow, LeadStatus, LeadType } from '../types'
 
 const TYPE_TABS: { value: LeadType | 'all'; label: string }[] = [
@@ -569,6 +571,11 @@ function LeadCard({
       </div>
 
       {lead.note ? <p className="mt-2 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-muted">{lead.note}</p> : null}
+      {lead.documents?.length ? (
+        <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-dark">
+          <Paperclip className="h-3 w-3" /> {lead.documents.length} ta hujjat
+        </p>
+      ) : null}
 
       <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5">
         <FollowUpChip iso={lead.followUpAt} />
@@ -807,6 +814,8 @@ function DrawerBody({
             </Field>
           </div>
         </DrawerSection>
+
+        <LeadDocuments documents={lead.documents} consentAt={lead.consentAt} consentVersion={lead.consentVersion} />
 
         <dl className="grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-canvas p-3 text-xs">
           <dt className="text-muted">Telefon</dt>

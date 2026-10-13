@@ -1,26 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
   Banknote,
-  Bike,
-  Car,
   Check,
   ChevronDown,
   Clock,
+  Flag,
   Coins,
   Gift,
   Headphones,
   LogIn,
+  MapPin,
   Package,
   PartyPopper,
   RefreshCw,
   Route,
   Send,
   ShieldCheck,
-  Truck,
   User,
 } from 'lucide-react'
 import { TELEGRAM_BOT } from '../components/auth/AuthChrome'
@@ -33,6 +31,12 @@ import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
 import { useAuth } from '../context/AuthContext'
 import { faqs } from '../data/mock'
 import { api } from '../lib/api'
+import { usePromotions } from '../lib/queries'
+import { NavDropdown } from '../components/landing/NavDropdown'
+import { ConsentField, DocumentUploads } from '../components/landing/ApplicationExtras'
+import { useDocumentUploads } from '../components/landing/useDocumentUploads'
+import { CONSENT_VERSION } from '../data/consent'
+import { REGIONS } from '../data/uzbekistan'
 import { homePathForRole } from '../lib/role'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../lib/utils'
 import { siteJsonLd } from '../seo/pages'
@@ -41,9 +45,8 @@ import { t } from '../i18n'
 
 // `highlight` — ajralib turadigan band.
 const NAV = [
-  { href: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
-  { href: '/news', label: 'Yangiliklar' },
-  { href: '/skuter-ijara', label: 'Skuter ijara' },
+  { menu: 'company' },
+  { menu: 'resources' },
   { href: '#random', label: 'Random mijoz', highlight: true },
 ]
 
@@ -75,7 +78,9 @@ function CarImage({ className = '', sizes = '(min-width: 1024px) 720px, 100vw' }
 
 function NavLinks({ onNavigate, className = '', desktop = false }) {
   return NAV.map((item) =>
-    item.highlight ? (
+    item.menu ? (
+      <NavDropdown key={item.menu} menu={item.menu} className={className} />
+    ) : item.highlight ? (
       <a
         key={item.href}
         href={item.href}
@@ -390,19 +395,25 @@ function Steps() {
 const FIELD =
   'h-12 w-full rounded-full bg-white px-5 text-[14px] font-medium text-ink outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:ring-2 focus:ring-ink/25 2xl:h-14 2xl:px-6 2xl:text-[16px]'
 
-const ROLE_OPTIONS = [
-  { value: 'driver', label: 'Haydovchi', hint: 'Yo‘lovchi tashib daromad qiling', icon: Car },
-  { value: 'courier', label: 'Kuryer / pochta', hint: 'Posilka va yuk yetkazing', icon: Package },
-  { value: 'passenger', label: 'Yo‘lovchi', hint: 'Safar va yetkazib berish buyurtma qiling', icon: User },
-]
+// Haydovchi qatnaydigan yo‘nalish uchlari — viloyatlar ro‘yxati (src/data/uzbekistan.js).
+const REGION_OPTIONS = (icon) => REGIONS.map((r) => ({ value: r.name, label: r.name, icon }))
+const FROM_OPTIONS = REGION_OPTIONS(MapPin)
+const TO_OPTIONS = REGION_OPTIONS(Flag)
 
-/* Brauzerning oddiy <select> o‘rniga dizaynga mos ochiladigan ro‘yxat (WAI-ARIA combobox/listbox). */
-function RoleSelect({ value, onChange }) {
+/* Brauzerning oddiy <select> o‘rniga dizaynga mos ochiladigan ro‘yxat (WAI-ARIA combobox/listbox).
+   `options`: [{ value, label, hint?, icon }]; `label` — bo‘sh holatdagi yozuv va a11y nomi. */
+function OptionSelect({ id, label, options, value, onChange }) {
   const [open, setOpen] = useState(false)
   const [hi, setHi] = useState(0)
   const rootRef = useRef(null)
-  const listId = 'role-listbox'
-  const selected = ROLE_OPTIONS.find((o) => o.value === value)
+  const listRef = useRef(null)
+  const listId = `${id}-listbox`
+  const selected = options.find((o) => o.value === value)
+
+  // Klaviatura bilan yurganda belgilangan band ro‘yxat ichida ko‘rinib tursin.
+  useEffect(() => {
+    if (open) listRef.current?.children[hi]?.scrollIntoView({ block: 'nearest' })
+  }, [open, hi])
 
   useEffect(() => {
     if (!open) return undefined
@@ -414,17 +425,17 @@ function RoleSelect({ value, onChange }) {
   }, [open])
 
   function openList() {
-    setHi(Math.max(0, ROLE_OPTIONS.findIndex((o) => o.value === value)))
+    setHi(Math.max(0, options.findIndex((o) => o.value === value)))
     setOpen(true)
   }
 
   function choose(i) {
-    onChange(ROLE_OPTIONS[i].value)
+    onChange(options[i].value)
     setOpen(false)
   }
 
   function onKeyDown(e) {
-    const last = ROLE_OPTIONS.length - 1
+    const last = options.length - 1
     if (!open) {
       if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
         e.preventDefault()
@@ -454,7 +465,7 @@ function RoleSelect({ value, onChange }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-label={t('Faoliyat turi')}
+        aria-label={t(label)}
         aria-activedescendant={open ? `${listId}-${hi}` : undefined}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onKeyDown}
@@ -466,20 +477,21 @@ function RoleSelect({ value, onChange }) {
           </span>
         ) : null}
         <span className={`min-w-0 flex-1 truncate ${selected ? 'font-semibold text-ink' : 'font-normal text-slate-400'}`}>
-          {selected ? selected.label : t('Faoliyat turi')}
+          {selected ? t(selected.label) : t(label)}
         </span>
         <ChevronDown className={`h-5 w-5 shrink-0 text-ink transition-transform duration-300 ${open ? 'rotate-180' : ''}`} strokeWidth={1.8} />
       </button>
 
       <ul
         id={listId}
+        ref={listRef}
         role="listbox"
-        aria-label={t('Faoliyat turi')}
-        className={`absolute inset-x-0 top-[calc(100%+8px)] z-40 origin-top rounded-[22px] bg-white p-2 shadow-[0_24px_48px_-12px_rgba(15,29,42,0.35)] ring-1 ring-black/5 transition duration-200 ease-out ${
+        aria-label={t(label)}
+        className={`no-scrollbar absolute inset-x-0 top-[calc(100%+8px)] z-40 max-h-[296px] origin-top overflow-y-auto overscroll-contain rounded-[22px] bg-white p-2 shadow-[0_24px_48px_-12px_rgba(15,29,42,0.35)] ring-1 ring-black/5 transition duration-200 ease-out ${
           open ? 'visible scale-100 opacity-100' : 'invisible -translate-y-1 scale-[0.98] opacity-0'
         }`}
       >
-        {ROLE_OPTIONS.map((o, i) => {
+        {options.map((o, i) => {
           const Icon = o.icon
           const isSel = o.value === value
           return (
@@ -490,7 +502,7 @@ function RoleSelect({ value, onChange }) {
               aria-selected={isSel}
               onPointerEnter={() => setHi(i)}
               onClick={() => choose(i)}
-              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2 transition-colors ${
                 hi === i ? 'bg-[#f3f4f6]' : ''
               }`}
             >
@@ -503,7 +515,7 @@ function RoleSelect({ value, onChange }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-bold text-ink 2xl:text-[16px]">{t(o.label)}</span>
-                <span className="block truncate text-[12px] text-ink/60 2xl:text-[13px]">{t(o.hint)}</span>
+                {o.hint ? <span className="block truncate text-[12px] text-ink/60 2xl:text-[13px]">{t(o.hint)}</span> : null}
               </span>
               <Check className={`h-5 w-5 shrink-0 text-brand-dark transition-opacity ${isSel ? 'opacity-100' : 'opacity-0'}`} strokeWidth={2.4} />
             </li>
@@ -514,14 +526,19 @@ function RoleSelect({ value, onChange }) {
   )
 }
 
-function JoinForm() {
+// `documents` — hujjat yuklash qatorlari ham ko‘rsatiladi (Haydovchi bo‘lish sahifasi).
+function JoinForm({ documents = false }) {
   const [name, setName] = useState('')
-  const [city, setCity] = useState('')
   const [phone, setPhone] = useState(maskPhoneUz('+998'))
-  const [role, setRole] = useState('')
+  // Haydovchi qaysi yo‘nalishda qatnaydi: qayerdan — qayerga.
+  const [fromRegion, setFromRegion] = useState('')
+  const [toRegion, setToRegion] = useState('')
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(null)
+  // Rozilik faqat shartlar oxirigacha o‘qilib, qabul qilingach belgilanadi — usiz ariza yuborilmaydi.
+  const [consent, setConsent] = useState(false)
+  const uploads = useDocumentUploads()
 
   // Ariza admin paneldagi "Lidlar" bo‘limiga tushadi (manba: Sayt formasi).
   async function onSubmit(e) {
@@ -534,15 +551,33 @@ function JoinForm() {
       setError(t('Telefon raqamini to‘liq kiriting'))
       return
     }
+    if (!fromRegion || !toRegion) {
+      setError(t('Qayerdan qayerga qatnashingizni tanlang'))
+      return
+    }
+    if (uploads.uploading) {
+      setError(t('Fayllar yuklanib bo‘lishini kuting'))
+      return
+    }
+    if (!consent) {
+      setError(t('Arizani yuborish uchun shartlarni o‘qib, rozilik bering'))
+      return
+    }
     setError('')
     setSending(true)
     try {
       await api.post('/leads', {
         name: name.trim(),
         phone: toE164Uz(phone),
-        city: city.trim() || undefined,
-        activity: role || 'driver',
+        activity: 'driver',
+        fromRegion,
+        toRegion,
+        documents: uploads.tokens.length ? uploads.tokens : undefined,
+        consent: true,
+        consentVersion: CONSENT_VERSION,
       })
+      uploads.reset()
+      setConsent(false)
       setSent({ name: name.trim().split(' ')[0], phone })
     } catch (err) {
       setError(err.message || t('Arizani yuborib bo‘lmadi. Qayta urinib ko‘ring.'))
@@ -575,9 +610,9 @@ function JoinForm() {
             onClick={() => {
               setSent(null)
               setName('')
-              setCity('')
               setPhone(maskPhoneUz('+998'))
-              setRole('')
+              setFromRegion('')
+              setToRegion('')
             }}
             className="text-[14px] font-bold text-ink/70 underline-offset-4 hover:text-ink hover:underline"
           >
@@ -597,9 +632,9 @@ function JoinForm() {
         {t('biz albatta siz bilan bog‘lanamiz!')}
       </p>
 
-      <div className="mt-8 space-y-3.5">
+      <div className={documents ? 'mt-8 grid gap-x-8 gap-y-6 md:grid-cols-2' : 'mt-8'}>
+      <div className="space-y-3.5">
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Ism familiya')} autoComplete="name" aria-label={t('Ism familiya')} className={FIELD} />
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('Shahar')} autoComplete="address-level2" aria-label={t('Shahar')} className={FIELD} />
         <label className={`${FIELD} flex items-center gap-1.5 focus-within:ring-2 focus-within:ring-ink/25`}>
           <span className={isCompletePhoneUz(phone) || phone.length > 5 ? 'text-ink' : 'text-slate-400'}>+998</span>
           <input
@@ -614,18 +649,33 @@ function JoinForm() {
             className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-400"
           />
         </label>
-        <RoleSelect value={role} onChange={setRole} />
+        <div className="grid grid-cols-2 gap-2.5">
+          <OptionSelect id="route-from" label="Qayerdan" options={FROM_OPTIONS} value={fromRegion} onChange={setFromRegion} />
+          <OptionSelect id="route-to" label="Qayerga" options={TO_OPTIONS} value={toRegion} onChange={setToRegion} />
+        </div>
+      </div>
+      {documents ? <DocumentUploads uploads={uploads} /> : null}
       </div>
 
-      {error ? <p className="mt-3 rounded-2xl bg-white/25 px-4 py-2 text-[13px] font-bold text-ink">{t(error)}</p> : null}
+      <ConsentField accepted={consent} onChange={setConsent} />
 
+      {error ? (
+        <p role="alert" className="mt-3 rounded-2xl bg-white/25 px-4 py-2 text-[13px] font-bold text-ink">
+          {t(error)}
+        </p>
+      ) : null}
+
+      {/* Rozilik berilmaguncha tugma xira turadi, lekin bosilsa nima yetishmayotganini aytadi. */}
       <button
         type="submit"
         disabled={sending}
-        className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1d2229] text-[12px] font-extrabold uppercase tracking-[0.06em] text-white transition hover:bg-black disabled:opacity-70 2xl:h-14 2xl:text-[14px]"
+        aria-disabled={!consent || uploads.uploading}
+        className={`mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1d2229] ${documents ? 'md:ml-auto md:w-[320px]' : ''} text-[12px] font-extrabold uppercase tracking-[0.06em] text-white transition disabled:opacity-70 2xl:h-14 2xl:text-[14px] ${
+          consent && !uploads.uploading ? 'hover:bg-black' : 'opacity-45'
+        }`}
       >
-        {sending ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
-        {sending ? t('Yuborilmoqda…') : t('Ariza yuborish')}
+        {sending || uploads.uploading ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
+        {sending ? t('Yuborilmoqda…') : uploads.uploading ? t('Fayllar yuklanmoqda…') : t('Ariza yuborish')}
       </button>
     </form>
   )
@@ -665,10 +715,16 @@ function RoadBand() {
   )
 }
 
-export function Join() {
+// `documents` — formada hujjat yuklash ham bo‘ladi. `road` — pastdagi yo‘l tasmasi: u keyingi "Kuniga 1 mln" blokiga ulanadi, shu blok bo‘lmagan
+// sahifada (Haydovchi bo‘lish) chizilmaydi.
+export function Join({ road = true, documents = false }) {
   return (
     <section id="join" className="mx-auto max-w-site scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-10 px-2 sm:px-6 lg:grid-cols-[1fr_minmax(0,460px)] lg:gap-14 lg:px-14 2xl:grid-cols-[1fr_minmax(0,560px)] 2xl:px-20">
+      <div
+        className={`grid grid-cols-[minmax(0,1fr)] gap-10 px-2 sm:px-6 lg:gap-14 lg:px-14 2xl:px-20 ${
+          documents ? 'xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]' : 'lg:grid-cols-[1fr_minmax(0,460px)] 2xl:grid-cols-[1fr_minmax(0,560px)]'
+        }`}
+      >
         <div className="min-w-0">
           <h2 className="text-[34px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[44px] lg:text-[48px] 2xl:text-[64px]">
             {t('Haydovchi bo‘ling')}
@@ -677,77 +733,9 @@ export function Join() {
           </h2>
           <Steps />
         </div>
-        <JoinForm />
+        <JoinForm documents={documents} />
       </div>
-      <RoadBand />
-    </section>
-  )
-}
-
-function ScreenPhone({ src, alt, className = '' }) {
-  return (
-    <div className={`rounded-[30px] bg-white p-[5px] shadow-[0_30px_60px_rgba(0,0,0,0.45)] ${className}`}>
-      <img src={src} alt={t(alt)} className="block w-full rounded-[26px]" draggable={false} />
-    </div>
-  )
-}
-
-export function Earn() {
-  return (
-    <section id="earn" className="mx-auto max-w-site scroll-mt-24 px-3 pb-16 sm:px-6">
-      <div className="relative -mt-1 overflow-hidden rounded-[32px] bg-[#1d2229] text-white sm:rounded-[40px]">
-        {/* O‘ng yuqori burchakdagi teal va qora doiralar */}
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 -right-36 h-[420px] w-[420px] rounded-full bg-brand sm:-bottom-56 sm:h-[560px] sm:w-[560px] lg:bottom-auto lg:-right-24 lg:-top-44" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-6 -top-16 hidden h-[260px] w-[260px] rounded-full bg-[#111418] lg:-right-2 lg:-top-20 lg:block" />
-
-        <div className="relative grid lg:grid-cols-[1.15fr_1fr]">
-          <div className="px-6 pt-12 sm:px-10 sm:pt-16 lg:px-14 lg:py-24 2xl:px-20 2xl:py-32">
-            <h2 className="text-[32px] font-extrabold leading-[1.1] tracking-tight sm:text-[44px] xl:text-[50px] 2xl:text-[66px]">
-              {t('Kuniga 1 mln gacha')}
-              <br />
-              <span className="whitespace-nowrap">
-                {t('ishlang')}{' '}
-                <span className="relative -top-1.5 ml-1 inline-block rounded-[10px] bg-brand px-4 py-1.5 align-middle text-[13px] font-bold tracking-normal text-ink sm:text-[15px]">
-                  {t('kuryerlarga')}
-                </span>
-              </span>
-            </h2>
-            <p className="mt-4 max-w-[520px] text-[15px] leading-[1.5] text-white/85 sm:text-[17px] 2xl:max-w-[640px] 2xl:text-[21px]">
-              {t('Mijozlardan kichik yuk va posilkalarni o‘zingizga qulay transportda TaxiLine Pochta bilan yetkazing')}
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              {[
-                { icon: Car, label: 'mashina' },
-                { icon: Bike, label: 'velosiped' },
-                { icon: Truck, label: t('yuk mashina') },
-              ].map(({ icon: Icon, label }) => (
-                <span key={label} className="flex h-11 items-center gap-2.5 rounded-[12px] bg-white/[0.08] px-4 text-[13px] font-semibold">
-                  <Icon className="h-5 w-5" strokeWidth={1.8} />
-                  {t(label)}
-                </span>
-              ))}
-            </div>
-            <Link
-              to="/register"
-              className="mt-10 inline-flex items-center gap-4 text-[13px] font-extrabold uppercase tracking-[0.06em] text-brand transition-[gap] hover:gap-5"
-            >
-              {t('Batafsil bilish')}
-              <svg viewBox="0 0 36 12" className="h-3 w-9" aria-hidden="true">
-                <path d="M0 6h33M28 1l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              </svg>
-            </Link>
-          </div>
-
-          <div className="relative h-[420px] sm:h-[480px] lg:h-auto">
-            <div className="absolute left-[44%] top-12 rotate-[9deg] sm:left-[46%] lg:left-[40%] lg:top-14">
-              <ScreenPhone src="/landing/app-login.webp" alt={t('TaxiLine — kirish ekrani')} className="w-[190px] sm:w-[230px] 2xl:w-[290px]" />
-            </div>
-            <div className="absolute left-[6%] top-6 rotate-[4deg] sm:left-[14%] lg:left-0 lg:top-8">
-              <ScreenPhone src="/landing/app-delivery.webp" alt={t('TaxiLine — yetkazib berish ekrani')} className="w-[200px] sm:w-[240px] 2xl:w-[300px]" />
-            </div>
-          </div>
-        </div>
-      </div>
+      {road ? <RoadBand /> : null}
     </section>
   )
 }
@@ -953,8 +941,7 @@ function usePrefersReducedMotion() {
 }
 
 export function Promotions() {
-  const { data } = useQuery({ queryKey: ['promotions'], queryFn: () => api.get('/promotions'), staleTime: 60_000 })
-  const promos = Array.isArray(data) ? data : []
+  const promos = usePromotions()
   if (!promos.length) return null
   // Admin aksiyalarni o‘zgartirsa karusel holati boshidan boshlanadi.
   return <PromoCarousel key={promos.map((p) => p.id).join()} promos={promos} />
@@ -1603,7 +1590,6 @@ export default function Landing() {
       <main>
         <Showcase />
         <Join />
-        <Earn />
         <Business />
         <Promotions />
         <Testimonials />

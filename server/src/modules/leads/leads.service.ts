@@ -3,8 +3,17 @@ import { prisma } from '../../lib/prisma.js'
 import { normalizePhone } from '../../lib/otp.js'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../errors/AppError.js'
 import type { JwtRole } from '../../lib/jwt.js'
+import { attachDocuments, removeOwnerFiles } from './leadDocuments.service.js'
+import { submitWebsiteApplication } from '../drivers/applications.service.js'
 
-const LEAD_INCLUDE = { owner: { select: { id: true, name: true, phone: true } } }
+const LEAD_INCLUDE = {
+  owner: { select: { id: true, name: true, phone: true } },
+  // What the applicant uploaded — metadata only; the bytes are read through /admin/leads/documents/:docId.
+  documents: {
+    select: { id: true, kind: true, fileName: true, mime: true, size: true, createdAt: true },
+    orderBy: { createdAt: 'asc' as const },
+  },
+}
 
 function scopeWhere(actorRole: JwtRole, actorId: string) {
   return actorRole === 'ADMIN' ? {} : { ownerId: actorId }
@@ -138,19 +147,43 @@ export async function updateLead(
 
 export async function deleteLead(id: string, actorRole: JwtRole, actorId: string) {
   await ownedLead(id, actorRole, actorId)
+  await removeOwnerFiles({ leadId: id })
   await prisma.lead.delete({ where: { id } })
 }
 
-const ACTIVITY_LABEL = { driver: 'Haydovchi', courier: 'Kuryer / pochta', passenger: 'Yo‘lovchi' } as const
+const ACTIVITY_LABEL = { driver: 'Haydovchi', passenger: 'Yo‘lovchi' } as const
 
 // Sayt formasidan kelgan ariza: navbatdagi sotuv operatoriga biriktiriladi va darhol "qo‘ng‘iroq
 // qilish kerak" ro‘yxatiga tushadi. Bir raqamdan ochiq ariza bo‘lsa, yangisi ochilmaydi —
 // mavjudi yangilanadi (takroriy bosish yoki qayta yuborishda ro‘yxat to‘lib ketmasligi uchun).
-export async function createWebsiteLead(input: { name: string; phone: string; city?: string; activity: keyof typeof ACTIVITY_LABEL }) {
+export async function createWebsiteLead(input: {
+  name: string
+  phone: string
+  city?: string
+  activity: keyof typeof ACTIVITY_LABEL
+  fromRegion?: string
+  toRegion?: string
+  documents?: string[]
+  consent?: boolean
+  consentVersion?: string
+}) {
   const phone = normalizePhone(input.phone)
   if (!/^\+998\d{9}$/.test(phone)) throw new ValidationError('Telefon raqami +998 XX XXX XX XX formatida bo‘lishi kerak')
+  const tokens = input.documents ?? []
+  // Documents are personal data: we only keep them for someone who agreed to that.
+  if (tokens.length && !input.consent) {
+    throw new ValidationError('Hujjatlarni yuborish uchun shaxsiy ma’lumotlarni qayta ishlashga rozilik bering')
+  }
+  const consent = input.consent ? { consentAt: new Date(), consentVersion: input.consentVersion ?? null } : {}
+
+  // A driver's application belongs in "Haydovchi arizalari", where staff review the documents and
+  // approve, block or delete it — not in the sales leads list.
+  if (input.activity === 'driver') {
+    return submitWebsiteApplication({ fullName: input.name, phone, fromRegion: input.fromRegion, toRegion: input.toRegion, tokens, ...consent })
+  }
   const leadType: LeadType = input.activity === 'passenger' ? 'PASSENGER' : 'DRIVER'
-  const note = [`Faoliyat: ${ACTIVITY_LABEL[input.activity]}`, input.city ? `Shahar: ${input.city}` : null].filter(Boolean).join(' · ')
+  const route = input.fromRegion || input.toRegion ? `Yo‘nalish: ${input.fromRegion || '—'} → ${input.toRegion || '—'}` : null
+  const note = [`Faoliyat: ${ACTIVITY_LABEL[input.activity]}`, input.city ? `Shahar: ${input.city}` : null, route].filter(Boolean).join(' · ')
   const source = 'Sayt: “Haydovchi bo‘ling” formasi'
 
   const open = await prisma.lead.findFirst({
@@ -160,12 +193,12 @@ export async function createWebsiteLead(input: { name: string; phone: string; ci
   if (open) {
     await prisma.lead.update({
       where: { id: open.id },
-      data: { name: input.name, note, leadType, followUpAt: new Date() },
+      data: { name: input.name, note, leadType, followUpAt: new Date(), ...consent },
     })
-    return { ok: true, duplicate: true }
+    return { ok: true, duplicate: true, documents: await attachDocuments({ leadId: open.id }, tokens) }
   }
 
-  await prisma.lead.create({
+  const lead = await prisma.lead.create({
     data: {
       name: input.name,
       phone,
@@ -175,7 +208,28 @@ export async function createWebsiteLead(input: { name: string; phone: string; ci
       channel: 'WEBSITE',
       ownerId: await pickLeadOwner(),
       followUpAt: new Date(),
+      ...consent,
     },
   })
-  return { ok: true, duplicate: false }
+  return { ok: true, duplicate: false, documents: await attachDocuments({ leadId: lead.id }, tokens) }
+}
+
+// "Aloqa" sahifasidan kelgan murojaat. Arizadan farqli o‘laroq, bu yerda takror birlashtirilmaydi:
+// har bir xabarning o‘z matni bor, shuning uchun har biri alohida lid bo‘lib tushadi.
+export async function createContactLead(input: { name: string; phone: string; message: string }) {
+  const phone = normalizePhone(input.phone)
+  if (!/^\+998\d{9}$/.test(phone)) throw new ValidationError('Telefon raqami +998 XX XXX XX XX formatida bo‘lishi kerak')
+
+  await prisma.lead.create({
+    data: {
+      name: input.name,
+      phone,
+      source: 'Sayt: Aloqa sahifasi',
+      note: input.message,
+      channel: 'WEBSITE',
+      ownerId: await pickLeadOwner(),
+      followUpAt: new Date(),
+    },
+  })
+  return { ok: true }
 }

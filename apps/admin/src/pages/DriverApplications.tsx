@@ -6,8 +6,10 @@ import {
   Check,
   ClipboardCheck,
   Clock,
+  FileText,
   Globe,
   LayoutPanelLeft,
+  Paperclip,
   Pencil,
   Plus,
   Search,
@@ -28,6 +30,7 @@ import { StatCard } from '../components/ui/StatCard'
 import { Avatar } from '../components/ui/Avatar'
 import { cn, formatDateTime, formatPhoneUz, isCompletePhoneUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
 import { APP_STATUS_LABEL } from '../lib/labels'
+import { LeadDocuments } from '../components/leads/LeadDocuments'
 import type { DriverApplicationRow } from '../types'
 
 const QUERY_KEY = ['admin-driver-applications']
@@ -70,6 +73,7 @@ export default function DriverApplications() {
   const [editing, setEditing] = useState<DriverApplicationRow | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
+  const [viewing, setViewing] = useState<DriverApplicationRow | null>(null)
 
   const { data: all = [], isLoading } = useQuery({
     queryKey: QUERY_KEY,
@@ -127,7 +131,10 @@ export default function DriverApplications() {
   }, [all, tab, source, search])
 
   function onDelete(a: DriverApplicationRow) {
-    const note = a.status === 'APPROVED' ? '\n\nHaydovchi ishlashda davom etadi. Uni to‘xtatish uchun «Bloklash» dan foydalaning.' : ''
+    const note =
+      a.status === 'APPROVED'
+        ? '\n\nHaydovchi ishlashda davom etadi. Uni to‘xtatish uchun «Bloklash» dan foydalaning.'
+        : '\n\nAriza, yuklangan hujjatlar va fayllar serverdan butunlay o‘chiriladi. Bu amalni qaytarib bo‘lmaydi.'
     if (window.confirm(`“${a.fullName}” arizasini o‘chirasizmi?${note}`)) remove.mutate(a.id)
   }
 
@@ -223,6 +230,15 @@ export default function DriverApplications() {
                             {formatPhoneUz(a.phone)}
                             {a.user.gender ? ` · ${a.user.gender === 'FEMALE' ? 'Ayol' : 'Erkak'}` : ''}
                           </p>
+                          {a.documents?.length || a.consentAt ? (
+                            <button
+                              type="button"
+                              onClick={() => setViewing(a)}
+                              className="mt-1 inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-dark hover:bg-brand/20"
+                            >
+                              <Paperclip className="h-3 w-3" /> {a.documents?.length ? `${a.documents.length} ta hujjat` : 'Rozilik berilgan'}
+                            </button>
+                          ) : null}
                           {a.user.telegramUsername ? (
                             <a
                               href={`https://t.me/${a.user.telegramUsername}`}
@@ -237,10 +253,19 @@ export default function DriverApplications() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-ink">{a.carModel}</p>
-                      <span className="mt-1 inline-block whitespace-nowrap rounded-md border border-ink/20 bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-ink">
-                        {a.plate}
-                      </span>
+                      {a.carModel && a.plate ? (
+                        <>
+                          <p className="font-semibold text-ink">{a.carModel}</p>
+                          <span className="mt-1 inline-block whitespace-nowrap rounded-md border border-ink/20 bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-ink">
+                            {a.plate}
+                          </span>
+                        </>
+                      ) : (
+                        // The website form does not ask about the car — staff add it before approving.
+                        <button type="button" onClick={() => setEditing(a)} className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 hover:bg-amber-100">
+                          Kiritilmagan — qo‘shish
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {a.region || a.toRegion ? (
@@ -276,7 +301,7 @@ export default function DriverApplications() {
                     <td className="sticky right-0 bg-white px-3 py-3 shadow-[-8px_0_12px_-10px_rgba(0,0,0,0.25)]">
                       <div className="flex items-center justify-end gap-1">
                         {!a.blocked && a.status !== 'APPROVED' ? (
-                          <Button size="sm" onClick={() => review.mutate({ id: a.id, status: 'APPROVED' })} disabled={review.isPending}>
+                          <Button size="sm" onClick={() => (a.carModel && a.plate ? review.mutate({ id: a.id, status: 'APPROVED' }) : setEditing(a))} disabled={review.isPending}>
                             <Check className="h-4 w-4" /> Tasdiqlash
                           </Button>
                         ) : null}
@@ -294,6 +319,9 @@ export default function DriverApplications() {
                             <Ban className="h-4 w-4" />
                           </IconBtn>
                         )}
+                        <IconBtn title="Hujjatlar" onClick={() => setViewing(a)}>
+                          <FileText className="h-4 w-4" />
+                        </IconBtn>
                         <IconBtn title="Tahrirlash" onClick={() => setEditing(a)}>
                           <Pencil className="h-4 w-4" />
                         </IconBtn>
@@ -337,6 +365,20 @@ export default function DriverApplications() {
           setBlocking(null)
         }}
       />
+      <Modal open={Boolean(viewing)} title={viewing ? `${viewing.fullName} — hujjatlar` : ''} onClose={() => setViewing(null)}>
+        {viewing ? (
+          <div className="space-y-3">
+            <LeadDocuments
+              always
+              basePath="/admin/drivers/applications/documents"
+              documents={viewing.documents}
+              consentAt={viewing.consentAt}
+              consentVersion={viewing.consentVersion}
+            />
+            {viewing.consentAt ? null : <p className="text-xs text-muted">Rozilik qayd etilmagan (ariza sayt formasidan kelmagan).</p>}
+          </div>
+        ) : null}
+      </Modal>
       {editing ? <ApplicationModal key={editing.id} editing={editing} onClose={() => setEditing(null)} onSaved={refresh} /> : null}
       {creating ? <ApplicationModal editing={null} onClose={() => setCreating(false)} onSaved={refresh} /> : null}
     </div>

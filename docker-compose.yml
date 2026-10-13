@@ -35,6 +35,10 @@ services:
       ADMIN_PANEL_URL: https://${WEB_DOMAIN}/admin
       BOT_HTTP_URL: http://bot:8081
       TRUST_PROXY: 'true'
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      # Applicants' documents (passport, licence…) — must survive a redeploy.
+      - server-uploads:/data/uploads
 
   web:
     build:
@@ -96,6 +100,7 @@ services:
 
 volumes:
   postgres-data:
+  server-uploads:
   bot-tts-cache:
   caddy-data:
   caddy-config:

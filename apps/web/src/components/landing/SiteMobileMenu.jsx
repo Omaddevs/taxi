@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight, Bike, Briefcase, CarFront, ChevronRight, CircleHelp, Gift, LogIn, Newspaper, Phone, Send, UserPlus, X } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Briefcase, ChevronRight, CircleHelp, Gift, LogIn, Phone, Send, UserPlus, X } from 'lucide-react'
 import { Logo, Wordmark } from '../ui/Logo'
 import { LanguageSwitch } from '../ui/LanguagePicker'
 import { lockScroll } from '../../lib/scrollLock'
+import { SITE_MENUS } from '../../data/siteMenus'
 import { t } from '../../i18n'
 
 // Ochiq sahifalar (landing, yangiliklar, haydovchi bo‘lish …) uchun telefondagi menyu.
 const ITEMS = [
-  { to: '/haydovchi-bolish', label: 'Haydovchi bo‘lish', hint: 'Bugunoq daromad qiling', icon: CarFront },
-  { to: '/news', label: 'Yangiliklar', hint: 'Aksiyalar va yangilanishlar', icon: Newspaper },
-  { to: '/skuter-ijara', label: 'Skuter ijara', hint: 'Skuter, samokat, velosiped', icon: Bike },
+  // Kompaniya va Resurslar guruhlari (tashqi havola yangi oynada ochiladi).
+  ...SITE_MENUS.company.items,
+  ...SITE_MENUS.resources.items,
   { to: '/biznes', label: 'Biznes', hint: 'Kompaniyalar uchun tarif', icon: Briefcase },
   { to: '/savollar', label: 'Savol-javob', hint: 'Ko‘p so‘raladigan savollar', icon: CircleHelp },
 ]
@@ -115,10 +116,13 @@ export function SiteMobileMenu({ buttonClassName = '' }) {
                     {ITEMS.map((item, i) => {
                       const active = pathname === item.to
                       const Icon = item.icon
+                      const Row = item.href ? 'a' : Link
+                      const target = item.href ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' } : { to: item.to }
+                      const Arrow = item.href ? ArrowUpRight : ChevronRight
                       return (
-                        <Link
-                          key={item.to}
-                          to={item.to}
+                        <Row
+                          key={item.label}
+                          {...target}
                           onClick={close}
                           aria-current={active ? 'page' : undefined}
                           className={`group flex items-center gap-3 px-3 py-3 transition ${i ? 'border-t border-line' : ''} ${active ? 'bg-brand-soft/60' : 'hover:bg-canvas active:bg-canvas'}`}
@@ -130,8 +134,8 @@ export function SiteMobileMenu({ buttonClassName = '' }) {
                             <span className="block truncate text-[15px] font-extrabold text-ink">{t(item.label)}</span>
                             <span className="block truncate text-[12.5px] font-medium text-muted">{t(item.hint)}</span>
                           </span>
-                          <ChevronRight className="h-[18px] w-[18px] shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-ink" />
-                        </Link>
+                          <Arrow className="h-[18px] w-[18px] shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-ink" />
+                        </Row>
                       )
                     })}
                   </nav>

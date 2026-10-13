@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import {
-  Bike,
   Bot,
   ChevronDown,
   ChevronsLeft,
@@ -55,7 +54,7 @@ type NavItem = {
   label: string
   icon: LucideIcon
   end?: boolean
-  badge?: 'pending' | 'newLeads' | 'rentals'
+  badge?: 'pending' | 'newLeads'
   roles: PanelRole[]
   // Sub-pages: shown as a dropdown on hover (desktop) and expand inline on click (touch).
   children?: { to: string; label: string }[]
@@ -91,7 +90,6 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/listings', label: 'Elonlar', icon: Radio, roles: ['ADMIN'] },
       { to: '/women-orders', label: 'Ayol yo‘lovchilar', icon: Flower2, roles: ['ADMIN'] },
       { to: '/ratings', label: 'Reytinglar', icon: Star, roles: ['ADMIN'] },
-      { to: '/rentals', label: 'Skuter ijara', icon: Bike, badge: 'rentals', roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
     ],
   },
   {
@@ -263,19 +261,17 @@ function SidebarNav({
   role,
   pending,
   newLeads,
-  pendingRentals,
   collapsed,
   onNavigate,
 }: {
   role: PanelRole
   pending: number
   newLeads: number
-  pendingRentals: number
   collapsed: boolean
   onNavigate?: () => void
 }) {
   const [tip, setTip] = useState<{ label: string; top: number } | null>(null)
-  const counts = { pending, newLeads, rentals: pendingRentals }
+  const counts = { pending, newLeads }
   return (
     <nav className={cn('flex-1 overflow-y-auto overflow-x-hidden py-2', collapsed ? 'space-y-3 px-3 lg:px-2.5' : 'space-y-5 px-3')}>
       <RailTooltip tip={collapsed ? tip : null} />
@@ -322,11 +318,6 @@ function SidebarNav({
                   {collapsed ? null : item.badge === 'pending' && pending > 0 ? (
                     <span className="min-w-5 rounded-full bg-white/20 px-1.5 text-center text-[11px] font-bold">
                       {pending}
-                    </span>
-                  ) : null}
-                  {collapsed ? null : item.badge === 'rentals' && pendingRentals > 0 ? (
-                    <span className="min-w-5 rounded-full bg-amber-400 px-1.5 text-center text-[11px] font-bold text-ink" title="Moderatsiyada">
-                      {pendingRentals}
                     </span>
                   ) : null}
                   {collapsed ? null : item.badge === 'newLeads' && newLeads > 0 ? (
@@ -435,14 +426,6 @@ export function AdminLayout() {
     enabled: user?.role === 'ADMIN' || user?.role === 'SALES_OPERATOR',
   })
 
-  // Skuter ijara yonidagi raqam: saytdan kelgan, moderatsiyani kutayotgan e’lonlar.
-  const { data: rentalsBadge } = useQuery({
-    queryKey: ['admin-rentals', 'pending-badge'],
-    queryFn: () => api.get<{ id: string }[]>('/admin/rentals?status=PENDING'),
-    refetchInterval: 60_000,
-    enabled: Boolean(user),
-  })
-
   // Cheap presence signal: ping every 30s while the panel tab is open so teammates see this
   // account as "online" in the Operators list (see staff.service's 90s online window).
   useEffect(() => {
@@ -457,7 +440,6 @@ export function AdminLayout() {
 
   const pending = (user.role === 'ADMIN' ? data?.pendingApplications : pendingApps?.length) ?? 0
   const newLeads = leadsBadge?.length ?? 0
-  const pendingRentals = rentalsBadge?.length ?? 0
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -504,7 +486,6 @@ export function AdminLayout() {
           role={user.role}
           pending={pending}
           newLeads={newLeads}
-          pendingRentals={pendingRentals}
           collapsed={collapsed}
           onNavigate={() => setOpen(false)}
         />

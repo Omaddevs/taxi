@@ -23,10 +23,10 @@ export const SEO_PAGES = {
     h1: 'TaxiLine — shaharlar aro taksi, yuk va pochta',
   },
   '/haydovchi-bolish': {
-    title: 'Haydovchi va kuryer bo‘lish — TaxiLine',
+    title: 'Haydovchi bo‘lish — TaxiLine',
     description:
-      'TaxiLine’da haydovchi yoki kuryer bo‘ling: onlayn ro‘yxatdan o‘ting, ilovani o‘rnating va bugunoq ishlashni boshlang. Faol haydovchilar oyiga 8 mln so‘mdan ortiq topadi.',
-    h1: 'Haydovchi va kuryer bo‘lish',
+      'TaxiLine’da haydovchi bo‘ling: onlayn ro‘yxatdan o‘ting, ilovani o‘rnating va bugunoq ishlashni boshlang. Faol haydovchilar oyiga 8 mln so‘mdan ortiq topadi.',
+    h1: 'Haydovchi bo‘lish',
     label: 'Haydovchi bo‘lish',
   },
   '/aksiyalar': {
@@ -36,19 +36,26 @@ export const SEO_PAGES = {
     h1: 'Aksiyalar va Random mijoz',
     label: 'Aksiyalar',
   },
-  '/skuter-ijara': {
-    title: 'Skuter, samokat va velosiped ijarasi — TaxiLine',
-    description:
-      'TaxiLine Skuter ijara: yaqin atrofdagi skuter, elektr samokat, velosiped va mototsikllarni soatbay yoki kunlik ijaraga oling. Egasi bilan to‘g‘ridan-to‘g‘ri, e’lon joylash bepul.',
-    h1: 'Skuter, samokat va velosiped ijarasi',
-    label: 'Skuter ijara',
-  },
   '/biznes': {
     title: 'Biznes tarifi — TaxiLine',
     description:
       'TaxiLine Biznes tarifi: avtomobil ko‘rigi, studiyada professional fotosurat va ulanishda jamoamiz yordami. Biznes mijozlar uchun maxsus tartib.',
     h1: 'Biznes uchun TaxiLine',
     label: 'Biznes uchun',
+  },
+  '/jamoa': {
+    title: 'Bizning jamoa — TaxiLine',
+    description:
+      'TaxiLine jamoasi: yordam xizmati, haydovchilar bilan ishlash, hamkorlik va texnologiya yo‘nalishlari. O‘zbekiston bo‘ylab safarni qulay va xavfsiz qilamiz.',
+    h1: 'Bizning jamoa',
+    label: 'Bizning jamoa',
+  },
+  '/aloqa': {
+    title: 'Aloqa — TaxiLine',
+    description:
+      'TaxiLine bilan bog‘lanish: telefon, Telegram bot, Telegram kanal va Instagram. Savol, taklif yoki hamkorlik bo‘yicha murojaat qiling.',
+    h1: 'Aloqa',
+    label: 'Aloqa',
   },
   '/savollar': {
     title: 'Ko‘p so‘raladigan savollar — TaxiLine',

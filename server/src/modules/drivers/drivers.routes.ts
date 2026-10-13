@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { openApplicationDocument, sendDocument } from '../leads/leadDocuments.service.js'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
@@ -102,6 +103,15 @@ adminDriversRouter.post(
   panelStaff,
   validate({ body: createApplicationAdminSchema }),
   asyncRoute(driversController.createApplicationAdmin),
+)
+// A document uploaded with a website application — streamed to staff, never public.
+adminDriversRouter.get(
+  '/applications/documents/:docId',
+  requireAuth,
+  panelStaff,
+  asyncRoute(async (req, res) => {
+    sendDocument(res, await openApplicationDocument(req.params.docId))
+  }),
 )
 adminDriversRouter.patch(
   '/applications/:id',

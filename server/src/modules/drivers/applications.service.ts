@@ -6,12 +6,19 @@ import { writeAudit } from '../../lib/audit.js'
 import { notifyDriverReviewed } from '../../lib/botNotify.js'
 import { setBotDriverBlocked, updateBotDriverProfile } from '../../lib/botBridge.js'
 import { startSubscriptionOnApproval } from '../subscriptions/subscriptions.lifecycle.js'
+import { attachDocuments, removeOwnerFiles } from '../leads/leadDocuments.service.js'
 
 // "Haydovchi arizalari" in the admin panel — applications from the website, the Telegram bot
 // wizard (mirrored in by bot.service#syncDriver) and ones typed in by staff.
 
 const APPLICATION_INCLUDE = {
   user: { select: { id: true, phone: true, name: true, telegramId: true, telegramUsername: true, gender: true } },
+  // Uploaded with the website form — metadata only; the bytes are read through
+  // /admin/drivers/applications/documents/:docId.
+  documents: {
+    select: { id: true, kind: true, fileName: true, mime: true, size: true, createdAt: true },
+    orderBy: { createdAt: 'asc' as const },
+  },
 } satisfies Prisma.DriverApplicationInclude
 
 export type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -47,6 +54,10 @@ export async function reviewApplication(id: string, actorId: string, status: 'AP
   const application = await getOrThrow(id)
   if (application.blocked) throw new ConflictError('Ariza bloklangan. Avval blokdan chiqaring')
   if (application.status === status) throw new ConflictError('Ariza allaqachon shu holatda')
+  // The website form does not ask about the car; a driver cannot be created without one.
+  if (status === 'APPROVED' && (!application.carModel.trim() || !application.plate.trim())) {
+    throw new ConflictError('Tasdiqlashdan oldin avtomobil rusumi va davlat raqamini kiriting (Tahrirlash)')
+  }
 
   const { reviewed, approvedDriverId } = await prisma.$transaction(async (tx) => {
     const updated = await tx.driverApplication.update({
@@ -228,11 +239,56 @@ export async function createApplication(
 }
 
 /**
- * Removes the application record only. An approved driver keeps working — archive or block them
- * for that; deleting is for spam and duplicates.
+ * The "Haydovchi bo‘ling" form on the website. The applicant gets (or already has) an account by
+ * phone number and one application; sending the form again adds to that same application instead
+ * of opening a second one. The car is not asked for there — staff fill it in before approving.
+ */
+export async function submitWebsiteApplication(input: {
+  fullName: string
+  phone: string
+  fromRegion?: string
+  toRegion?: string
+  tokens: string[]
+  consentAt?: Date
+  consentVersion?: string | null
+}) {
+  const user = await prisma.user.upsert({
+    where: { phone: input.phone },
+    update: {},
+    create: { phone: input.phone, name: input.fullName },
+  })
+  const consent = input.consentAt ? { consentAt: input.consentAt, consentVersion: input.consentVersion ?? null } : {}
+  const route = { ...(input.fromRegion ? { region: input.fromRegion } : {}), ...(input.toRegion ? { toRegion: input.toRegion } : {}) }
+
+  const existing = await prisma.driverApplication.findUnique({ where: { userId: user.id } })
+  if (existing?.blocked) throw new ConflictError('Arizangiz bloklangan. Yordam xizmatiga murojaat qiling')
+  const application = existing
+    ? await prisma.driverApplication.update({ where: { id: existing.id }, data: { ...route, ...consent } })
+    : await prisma.driverApplication.create({
+        data: { userId: user.id, fullName: input.fullName, phone: input.phone, carModel: '', plate: '', source: 'WEBAPP', ...route, ...consent },
+      })
+  return { ok: true, duplicate: Boolean(existing), documents: await attachDocuments({ applicationId: application.id }, input.tokens) }
+}
+
+/**
+ * Deletes the application with everything it brought: the uploaded documents (rows and files)
+ * and — when the account exists only because of this application (never signed in, no Telegram
+ * or Google link, not a driver) — the account itself. An approved driver keeps working: archive
+ * or block them for that.
  */
 export async function deleteApplication(id: string, actorId: string) {
   const application = await getOrThrow(id)
+  await removeOwnerFiles({ applicationId: id })
   await prisma.driverApplication.delete({ where: { id } })
+
+  const user = await prisma.user.findUnique({
+    where: { id: application.userId },
+    select: { telegramId: true, googleId: true, passwordHash: true, staffKind: true, driver: { select: { id: true } }, _count: { select: { refreshTokens: true } } },
+  })
+  const bare = user && !user.telegramId && !user.googleId && !user.passwordHash && !user.staffKind && !user.driver && user._count.refreshTokens === 0
+  if (bare) {
+    // Anything else still pointing at the account (a lead it owns, a booking) keeps it alive.
+    await prisma.user.delete({ where: { id: application.userId } }).catch(() => {})
+  }
   await writeAudit({ actorId, action: 'DRIVER_APPLICATION_DELETED', targetType: 'DriverApplication', targetId: id, meta: { fullName: application.fullName } })
 }

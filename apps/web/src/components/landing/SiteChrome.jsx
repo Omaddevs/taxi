@@ -4,17 +4,21 @@ import { ArrowUp, Bot, Gift, LogIn, Phone } from 'lucide-react'
 import { Logo, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
 import { SiteMobileMenu } from './SiteMobileMenu'
+import { NavDropdown } from './NavDropdown'
+import { usePromotions } from '../../lib/queries'
 import { t } from '../../i18n'
 
 // Landing'dan tashqaridagi ochiq sahifalar (Yangiliklar) uchun umumiy header va footer.
 // Har bir band — alohida ommaviy sahifa (src/seo/pages.js). Google sitelinks shu havolalardan tanlanadi.
 const SITE_NAV = [
-  { to: '/haydovchi-bolish', label: 'Haydovchi bo‘lish' },
-  { to: '/news', label: 'Yangiliklar' },
-  { to: '/skuter-ijara', label: 'Skuter ijara' },
+  // Ochiladigan guruhlar — tarkibi src/data/siteMenus.js da.
+  { menu: 'company' },
+  { menu: 'resources' },
   { to: '/biznes', label: 'Biznes' },
   { to: '/savollar', label: 'Savol-javob' },
 ]
+
+const ACTIVE_LINK = 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]'
 
 // `floating` — landing'da: sahifa `showAfter` px dan pastga aylantirilganda tepada qotib
 // turadigan navbar sifatida silliq tushadi (hero ichidagi menyu ko‘rinmay qolgandan keyin).
@@ -60,11 +64,15 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
         </Link>
 
         <nav className="ml-auto hidden items-center gap-5 xl:gap-7 lg:flex">
-          {SITE_NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]' : ''}`}>
-              {t(item.label)}
-            </NavLink>
-          ))}
+          {SITE_NAV.map((item) =>
+            item.menu ? (
+              <NavDropdown key={item.menu} menu={item.menu} className={link} activeClassName={ACTIVE_LINK} />
+            ) : (
+              <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? ACTIVE_LINK : ''}`}>
+                {t(item.label)}
+              </NavLink>
+            ),
+          )}
           <Link
             to="/aksiyalar#random"
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-1.5 text-[14px] font-bold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-ink 2xl:text-[16px]"
@@ -118,9 +126,12 @@ const FOOTER_COLUMNS = [
     title: 'Kompaniya haqida',
     links: [
       { label: 'Nega biz?', href: '/#why' },
+      { label: 'Bizning jamoa', href: '/jamoa' },
+      { label: 'Aloqa', href: '/aloqa' },
       { label: 'Yangiliklar', href: '/news' },
       { label: 'Ko‘p so‘raladigan savollar', href: '/savollar' },
-      { label: 'Aksiyalar', href: '/aksiyalar' },
+      // Faqat admin panelda faol aksiya bo‘lganda ko‘rinadi.
+      { label: 'Aksiyalar', href: '/aksiyalar', needsPromos: true },
       { label: 'Random mijoz', href: '/aksiyalar#random' },
     ],
   },
@@ -128,7 +139,6 @@ const FOOTER_COLUMNS = [
     title: 'Ish',
     links: [
       { label: 'Haydovchi bo‘lish', href: '/haydovchi-bolish' },
-      { label: 'Kuryer bo‘lish', href: '/haydovchi-bolish#earn' },
       { label: 'Biznes uchun', href: '/biznes' },
     ],
   },
@@ -159,6 +169,7 @@ function HandArrow(props) {
 // havolalar paneli — burchagida "Random mijoz" aksiyasiga olib boradigan nishon va pastida
 // aloqa — ostida esa sahifa chetiga kesilib tushadigan katta "TaxiLine" yozuvi.
 export function SiteFooter() {
+  const hasPromos = usePromotions().length > 0
   return (
     <footer className="relative mx-auto max-w-site overflow-hidden px-3 pt-12 sm:px-6 sm:pt-16">
       <div className="relative z-10 grid gap-3 lg:grid-cols-[minmax(340px,0.44fr)_1fr]">
@@ -222,7 +233,7 @@ export function SiteFooter() {
               <div key={col.title}>
                 <p className="font-hand text-[23px] leading-none text-muted">{t(col.title)}</p>
                 <ul className="mt-3.5 space-y-2.5">
-                  {col.links.map((l) => (
+                  {col.links.filter((l) => hasPromos || !l.needsPromos).map((l) => (
                     <li key={l.label}>
                       <a href={l.href} className="text-[15px] font-medium text-ink transition hover:text-brand-dark">
                         {t(l.label)}

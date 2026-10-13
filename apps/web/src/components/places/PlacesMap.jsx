@@ -72,7 +72,7 @@ export function PlacesMap({
   emptyText,
   art,
   onBack,
-  // Fill the parent box (e.g. inside the Skuter ijara sheet) instead of sizing to the viewport.
+  // Fill the parent box instead of sizing to the viewport.
   fill = false,
 }) {
   const navigate = useNavigate()

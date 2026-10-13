@@ -282,18 +282,9 @@ export function DesktopHome() {
         />
         <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} art="/home/box.webp" artClass="-bottom-4 -right-4 w-[140px]" />
         <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')} art="/home/smart-map.png" artClass="-bottom-4 -right-4 w-[140px]" />
-        <Tile
-          to="?ijara=1"
-          title={t('Skuter ijara')}
-          hint={t('Skuter, samokat, velosiped')}
-          badge={t('Yangi')}
-          badgeTone="hot"
-          art="/home/scooter-rent.webp"
-          artClass="-bottom-3 -right-3 w-[130px]"
-        />
         <Tile to="/hub/auto-service" title={t('Avtoservis')} hint={t('Ustaxonalar va xizmatlar')} art="/home/service.webp" artClass="-bottom-4 -right-4 w-[130px]" />
         <Tile to="/fuel" title={t('Yoqilg‘i')} hint={t('Narxlar va manzillar')} art="/home/fuel.webp" artClass="-bottom-4 -right-4 w-[130px]" />
-        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
+        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="col-span-2" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
       </section>
 
       {/* ── Barcha xizmatlar ── */}

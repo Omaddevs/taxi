@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff, MapPin, Pencil, Plus, Search, Trash2, Upload, X } from 'lucide-react'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
@@ -27,9 +26,7 @@ const QUERY_KEY = ['admin-map-places']
 
 export default function MapPlaces() {
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
-  // "Skuter ijara" sahifasidagi "Ijara nuqtalari" tugmasi ?category=SCOOTER bilan ochadi.
-  const [category, setCategory] = useState(searchParams.get('category') ?? '')
+  const [category, setCategory] = useState('')
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)

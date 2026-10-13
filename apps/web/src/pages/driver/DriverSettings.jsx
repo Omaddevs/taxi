@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Bike,
   Bell,
   Box,
   Car,
@@ -41,7 +40,6 @@ import { t } from '../../i18n'
 
 const driverServices = [
   { id: 'map', to: '/driver/smart-map', title: 'Smart xarita', icon: Map },
-  { id: 'rent', to: '?ijara=1', title: 'Skuter ijara', icon: Bike },
   { id: 'service', to: '/driver/hub/auto-service', title: 'Avtoservis', icon: Wrench },
   { id: 'wash', to: '/driver/hub/wash', title: 'Moyka', icon: ShowerHead },
   { id: 'parking', to: '/driver/hub/parking', title: 'Parking', icon: SquareParking },

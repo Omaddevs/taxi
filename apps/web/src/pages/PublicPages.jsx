@@ -2,16 +2,16 @@ import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
-import { Regions } from '../components/landing/Regions'
+import { DriverRequirements } from '../components/landing/DriverRequirements'
 import { faqs } from '../data/mock'
 import { SEO_PAGES, breadcrumbJsonLd, faqJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
-import { Business, Earn, Faq, Join, Promotions, RandomClient } from './Landing'
+import { Business, Faq, Join, Promotions, RandomClient } from './Landing'
 import { t } from '../i18n'
 
 // Landing bo‘limlaridan yasalgan alohida ommaviy sahifalar. Har biri o‘z URL, sarlavha va
 // tavsifiga ega — Google ularni sitelinks (qidiruvdagi pastki havolalar) sifatida ko‘rsata oladi.
-function PublicPage({ path, children, extraJsonLd }) {
+export function PublicPage({ path, children, extraJsonLd }) {
   const page = SEO_PAGES[path]
   useSeo(path)
   useJsonLd('breadcrumb', breadcrumbJsonLd(path, t(page.label || page.h1)))
@@ -68,9 +68,8 @@ function PublicPage({ path, children, extraJsonLd }) {
 export function DriverPage() {
   return (
     <PublicPage path="/haydovchi-bolish">
-      <Join />
-      <Earn />
-      <Regions />
+      <Join road={false} documents />
+      <DriverRequirements />
     </PublicPage>
   )
 }
@@ -114,7 +113,7 @@ const PRIVACY_SECTIONS = [
   {
     title: 'Biz kimmiz',
     body: [
-      'TaxiLine (taxiline.uz) — O‘zbekiston bo‘ylab shaharlar aro taksi, yuk va pochta yetkazish, skuter ijarasi xizmatlarini birlashtiruvchi platforma. Ushbu siyosat sayt, veb-ilova va TaxiLine Telegram botlari (@taxilines_bot, @taxiline_kirish_bot) uchun amal qiladi.',
+      'TaxiLine (taxiline.uz) — O‘zbekiston bo‘ylab shaharlar aro taksi, yuk va pochta yetkazish xizmatlarini birlashtiruvchi platforma. Ushbu siyosat sayt, veb-ilova va TaxiLine Telegram botlari (@taxilines_bot, @taxiline_kirish_bot) uchun amal qiladi.',
     ],
   },
   {

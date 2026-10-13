@@ -45,6 +45,9 @@ const schema = z.object({
   // Origin of the admin SPA — where the Instagram OAuth callback redirects the browser back to
   // after connecting. Falls back to the first CORS_ORIGINS entry when unset.
   ADMIN_PANEL_URL: z.string().optional().default(''),
+  // Where uploaded private files (applicants' documents) are kept on disk. In Docker this is a
+  // named volume, so the files outlive a redeploy; relative paths resolve from the working directory.
+  UPLOAD_DIR: z.string().min(1).default('uploads'),
   // Ommaviy sayt manzili — sitemap.xml dagi havolalar shu domen bilan yoziladi.
   PUBLIC_SITE_URL: z.string().url().default('https://taxiline.uz'),
   // Off until a real Click/Payme provider is wired in: with the mock provider every top-up

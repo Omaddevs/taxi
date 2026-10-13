@@ -3,7 +3,17 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as leadsController from './leads.controller.js'
-import { createLeadSchema, leadIdParamSchema, listLeadsQuerySchema, updateLeadSchema, websiteLeadSchema } from './leads.schema.js'
+import {
+  contactLeadSchema,
+  createLeadSchema,
+  documentIdParamSchema,
+  leadIdParamSchema,
+  listLeadsQuerySchema,
+  updateLeadSchema,
+  uploadDocumentQuerySchema,
+  websiteLeadSchema,
+} from './leads.schema.js'
+import * as leadDocuments from './leadDocuments.service.js'
 import { rateLimit } from '../../middleware/rateLimit.js'
 import * as leadsService from './leads.service.js'
 
@@ -40,6 +50,18 @@ adminLeadsRouter.delete(
   asyncRoute(leadsController.deleteLead),
 )
 
+// A lead's uploaded document, for staff only: operators see their own leads' files, admins all.
+adminLeadsRouter.get(
+  '/documents/:docId',
+  requireAuth,
+  requireRole(...staff),
+  validate({ params: documentIdParamSchema }),
+  asyncRoute(async (req, res) => {
+    const scope = req.user!.role === 'ADMIN' ? {} : { ownerId: req.user!.id }
+    leadDocuments.sendDocument(res, await leadDocuments.openDocument(req.params.docId, scope))
+  }),
+)
+
 // Ochiq: landing sahifadagi forma (autentifikatsiyasiz, IP bo‘yicha cheklangan)
 export const publicLeadsRouter = Router()
 publicLeadsRouter.post(
@@ -48,5 +70,33 @@ publicLeadsRouter.post(
   validate({ body: websiteLeadSchema }),
   asyncRoute(async (req, res) => {
     res.status(201).json(await leadsService.createWebsiteLead(req.body))
+  }),
+)
+
+// Ochiq: "Aloqa" sahifasidagi murojaat formasi — har bir xabar "Lidlar"ga alohida tushadi.
+publicLeadsRouter.post(
+  '/contact',
+  rateLimit(10, 10 * 60_000),
+  validate({ body: contactLeadSchema }),
+  asyncRoute(async (req, res) => {
+    res.status(201).json(await leadsService.createContactLead(req.body))
+  }),
+)
+
+// Ochiq: arizaga ilova qilinadigan hujjatni yuklash. Fayl so‘rov tanasida xom holda keladi
+// (Content-Type: application/octet-stream), nomi va turi sarlavhalarda: X-File-Name (URI-kodlangan)
+// va X-File-Type. Javobdagi `token` keyin POST /leads dagi `documents` ro‘yxatiga qo‘yiladi.
+publicLeadsRouter.post(
+  '/documents',
+  rateLimit(40, 10 * 60_000),
+  validate({ query: uploadDocumentQuerySchema }),
+  asyncRoute(async (req, res) => {
+    leadDocuments.assertDocumentSize(req.headers['content-length'])
+    const { kind } = req.query as unknown as { kind: leadDocuments.DocumentKind }
+    const header = (name: string) => {
+      const value = req.headers[name]
+      return Array.isArray(value) ? value[0] : value
+    }
+    res.status(201).json(await leadDocuments.saveDocument(req, { kind, fileName: header('x-file-name'), mime: header('x-file-type') }))
   }),
 )
