@@ -161,6 +161,18 @@ export function AppProvider({ children }) {
     seat: '',
     car: '',
     service: 'all',
+    // "Taxi chaqirish" screen. A point is { lat, lng, for } and only counts while `for` still
+    // equals the label it was picked with (see pointFor in lib/ride.js) — so a screen that
+    // changes `from`/`to` without knowing about coordinates can't leave a stale pin behind.
+    // `priceMode` is '' until chosen, then 'offer' or 'negotiable'.
+    fromPoint: null,
+    toPoint: null,
+    landmark: '',
+    wholeCar: false,
+    seats: [],
+    dateChosen: false,
+    price: null,
+    priceMode: '',
   })
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [drawerOpen, setDrawerOpen] = useState(false)

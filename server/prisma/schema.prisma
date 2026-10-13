@@ -1088,3 +1088,14 @@ model LandingPromo {
 
   @@index([active, sortOrder])
 }
+
+// "Yo‘l haqqi" tavsiya formulasi (admin panel → Yo‘l haqi tariflari). Bitta qator: id = "default".
+// Qator bo‘lmasa, server fare.ts dagi DEFAULT_FARE_RATES bilan hisoblaydi.
+model FareSettings {
+  id                      String   @id @default("default")
+  perKm                   Int      @default(500) // bir o‘rindiq uchun 1 km narxi, so‘m
+  minPerSeat              Int      @default(10000) // bir o‘rindiq uchun eng kam narx
+  spreadPercent           Int      @default(14) // "Tejamkor"/"Tez topiladi" o‘rtachadan necha % uzoq
+  wholeCarDiscountPercent Int      @default(0) // butun mashina (4 o‘rindiq) uchun chegirma
+  updatedAt               DateTime @updatedAt
+}

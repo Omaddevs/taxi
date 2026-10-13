@@ -30,6 +30,22 @@ export async function createPassengerOrder(req: Request, res: Response) {
   res.status(201).json(await botOrdersService.createPassengerOrder(req.user!.id, req.body))
 }
 
+export async function estimateFare(req: Request, res: Response) {
+  res.json(await botOrdersService.getFareEstimate(req.body))
+}
+
+export async function getPassengerOrder(req: Request, res: Response) {
+  res.json(await botOrdersService.getMyPassengerOrder(req.user!.id, Number(req.params.id)))
+}
+
+export async function updatePassengerOrder(req: Request, res: Response) {
+  res.json(await botOrdersService.updateMyPassengerOrder(req.user!.id, Number(req.params.id), req.body))
+}
+
+export async function cancelPassengerOrder(req: Request, res: Response) {
+  res.json(await botOrdersService.cancelMyPassengerOrder(req.user!.id, Number(req.params.id)))
+}
+
 export async function getPassengerOrders(req: Request, res: Response) {
   const result = await botOrdersService.getMyPassengerOrders(req.user!.id)
   res.json(result)

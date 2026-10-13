@@ -1,6 +1,8 @@
 import { driverCode } from '../../lib/utils'
 import { t } from '../../i18n'
 import { orderInWorkRegions } from '../../data/regions'
+import { BOT_SEAT_LABEL } from '../../lib/botOrder'
+import { SEAT_LABEL } from '../../lib/ride'
 
 const SEAT_POSITION_LABEL = {
   FRONT: 'Old o‘rindiq',
@@ -37,13 +39,6 @@ export function bookingToDriverOrder(b) {
 }
 
 // The bot's own codes (taxiline-bot app/keyboards/trip.py).
-const BOT_SEAT_LABEL = {
-  front: 'Old o‘rindiq',
-  rear_right: 'Orqa o‘ng',
-  rear_left: 'Orqa chap',
-  rear_middle: 'Orqa o‘rta',
-  any: 'Farqi yo‘q',
-}
 const BOT_LUGGAGE_LABEL = { S: 'Kichik', M: 'O‘rta', L: 'Katta' }
 const BOT_SOURCE_LABEL = { BOT: 'Telegram bot', WEBAPP: 'Sayt', GROUP: 'Guruh' }
 
@@ -78,15 +73,19 @@ export function botToDriverOrder(o) {
     // LiveOrderMap feeds toHint straight into the destination geocoding query, so stuffing a
     // time string like "Hozir" in there both mislabels the UI and corrupts the map pin lookup.
     whenText: o.whenText,
-    price: null,
+    // The fare the passenger offers for the whole party; null with `negotiable` = "Kelishiladi".
+    price: o.price ?? null,
+    negotiable: o.price == null && o.source === 'WEBAPP',
     seats: o.passengers,
+    // Seats picked on the website's car map, with who sits on each.
+    seatChips: (o.seatPicks || []).map((s) => ({ label: SEAT_LABEL[s.position], gender: s.gender })),
     status,
     createdAt: o.createdAt,
     rider: { name: o.passengerName, phone: o.passengerPhone },
     // What the passenger asked for — shown on the driver's order screen.
     details: {
       passengers: o.passengers,
-      seat: t(BOT_SEAT_LABEL[o.seat]) || o.seat || null,
+      seat: o.wholeCar ? t('Butun mashina') : o.seatPicks?.length ? null : t(BOT_SEAT_LABEL[o.seat]) || o.seat || null,
       luggage: t(BOT_LUGGAGE_LABEL[o.luggageSize]) || o.luggageSize || null,
       car: o.carBrand || null,
       note: o.contactNote || null,

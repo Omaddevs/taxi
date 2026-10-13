@@ -31,3 +31,26 @@ export function useRecentTrips(limit = 3) {
   const { data: bookings = [], ...rest } = useMyBookings({})
   return { data: bookings.slice(0, limit).map(bookingToHistoryItem), ...rest }
 }
+
+const round4 = (n) => Math.round(n * 1e4) / 1e4
+
+/** The server's suggested fare range for this trip and party (POST /bot-orders/estimate). */
+export function useFareEstimate({ from, to, routeKm, passengers, wholeCar, enabled = true }) {
+  const ready = Number.isFinite(from?.lat) && Number.isFinite(to?.lat)
+  const body = ready
+    ? {
+        from: { lat: round4(from.lat), lng: round4(from.lng) },
+        to: { lat: round4(to.lat), lng: round4(to.lng) },
+        routeKm: routeKm ? Math.round(routeKm * 10) / 10 : undefined,
+        passengers: Number(passengers) || 1,
+        wholeCar: wholeCar || undefined,
+      }
+    : null
+  return useQuery({
+    queryKey: ['fare-estimate', body],
+    queryFn: () => api.post('/bot-orders/estimate', body),
+    enabled: enabled && ready,
+    staleTime: 5 * 60_000,
+    retry: 1,
+  })
+}

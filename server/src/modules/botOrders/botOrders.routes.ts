@@ -3,7 +3,13 @@ import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
 import * as botOrdersController from './botOrders.controller.js'
-import { createPassengerOrderSchema, orderIdParamSchema, rateBotOrderSchema } from './botOrders.schema.js'
+import {
+  createPassengerOrderSchema,
+  estimateFareSchema,
+  orderIdParamSchema,
+  rateBotOrderSchema,
+  updatePassengerOrderSchema,
+} from './botOrders.schema.js'
 
 // Bridges the webapp to taxiline-bot's on-demand order/claim system, for users who are
 // registered in both systems (linked via User.telegramId). See app/webserver.py on the bot
@@ -47,6 +53,26 @@ botOrdersRouter.post(
   requireAuth,
   validate({ body: createPassengerOrderSchema }),
   asyncRoute(botOrdersController.createPassengerOrder),
+)
+// Fare guidance for the ride screen's "Yo‘l haqqi" sheet (suggested range from the road distance).
+botOrdersRouter.post('/estimate', requireAuth, validate({ body: estimateFareSchema }), asyncRoute(botOrdersController.estimateFare))
+botOrdersRouter.get(
+  '/mine/:id',
+  requireAuth,
+  validate({ params: orderIdParamSchema }),
+  asyncRoute(botOrdersController.getPassengerOrder),
+)
+botOrdersRouter.patch(
+  '/mine/:id',
+  requireAuth,
+  validate({ params: orderIdParamSchema, body: updatePassengerOrderSchema }),
+  asyncRoute(botOrdersController.updatePassengerOrder),
+)
+botOrdersRouter.post(
+  '/mine/:id/cancel',
+  requireAuth,
+  validate({ params: orderIdParamSchema }),
+  asyncRoute(botOrdersController.cancelPassengerOrder),
 )
 botOrdersRouter.post(
   '/mine/:id/rating',

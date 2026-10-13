@@ -28,6 +28,7 @@ import { ticketSatisfactionRouter } from './modules/tickets/tickets.routes.js'
 import { botRouter } from './modules/bot/bot.routes.js'
 import { botOrdersRouter } from './modules/botOrders/botOrders.routes.js'
 import { adminBotOrdersRouter } from './modules/botOrders/adminBotOrders.routes.js'
+import { adminFareSettingsRouter } from './modules/botOrders/fareSettings.routes.js'
 import { adminBotGroupsRouter, adminBotSettingsRouter } from './modules/botGroups/adminBotGroups.routes.js'
 import { adminCallsRouter, publicCallsRouter } from './modules/calls/calls.routes.js'
 import { adminInstagramRouter, adminLeadMessagesRouter, instagramWebhookRouter } from './modules/instagram/instagram.routes.js'
@@ -129,6 +130,7 @@ export function createApp() {
   app.use('/bot', botRouter)
   app.use('/bot-orders', botOrdersRouter)
   app.use('/admin/bot-orders', adminBotOrdersRouter)
+  app.use('/admin/fare-settings', adminFareSettingsRouter)
   app.use('/admin/bot-groups', adminBotGroupsRouter)
   app.use('/admin/bot-settings/calls', adminCallsRouter)
   app.use('/admin/bot-settings', adminBotSettingsRouter)

@@ -18,6 +18,14 @@ export interface BotOrderRow {
   passengers: number
   luggageSize: string
   whenText: string
+  // Website/app orders: the fare the passenger offers for the whole party (null = "Kelishiladi"),
+  // the chosen departure slot, and who sits where on the car's seat map.
+  price?: number | null
+  paymentMethod?: string
+  departAt?: string | null
+  wholeCar?: boolean
+  seatPicks?: { position: 'FRONT' | 'REAR_LEFT' | 'REAR_MIDDLE' | 'REAR_RIGHT'; gender: 'MALE' | 'FEMALE' }[]
+  routeKm?: number | null
   status: OrderStatus
   source: 'BOT' | 'WEBAPP' | 'GROUP'
   // "Ayollar uchun taxi" — offered to female drivers first, to everyone after 5 minutes.

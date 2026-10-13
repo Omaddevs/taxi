@@ -9,7 +9,7 @@ import { t } from '../../i18n'
 const fullBleed = ['/driver', '/sos']
 const hideTopMobile = ['/', '/taxi', '/women/taxi', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet']
 const flushMobile = ['/plus', '/fuel', '/map', '/wallet']
-const mapScreens = ['/fuel', '/map', '/taxi', '/women/taxi']
+const mapScreens = ['/fuel', '/map', '/taxi', '/women/taxi', '/ride']
 
 function isHubMap(pathname) {
   return (
@@ -19,6 +19,11 @@ function isHubMap(pathname) {
     pathname.startsWith('/hub/ev') ||
     pathname.startsWith('/hub/food')
   )
+}
+
+// Buyurtma sahifasi: tepada xarita, o‘z "orqaga" tugmasi bilan.
+function isOrder(pathname) {
+  return pathname.startsWith('/order/')
 }
 
 // Chat o‘z sarlavhasi va to‘liq balandligini boshqaradi.
@@ -35,8 +40,8 @@ export function AppLayout() {
     return <div className="flex min-h-svh items-center justify-center text-sm font-semibold text-muted">{t('Yuklanmoqda…')}</div>
   }
   const mobileHome = pathname === '/'
-  const hideHeaderMobile = hideTopMobile.includes(pathname) || isHubMap(pathname) || isChat(pathname)
-  const flush = flushMobile.includes(pathname) || isHubMap(pathname)
+  const hideHeaderMobile = hideTopMobile.includes(pathname) || isHubMap(pathname) || isChat(pathname) || isOrder(pathname)
+  const flush = flushMobile.includes(pathname) || isHubMap(pathname) || isOrder(pathname)
   const mapScreen = mapScreens.includes(pathname) || isHubMap(pathname) || isChat(pathname)
 
   return (

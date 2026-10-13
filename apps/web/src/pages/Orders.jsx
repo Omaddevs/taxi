@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarClock,
@@ -18,6 +18,7 @@ import { useRateSheet } from '../components/ui/RateSheet'
 import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
 import { useMyBookings } from '../lib/queries'
 import { api } from '../lib/api'
+import { botOrderStatus } from '../lib/botOrder'
 import { avatarOrFallback } from '../lib/adapters'
 import { shortMonth } from '../lib/utils'
 import { t } from '../i18n'
@@ -28,10 +29,11 @@ const SCHEDULED_AHEAD_MS = 30 * 60 * 1000
 const RECENT_LIMIT = 4
 
 const CARGO_STATUS = { NEW: 'PENDING', CLAIMED: 'ONGOING', DELIVERED: 'COMPLETED', CANCELLED: 'CANCELLED' }
-const BOT_STATUS = { OPEN: 'PENDING', CLAIMED: 'ACCEPTED', COMPLETED: 'COMPLETED', CANCELLED: 'CANCELLED' }
 
 const ACTIVE_LABEL = {
   taxi: { PENDING: 'Tasdiq kutilmoqda', ACCEPTED: 'Haydovchi tasdiqladi', ONGOING: 'Haydovchi yo‘lda' },
+  // A request sent to drivers from "Taxi chaqirish" (or the bot): nobody is assigned at first.
+  request: { PENDING: 'Haydovchi qidirilmoqda', ACCEPTED: 'Haydovchi topildi', ONGOING: 'Haydovchi yo‘lda' },
   cargo: { PENDING: 'Kuryer qidirilmoqda', ACCEPTED: 'Kuryer topildi', ONGOING: 'Kuryer yo‘lda' },
 }
 
@@ -109,18 +111,22 @@ function fromBooking(b) {
   }
 }
 
+// Website requests without a district arrive as "-".
+const place = (region, district) => [region, district && district !== '-' ? district : null].filter(Boolean).join(', ')
+
 function fromBotOrder(o) {
+  const name = o.driver?.name || t('Haydovchi')
   return {
     key: `bot-${o.id}`,
     id: o.id,
     kind: 'taxi',
     source: 'bot',
-    from: [o.fromRegion, o.fromDistrict].filter(Boolean).join(', '),
-    to: [o.toRegion, o.toDistrict].filter(Boolean).join(', '),
-    at: o.createdAt,
-    price: null,
-    status: BOT_STATUS[o.status] || o.status,
-    person: null,
+    from: place(o.fromRegion, o.fromDistrict),
+    to: place(o.toRegion, o.toDistrict),
+    at: o.departAt || o.createdAt,
+    price: o.price,
+    status: botOrderStatus(o),
+    person: o.driver ? { name, phone: o.driver.phone, avatar: avatarOrFallback(null, name), rating: null } : null,
     womenOnly: Boolean(o.womenOnly),
   }
 }
@@ -182,11 +188,11 @@ function SectionHeader({ title, onSeeAll }) {
 
 function ActiveCard({ item, onCancel, onOpen }) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const canCancel = item.source === 'webapp' && (item.status === 'PENDING' || item.status === 'ACCEPTED')
-  const label = ACTIVE_LABEL[item.kind][item.status]
+  const canCancel = item.kind === 'taxi' && (item.status === 'PENDING' || item.status === 'ACCEPTED')
+  const label = ACTIVE_LABEL[item.source === 'bot' ? 'request' : item.kind][item.status]
   const price = formatPrice(item.price)
-  // Cargo orders open their detail sheet (progress, driver, cancel).
-  const openable = item.kind === 'cargo' && onOpen
+  // Cargo orders open their detail sheet, ride requests their own page (progress, driver, cancel).
+  const openable = (item.kind === 'cargo' || item.source === 'bot') && onOpen
 
   return (
     <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_30px_rgba(16,42,67,0.06)]">
@@ -318,7 +324,7 @@ function PastRow({ item, rated, onRate, onOpen }) {
   )
   const className =
     'flex w-full items-center gap-3 rounded-[20px] bg-white p-3 text-left shadow-[0_6px_24px_rgba(16,42,67,0.05)]'
-  if (item.kind === 'cargo' && onOpen) {
+  if ((item.kind === 'cargo' || item.source === 'bot') && onOpen) {
     return (
       <button type="button" onClick={() => onOpen(item)} className={className}>
         {content}
@@ -349,6 +355,7 @@ function EmptyState({ text, cta = false }) {
 
 export default function Orders() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [category, setCategory] = useState(() => (searchParams.get('tab') === 'cargo' ? 'cargo' : 'all'))
   const [status, setStatus] = useState('active')
@@ -360,6 +367,8 @@ export default function Orders() {
   const { data: botOrders = [] } = useQuery({
     queryKey: ['bot-orders', 'mine'],
     queryFn: () => api.get('/bot-orders/mine').then((res) => res.orders),
+    // A driver taking the request is the news the passenger is waiting for here.
+    refetchInterval: 10_000,
   })
   const { data: cargoOrders = [], isLoading: loadingCargo } = useQuery({
     queryKey: ['cargo-orders', 'mine'],
@@ -403,8 +412,11 @@ export default function Orders() {
     status === 'COMPLETED' ? t('Bajarilgan buyurtmalar') : status === 'CANCELLED' ? t('Bekor qilingan buyurtmalar') : t('So‘nggi buyurtmalar')
 
   const cancel = useMutation({
-    mutationFn: (item) => api.patch(`/bookings/${item.id}/cancel`, { reason: 'Mijoz bekor qildi' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookings'] }),
+    mutationFn: (item) =>
+      item.source === 'bot'
+        ? api.post(`/bot-orders/mine/${item.id}/cancel`)
+        : api.patch(`/bookings/${item.id}/cancel`, { reason: 'Mijoz bekor qildi' }),
+    onSuccess: (_data, item) => queryClient.invalidateQueries({ queryKey: item.source === 'bot' ? ['bot-orders'] : ['bookings'] }),
   })
 
   const { openRating, sheet } = useRateSheet()
@@ -417,8 +429,13 @@ export default function Orders() {
   })
 
   function handleCancel(item) {
-    if (!window.confirm('Buyurtmani bekor qilmoqchimisiz?')) return
+    if (!window.confirm(t('Buyurtmani bekor qilmoqchimisiz?'))) return
     cancel.mutate(item)
+  }
+
+  function handleOpen(item) {
+    if (item.source === 'bot') navigate(`/order/${item.id}`)
+    else setCargoId(item.id)
   }
 
   function handleRate(item) {
@@ -520,7 +537,7 @@ export default function Orders() {
           {active.length ? (
             <div className="space-y-3">
               {active.map((item) => (
-                <ActiveCard key={item.key} item={item} onCancel={handleCancel} onOpen={(i) => setCargoId(i.id)} />
+                <ActiveCard key={item.key} item={item} onCancel={handleCancel} onOpen={handleOpen} />
               ))}
             </div>
           ) : (
@@ -538,7 +555,7 @@ export default function Orders() {
           {pastList.length ? (
             <div className="space-y-2.5">
               {pastList.map((item) => (
-                <PastRow key={item.key} item={item} rated={ratedKeys.has(item.key)} onRate={handleRate} onOpen={(i) => setCargoId(i.id)} />
+                <PastRow key={item.key} item={item} rated={ratedKeys.has(item.key)} onRate={handleRate} onOpen={handleOpen} />
               ))}
             </div>
           ) : (

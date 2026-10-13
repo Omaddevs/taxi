@@ -23,6 +23,7 @@ import Payment from './pages/Payment'
 import Wallet from './pages/Wallet'
 import TripHistory from './pages/TripHistory'
 import Orders from './pages/Orders'
+import OrderDetails from './pages/OrderDetails'
 import Messages from './pages/Messages'
 import Chat from './pages/Chat'
 import PromoCodes from './pages/PromoCodes'
@@ -124,6 +125,7 @@ export default function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/history" element={<Orders />} />
+        <Route path="/order/:id" element={<OrderDetails />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/messages/:id" element={<Chat />} />
         <Route path="/promo" element={<PromoCodes />} />

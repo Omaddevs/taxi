@@ -29,6 +29,7 @@ import Rentals from './pages/Rentals'
 import SubscriptionPlans from './pages/SubscriptionPlans'
 import Promo from './pages/Promo'
 import LandingPromos from './pages/LandingPromos'
+import FareSettings from './pages/FareSettings'
 import Finance from './pages/Finance'
 import Ratings from './pages/Ratings'
 import Broadcast from './pages/Broadcast'
@@ -291,6 +292,14 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <SubscriptionPlans />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/fare-settings"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <FareSettings />
             </RequireRole>
           }
         />

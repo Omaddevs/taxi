@@ -37,6 +37,7 @@ const backOnMobile = ['/cargo', '/women', '/become-driver']
 
 function headerMeta(pathname) {
   if (titles[pathname]) return titles[pathname]
+  if (pathname.startsWith('/order/')) return { title: t('Buyurtma'), subtitle: t('Holat va tafsilotlar') }
   if (pathname.startsWith('/trip/')) return { title: t('Safar tafsilotlari'), subtitle: t('Haydovchi va marshrut') }
   if (pathname.startsWith('/messages/')) return { title: t('Chat'), subtitle: t('Xabarlar') }
   if (pathname.startsWith('/hub/')) return { title: t('Xizmatlar'), subtitle: t('TaxiLine ekotizimi') }

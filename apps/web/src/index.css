@@ -635,3 +635,43 @@ html.dark .bg-canvas {
     overflow-y: auto;
   }
 }
+
+/* "Taxi chaqirish" route map: a square badge (person = pickup, flag = destination) on a stem;
+   the foot dot sits exactly on the point. */
+.ride-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.ride-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.ride-pin-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--pin, #00c7d4);
+  color: #fff;
+  box-shadow: 0 8px 18px rgb(16 42 67 / 0.28);
+}
+
+.ride-pin-stem {
+  width: 3px;
+  height: 12px;
+  background: var(--pin, #00c7d4);
+}
+
+.ride-pin-foot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pin, #00c7d4);
+  box-shadow: 0 0 0 2px #fff;
+}

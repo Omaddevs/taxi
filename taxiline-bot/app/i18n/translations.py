@@ -216,6 +216,25 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ask_seat": {"uz": "O'rindiqni tanlang:", "ru": "Выберите место:", "en": "Choose a seat:"},
     "seat_front": {"uz": "Old o'rindiq", "ru": "Переднее сиденье", "en": "Front seat"},
     "seat_any": {"uz": "Farqi yo'q", "ru": "Без разницы", "en": "Any seat"},
+    "seat_whole_car": {"uz": "Butun mashina", "ru": "Вся машина", "en": "Whole car"},
+    "seat_pick_MALE": {"uz": "{seat} (erkak)", "ru": "{seat} (муж.)", "en": "{seat} (male)"},
+    "seat_pick_FEMALE": {"uz": "{seat} (ayol)", "ru": "{seat} (жен.)", "en": "{seat} (female)"},
+    "price_line": {"uz": "💰 Narx: {price} so'm\n", "ru": "💰 Цена: {price} сум\n", "en": "💰 Fare: {price} UZS\n"},
+    "price_negotiable_line": {
+        "uz": "💰 Narx: kelishiladi\n",
+        "ru": "💰 Цена: договорная\n",
+        "en": "💰 Fare: negotiable\n",
+    },
+    "order_cancelled_by_passenger_label": {
+        "uz": "❌ Yo'lovchi buyurtmani bekor qildi",
+        "ru": "❌ Пассажир отменил заказ",
+        "en": "❌ The passenger cancelled the order",
+    },
+    "order_cancelled_by_passenger_notify_driver": {
+        "uz": "⚠️ Yo'lovchi buyurtmani bekor qildi: {from_region} → {to_region}.",
+        "ru": "⚠️ Пассажир отменил заказ: {from_region} → {to_region}.",
+        "en": "⚠️ The passenger cancelled the order: {from_region} → {to_region}.",
+    },
     "seat_rear_right": {"uz": "Orqa o'ng o'rindiq", "ru": "Заднее правое сиденье", "en": "Rear right seat"},
     "seat_rear_left": {"uz": "Orqa chap o'rindiq", "ru": "Заднее левое сиденье", "en": "Rear left seat"},
     "seat_rear_middle": {"uz": "Orqa o'rta o'rindiq", "ru": "Заднее среднее сиденье", "en": "Rear middle seat"},
@@ -584,6 +603,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} yo'lovchi · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"
+            "{price_line}"
             "{pickup_line}"
             "{contact_note_line}"
         ),
@@ -596,6 +616,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} пассажир(ов) · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"
+            "{price_line}"
             "{pickup_line}"
             "{contact_note_line}"
         ),
@@ -608,6 +629,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "🚗 {car_brand} · 💺 {seat}\n"
             "👥 {passengers} passenger(s) · 🧳 {luggage_size}\n"
             "🕐 {when_text}\n"
+            "{price_line}"
             "{pickup_line}"
             "{contact_note_line}"
         ),

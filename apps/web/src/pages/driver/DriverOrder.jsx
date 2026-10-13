@@ -270,7 +270,7 @@ export default function DriverOrder() {
       <OrderAudience order={order} className="mx-4 mb-3" />
 
       <div className="grid grid-cols-4 gap-2 px-4">
-        <Metric icon={Wallet} color="bg-brand-soft text-brand" label={t('Yo‘l haqi')} value={order.price != null ? formatSom(order.price) : '—'} />
+        <Metric icon={Wallet} color="bg-brand-soft text-brand" label={t('Yo‘l haqi')} value={order.price != null ? formatSom(order.price) : order.negotiable ? t('Kelishiladi') : '—'} />
         <Metric icon={Route} color="bg-sky-50 text-sky-600" label={t('Masofa')} value={km ? `${km.toFixed(1)} km` : '—'} />
         <Metric icon={Clock} color="bg-emerald-50 text-emerald-600" label={t('Kutilgan vaqt')} value={eta ? `${eta} daq` : '—'} />
         <Metric icon={Banknote} color="bg-amber-50 text-amber-600" label={t('To‘lov turi')} value="Naqd" />

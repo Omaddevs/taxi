@@ -250,7 +250,7 @@ function OrderCard({ order, onDetails, onAccept, onReject, busy }) {
         <PendingActions order={order} onAccept={onAccept} onReject={onReject} busy={busy} />
       ) : completed ? (
         <div className="mt-3 flex items-center justify-between">
-          <p className="text-sm font-extrabold">{order.price != null ? formatSom(order.price) : '—'}</p>
+          <p className="text-sm font-extrabold">{order.price != null ? formatSom(order.price) : order.negotiable ? t('Kelishiladi') : '—'}</p>
           <button
             type="button"
             onClick={(e) => {

@@ -13,7 +13,7 @@ services/backend_client.py. Two things live here:
 import asyncio
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
@@ -373,6 +373,17 @@ def _serialize_order(order: Order) -> dict:
         "passengers": order.passengers,
         "luggageSize": order.luggage_size,
         "whenText": order.when_text,
+        "price": order.price,
+        "paymentMethod": order.payment_method,
+        "departAt": order.depart_at.isoformat() + "Z" if order.depart_at else None,
+        "wholeCar": bool(order.whole_car),
+        "seatPicks": [
+            {"position": code.upper(), "gender": gender}
+            for code, gender in trips_service.parse_seat_picks(order.seat_picks)
+        ],
+        "routeKm": order.route_km,
+        "toLat": order.to_lat,
+        "toLng": order.to_lng,
         "status": order.status,
         "source": order.source,
         "womenOnly": bool(order.women_only),
@@ -385,7 +396,72 @@ def _serialize_order(order: Order) -> dict:
         "pickupLng": order.pickup_lng,
         "pickupText": order.pickup_text,
         "confirmed": order.confirmed_at is not None,
+        "claimedAt": order.claimed_at.isoformat() + "Z" if order.claimed_at else None,
+        "confirmedAt": order.confirmed_at.isoformat() + "Z" if order.confirmed_at else None,
+        "finishedAt": order.finished_at.isoformat() + "Z" if order.finished_at else None,
     }
+
+
+def _serialize_passenger_order(order: Order, driver: DriverProfile | None) -> dict:
+    """An order as its own passenger sees it: plus who took it, once somebody has."""
+    data = _serialize_order(order)
+    data["driver"] = (
+        {"name": driver.full_name, "phone": driver.phone, "carModel": driver.car_model, "plate": driver.plate}
+        if driver is not None and order.status in ("CLAIMED", "COMPLETED")
+        else None
+    )
+    return data
+
+
+def _coord(value, low: float, high: float) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if low <= value <= high else None
+
+
+def _parse_depart_at(value) -> datetime | None:
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    return parsed.astimezone(timezone.utc).replace(tzinfo=None) if parsed.tzinfo else parsed
+
+
+def _order_extras(payload: dict) -> dict:
+    """The optional order fields the website/app sends, as Order columns. Only keys present in
+    `payload` are returned, so the same mapping serves both create and a partial edit."""
+    data: dict = {}
+    if "price" in payload:
+        price = payload["price"]
+        valid = isinstance(price, (int, float)) and not isinstance(price, bool) and price > 0
+        data["price"] = int(price) if valid else None
+    if "paymentMethod" in payload:
+        data["payment_method"] = str(payload["paymentMethod"] or "cash")[:20]
+    if "departAt" in payload:
+        data["depart_at"] = _parse_depart_at(payload["departAt"])
+    if "wholeCar" in payload:
+        data["whole_car"] = bool(payload["wholeCar"])
+    if "seats" in payload:
+        picks: list[tuple[str, str]] = []
+        for item in payload["seats"] if isinstance(payload["seats"], list) else []:
+            code = _WEB_SEAT_POSITIONS.get(str((item or {}).get("position") or "").upper())
+            gender = (item or {}).get("gender")
+            if code and gender in ("MALE", "FEMALE") and code not in {c for c, _ in picks}:
+                picks.append((code, gender))
+        data["seat_picks"] = trips_service.format_seat_picks(picks)
+        if picks:
+            data["seat"] = picks[0][0]
+            data["passenger_gender"] = trips_service.gender_of_picks(picks)
+    if "routeKm" in payload:
+        data["route_km"] = _coord(payload["routeKm"], 0, 5000)
+    if "pickupLat" in payload or "pickupLng" in payload:
+        lat, lng = _coord(payload.get("pickupLat"), -90, 90), _coord(payload.get("pickupLng"), -180, 180)
+        # A pin is only useful whole — drop half a coordinate.
+        data["pickup_lat"], data["pickup_lng"] = (lat, lng) if lat is not None and lng is not None else (None, None)
+    if "toLat" in payload or "toLng" in payload:
+        lat, lng = _coord(payload.get("toLat"), -90, 90), _coord(payload.get("toLng"), -180, 180)
+        data["to_lat"], data["to_lng"] = (lat, lng) if lat is not None and lng is not None else (None, None)
+    return data
 
 
 async def _resolve_active_driver(session, telegram_id: str) -> DriverProfile | None:
@@ -400,6 +476,8 @@ async def _resolve_active_driver(session, telegram_id: str) -> DriverProfile | N
 
 # Website search form values → the bot's own codes (see keyboards/trip.py).
 _WEB_SEATS = {"old": "front", "orqa-ong": "rear_right", "orqa-chap": "rear_left", "orqa-orta": "rear_middle"}
+# Seat-map positions (the website's car picker) → the same codes.
+_WEB_SEAT_POSITIONS = {"FRONT": "front", "REAR_LEFT": "rear_left", "REAR_MIDDLE": "rear_middle", "REAR_RIGHT": "rear_right"}
 _WEB_LUGGAGE = {"kichik": "S", "o'rta": "M", "o‘rta": "M", "katta": "L", "s": "S", "m": "M", "l": "L"}
 # Website "Kim boradi" values → Order.passenger_gender.
 _WEB_GENDER = {"erkak": "MALE", "ayol": "FEMALE", "juft": "COUPLE", "male": "MALE", "female": "FEMALE", "couple": "COUPLE"}
@@ -465,6 +543,9 @@ async def passenger_order_create(request: web.Request) -> web.Response:
         if payload.get("note"):
             note_parts.append(str(payload["note"]).strip()[:300])
 
+        extras = _order_extras(payload)
+        if women_only:
+            extras.pop("passenger_gender", None)
         order = await trips_service.create_order(
             session,
             bot_user,
@@ -486,6 +567,7 @@ async def passenger_order_create(request: web.Request) -> web.Response:
                 "women_only": women_only,
                 "passenger_gender": passenger_gender,
                 "source": "WEBAPP",
+                **extras,
             },
         )
         sent = await trips_service.dispatch_order(bot, session, order)
@@ -682,8 +764,114 @@ async def passenger_orders(request: web.Request) -> web.Response:
         bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
         if bot_user is None:
             return web.json_response({"orders": []})
-        orders = await trips_service.list_my_trips(session, bot_user, limit=20)
-        return web.json_response({"orders": [_serialize_order(o) for o in orders]})
+        orders = await trips_service.list_my_trips(session, bot_user, limit=50)
+        driver_ids = {o.assigned_driver_id for o in orders if o.assigned_driver_id}
+        drivers: dict[int, DriverProfile] = {}
+        if driver_ids:
+            driver_result = await session.execute(select(DriverProfile).where(DriverProfile.id.in_(driver_ids)))
+            drivers = {d.id: d for d in driver_result.scalars()}
+        return web.json_response(
+            {"orders": [_serialize_passenger_order(o, drivers.get(o.assigned_driver_id)) for o in orders]}
+        )
+
+
+def _passenger_order_request(request: web.Request, payload: dict | None):
+    """Shared guard for the passenger's single-order endpoints: (order_id, telegram_id) or an
+    error response. `payload` is the parsed body for POST/PATCH, None for GET."""
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        order_id = int(request.match_info["order_id"])
+    except ValueError:
+        return web.json_response({"error": "invalid order id"}, status=400)
+    telegram_id = payload.get("telegramId") if payload is not None else request.query.get("telegramId")
+    if not telegram_id:
+        return web.json_response({"error": "telegramId required"}, status=400)
+    return order_id, telegram_id
+
+
+async def _passenger_order_response(session, order: Order) -> web.Response:
+    driver = await session.get(DriverProfile, order.assigned_driver_id) if order.assigned_driver_id else None
+    return web.json_response({"order": _serialize_passenger_order(order, driver)})
+
+
+@routes.get("/webapp/passenger-orders/{order_id}")
+async def passenger_order_get(request: web.Request) -> web.Response:
+    guard = _passenger_order_request(request, None)
+    if isinstance(guard, web.Response):
+        return guard
+    order_id, telegram_id = guard
+
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        order = await session.get(Order, order_id)
+        if bot_user is None or order is None or order.bot_user_id != bot_user.id:
+            return web.json_response({"error": "not_found"}, status=404)
+        return await _passenger_order_response(session, order)
+
+
+@routes.patch("/webapp/passenger-orders/{order_id}")
+async def passenger_order_update(request: web.Request) -> web.Response:
+    """The passenger edits their own still-open order (time, seats, fare, luggage, car, landmark)."""
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    guard = _passenger_order_request(request, payload)
+    if isinstance(guard, web.Response):
+        return guard
+    order_id, telegram_id = guard
+
+    changes = _order_extras(payload)
+    if "whenText" in payload:
+        changes["when_text"] = str(payload["whenText"] or "").strip()[:60] or "Kelishiladi"
+    if "passengers" in payload:
+        try:
+            changes["passengers"] = max(1, min(int(payload["passengers"]), 8))
+        except (TypeError, ValueError):
+            pass
+    if "luggage" in payload:
+        changes["luggage_size"] = _WEB_LUGGAGE.get(str(payload["luggage"] or "").lower(), "M")
+    if "carBrand" in payload:
+        changes["car_brand"] = str(payload["carBrand"] or "").strip()[:60] or "Farqi yo'q"
+    if "pickupText" in payload:
+        changes["pickup_text"] = str(payload["pickupText"] or "").strip()[:200] or None
+
+    bot: Bot = request.app["bot"]
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        existing = await session.get(Order, order_id)
+        if bot_user is None or existing is None or existing.bot_user_id != bot_user.id:
+            return web.json_response({"error": "not_found"}, status=404)
+        if existing.women_only:
+            changes.pop("passenger_gender", None)
+        order = await trips_service.perform_passenger_update(bot, session, order_id, bot_user, changes)
+        if order is None:
+            return web.json_response({"error": "invalid_state"}, status=409)
+        return await _passenger_order_response(session, order)
+
+
+@routes.post("/webapp/passenger-orders/{order_id}/cancel")
+async def passenger_order_cancel(request: web.Request) -> web.Response:
+    try:
+        payload = await request.json()
+    except ValueError:
+        return web.json_response({"error": "invalid json"}, status=400)
+    guard = _passenger_order_request(request, payload)
+    if isinstance(guard, web.Response):
+        return guard
+    order_id, telegram_id = guard
+
+    bot: Bot = request.app["bot"]
+    async with session_scope() as session:
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        existing = await session.get(Order, order_id)
+        if bot_user is None or existing is None or existing.bot_user_id != bot_user.id:
+            return web.json_response({"error": "not_found"}, status=404)
+        order = await trips_service.perform_passenger_cancel(bot, session, order_id, bot_user)
+        if order is None:
+            return web.json_response({"error": "invalid_state"}, status=409)
+        return await _passenger_order_response(session, order)
 
 
 def _serialize_admin_order(order: Order, driver: DriverProfile | None, dispatch_count: int) -> dict:
@@ -795,6 +983,7 @@ _ADMIN_ORDER_FIELD_MAP = {
     "passengers": "passengers",
     "luggageSize": "luggage_size",
     "whenText": "when_text",
+    "price": "price",
     "pickupLat": "pickup_lat",
     "pickupLng": "pickup_lng",
     "pickupText": "pickup_text",

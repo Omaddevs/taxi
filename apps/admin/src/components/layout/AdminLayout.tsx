@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronsLeft,
   ChevronsRight,
+  Calculator,
   CalendarClock,
   Car,
   CarFront,
@@ -99,6 +100,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/finance', label: 'Tranzaksiyalar', icon: Wallet, roles: ['ADMIN'] },
       { to: '/promo', label: 'Promo kodlar', icon: Tag, roles: ['ADMIN'] },
       { to: '/subscription-plans', label: 'Obuna tariflari', icon: CalendarClock, roles: ['ADMIN'] },
+      { to: '/fare-settings', label: 'Yo‘l haqi tariflari', icon: Calculator, roles: ['ADMIN'] },
     ],
   },
   {

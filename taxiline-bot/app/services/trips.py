@@ -48,6 +48,51 @@ def claim_denied_key(driver: DriverProfile, order: Order) -> str | None:
     return "order_women_gender_unknown" if driver.gender is None else "order_women_only_denied"
 
 
+SEAT_CODES = ("front", "rear_left", "rear_middle", "rear_right")
+
+
+def parse_seat_picks(raw: str | None) -> list[tuple[str, str]]:
+    """Order.seat_picks ("front:MALE,rear_left:FEMALE") → [(seat code, gender)], bad parts dropped."""
+    picks: list[tuple[str, str]] = []
+    for part in (raw or "").split(","):
+        code, _, gender = part.strip().partition(":")
+        if code in SEAT_CODES and gender in ("MALE", "FEMALE") and code not in {c for c, _ in picks}:
+            picks.append((code, gender))
+    return picks
+
+
+def format_seat_picks(picks: list[tuple[str, str]]) -> str | None:
+    return ",".join(f"{code}:{gender}" for code, gender in picks) or None
+
+
+def gender_of_picks(picks: list[tuple[str, str]]) -> str | None:
+    """Who travels, derived from the seats: all men, all women, or a mixed party."""
+    genders = {gender for _, gender in picks}
+    if not genders:
+        return None
+    return genders.pop() if len(genders) == 1 else "COUPLE"
+
+
+def format_price(price: int) -> str:
+    return f"{price:,}".replace(",", " ")
+
+
+def seat_text(order: Order, lang: str) -> str:
+    if order.whole_car:
+        return t("seat_whole_car", lang)
+    picks = parse_seat_picks(order.seat_picks)
+    if picks:
+        return ", ".join(t(f"seat_pick_{gender}", lang, seat=seat_label(code, lang)) for code, gender in picks)
+    return seat_label(order.seat, lang)
+
+
+def price_line(order: Order, lang: str) -> str:
+    if order.price is not None:
+        return t("price_line", lang, price=format_price(order.price))
+    # Only website/app orders ask about the fare; a bot order simply has none.
+    return t("price_negotiable_line", lang) if order.source == "WEBAPP" else ""
+
+
 def created_message_key(order: Order) -> str:
     """What the passenger is told once their order went out."""
     if not order.women_only:
@@ -74,6 +119,14 @@ async def create_order(session: AsyncSession, bot_user: BotUser, data: dict) -> 
         passengers=data["passengers"],
         luggage_size=data["luggage_size"],
         when_text=data["when_text"],
+        price=data.get("price"),
+        payment_method=data.get("payment_method") or "cash",
+        depart_at=data.get("depart_at"),
+        whole_car=bool(data.get("whole_car")),
+        seat_picks=data.get("seat_picks"),
+        route_km=data.get("route_km"),
+        to_lat=data.get("to_lat"),
+        to_lng=data.get("to_lng"),
         women_only=bool(data.get("women_only")),
         # A women-only order is by definition a woman travelling.
         passenger_gender="FEMALE" if data.get("women_only") else (
@@ -124,10 +177,11 @@ def render_card(order: Order, lang: str) -> str:
         from_place=_place(order.from_region, order.from_district),
         to_place=_place(order.to_region, order.to_district),
         car_brand=order.car_brand,
-        seat=seat_label(order.seat, lang),
+        seat=seat_text(order, lang),
         passengers=order.passengers,
         luggage_size=luggage_label(order.luggage_size, lang),
         when_text=order.when_text,
+        price_line=price_line(order, lang),
         pickup_line=pickup_line,
         contact_note_line=contact_line,
     )
@@ -545,6 +599,64 @@ async def perform_cancel_claim(bot: Bot, session: AsyncSession, order_id: int, d
             pass
 
     await dispatch_order(bot, session, order, exclude_driver_ids={driver.id})
+    return order
+
+
+async def perform_passenger_cancel(bot: Bot, session: AsyncSession, order_id: int, bot_user: BotUser) -> Order | None:
+    """The passenger cancels their own order from the website/app. Race-safe like claim_order:
+    only an order that is still OPEN or CLAIMED (and theirs) matches. Every dispatched copy
+    loses its buttons, and a driver who had already taken it is told."""
+    existing = await session.get(Order, order_id)
+    if existing is None or existing.bot_user_id != bot_user.id:
+        return None
+    driver_id = existing.assigned_driver_id
+
+    result = await session.execute(
+        update(Order)
+        .where(Order.id == order_id, Order.bot_user_id == bot_user.id, Order.status.in_(("OPEN", "CLAIMED")))
+        .values(status="CANCELLED", finished_at=datetime.utcnow())
+        .returning(Order)
+    )
+    order = result.scalar_one_or_none()
+    if order is None:
+        return None
+    await session.commit()
+    # `existing` and `order` are the same identity-mapped row; make sure it shows the new state.
+    await session.refresh(order)
+
+    await rerender_dispatches(bot, session, order, closed_label_key="order_cancelled_by_passenger_label")
+
+    driver = await session.get(DriverProfile, driver_id) if driver_id else None
+    driver_bot_user = await session.get(BotUser, driver.bot_user_id) if driver else None
+    if driver_bot_user is not None:
+        try:
+            await bot.send_message(
+                driver_bot_user.telegram_id,
+                t(
+                    "order_cancelled_by_passenger_notify_driver",
+                    driver.language,
+                    from_region=order.from_region,
+                    to_region=order.to_region,
+                ),
+            )
+        except TelegramAPIError:
+            pass
+    return order
+
+
+async def perform_passenger_update(
+    bot: Bot, session: AsyncSession, order_id: int, bot_user: BotUser, changes: dict
+) -> Order | None:
+    """The passenger edits their own order while nobody has taken it yet; every dispatched copy
+    is re-rendered so drivers see the new time, seats and fare."""
+    order = await session.get(Order, order_id)
+    if order is None or order.bot_user_id != bot_user.id or order.status != "OPEN":
+        return None
+    for column, value in changes.items():
+        setattr(order, column, value)
+    await session.commit()
+    await session.refresh(order)
+    await rerender_dispatches(bot, session, order)
     return order
 
 

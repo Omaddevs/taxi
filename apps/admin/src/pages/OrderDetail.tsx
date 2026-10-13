@@ -12,6 +12,8 @@ import { OrderEditModal } from '../components/listings/OrderEditModal'
 import type { BotOrderRow } from '../types'
 import { OrderAudienceBadge, PASSENGER_GENDER_LABEL } from '../components/listings/OrderAudienceBadge'
 
+const SEAT_LABEL = { FRONT: 'Old', REAR_LEFT: 'Orqa chap', REAR_MIDDLE: 'Orqa o‘rta', REAR_RIGHT: 'Orqa o‘ng' }
+
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -76,8 +78,17 @@ export default function OrderDetail() {
             <Row label="Kim boradi" value={PASSENGER_GENDER_LABEL[order.passengerGender ?? ''] ?? '—'} />
             <Row label="Telefon" value={formatPhoneUz(order.passengerPhone)} />
             <Row label="Avtomobil turi" value={order.carBrand} />
-            <Row label="Yo‘lovchilar" value={String(order.passengers)} />
+            <Row label="Yo‘lovchilar" value={order.wholeCar ? `${order.passengers} (butun mashina)` : String(order.passengers)} />
+            {order.seatPicks?.length ? (
+              <Row
+                label="O‘rindiqlar"
+                value={order.seatPicks.map((s) => `${SEAT_LABEL[s.position]} — ${s.gender === 'MALE' ? 'erkak' : 'ayol'}`).join(', ')}
+              />
+            ) : null}
             <Row label="Yuk" value={order.luggageSize} />
+            <Row label="Narx" value={order.price != null ? `${order.price.toLocaleString('ru-RU')} so‘m` : 'Kelishiladi'} />
+            {order.routeKm ? <Row label="Masofa" value={`~${Math.round(order.routeKm)} km`} /> : null}
+            {order.pickupText ? <Row label="Mo‘ljal" value={order.pickupText} /> : null}
             <Row label="Manba" value={CHANNEL_LABEL[order.source] ?? order.source} />
             <Row label="Guruh/DM xabarlari" value={String(order.dispatchCount)} />
           </dl>

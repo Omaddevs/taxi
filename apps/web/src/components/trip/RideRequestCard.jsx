@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Send } from 'lucide-react'
 import { api, ApiError } from '../../lib/api'
-import { CARS } from '../ui/SearchPickers'
+import { CARS } from '../../data/cars'
 import { Button } from '../ui/Button'
 import { WomenOrderRibbon } from './OrderAudience'
 import { t } from '../../i18n'
@@ -59,7 +59,7 @@ export function RideRequestCard({ search, prominent = false }) {
               ? t('Haydovchilar so‘rovingizni oldi. Qabul qilgan haydovchi siz bilan telefon orqali bog‘lanadi.')
               : t('So‘rovingiz saqlandi va haydovchilar bo‘limida ko‘rinadi. Bu yo‘nalishdagi haydovchi qabul qilishi bilan sizga xabar beramiz.')}
         </p>
-        <Link to="/orders" className="mt-3 inline-block text-sm font-bold text-brand">
+        <Link to="/history" className="mt-3 inline-block text-sm font-bold text-brand">
           {t('Buyurtmalarimni ko‘rish →')}
         </Link>
       </div>

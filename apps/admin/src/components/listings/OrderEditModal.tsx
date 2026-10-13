@@ -21,6 +21,8 @@ export function OrderEditModal({ open, order, onClose }: { open: boolean; order:
   const [carBrand, setCarBrand] = useState(order?.carBrand ?? '')
   const [passengers, setPassengers] = useState(String(order?.passengers ?? 1))
   const [whenText, setWhenText] = useState(order?.whenText ?? '')
+  // Empty = "Kelishiladi".
+  const [price, setPrice] = useState(order?.price != null ? String(order.price) : '')
   const [error, setError] = useState('')
 
   const mutation = useMutation({
@@ -35,6 +37,7 @@ export function OrderEditModal({ open, order, onClose }: { open: boolean; order:
         carBrand: carBrand.trim(),
         passengers: Number(passengers),
         whenText: whenText.trim(),
+        price: price.trim() ? Number(price) : null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-bot-orders'] })
@@ -49,6 +52,10 @@ export function OrderEditModal({ open, order, onClose }: { open: boolean; order:
     setError('')
     if (!passengerName.trim() || !passengerPhone.trim() || !fromRegion.trim() || !toRegion.trim()) {
       setError('Majburiy maydonlarni to‘ldiring')
+      return
+    }
+    if (price.trim() && !(Number.isInteger(Number(price)) && Number(price) > 0)) {
+      setError('Narx butun musbat son bo‘lishi kerak')
       return
     }
     mutation.mutate()
@@ -83,11 +90,12 @@ export function OrderEditModal({ open, order, onClose }: { open: boolean; order:
         <Field label="Yo‘lovchilar soni">
           <input type="number" min={1} value={passengers} onChange={(e) => setPassengers(e.target.value)} className={inputClass} />
         </Field>
-        <div className="sm:col-span-2">
-          <Field label="Qachon">
-            <input value={whenText} onChange={(e) => setWhenText(e.target.value)} className={inputClass} />
-          </Field>
-        </div>
+        <Field label="Qachon">
+          <input value={whenText} onChange={(e) => setWhenText(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Narx, so‘m (bo‘sh — kelishiladi)">
+          <input type="number" min={1} step={1000} value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />
+        </Field>
         {error ? <p className="text-sm font-semibold text-red-500 sm:col-span-2">{error}</p> : null}
         <Button type="submit" disabled={mutation.isPending} className="sm:col-span-2">
           {mutation.isPending ? 'Saqlanmoqda…' : 'Saqlash'}

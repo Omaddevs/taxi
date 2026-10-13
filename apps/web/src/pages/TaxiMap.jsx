@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, ChevronRight, Heart, Loader2, MapPin, Navigation, PersonStanding, Search, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Bookmark, Headset, Loader2, MapPin, Navigation, PersonStanding, Search, ShieldCheck } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Circle, MapContainer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -12,6 +12,8 @@ import { GeoAskSheet, useMapGeo } from '../components/location/GeoAskSheet'
 import { haversineKm } from '../lib/geo'
 import { meLocationIcon } from '../lib/meMarker'
 import { RegionPicker } from '../components/ui/SearchPickers'
+import { LandmarkSheet } from '../components/ride/OptionSheets'
+import { RIDE_ACCENTS, makePoint } from '../lib/ride'
 import { t } from '../i18n'
 
 // Xarita surilib to‘xtaganda markazdagi nuqtani "olib ketish" manzili qilib olamiz.
@@ -39,9 +41,11 @@ function FlyTo({ target }) {
 
 // `women` — "Ayollar uchun Taxi": xuddi shu xarita, lekin pushti rangda va qidiruv ayol haydovchilarga cheklanadi.
 const ACCENTS = {
-  brand: { solid: 'bg-brand', dot: 'bg-brand ring-4 ring-brand/20', hex: '#00c7d4' },
-  women: { solid: 'bg-[#f5559a]', dot: 'bg-[#f5559a] ring-4 ring-[#f5559a]/20', hex: '#f5559a' },
+  brand: { solid: 'bg-brand', halo: 'ring-brand/25', fill: 'fill-brand text-brand', hex: '#00c7d4' },
+  women: { solid: 'bg-[#f5559a]', halo: 'ring-[#f5559a]/25', fill: 'fill-[#f5559a] text-[#f5559a]', hex: '#f5559a' },
 }
+
+const MAP_BUTTON = 'flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]'
 
 // Pin counts as "on me" within this many metres of the GPS fix.
 const ON_ME_M = 30
@@ -64,6 +68,7 @@ export default function TaxiMap({ women = false }) {
   const [locating, setLocating] = useState(false)
   const [notice, setNotice] = useState('')
   const [picker, setPicker] = useState(null)
+  const [landmarkOpen, setLandmarkOpen] = useState(false)
   const [center, setCenter] = useState(null)
   const requestId = useRef(0)
   // Asks for location every time the taxi map opens (with our own explainer first), then keeps
@@ -114,7 +119,9 @@ export default function TaxiMap({ women = false }) {
         setNotice(t('Bu joy hududini aniqlab bo‘lmadi.'))
         return
       }
-      update({ fromRegion: region, fromPlace: label, from: formatPlace(region, label) })
+      const from = formatPlace(region, label)
+      // The pin itself travels with the order, so the driver gets the exact spot.
+      update({ fromRegion: region, fromPlace: label, from, fromPoint: makePoint(lat, lng, from) })
     } catch {
       if (id === requestId.current) setNotice(t('Manzilni aniqlab bo‘lmadi.'))
     } finally {
@@ -172,7 +179,7 @@ export default function TaxiMap({ women = false }) {
     navigate('/ride')
   }
 
-  const headerText = moving || resolving ? t('Aniqlanmoqda…') : search.fromPlace || t('Manzilni tanlang')
+  const addressText = moving || resolving ? t('Aniqlanmoqda…') : search.fromPlace || t('Manzilni tanlang')
 
   return (
     <div className="relative isolate h-svh overflow-hidden bg-canvas lg:h-[calc(100svh-7rem)] lg:rounded-2xl">
@@ -210,46 +217,35 @@ export default function TaxiMap({ women = false }) {
         </MapContainer>
       </div>
 
-      {/* Markazdagi "olib ketish" belgisi — xarita uning ostida suriladi. Pastki nuqta aynan xarita
+      {/* Markazdagi "olib ketish" ignasi — xarita uning ostida suriladi. Pastki nuqta aynan xarita
           markazida turadi: manzil ham, buyurtma ham shu nuqtadan olinadi. */}
-      <div className="pointer-events-none absolute bottom-1/2 left-1/2 z-[500] flex -translate-x-1/2 translate-y-[5px] flex-col items-center">
-        <div
-          className={`flex items-center gap-2.5 rounded-[18px] bg-white py-1.5 pl-1.5 pr-4 shadow-[0_10px_28px_rgba(16,42,67,0.22)] transition-transform duration-200 ${
+      <div className="pointer-events-none absolute bottom-1/2 left-1/2 z-[500] flex -translate-x-1/2 translate-y-[7px] flex-col items-center">
+        <span
+          className={`flex h-14 w-14 items-center justify-center rounded-full shadow-[0_10px_24px_rgba(16,42,67,0.28)] transition-transform duration-200 ${accent.solid} ${
             moving ? '-translate-y-3' : ''
           }`}
         >
-          <span className={`flex h-11 w-11 items-center justify-center rounded-[14px] text-white ${accent.solid}`}>
-            <PersonStanding className="h-6 w-6" strokeWidth={2.4} />
-          </span>
-          <span className="leading-tight">
-            <span className="block text-[13px] font-semibold text-muted">{t('Olib ketish')}</span>
-            <span className="block whitespace-nowrap text-[16px] font-extrabold text-ink">
-              {moving || resolving ? t('Aniqlanmoqda…') : onMe ? t('Turgan joyingiz') : t('Shu yerdan')}
-            </span>
-          </span>
-        </div>
+          <span className="h-3.5 w-3.5 rounded-full bg-white" />
+        </span>
         <span className={`h-7 w-[3px] rounded-full bg-ink transition-transform duration-200 ${moving ? '-translate-y-3' : ''}`} />
         <span
-          className={`h-2.5 w-2.5 rounded-full border-2 border-white bg-ink shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-all duration-200 ${
+          className={`h-3.5 w-3.5 rounded-full border-[3px] border-white ring-8 shadow-[0_1px_4px_rgba(0,0,0,0.35)] transition-all duration-200 ${accent.solid} ${accent.halo} ${
             moving ? 'scale-75 opacity-60' : ''
           }`}
         />
       </div>
 
-      <header className="absolute inset-x-0 top-0 z-[600] flex justify-center px-16 pt-[max(14px,env(safe-area-inset-top))]">
-        <button
-          type="button"
-          onClick={() => setPicker('from')}
-          className="flex max-w-full items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 shadow-[0_6px_20px_rgba(16,42,67,0.12)] backdrop-blur"
-        >
-          <span className={`h-3 w-3 shrink-0 rounded-full ${accent.dot}`} />
-          <span className="truncate text-[17px] font-extrabold text-ink">{headerText}</span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted" />
-        </button>
-      </header>
+      <button
+        type="button"
+        onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+        className={`${MAP_BUTTON} absolute left-4 top-[max(14px,env(safe-area-inset-top))] z-[600] lg:top-4`}
+        aria-label={t('Orqaga')}
+      >
+        <ArrowLeft className="h-5 w-5" strokeWidth={2.4} />
+      </button>
 
       {!notice && (gpsStatus === 'pending' || roughFix) ? (
-        <div className="pointer-events-none absolute inset-x-0 top-[calc(max(14px,env(safe-area-inset-top))+56px)] z-[600] flex justify-center px-4">
+        <div className="pointer-events-none absolute inset-x-0 top-[calc(max(14px,env(safe-area-inset-top))+60px)] z-[600] flex justify-center px-4">
           <p className="flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-center text-[12px] font-semibold text-ink shadow-md">
             {gpsStatus === 'pending' ? (
               <>
@@ -265,33 +261,22 @@ export default function TaxiMap({ women = false }) {
       {notice ? (
         <div
           role="alert"
-          className="absolute inset-x-4 top-[calc(max(14px,env(safe-area-inset-top))+56px)] z-[600] rounded-2xl bg-ink/90 px-4 py-3 text-center text-[13px] font-medium text-white shadow-lg"
+          className="absolute inset-x-4 top-[calc(max(14px,env(safe-area-inset-top))+60px)] z-[600] rounded-2xl bg-ink/90 px-4 py-3 text-center text-[13px] font-medium text-white shadow-lg"
         >
           {notice}
         </div>
       ) : null}
 
       <div className="absolute inset-x-0 bottom-0 z-[600]">
-        <div className="flex items-end justify-between px-4 pb-3">
-          <button
-            type="button"
-            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
-            aria-label={t('Orqaga')}
-          >
-            <ArrowLeft className="h-5 w-5" strokeWidth={2.4} />
-          </button>
-          <button
-            type="button"
-            onClick={showMyLocation}
-            disabled={locating}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_20px_rgba(16,42,67,0.14)]"
-            aria-label={t('Joriy joylashuv')}
-          >
+        <div className="flex flex-col items-end gap-2.5 px-4 pb-3">
+          <Link to="/help" className={MAP_BUTTON} aria-label={t('Yordam')}>
+            <Headset className="h-5 w-5" strokeWidth={2.2} />
+          </Link>
+          <button type="button" onClick={showMyLocation} disabled={locating} className={MAP_BUTTON} aria-label={t('Joriy joylashuv')}>
             {locating ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Navigation className={`h-5 w-5 ${hasGps && onMe ? 'fill-brand text-brand' : ''}`} strokeWidth={2.2} />
+              <Navigation className={`h-5 w-5 ${hasGps && onMe ? accent.fill : ''}`} strokeWidth={2.2} />
             )}
           </button>
         </div>
@@ -306,19 +291,31 @@ export default function TaxiMap({ women = false }) {
             </div>
           ) : null}
 
-          <div className="flex h-14 items-center gap-3 rounded-2xl bg-canvas pl-4 pr-2">
-            <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
-            <button type="button" onClick={() => setPicker('to')} className="min-w-0 flex-1 text-center">
-              <span className="block truncate text-[16px] font-bold text-ink">{t('Qayerga?')}</span>
+          <div className="flex h-16 items-center gap-2 rounded-2xl bg-canvas pl-4 pr-2">
+            <button type="button" onClick={() => setPicker('from')} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+              <PersonStanding className="h-6 w-6 shrink-0 text-ink" strokeWidth={2.2} />
+              <span className="truncate text-[17px] font-bold text-ink">{addressText}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLandmarkOpen(true)}
+              className={`h-11 shrink-0 rounded-full px-4 text-[14px] font-bold shadow-sm ${search.landmark ? 'bg-ink text-white' : 'bg-white text-ink'}`}
+            >
+              {t('Mo‘ljal')}
             </button>
             <Link
               to="/favorites"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-ink shadow-sm"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-ink shadow-sm"
               aria-label={t('Sevimlilar')}
             >
-              <Heart className="h-5 w-5" />
+              <Bookmark className="h-5 w-5" />
             </Link>
           </div>
+
+          <button type="button" onClick={() => setPicker('to')} className="mt-2.5 flex h-16 w-full items-center gap-3 rounded-2xl bg-canvas px-4 text-left">
+            <Search className="h-6 w-6 shrink-0 text-ink" strokeWidth={2.2} />
+            <span className="truncate text-[17px] font-bold text-muted">{t('Qayerga?')}</span>
+          </button>
 
           {destinations.length ? (
             <ul className="mt-1 divide-y divide-line">
@@ -349,7 +346,7 @@ export default function TaxiMap({ women = false }) {
         region={search.fromRegion}
         place={search.fromPlace}
         onChange={({ region, place, label, lat, lng }) => {
-          update({ fromRegion: region, fromPlace: place, from: label })
+          update({ fromRegion: region, fromPlace: place, from: label, fromPoint: makePoint(lat, lng, label) })
           if (Number.isFinite(lat)) setFlyTarget({ center: [lat, lng], at: Date.now() })
         }}
         open={picker === 'from'}
@@ -365,13 +362,24 @@ export default function TaxiMap({ women = false }) {
         place={search.toPlace}
         origin={search.fromRegion ? { region: search.fromRegion, place: search.fromPlace } : null}
         onEditOrigin={() => setPicker('from')}
-        onChange={({ region, place, label }) => {
-          update({ toRegion: region, toPlace: place, to: label })
+        onChange={({ region, place, label, lat, lng }) => {
+          update({ toRegion: region, toPlace: place, to: label, toPoint: makePoint(lat, lng, label) })
           navigate('/ride')
         }}
         open={picker === 'to'}
         onToggle={() => setPicker((cur) => (cur === 'to' ? null : 'to'))}
         onClose={() => setPicker(null)}
+      />
+
+      <LandmarkSheet
+        open={landmarkOpen}
+        onClose={() => setLandmarkOpen(false)}
+        accent={women ? RIDE_ACCENTS.women : RIDE_ACCENTS.brand}
+        value={search.landmark}
+        onConfirm={(landmark) => {
+          update({ landmark })
+          setLandmarkOpen(false)
+        }}
       />
 
       <GeoAskSheet

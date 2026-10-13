@@ -23,6 +23,8 @@ export const adminUpdateOrderSchema = z.object({
   passengers: z.number().int().min(1).optional(),
   luggageSize: z.string().min(1).optional(),
   whenText: z.string().min(1).optional(),
+  // null = "Kelishiladi"
+  price: z.number().int().positive().nullable().optional(),
   pickupLat: z.number().nullable().optional(),
   pickupLng: z.number().nullable().optional(),
   pickupText: z.string().nullable().optional(),

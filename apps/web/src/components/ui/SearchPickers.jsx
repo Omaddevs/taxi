@@ -27,6 +27,8 @@ import {
 import { useApp } from '../../context/AppContext'
 import { extractCity, formatAddress, reverseGeocode } from '../../lib/geocode'
 import { lockScroll } from '../../lib/scrollLock'
+import { LUGGAGE } from '../../lib/ride'
+import { CARS } from '../../data/cars'
 import { t } from '../../i18n'
 
 const WEEKDAYS = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
@@ -481,12 +483,6 @@ function UsersIcon({ className }) {
   )
 }
 
-const LUGGAGE = [
-  { id: 'Kichik', title: 'Kichik', desc: 'Qo‘l yuki, sumka' },
-  { id: "O'rta", title: 'O‘rta', desc: '1–2 chamadon' },
-  { id: 'Katta', title: 'Katta', desc: '3+ chamadon' },
-]
-
 export function LuggagePicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
   const current = LUGGAGE.find((x) => x.id === value) || LUGGAGE[1]
   return (
@@ -669,17 +665,6 @@ function SeatIcon({ className }) {
     </svg>
   )
 }
-
-export const CARS = [
-  { id: 'cobalt', title: 'Chevrolet Cobalt', photo: '/cars/models/cobalt.png?v=2' },
-  { id: 'gentra', title: 'Chevrolet Gentra', photo: '/cars/models/gentra.png?v=2' },
-  { id: 'lacetti', title: 'Chevrolet Lacetti', photo: '/cars/models/lacetti.png?v=2' },
-  { id: 'spark', title: 'Chevrolet Spark', photo: '/cars/models/spark.png?v=2' },
-  { id: 'captiva', title: 'Chevrolet Captiva', photo: '/cars/models/captiva.png?v=2' },
-  { id: 'malibu-xl', title: 'Chevrolet Malibu XL', photo: '/cars/models/malibu-xl.png?v=2' },
-  { id: 'nexia', title: 'Daewoo Nexia', photo: '/cars/models/nexia.png?v=2' },
-  { id: 'nexia-r3', title: 'Nexia R3', photo: '/cars/models/nexia-r3.png?v=2' },
-]
 
 export function CarPicker({ value, onChange, open, onToggle, onClose, triggerVariant = 'card' }) {
   const current = CARS.find((x) => x.id === value)

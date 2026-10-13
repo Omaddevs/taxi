@@ -167,6 +167,21 @@ class Order(Base):
     luggage_size: Mapped[str] = mapped_column()
     when_text: Mapped[str] = mapped_column()
 
+    # Website/app orders. `price` is the fare the passenger offers for the whole party in so'm;
+    # None = "Kelishiladi" (agreed with the driver by phone).
+    price: Mapped[int | None] = mapped_column(nullable=True)
+    payment_method: Mapped[str] = mapped_column(default="cash", server_default="cash")
+    # Start of the chosen departure slot (UTC, naive) — `when_text` stays the printed form.
+    depart_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # "Bo'sh mashina": the passenger takes the whole car.
+    whole_car: Mapped[bool] = mapped_column(default=False, server_default="false")
+    # Who sits where: "front:MALE,rear_left:FEMALE" (see trips.parse_seat_picks). `seat` keeps
+    # the first pick for older surfaces.
+    seat_picks: Mapped[str | None] = mapped_column(nullable=True)
+    route_km: Mapped[float | None] = mapped_column(nullable=True)
+    to_lat: Mapped[float | None] = mapped_column(nullable=True)
+    to_lng: Mapped[float | None] = mapped_column(nullable=True)
+
     # "Ayollar uchun taxi": offered to female drivers first; every surface (group card, driver
     # DM, website, admin panel) renders it in its own pink style.
     women_only: Mapped[bool] = mapped_column(default=False, server_default="false", index=True)

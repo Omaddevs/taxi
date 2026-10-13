@@ -48,6 +48,16 @@ export interface BotOrder {
   passengers: number
   luggageSize: string
   whenText: string
+  // The fare the passenger offers for the whole party; null = "Kelishiladi".
+  price: number | null
+  paymentMethod: string
+  // Start of the chosen departure slot (ISO, UTC).
+  departAt: string | null
+  wholeCar: boolean
+  seatPicks: SeatPick[]
+  routeKm: number | null
+  toLat: number | null
+  toLng: number | null
   status: string
   source: string
   // "Ayollar uchun taxi" — female drivers only. passengerGender: MALE | FEMALE | COUPLE | null.
@@ -60,6 +70,19 @@ export interface BotOrder {
   pickupLng: number | null
   pickupText: string | null
   confirmed: boolean
+  claimedAt: string | null
+  confirmedAt: string | null
+  finishedAt: string | null
+}
+
+export interface SeatPick {
+  position: 'FRONT' | 'REAR_LEFT' | 'REAR_MIDDLE' | 'REAR_RIGHT'
+  gender: 'MALE' | 'FEMALE'
+}
+
+/** An order as its own passenger sees it — with the driver once somebody has taken it. */
+export interface PassengerBotOrder extends BotOrder {
+  driver: { name: string; phone: string; carModel: string; plate: string } | null
 }
 
 export interface DriverOrdersResponse {
@@ -119,8 +142,25 @@ export interface CreatePassengerOrderPayload {
   womenOnly?: boolean
   carBrand?: string
   pickupText?: string
+  pickupLat?: number
+  pickupLng?: number
+  toLat?: number
+  toLng?: number
+  routeKm?: number
+  wholeCar?: boolean
+  seats?: SeatPick[]
+  price?: number | null
+  paymentMethod?: string
+  departAt?: string
   note?: string
 }
+
+export type UpdatePassengerOrderPayload = Partial<
+  Pick<
+    CreatePassengerOrderPayload,
+    'whenText' | 'departAt' | 'passengers' | 'wholeCar' | 'seats' | 'luggage' | 'carBrand' | 'pickupText' | 'price'
+  >
+>
 
 export async function createPassengerBotOrder(
   payload: CreatePassengerOrderPayload,
@@ -133,8 +173,35 @@ export async function createPassengerBotOrder(
   })
 }
 
-export async function getPassengerBotOrders(telegramId: string): Promise<{ orders: BotOrder[] }> {
-  return botFetch<{ orders: BotOrder[] }>(`/webapp/passenger-orders?telegramId=${encodeURIComponent(telegramId)}`)
+export async function getPassengerBotOrders(telegramId: string): Promise<{ orders: PassengerBotOrder[] }> {
+  return botFetch<{ orders: PassengerBotOrder[] }>(`/webapp/passenger-orders?telegramId=${encodeURIComponent(telegramId)}`)
+}
+
+export async function getPassengerBotOrder(telegramId: string, orderId: number): Promise<{ order: PassengerBotOrder }> {
+  return botFetch<{ order: PassengerBotOrder }>(
+    `/webapp/passenger-orders/${orderId}?telegramId=${encodeURIComponent(telegramId)}`,
+  )
+}
+
+export async function updatePassengerBotOrder(
+  telegramId: string,
+  orderId: number,
+  patch: UpdatePassengerOrderPayload,
+): Promise<{ order: PassengerBotOrder }> {
+  // Re-renders every dispatched copy of the order in Telegram — same budget as creating one.
+  return botFetch<{ order: PassengerBotOrder }>(`/webapp/passenger-orders/${orderId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ telegramId, ...patch }),
+    timeoutMs: 30000,
+  })
+}
+
+export async function cancelPassengerBotOrder(telegramId: string, orderId: number): Promise<{ order: PassengerBotOrder }> {
+  return botFetch<{ order: PassengerBotOrder }>(`/webapp/passenger-orders/${orderId}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ telegramId }),
+    timeoutMs: 30000,
+  })
 }
 
 export interface AdminBotOrder extends BotOrder {
@@ -172,6 +239,7 @@ export async function updateAdminBotOrder(
       | 'passengers'
       | 'luggageSize'
       | 'whenText'
+      | 'price'
       | 'pickupLat'
       | 'pickupLng'
       | 'pickupText'
