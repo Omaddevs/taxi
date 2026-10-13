@@ -132,54 +132,56 @@ const FOOTER_COLUMNS = [
       { label: 'Biznes uchun', href: '/biznes' },
     ],
   },
+  {
+    title: 'Hisob',
+    links: [
+      { label: 'Kirish', href: '/login' },
+      { label: 'Ro‘yxatdan o‘tish', href: '/register' },
+      { label: 'Maxfiylik siyosati', href: '/privacy' },
+      { label: 'Foydalanish shartlari', href: '/terms' },
+    ],
+  },
 ]
 
-// `attached` — landing'da footer tepadagi bo‘limga yopishgan (faqat pastki burchaklar yumaloq).
-export function SiteFooter({ attached = false }) {
+const PHONE = { href: 'tel:+998877353636', label: '+998 87 735 36 36' }
+
+// Qo‘lda chizilgandek egri strelka — "Omadingizni sinang!" yozuvidan nishonga qaraydi.
+function HandArrow(props) {
   return (
-    <footer className="mx-auto max-w-[1600px] px-3 pb-6 sm:px-6">
-      <div
-        className={`${attached ? 'rounded-b-[32px] sm:rounded-b-[40px]' : 'rounded-[32px] sm:rounded-[40px]'} bg-[#1d2229] px-7 pb-8 pt-12 text-white sm:px-12 sm:pt-16 lg:px-14 lg:pb-10 lg:pt-20 2xl:px-20 2xl:pt-24`}
-      >
-        <div className="grid gap-12 lg:grid-cols-[1fr_auto] lg:gap-16">
-          <Link to="/" className="flex items-center gap-4 self-start" aria-label="TaxiLine">
-            <Logo size={64} className="sm:h-20! sm:w-20! 2xl:h-24! 2xl:w-24!" />
-            <span className="text-[34px] font-bold leading-[1.02] tracking-tight sm:text-[42px] 2xl:text-[50px]">
-              {t('Taxi')}
-              <br />
-              <span className="text-brand">{t('Line')}</span>
+    <svg viewBox="0 0 40 28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M37 24C26 26 12 22 6 6" />
+      <path d="M2.5 12.5 6 5.5l6.5 3.5" />
+    </svg>
+  )
+}
+
+// Ochiq sahifalar footeri: chapda brend kartasi (logo, shior, ijtimoiy tarmoqlar), o‘ngda
+// havolalar paneli — burchagida "Random mijoz" aksiyasiga olib boradigan nishon va pastida
+// aloqa — ostida esa sahifa chetiga kesilib tushadigan katta "TaxiLine" yozuvi.
+export function SiteFooter() {
+  return (
+    <footer className="relative mx-auto max-w-[1600px] overflow-hidden px-3 pt-12 sm:px-6 sm:pt-16">
+      <div className="relative z-10 grid gap-3 lg:grid-cols-[minmax(340px,0.44fr)_1fr]">
+        <div className="relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] bg-[linear-gradient(168deg,#00727c_0%,#00a9b5_48%,#2fd6e1_100%)] p-6 text-white sm:min-h-[340px] sm:p-8 lg:min-h-[420px]">
+          <span aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/10" />
+          <span aria-hidden="true" className="pointer-events-none absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-white/[0.07]" />
+
+          <Link to="/" className="relative flex w-fit items-center gap-3" aria-label="TaxiLine">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-[0_8px_20px_rgba(0,60,66,0.25)]">
+              <Logo size={34} />
             </span>
+            <span className="text-[30px] font-extrabold leading-none tracking-tight">TaxiLine</span>
           </Link>
 
-          <nav className="grid grid-cols-2 gap-x-10 gap-y-9 sm:grid-cols-3 sm:gap-x-16 2xl:gap-x-24">
-            {FOOTER_COLUMNS.map((col) => (
-              <div key={col.title}>
-                <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">{t(col.title)}</p>
-                <ul className="mt-4 space-y-2">
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      <a
-                        href={l.href}
-                        {...(l.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                        className="text-[14px] text-white/75 transition hover:text-brand 2xl:text-[16px]"
-                      >
-                        {t(l.label)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            <div>
-              <p className="text-[19px] font-bold leading-tight sm:whitespace-nowrap sm:text-[22px] 2xl:text-[26px]">{t('Kontaktlar')}</p>
-              <a
-                href="tel:+998877353636"
-                className="mt-4 inline-flex items-center gap-2 whitespace-nowrap text-[14px] font-semibold text-white/85 transition hover:text-brand 2xl:text-[16px]"
-              >
-                <Phone className="h-4 w-4 text-brand" /> +998 87 735 36 36
-              </a>
-              <ul className="mt-5 flex gap-2.5">
+          <div className="relative">
+            <p className="text-[21px] font-semibold leading-snug tracking-tight sm:text-[23px]">
+              {t('Shaharlararo qulay safar,')}
+              <br />
+              <span className="text-white/60">{t('bir necha bosishda.')}</span>
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <p className="font-hand text-[25px] leading-none text-white/90">{t('Aloqada bo‘ling!')}</p>
+              <ul className="flex gap-2">
                 {SOCIALS.map(({ label, href, icon: Icon }) => (
                   <li key={label}>
                     <a
@@ -188,7 +190,7 @@ export function SiteFooter({ attached = false }) {
                       rel="noopener noreferrer"
                       aria-label={t(label)}
                       title={t(label)}
-                      className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-white ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:bg-brand hover:text-ink hover:ring-brand 2xl:h-12 2xl:w-12"
+                      className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-ink text-white shadow-[0_6px_14px_rgba(0,40,45,0.35)] transition hover:-translate-y-0.5 hover:bg-white hover:text-ink"
                     >
                       <Icon className="h-5 w-5" />
                     </a>
@@ -196,26 +198,74 @@ export function SiteFooter({ attached = false }) {
                 ))}
               </ul>
             </div>
-          </nav>
+          </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-[13px] text-white/50 sm:flex-row sm:items-center sm:justify-between 2xl:text-[14px]">
-          <span>© {new Date().getFullYear()} {t('TaxiLine. Barcha huquqlar himoyalangan.')}</span>
-          <span className="flex flex-wrap gap-x-5 gap-y-2">
-            <Link to="/privacy" className="transition hover:text-white">
-              {t('Maxfiylik siyosati')}
-            </Link>
-            <Link to="/terms" className="transition hover:text-white">
-              {t('Foydalanish shartlari')}
-            </Link>
-            <Link to="/login" className="transition hover:text-white">
-              {t('Kirish')}
-            </Link>
-            <Link to="/register" className="transition hover:text-white">
-              {t('Ro‘yxatdan o‘tish')}
-            </Link>
-          </span>
+        <div className="relative flex flex-col justify-between gap-12 rounded-[28px] bg-[#f1f3f6] p-6 sm:p-8">
+          {/* "Random mijoz" nishoni — panel burchagidan chiqib turadi. */}
+          <a
+            href="/aksiyalar#random"
+            className="group absolute -top-9 right-12 hidden flex-col items-center xl:flex"
+            aria-label={t('Random mijoz')}
+          >
+            <span className="flex h-[104px] w-[104px] rotate-[10deg] items-center justify-center rounded-[30px] bg-[linear-gradient(145deg,#4be4ee_0%,#00b9c6_55%,#008d98_100%)] text-white shadow-[0_22px_32px_-10px_rgba(0,140,152,0.6),inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-8px_14px_rgba(0,70,77,0.22)] transition duration-300 group-hover:rotate-[4deg] group-hover:scale-105">
+              <Gift className="h-12 w-12 drop-shadow-[0_3px_4px_rgba(0,70,77,0.35)]" strokeWidth={2.1} />
+            </span>
+            <span className="mt-3 flex -rotate-6 items-center gap-1 text-muted">
+              <HandArrow className="h-5 w-7 -translate-y-1.5" />
+              <span className="font-hand text-[21px] leading-none">{t('Omadingizni sinang!')}</span>
+            </span>
+          </a>
+
+          <nav className="grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-3 xl:max-w-[640px]">
+            {FOOTER_COLUMNS.map((col) => (
+              <div key={col.title}>
+                <p className="font-hand text-[23px] leading-none text-muted">{t(col.title)}</p>
+                <ul className="mt-3.5 space-y-2.5">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <a href={l.href} className="text-[15px] font-medium text-ink transition hover:text-brand-dark">
+                        {t(l.label)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <p className="order-2 text-[13px] text-muted md:order-1">
+              © {new Date().getFullYear()} {t('TaxiLine. Barcha huquqlar himoyalangan.')}
+            </p>
+            <div className="order-1 w-full md:order-2 md:w-[360px]">
+              <p className="text-[21px] font-semibold leading-tight tracking-tight text-ink">
+                <span className="text-muted/70">{t('Savolingiz bormi?')}</span>
+                <br />
+                {t('Biz bilan bog‘laning.')}
+              </p>
+              <div className="mt-3.5 flex items-center gap-2 rounded-[20px] bg-white p-1.5 pl-4 shadow-[0_8px_24px_rgba(16,42,67,0.07)]">
+                <Phone className="h-4 w-4 shrink-0 text-brand-dark" />
+                <a href={PHONE.href} className="min-w-0 flex-1 whitespace-nowrap text-[15px] font-bold text-ink">
+                  {PHONE.label}
+                </a>
+                <a
+                  href={PHONE.href}
+                  className="flex h-11 shrink-0 items-center rounded-[14px] bg-ink px-4 text-[14px] font-bold text-white shadow-[0_6px_14px_rgba(26,43,60,0.3)] transition hover:bg-black"
+                >
+                  {t('Qo‘ng‘iroq')}
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Fon yozuvi: faqat tepa qismi ko‘rinadi, qolgani sahifa chetida kesiladi. */}
+      <div aria-hidden="true" className="pointer-events-none relative -mt-3 h-[clamp(64px,13.5vw,236px)] select-none overflow-hidden sm:-mt-5">
+        <p className="whitespace-nowrap text-center text-[clamp(104px,24.5vw,430px)] font-extrabold leading-[0.86] tracking-[-0.055em] text-[#eff1f4]">
+          TaxiLine
+        </p>
       </div>
     </footer>
   )

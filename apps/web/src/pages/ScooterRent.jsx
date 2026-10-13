@@ -576,7 +576,7 @@ export default function ScooterRent() {
         <OwnerBanner />
         <RentFaq />
       </main>
-      <SiteFooter attached />
+      <SiteFooter />
       <ScrollTopButton />
     </div>
   )

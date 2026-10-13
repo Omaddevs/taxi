@@ -1611,7 +1611,7 @@ export default function Landing() {
         <Faq />
         <Regions />
       </main>
-      <SiteFooter attached />
+      <SiteFooter />
       <ScrollTopButton />
     </div>
   )

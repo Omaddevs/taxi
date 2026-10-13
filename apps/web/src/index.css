@@ -2,6 +2,8 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Qo‘lyozma uslubidagi kichik yozuvlar (footer sarlavhalari va izohlari). */
+  --font-hand: "Caveat", "Segoe Script", cursive;
   /* Ilovaning asosiy blok radiusi — kartalar, inputlar va panellar shu tokenni ishlatadi. */
   --radius-2xl: 20px;
   --color-brand: #00c7d4;
