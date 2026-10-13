@@ -162,7 +162,7 @@ function Hero({ total }) {
   )
 
   return (
-    <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-6 sm:pt-6">
+    <section className="mx-auto max-w-site px-3 pt-3 sm:px-6 sm:pt-6">
       <div className="relative overflow-hidden rounded-[28px] bg-[#f3f4f6] sm:rounded-[40px]">
         <div className="relative grid lg:grid-cols-2">
           {/* ── Chap: kulrang panel ── */}
@@ -342,7 +342,7 @@ function SectionTitle({ eyebrow, title, text, action }) {
 function VehicleTypes({ counts }) {
   const links = useRentLinks()
   return (
-    <section id="turlar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
+    <section id="turlar" className="mx-auto max-w-site scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
         <SectionTitle eyebrow={t('Turlari')} title={t('Har kimga mos transport')} text={t('Qisqa masofaga samokat, kun bo‘yi skuter, sayr uchun velosiped.')} />
         <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 2xl:gap-5">
@@ -418,7 +418,7 @@ function Listings({ listings, isLoading }) {
   const links = useRentLinks()
   const shown = listings
   return (
-    <section id="elonlar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
+    <section id="elonlar" className="mx-auto max-w-site scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="rounded-[28px] bg-[#f3f4f6] px-5 py-10 sm:rounded-[40px] sm:px-10 sm:py-14 lg:px-14 2xl:px-20 2xl:py-20">
         <SectionTitle
           eyebrow={t('Jonli e’lonlar')}
@@ -479,7 +479,7 @@ function StepList({ steps }) {
 function HowItWorks() {
   const links = useRentLinks()
   return (
-    <section id="qanday" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
+    <section id="qanday" className="mx-auto max-w-site scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
         <SectionTitle eyebrow={t('Qanday ishlaydi')} title={t('Uch qadam — va yo‘ldasiz')} />
       </div>
@@ -510,7 +510,7 @@ function HowItWorks() {
 function OwnerBanner() {
   const links = useRentLinks()
   return (
-    <section className="mx-auto max-w-[1600px] px-3 pt-16 sm:px-6 sm:pt-24">
+    <section className="mx-auto max-w-site px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="relative overflow-hidden rounded-[28px] bg-[#1d2229] px-6 py-12 sm:rounded-[40px] sm:px-12 sm:py-16 lg:px-14 2xl:px-20 2xl:py-20">
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-[360px] w-[360px] rounded-full bg-brand/90 sm:h-[460px] sm:w-[460px] lg:-right-10 lg:-top-32" />
         <div className="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
@@ -540,7 +540,7 @@ function OwnerBanner() {
 function RentFaq() {
   const [open, setOpen] = useState(0)
   return (
-    <section id="savollar" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 pt-16 sm:px-6 sm:pt-24">
+    <section id="savollar" className="mx-auto max-w-site scroll-mt-24 px-3 pb-20 pt-16 sm:px-6 sm:pt-24">
       <div className="px-2 sm:px-4 lg:px-8">
         <SectionTitle eyebrow={t('Savol-javob')} title={t('Ijara haqida savollar')} />
         <div className="mt-6">

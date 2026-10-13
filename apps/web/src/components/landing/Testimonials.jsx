@@ -107,7 +107,7 @@ export function Testimonials() {
   })
 
   return (
-    <section ref={ref} id="reviews" aria-label={t('Foydalanuvchilar fikrlari')} className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
+    <section ref={ref} id="reviews" aria-label={t('Foydalanuvchilar fikrlari')} className="mx-auto max-w-site scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="relative overflow-hidden rounded-[32px] bg-white px-4 pb-14 pt-14 ring-1 ring-line sm:rounded-[44px] sm:px-10 sm:pt-20 lg:px-16">
         {/* Rasmdagidek nozik katakli fon — markazda ko‘rinadi, chetlarga qarab yo‘qoladi */}
         <div

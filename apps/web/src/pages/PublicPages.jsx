@@ -33,7 +33,7 @@ function PublicPage({ path, children, extraJsonLd }) {
     <div className="min-h-svh bg-white text-ink">
       <SiteHeader />
       <main>
-        <section className="mx-auto max-w-[1600px] px-3 pt-6 sm:px-6 sm:pt-10">
+        <section className="mx-auto max-w-site px-3 pt-6 sm:px-6 sm:pt-10">
           <div className="relative overflow-hidden rounded-[32px] bg-[#1d2229] px-6 pb-10 pt-8 text-white sm:rounded-[40px] sm:px-12 sm:pb-14 sm:pt-10 lg:px-14 2xl:px-20 2xl:pb-16">
             <div aria-hidden="true" className="pointer-events-none absolute -bottom-56 -right-40 h-[340px] w-[340px] rounded-full bg-brand sm:bottom-auto sm:-right-28 sm:-top-36 sm:h-[520px] sm:w-[520px]" />
             <nav aria-label={t('Breadcrumb')} className="relative">

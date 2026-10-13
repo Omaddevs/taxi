@@ -4,6 +4,9 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   /* Qo‘lyozma uslubidagi kichik yozuvlar (footer sarlavhalari va izohlari). */
   --font-hand: "Caveat", "Segoe Script", cursive;
+  /* Ochiq sahifalar (landing, yangiliklar, footer…) konteynerining eng katta kengligi: `max-w-site`.
+     Full HD monitorda sahifa chetdan chetgacha to‘ladi, undan keng ekranda shu yerda to‘xtaydi. */
+  --container-site: 1920px;
   /* Ilovaning asosiy blok radiusi — kartalar, inputlar va panellar shu tokenni ishlatadi. */
   --radius-2xl: 20px;
   --color-brand: #00c7d4;

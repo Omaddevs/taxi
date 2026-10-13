@@ -259,7 +259,7 @@ export function Regions() {
 
   return (
     <section ref={ref} id="regions" className="relative scroll-mt-24 overflow-hidden pb-20 pt-4">
-      <div className="mx-auto max-w-[1600px] px-5 text-center sm:px-6">
+      <div className="mx-auto max-w-site px-5 text-center sm:px-6">
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3.5 py-1.5 text-[13px] font-bold text-brand-dark">
           <MapPin className="h-4 w-4" /> {t('Butun O‘zbekiston bo‘ylab')}
         </span>
@@ -344,7 +344,7 @@ export function Regions() {
       </div>
 
       {/* Statistika */}
-      <div className="mx-auto mt-10 grid max-w-[1600px] grid-cols-2 gap-3 px-3 sm:mt-14 sm:gap-4 sm:px-6 lg:grid-cols-4">
+      <div className="mx-auto mt-10 grid max-w-site grid-cols-2 gap-3 px-3 sm:mt-14 sm:gap-4 sm:px-6 lg:grid-cols-4">
         {cards.map(({ icon: Icon, value, label, hint }, i) => (
           <div
             key={label}

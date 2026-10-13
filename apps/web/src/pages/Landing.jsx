@@ -164,7 +164,7 @@ function Showcase() {
   )
 
   return (
-    <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-6 sm:pt-6">
+    <section className="mx-auto max-w-site px-3 pt-3 sm:px-6 sm:pt-6">
       <div className="relative overflow-hidden rounded-[28px] bg-[#f3f4f6] sm:rounded-[40px]">
         {/* ── Yuqori qism: oq va teal panellar ── */}
         <div className="relative grid lg:grid-cols-2">
@@ -667,7 +667,7 @@ function RoadBand() {
 
 export function Join() {
   return (
-    <section id="join" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
+    <section id="join" className="mx-auto max-w-site scroll-mt-24 px-3 pt-16 sm:px-6 sm:pt-24">
       <div className="grid grid-cols-[minmax(0,1fr)] gap-10 px-2 sm:px-6 lg:grid-cols-[1fr_minmax(0,460px)] lg:gap-14 lg:px-14 2xl:grid-cols-[1fr_minmax(0,560px)] 2xl:px-20">
         <div className="min-w-0">
           <h2 className="text-[34px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[44px] lg:text-[48px] 2xl:text-[64px]">
@@ -694,7 +694,7 @@ function ScreenPhone({ src, alt, className = '' }) {
 
 export function Earn() {
   return (
-    <section id="earn" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-16 sm:px-6">
+    <section id="earn" className="mx-auto max-w-site scroll-mt-24 px-3 pb-16 sm:px-6">
       <div className="relative -mt-1 overflow-hidden rounded-[32px] bg-[#1d2229] text-white sm:rounded-[40px]">
         {/* O‘ng yuqori burchakdagi teal va qora doiralar */}
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 -right-36 h-[420px] w-[420px] rounded-full bg-brand sm:-bottom-56 sm:h-[560px] sm:w-[560px] lg:bottom-auto lg:-right-24 lg:-top-44" />
@@ -831,7 +831,7 @@ function PhotoArt() {
 
 export function Business() {
   return (
-    <section id="business" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
+    <section id="business" className="mx-auto max-w-site scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="grid gap-5 px-2 sm:px-6 lg:grid-cols-[1.08fr_1fr] lg:gap-6 lg:px-14 2xl:px-20">
         <div className="flex flex-col gap-5 lg:gap-6">
           <div className="pb-2 lg:pb-6">
@@ -1067,7 +1067,7 @@ function PromoCarousel({ promos }) {
       id="promos"
       aria-roledescription="karusel"
       aria-label={t('Aksiyalar')}
-      className="mx-auto max-w-[1600px] scroll-mt-24 pb-20"
+      className="mx-auto max-w-site scroll-mt-24 pb-20"
     >
       <div className="px-5 sm:px-12 lg:px-20 2xl:px-24">
         <div className="relative inline-block">
@@ -1328,7 +1328,7 @@ export function RandomClient() {
     'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 text-[12.5px] font-bold text-white transition hover:bg-black 2xl:h-10 2xl:text-[14px]'
 
   return (
-    <section id="random" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
+    <section id="random" className="mx-auto max-w-site scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="relative overflow-hidden rounded-[32px] bg-[#1d2229] text-white sm:rounded-[40px]">
         <div aria-hidden="true" className="pointer-events-none absolute -left-40 -top-40 h-[460px] w-[460px] rounded-full bg-brand/20 blur-3xl" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 -right-40 h-[520px] w-[520px] rounded-full bg-brand" />
@@ -1565,7 +1565,7 @@ export function FaqItem({ item, open, onToggle, id }) {
 export function Faq() {
   const [open, setOpen] = useState(0)
   return (
-    <section id="faq" className="mx-auto max-w-[1600px] scroll-mt-24 px-3 pb-20 sm:px-6">
+    <section id="faq" className="mx-auto max-w-site scroll-mt-24 px-3 pb-20 sm:px-6">
       <div className="px-2 sm:px-6 lg:px-14 2xl:px-20">
         <h2 className="text-[36px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[46px] 2xl:text-[60px]">
           {t('Ko‘p so‘raladigan savollar')}

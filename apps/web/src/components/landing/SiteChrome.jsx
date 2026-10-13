@@ -53,7 +53,7 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
       inert={floating && !shown ? true : undefined}
       className={`${position} z-[100] border-b border-black/[0.05] bg-white/85 backdrop-blur-md`}
     >
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-4 sm:h-[72px] sm:gap-6 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-4 sm:h-[72px] sm:gap-6 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label={t('TaxiLine — bosh sahifa')}>
           <Logo size={38} className="sm:h-11! sm:w-11!" />
           <Wordmark className="text-[20px] sm:text-[23px]" />
@@ -160,7 +160,7 @@ function HandArrow(props) {
 // aloqa — ostida esa sahifa chetiga kesilib tushadigan katta "TaxiLine" yozuvi.
 export function SiteFooter() {
   return (
-    <footer className="relative mx-auto max-w-[1600px] overflow-hidden px-3 pt-12 sm:px-6 sm:pt-16">
+    <footer className="relative mx-auto max-w-site overflow-hidden px-3 pt-12 sm:px-6 sm:pt-16">
       <div className="relative z-10 grid gap-3 lg:grid-cols-[minmax(340px,0.44fr)_1fr]">
         <div className="relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-[28px] bg-[linear-gradient(168deg,#00727c_0%,#00a9b5_48%,#2fd6e1_100%)] p-6 text-white sm:min-h-[340px] sm:p-8 lg:min-h-[420px]">
           <span aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/10" />
