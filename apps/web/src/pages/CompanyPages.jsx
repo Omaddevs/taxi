@@ -115,6 +115,14 @@ function MissionVisual() {
   )
 }
 
+function LinkedInIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 4.455v6.286ZM5.337 7.433a2.064 2.064 0 1 1 0-4.128 2.064 2.064 0 0 1 0 4.128Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
+    </svg>
+  )
+}
+
 function TelegramIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
@@ -123,36 +131,56 @@ function TelegramIcon(props) {
   )
 }
 
+/** The big white place number sinking into a card's bottom-left corner. */
+function CardNumber({ index }) {
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 -left-6 select-none text-[190px] font-extrabold leading-none text-white">
+      {index + 1}
+    </span>
+  )
+}
+
+/** The glossy tilted icon badge in a card's bottom-right corner. */
+function CardBadge({ icon: Icon }) {
+  return (
+    <span className="absolute bottom-6 right-6 z-20 flex h-[92px] w-[92px] rotate-[8deg] items-center justify-center rounded-[28px] bg-[linear-gradient(145deg,#4be4ee_0%,#00b9c6_55%,#008d98_100%)] text-white shadow-[0_20px_30px_-10px_rgba(0,140,152,0.6),inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-8px_14px_rgba(0,70,77,0.22)]">
+      <Icon className="h-10 w-10 drop-shadow-[0_3px_4px_rgba(0,70,77,0.35)]" strokeWidth={2} />
+    </span>
+  )
+}
+
 /** A person: name, role in handwriting, portrait rising from the bottom, their links on top of it. */
-function MemberCard({ member }) {
+function MemberCard({ member, index }) {
   const links = [
     member.telegram ? { href: member.telegram, label: 'Telegram', icon: TelegramIcon } : null,
     member.instagram ? { href: member.instagram, label: 'Instagram', icon: InstagramIcon } : null,
+    member.linkedin ? { href: member.linkedin, label: 'LinkedIn', icon: LinkedInIcon, size: 'h-[22px] w-[22px]' } : null,
   ].filter(Boolean)
   return (
     <li className={teamCard}>
       <h3 className="relative z-10 max-w-[11ch] text-[26px] font-bold leading-[1.12] tracking-tight text-ink sm:text-[30px]">{member.name}</h3>
       <p className="relative z-10 mt-2 font-hand text-[23px] leading-none text-muted">{t(member.role)}</p>
+      <CardNumber index={index} />
       {member.photo ? (
         <img
           src={member.photo}
           alt={member.name}
           loading="lazy"
-          className="pointer-events-none absolute bottom-0 right-0 h-[72%] w-auto max-w-[86%] select-none object-contain object-bottom"
+          className="pointer-events-none absolute bottom-0 right-0 h-[72%] w-auto max-w-[80%] select-none object-contain object-bottom"
         />
       ) : null}
       {links.length ? (
-        <ul className="absolute bottom-4 right-4 z-10 flex gap-2">
-          {links.map(({ href, label, icon: Icon }) => (
+        <ul className="absolute bottom-4 right-4 z-10 flex gap-2.5">
+          {links.map(({ href, label, icon: Icon, size = 'h-5 w-5' }) => (
             <li key={label}>
               <a
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${member.name} — ${label}`}
-                className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-ink text-white shadow-[0_6px_14px_rgba(15,29,42,0.3)] transition hover:-translate-y-0.5 hover:bg-black"
+                className="spin-border flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#141414] text-white ring-1 ring-white/25 transition hover:bg-black hover:ring-white/40"
               >
-                <Icon className="h-[18px] w-[18px]" />
+                <Icon className={size} />
               </a>
             </li>
           ))}
@@ -164,24 +192,18 @@ function MemberCard({ member }) {
 
 /** A line of work, drawn like a person's card: where the portrait would be, its glossy badge. */
 function DirectionCard({ direction, index }) {
-  const Icon = direction.icon
   return (
     <li className={teamCard}>
       <h3 className="relative z-10 max-w-[12ch] text-[26px] font-bold leading-[1.12] tracking-tight text-ink sm:text-[30px]">{t(direction.title)}</h3>
       <p className="relative z-10 mt-2 font-hand text-[23px] leading-none text-muted">{t('{0}-yo‘nalish', index + 1)}</p>
       <p className="relative z-10 mt-4 max-w-[30ch] text-[14.5px] leading-[1.55] text-muted">{t(direction.text)}</p>
-      <span aria-hidden="true" className="pointer-events-none absolute -bottom-10 -left-6 select-none text-[190px] font-extrabold leading-none text-white">
-        {index + 1}
-      </span>
-      <span className="absolute bottom-6 right-6 flex h-[92px] w-[92px] rotate-[8deg] items-center justify-center rounded-[28px] bg-[linear-gradient(145deg,#4be4ee_0%,#00b9c6_55%,#008d98_100%)] text-white shadow-[0_20px_30px_-10px_rgba(0,140,152,0.6),inset_0_2px_0_rgba(255,255,255,0.55),inset_0_-8px_14px_rgba(0,70,77,0.22)]">
-        <Icon className="h-10 w-10 drop-shadow-[0_3px_4px_rgba(0,70,77,0.35)]" strokeWidth={2} />
-      </span>
+      <CardNumber index={index} />
+      <CardBadge icon={direction.icon} />
     </li>
   )
 }
 
 export function TeamPage() {
-  const hasMembers = TEAM_MEMBERS.length > 0
   return (
     <PublicPage path="/jamoa">
       {/* Missiya */}
@@ -226,9 +248,10 @@ export function TeamPage() {
           </p>
         </div>
         <ul className={`${content} mt-10 grid gap-3 sm:mt-12 sm:grid-cols-2 xl:grid-cols-4`}>
-          {hasMembers
-            ? TEAM_MEMBERS.map((member) => <MemberCard key={member.name} member={member} />)
-            : DIRECTIONS.map((direction, i) => <DirectionCard key={direction.title} direction={direction} index={i} />)}
+          {TEAM_MEMBERS.map((member, i) => <MemberCard key={member.name} member={member} index={i} />)}
+          {DIRECTIONS.slice(TEAM_MEMBERS.length).map((direction, i) => (
+            <DirectionCard key={direction.title} direction={direction} index={TEAM_MEMBERS.length + i} />
+          ))}
         </ul>
       </section>
 

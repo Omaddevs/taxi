@@ -192,7 +192,7 @@ export function SiteFooter() {
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
               <p className="font-hand text-[25px] leading-none text-white/90">{t('Aloqada bo‘ling!')}</p>
-              <ul className="flex gap-2">
+              <ul className="flex gap-2.5">
                 {SOCIALS.map(({ label, href, icon: Icon }) => (
                   <li key={label}>
                     <a
@@ -201,7 +201,7 @@ export function SiteFooter() {
                       rel="noopener noreferrer"
                       aria-label={t(label)}
                       title={t(label)}
-                      className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-ink text-white shadow-[0_6px_14px_rgba(0,40,45,0.35)] transition hover:-translate-y-0.5 hover:bg-white hover:text-ink"
+                      className="spin-border flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#141414] text-white ring-1 ring-white/25 transition hover:bg-black hover:ring-white/40"
                     >
                       <Icon className="h-5 w-5" />
                     </a>
