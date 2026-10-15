@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight,
   Bookmark,
@@ -59,6 +59,19 @@ export function MobileHome() {
   const { setDrawerOpen, location, openLocationPicker, search, setSearch } = useApp()
   const navigate = useNavigate()
   const [picker, setPicker] = useState(null)
+  // The header stays pinned while the page scrolls. A zero-height marker sits just above it:
+  // once the marker leaves the viewport, content is sliding under the header, so it gets a
+  // frosted background and a hairline shadow. The observer fires only on that change — no
+  // per-frame scroll handler.
+  const topMarker = useRef(null)
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const marker = topMarker.current
+    if (!marker || typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting))
+    observer.observe(marker)
+    return () => observer.disconnect()
+  }, [])
 
   const update = (patch) => setSearch((s) => ({ ...s, ...patch }))
   // Standart manzil (DEFAULT_LOCATION) localStorage'ga ham yozilib qoladi — shuning uchun
@@ -97,7 +110,12 @@ export function MobileHome() {
 
   return (
     <div className="min-h-svh bg-white pb-8">
-      <header className="relative flex items-center justify-center px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))]">
+      <div ref={topMarker} aria-hidden="true" className="h-px" />
+      <header
+        className={`sticky top-0 z-40 -mt-px flex items-center justify-center px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] transition-[background-color,box-shadow] duration-200 ${
+          scrolled ? 'bg-white/95 shadow-[0_6px_16px_-10px_rgba(15,29,42,0.35)] backdrop-blur-md' : 'bg-white'
+        }`}
+      >
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
