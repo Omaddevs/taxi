@@ -332,6 +332,7 @@ model Driver {
   tickets      SupportTicket[]
   subscription DriverSubscription?
   cargoOrders  CargoOrder[]
+  groupAds     GroupDriverAd[]
 
   @@index([online])
   @@index([archivedAt])
@@ -1070,4 +1071,62 @@ model LeadDocument {
 
   @@index([leadId])
   @@index([applicationId])
+}
+
+enum GroupDriverAdStatus {
+  PENDING // bot olib keldi, admin hali ko‘rmagan
+  PUBLISHED // saytda "Haydovchilar" bo‘limida — expiresAt gacha
+  REJECTED
+}
+
+// Telegram guruhlaridagi haydovchi e’loni: bot (format_ads) uni o‘qib shu yerga yuboradi, admin
+// "Haydovchilar e’lonlari" bo‘limida tuzatib tasdiqlaydi va e’lon saytda 24 soat turadi.
+// RideOffer emas: muallif ko‘pincha saytda ro‘yxatdan o‘tmagan, joy band qilib bo‘lmaydi —
+// yo‘lovchi faqat qo‘ng‘iroq qiladi yoki Telegram’da yozadi. Bir muallifning bir yo‘nalishdagi
+// takroriy e’lonlari (`dedupeKey`) yangi qator ochmaydi — `repostCount` oshadi.
+model GroupDriverAd {
+  id     String              @id @default(cuid())
+  status GroupDriverAdStatus @default(PENDING)
+
+  // Manba: guruh va xabar (bot qayta joylagan kartochka).
+  chatId           String
+  chatTitle        String?
+  chatUsername     String?
+  messageId        String?
+  authorTelegramId String // "0" — guruh nomidan yozgan anonim admin
+  authorName       String
+  authorUsername   String?
+  rawText          String
+  dedupeKey        String
+  repostCount      Int      @default(1)
+  lastSeenAt       DateTime @default(now())
+
+  // Saytda ko‘rinadigan maydonlar — bot matndan to‘ldiradi, admin tuzatadi.
+  fromLabel    String?
+  toLabel      String?
+  departAt     DateTime?
+  departNote   String? // "Bugun, 13:00–14:00" — aniq vaqt bo‘lmasa shu matn ko‘rsatiladi
+  seats        Int?
+  pricePerSeat Int? // null — "Kelishiladi"
+  carModel     String?
+  driverName   String?
+  phones       String[]  @default([])
+  features     String[]  @default([]) // CARGO | AIRCON | LUGGAGE | WIFI | WOMEN
+  notes        String?
+
+  // Saytdagi tasdiqlangan haydovchiga bog‘langan bo‘lsa (Telegram ID yoki telefon mos kelsa).
+  driverId String?
+  driver   Driver? @relation(fields: [driverId], references: [id], onDelete: SetNull)
+
+  editedAt     DateTime? // admin tuzatgan — bot takroriy e’londa maydonlarni qayta yozmaydi
+  reviewedById String?
+  rejectReason String?
+  publishedAt  DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, expiresAt])
+  @@index([dedupeKey, createdAt])
+  @@index([createdAt])
 }

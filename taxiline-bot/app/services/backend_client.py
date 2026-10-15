@@ -211,6 +211,17 @@ class BackendClient:
             logger.exception("submit_rating failed for tripRef=%s", trip_ref)
             return False
 
+    async def submit_group_driver_ad(self, payload: dict) -> bool:
+        """A driver's group ad → the admin panel's "Haydovchilar e'lonlari" queue. Best-effort:
+        the group repost has already happened, a downed server only means the site misses it."""
+        try:
+            resp = await self._client.post("/bot/group-driver-ads", json=payload)
+            resp.raise_for_status()
+            return True
+        except Exception:
+            logger.exception("submit_group_driver_ad failed chat=%s", payload.get("chatId"))
+            return False
+
     async def aclose(self) -> None:
         await self._client.aclose()
 

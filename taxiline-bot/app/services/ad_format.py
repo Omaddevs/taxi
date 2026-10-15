@@ -391,5 +391,22 @@ def parse_ad_fields(raw: str) -> ParsedAd:
     )
 
 
+# What the site shows as chips on an imported driver ad (server: GROUP_AD_FEATURES).
+_FEATURE_WORDS = (
+    ("AIRCON", ("konditsioner", "kondisioner", "konditsoner", "kondensioner", "konditsianer", "kondey", "konditsaner")),
+    ("LUGGAGE", ("bagaj", "bagaz", "bagazh", "bagajnik", "yukxona")),
+    ("WIFI", ("wifi", "wi fi", "vayfay", "vay fay")),
+    ("WOMEN", ("ayollar uchun", "faqat ayol", "ayol haydovchi", "ayollarga")),
+)
+
+
+def detect_features(raw: str) -> list[str]:
+    """CARGO / AIRCON / LUGGAGE / WIFI / WOMEN mentioned in the ad, in that order."""
+    flat = " ".join(re.findall(r"[a-z0-9]+", _key(raw or "")))
+    found = ["CARGO"] if any(word in flat for word in _CARGO_WORDS) else []
+    found += [name for name, words in _FEATURE_WORDS if any(word in flat for word in words)]
+    return found
+
+
 def profile_url(user_id: int, username: str | None) -> str:
     return f"https://t.me/{username}" if username else f"tg://user?id={user_id}"

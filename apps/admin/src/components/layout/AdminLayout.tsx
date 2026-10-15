@@ -54,7 +54,7 @@ type NavItem = {
   label: string
   icon: LucideIcon
   end?: boolean
-  badge?: 'pending' | 'newLeads'
+  badge?: 'pending' | 'newLeads' | 'driverAds'
   roles: PanelRole[]
   // Sub-pages: shown as a dropdown on hover (desktop) and expand inline on click (touch).
   children?: { to: string; label: string }[]
@@ -80,6 +80,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { to: '/giveaway', label: 'Random mijozlar', icon: Gift, roles: ['ADMIN'] },
       { to: '/drivers', label: 'Haydovchilar', icon: Car, end: true, roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
       { to: '/drivers/applications', label: 'Arizalar', icon: ClipboardCheck, badge: 'pending', roles: ['ADMIN', 'SALES_OPERATOR', 'SUPPORT_OPERATOR'] },
+      { to: '/driver-ads', label: 'Haydovchilar e’lonlari', icon: Megaphone, badge: 'driverAds', roles: ['ADMIN'] },
     ],
   },
   {
@@ -261,17 +262,19 @@ function SidebarNav({
   role,
   pending,
   newLeads,
+  driverAds,
   collapsed,
   onNavigate,
 }: {
   role: PanelRole
   pending: number
   newLeads: number
+  driverAds: number
   collapsed: boolean
   onNavigate?: () => void
 }) {
   const [tip, setTip] = useState<{ label: string; top: number } | null>(null)
-  const counts = { pending, newLeads }
+  const counts = { pending, newLeads, driverAds }
   return (
     <nav className={cn('flex-1 overflow-y-auto overflow-x-hidden py-2', collapsed ? 'space-y-3 px-3 lg:px-2.5' : 'space-y-5 px-3')}>
       <RailTooltip tip={collapsed ? tip : null} />
@@ -318,6 +321,11 @@ function SidebarNav({
                   {collapsed ? null : item.badge === 'pending' && pending > 0 ? (
                     <span className="min-w-5 rounded-full bg-white/20 px-1.5 text-center text-[11px] font-bold">
                       {pending}
+                    </span>
+                  ) : null}
+                  {collapsed ? null : item.badge === 'driverAds' && driverAds > 0 ? (
+                    <span className="min-w-5 rounded-full bg-brand px-1.5 text-center text-[11px] font-bold text-ink" title="Tekshirilishi kutilayotgan e’lonlar">
+                      {driverAds}
                     </span>
                   ) : null}
                   {collapsed ? null : item.badge === 'newLeads' && newLeads > 0 ? (
@@ -426,6 +434,14 @@ export function AdminLayout() {
     enabled: user?.role === 'ADMIN' || user?.role === 'SALES_OPERATOR',
   })
 
+  // Haydovchilar e’lonlari yonidagi raqam: guruhlardan kelib, hali ko‘rilmagan e’lonlar.
+  const { data: driverAdsBadge } = useQuery({
+    queryKey: ['group-driver-ads', 'pending-badge'],
+    queryFn: () => api.get<{ pending: number }>('/admin/group-driver-ads/pending-count'),
+    refetchInterval: 30_000,
+    enabled: user?.role === 'ADMIN',
+  })
+
   // Cheap presence signal: ping every 30s while the panel tab is open so teammates see this
   // account as "online" in the Operators list (see staff.service's 90s online window).
   useEffect(() => {
@@ -440,6 +456,7 @@ export function AdminLayout() {
 
   const pending = (user.role === 'ADMIN' ? data?.pendingApplications : pendingApps?.length) ?? 0
   const newLeads = leadsBadge?.length ?? 0
+  const driverAds = driverAdsBadge?.pending ?? 0
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -486,6 +503,7 @@ export function AdminLayout() {
           role={user.role}
           pending={pending}
           newLeads={newLeads}
+          driverAds={driverAds}
           collapsed={collapsed}
           onNavigate={() => setOpen(false)}
         />

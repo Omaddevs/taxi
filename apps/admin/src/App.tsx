@@ -15,6 +15,7 @@ import PersonDetail from './pages/PersonDetail'
 import Drivers from './pages/Drivers'
 import DriverDetail from './pages/DriverDetail'
 import DriverApplications from './pages/DriverApplications'
+import GroupDriverAds from './pages/GroupDriverAds'
 import Bookings from './pages/Bookings'
 import BookingDetail from './pages/BookingDetail'
 import Offers from './pages/Offers'
@@ -163,6 +164,14 @@ export default function App() {
           element={
             <RequireRole roles={['ADMIN']}>
               <BookingDetail />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/driver-ads"
+          element={
+            <RequireRole roles={['ADMIN']}>
+              <GroupDriverAds />
             </RequireRole>
           }
         />

@@ -1252,8 +1252,6 @@
   "Hali baho qoldirilmagan.": "Оценок пока нет.",
   "Hammasi": "Все",
   "E’lonlar va haydovchilar": "Объявления и водители",
-  "Haydovchilar e’lonlari": "Объявления водителей",
-  "Yo‘nalish, vaqt va narxni ko‘ring — haydovchi bilan to‘g‘ridan-to‘g‘ri bog‘laning.": "Смотрите маршрут, время и цену — связывайтесь с водителем напрямую.",
   "Top haydovchilar": "Топ водителей",
   "E’lonlarni yuklab bo‘lmadi. Qaytadan urinib ko‘ring.": "Не удалось загрузить объявления. Попробуйте ещё раз.",
   "Bu yo‘nalishda e’lon topilmadi": "На этом направлении объявлений не найдено",
@@ -1583,11 +1581,6 @@
   "YTH yoki xavf bo‘lsa darhol 112 yagona xizmatiga murojaat qiling. SOS tugmasi tez orada qo‘shiladi.": "При ДТП или опасности сразу звоните в единую службу 112. Кнопка SOS скоро появится.",
   "Yordam chaqirish": "Вызвать помощь",
   "Buyurtma yuborildi. 8–12 daqiqada bog‘lanamiz.": "Заявка отправлена. Свяжемся через 8–12 минут.",
-  "{0} ta e’lon": [
-    "{0} объявление",
-    "{0} объявления",
-    "{0} объявлений"
-  ],
   "{0} ta safar topildi": [
     "Найдена {0} поездка",
     "Найдено {0} поездки",
@@ -1913,11 +1906,6 @@
     "{0} заказов"
   ],
   "{0} gacha": "до {0}",
-  "{0} ta haydovchi": [
-    "{0} водитель",
-    "{0} водителя",
-    "{0} водителей"
-  ],
   "{0} ta o‘qilmagan": [
     "{0} непрочитанное",
     "{0} непрочитанных",
@@ -2168,5 +2156,10 @@
   "Bizga yozing": "Напишите нам",
   "Xabar qoldiring": "Оставьте сообщение",
   "Ism familiyangiz, telefon raqamingiz va izohingizni qoldiring — jamoamiz o‘zi siz bilan bog‘lanadi.": "Оставьте имя и фамилию, номер телефона и комментарий — наша команда сама свяжется с вами.",
-  "Ism familiyangizni kiriting": "Введите имя и фамилию"
+  "Ism familiyangizni kiriting": "Введите имя и фамилию",
+  "Pochta olinadi": "Берём посылки",
+  "Bagaj bor": "Есть багажник",
+  "Vaqt kelishiladi": "Время по договорённости",
+  "Telegram guruhidan": "Из Telegram-группы",
+  "Telegram’da yozish": "Написать в Telegram"
 }

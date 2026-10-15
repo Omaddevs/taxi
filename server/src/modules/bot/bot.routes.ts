@@ -3,6 +3,8 @@ import * as cargoController from '../cargo/cargo.controller.js'
 import { botCargoActionSchema } from '../cargo/cargo.schema.js'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { validate } from '../../middleware/validate.js'
+import { ingestGroupAdSchema } from '../groupDriverAds/groupDriverAds.schema.js'
+import * as groupDriverAds from '../groupDriverAds/groupDriverAds.service.js'
 import { requireBotSecret } from './bot.middleware.js'
 import * as botController from './bot.controller.js'
 import {
@@ -47,3 +49,11 @@ botRouter.post('/rate', validate({ body: rateViaBotSchema }), asyncRoute(botCont
 // Cargo "✅ Qabul qilish" / "✅ Yetkazildi" buttons in Telegram.
 botRouter.post('/cargo-claim', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.claimViaBot))
 botRouter.post('/cargo-complete', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.completeViaBot))
+// A driver's ad from a Telegram group → admin panel "Haydovchilar e’lonlari" queue.
+botRouter.post(
+  '/group-driver-ads',
+  validate({ body: ingestGroupAdSchema }),
+  asyncRoute(async (req, res) => {
+    res.json(await groupDriverAds.ingest(req.body))
+  }),
+)

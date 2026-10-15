@@ -1,9 +1,12 @@
 import { prisma } from '../../lib/prisma.js'
 import { NotFoundError } from '../../errors/AppError.js'
+import { liveForBoard } from '../groupDriverAds/groupDriverAds.service.js'
 
 // "Haydovchilar" section of the passenger app: drivers' own ads (the ride offers they post from
 // their driver profile → "Reys joylash") with who the driver is, plus a public driver profile.
-// Passengers reach a driver straight from here — call, chat, or book a seat.
+// Passengers reach a driver straight from here — call, chat, or book a seat. Drivers' ads from the
+// Telegram groups that an admin approved ("Haydovchilar e’lonlari") are listed alongside, marked
+// `source: 'TELEGRAM'` — those have no booking, only call / Telegram.
 
 const SHOWN_FOR_MS = 2 * 60 * 60 * 1000 // an offer stays listed until 2 h after departure
 
@@ -130,7 +133,7 @@ export async function driverBoard(filter: { from?: string; to?: string; date?: s
     }
   }
 
-  const [offers, driversActive] = await Promise.all([
+  const [offers, driversActive, groupAds] = await Promise.all([
     prisma.rideOffer.findMany({
       where,
       orderBy: { departAt: 'asc' },
@@ -138,11 +141,17 @@ export async function driverBoard(filter: { from?: string; to?: string; date?: s
       include: { driver: { select: DRIVER_SELECT }, service: { select: { title: true } } },
     }),
     prisma.driver.count({ where: { approved: true, archivedAt: null, offers: { some: liveOfferWhere() } } }),
+    liveForBoard(filter),
   ])
 
+  const items = [
+    ...offers.map((o) => ({ source: 'SITE' as const, ...offerCard(o, o.driver.user.phone), sortAt: o.departAt.toISOString(), driver: driverCard(o.driver) })),
+    ...groupAds,
+  ].sort((a, b) => a.sortAt.localeCompare(b.sortAt))
+
   return {
-    driversActive,
-    items: offers.map((o) => ({ ...offerCard(o, o.driver.user.phone), driver: driverCard(o.driver) })),
+    driversActive: driversActive + new Set(groupAds.filter((a) => !a.driver.siteDriverId).map((a) => a.driverKey)).size,
+    items,
   }
 }
 

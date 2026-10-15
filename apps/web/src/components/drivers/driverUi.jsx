@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, Briefcase, Car, Clock, MessageCircle, Phone, Star, UserRound, Users } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Briefcase, Car, Clock, MessageCircle, Package, Phone, Send, Snowflake, Star, UserRound, Users, Wifi } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { api } from '../../lib/api'
 import { dayMonth, formatPhoneUz, formatSom, monthName } from '../../lib/utils'
@@ -199,6 +199,122 @@ export function DriverAdCard({ offer, driver, showDriver = true, onMessage, mess
           </Link>
         </div>
         )}
+      </div>
+    </article>
+  )
+}
+
+const AD_FEATURES = {
+  CARGO: { icon: Package, label: 'Pochta olinadi' },
+  AIRCON: { icon: Snowflake, label: 'Konditsioner' },
+  LUGGAGE: { icon: Briefcase, label: 'Bagaj bor' },
+  WIFI: { icon: Wifi, label: 'Wi-Fi' },
+  WOMEN: { icon: UserRound, label: 'Ayollar uchun' },
+}
+
+/** A driver's ad from the TaxiLine Telegram groups, checked by an admin (`source: 'TELEGRAM'` on
+ * the board). No seat booking or in-app chat — the driver may not be on the site — so it offers
+ * a call and a Telegram message; a site driver's name still opens their profile. */
+export function TelegramAdCard({ ad }) {
+  const phone = ad.phones?.[0]
+  const driver = ad.driver
+  const when = ad.departAt ? departLabel(ad.departAt).full : ad.departNote || t('Vaqt kelishiladi')
+  const head = (
+    <>
+      <DriverAvatar driver={{ name: driver.name }} size="sm" />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-[15px] font-extrabold text-ink">{driver.name}</span>
+          {driver.siteDriverId ? <BadgeCheck className="h-4 w-4 shrink-0 text-brand" aria-label={t('Tasdiqlangan haydovchi')} /> : null}
+        </span>
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#229ED9]">
+          <Send className="h-3.5 w-3.5" /> {t('Telegram guruhidan')}
+        </span>
+      </span>
+      {ad.carModel ? <span className="hidden text-[13px] font-bold text-ink sm:block">{ad.carModel}</span> : null}
+    </>
+  )
+
+  return (
+    <article className="overflow-hidden rounded-[22px] border border-line bg-white shadow-[0_10px_30px_-18px_rgba(15,29,42,0.35)] transition hover:border-brand/40">
+      {driver.siteDriverId ? (
+        <Link to={`/drivers/${driver.siteDriverId}`} className="flex items-center gap-3 border-b border-line/70 px-4 py-3 transition hover:bg-canvas/60">
+          {head}
+        </Link>
+      ) : (
+        <div className="flex items-center gap-3 border-b border-line/70 px-4 py-3">{head}</div>
+      )}
+
+      <div className="px-4 pb-4 pt-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-1.5 text-[17px] font-extrabold leading-tight text-ink">
+              <span className="truncate">{ad.fromLabel}</span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-brand" />
+              <span className="truncate">{ad.toLabel}</span>
+            </p>
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted">
+              <span className="inline-flex items-center gap-1 font-semibold text-ink">
+                <Clock className="h-3.5 w-3.5 text-brand" /> {when}
+              </span>
+              {ad.carModel ? (
+                <span className="inline-flex items-center gap-1 sm:hidden">
+                  <Car className="h-3.5 w-3.5" /> {ad.carModel}
+                </span>
+              ) : null}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[19px] font-extrabold leading-none text-ink">{ad.pricePerSeat ? formatSom(ad.pricePerSeat) : t('Kelishiladi')}</p>
+            {ad.pricePerSeat ? <p className="mt-1 text-[11px] font-semibold text-muted">{t('1 kishi uchun')}</p> : null}
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {ad.seatsAvailable ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-[12px] font-bold text-brand-dark">
+              <Users className="h-3.5 w-3.5" /> {t('{0} ta bo‘sh joy', ad.seatsAvailable)}
+            </span>
+          ) : null}
+          {ad.features.map((key) => {
+            const f = AD_FEATURES[key]
+            if (!f) return null
+            const Icon = f.icon
+            return (
+              <span key={key} className="inline-flex items-center gap-1.5 rounded-full bg-canvas px-3 py-1.5 text-[12px] font-bold text-ink/80">
+                <Icon className="h-3.5 w-3.5" /> {t(f.label)}
+              </span>
+            )
+          })}
+        </div>
+
+        {ad.notes ? <p className="mt-3 line-clamp-2 rounded-xl bg-canvas px-3 py-2 text-[13px] leading-5 text-ink/80">{ad.notes}</p> : null}
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {phone ? (
+            <a
+              href={telHref(phone)}
+              className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-brand text-[13px] font-extrabold text-white shadow-sm shadow-brand/30 transition hover:bg-brand-dark"
+              title={formatPhoneUz(phone)}
+            >
+              <Phone className="h-4 w-4" /> {t('Qo‘ng‘iroq')}
+            </a>
+          ) : (
+            <span className="flex h-11 items-center justify-center rounded-xl border border-line text-[12px] font-semibold text-muted">{t('Raqam yo‘q')}</span>
+          )}
+          {driver.telegramUrl ? (
+            <a
+              href={driver.telegramUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-line bg-white text-[13px] font-bold text-ink transition hover:border-[#229ED9]/40 hover:bg-[#229ED9]/5"
+            >
+              <Send className="h-4 w-4 text-[#229ED9]" /> {t('Telegram’da yozish')}
+            </a>
+          ) : phone ? (
+            <span className="flex h-11 items-center justify-center rounded-xl border border-line text-[13px] font-bold text-ink/80">{formatPhoneUz(phone)}</span>
+          ) : null}
+        </div>
       </div>
     </article>
   )

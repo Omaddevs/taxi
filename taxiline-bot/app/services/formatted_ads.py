@@ -1,6 +1,8 @@
 """The `format_ads` group service: a member's taxi ad is reposted by the bot with the author's
 own text left exactly as written — the bot only adds a TaxiLine header with a freshness label
 (🟢 Faol → 🟡 30 daqiqa oldin → 🟡 1 soat oldin … → 🔴 Eskirgan after a day), an "E'lon egasi" line, and write/call buttons.
+A driver's ad is also sent to the server (`features.site_import`) for the admin panel's
+"Haydovchilar e'lonlari" queue, from where an admin puts it on the site for a day.
 
 ad_format.parse_ad is still the gate (a recognised route, or a phone plus a taxi word) and supplies the phone for the call button, but none of its parsed fields are printed.
 Each repost is stored (formatted_ads) so the scheduler can move its label along as it ages.
@@ -21,13 +23,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import FormattedAd
 from app.services import bot_config
 from app.services import calls as calls_service
-from app.services.ad_format import parse_ad, profile_url
+from app.services.ad_format import ParsedAd, detect_features, parse_ad, profile_url
+from app.services.backend_client import backend_client
 
 logger = logging.getLogger(__name__)
 
 _TEXT_LIMIT = 4096
 _CAPTION_LIMIT = 1024
 _DIVIDER = "➖➖➖➖➖➖➖➖➖➖"
+# Site submissions run in the background; the set keeps each task referenced until it finishes.
+_site_tasks: set[asyncio.Task] = set()
 
 
 def status_label(created_at: datetime, now: datetime | None = None) -> tuple[str, bool]:
@@ -180,7 +185,39 @@ async def repost(bot: Bot, session: AsyncSession, event: Message, bot_user) -> b
         await bot.delete_message(event.chat.id, event.message_id)
     except TelegramBadRequest:
         pass
+    if not parsed.is_passenger and bot_config.get("features.site_import"):
+        task = asyncio.create_task(_submit_to_site(event, ad, parsed, raw, anonymous_admin))
+        _site_tasks.add(task)
+        task.add_done_callback(_site_tasks.discard)
     return True
+
+
+async def _submit_to_site(event: Message, ad: FormattedAd, parsed: ParsedAd, raw: str, anonymous: bool) -> None:
+    payload: dict = {
+        "chatId": str(event.chat.id),
+        "messageId": str(ad.message_id),
+        "authorTelegramId": str(ad.author_telegram_id),
+        "authorName": ad.author_name[:200],
+        "anonymous": anonymous,
+        "text": raw[:4096],
+        "origins": parsed.origins,
+        "destinations": parsed.destinations,
+        "phones": parsed.phones[:5],
+        "features": detect_features(raw),
+    }
+    if event.chat.title:
+        payload["chatTitle"] = event.chat.title[:200]
+    if event.chat.username:
+        payload["chatUsername"] = event.chat.username
+    if ad.author_username:
+        payload["authorUsername"] = ad.author_username
+    if parsed.departure:
+        payload["departure"] = parsed.departure
+    if parsed.seats and 1 <= parsed.seats <= 8:  # "bosh joy 9" would fail the server's check
+        payload["seats"] = parsed.seats
+    if parsed.car:
+        payload["car"] = parsed.car
+    await backend_client.submit_group_driver_ad(payload)
 
 
 async def relabel(bot: Bot, session: AsyncSession) -> None:

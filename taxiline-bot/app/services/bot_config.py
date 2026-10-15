@@ -44,6 +44,9 @@ FIELDS: list[Field] = [
           "O'chirilsa, barcha guruhlarda xabarlar ushlanmaydi (guruh sozlamasi yoqilgan bo'lsa ham)"),
     Field("features.format_ads", "features", "E'lonlarni yagona shablonga solish", "bool", True,
           "O'chirilsa, hech bir guruhda e'lonlar kartochkaga aylantirilmaydi"),
+    Field("features.site_import", "features", "Haydovchi e'lonlarini saytga yuborish", "bool", True,
+          "Guruhlardagi haydovchi e'lonlari admin panelning «Haydovchilar e'lonlari» bo'limiga tushadi; "
+          "admin tasdiqlasa saytda 24 soat turadi"),
     Field("features.take_button", "features", "«✅ Men olaman» tugmasi", "bool", True,
           "Yopiq guruhdagi yo'lovchi kartochkasida haydovchi e'lonni band qila oladi"),
     Field("features.notify_passenger", "features", "Haydovchi olganda yo'lovchiga xabar", "bool", True,

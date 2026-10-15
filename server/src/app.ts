@@ -23,6 +23,7 @@ import { adminTicketsRouter } from './modules/tickets/tickets.routes.js'
 import { adminReportsRouter } from './modules/reports/reports.routes.js'
 import { adminAuditRouter } from './modules/audit/audit.routes.js'
 import { adminLeadsRouter, publicLeadsRouter } from './modules/leads/leads.routes.js'
+import { adminGroupDriverAdsRouter } from './modules/groupDriverAds/groupDriverAds.routes.js'
 import { adminCannedResponsesRouter } from './modules/cannedResponses/cannedResponses.routes.js'
 import { ticketSatisfactionRouter } from './modules/tickets/tickets.routes.js'
 import { botRouter } from './modules/bot/bot.routes.js'
@@ -114,6 +115,7 @@ export function createApp() {
   app.use('/admin/reports', adminReportsRouter)
   app.use('/admin/audit', adminAuditRouter)
   app.use('/admin/leads', adminLeadsRouter)
+  app.use('/admin/group-driver-ads', adminGroupDriverAdsRouter)
   app.use('/admin/canned-responses', adminCannedResponsesRouter)
   app.use('/stats', publicStatsRouter)
   app.use('/leads', publicLeadsRouter)

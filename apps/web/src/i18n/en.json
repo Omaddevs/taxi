@@ -1244,8 +1244,6 @@
   "Hali baho qoldirilmagan.": "No ratings yet.",
   "Hammasi": "All",
   "E’lonlar va haydovchilar": "Rides and drivers",
-  "Haydovchilar e’lonlari": "Drivers' rides",
-  "Yo‘nalish, vaqt va narxni ko‘ring — haydovchi bilan to‘g‘ridan-to‘g‘ri bog‘laning.": "See the route, time and price — contact the driver directly.",
   "Top haydovchilar": "Top drivers",
   "E’lonlarni yuklab bo‘lmadi. Qaytadan urinib ko‘ring.": "Couldn't load rides. Please try again.",
   "Bu yo‘nalishda e’lon topilmadi": "No rides found on this route",
@@ -1574,10 +1572,6 @@
   "YTH yoki xavf bo‘lsa darhol 112 yagona xizmatiga murojaat qiling. SOS tugmasi tez orada qo‘shiladi.": "In a crash or danger, call the 112 emergency line right away. The SOS button is coming soon.",
   "Yordam chaqirish": "Call for help",
   "Buyurtma yuborildi. 8–12 daqiqada bog‘lanamiz.": "Request sent. We'll contact you in 8–12 minutes.",
-  "{0} ta e’lon": [
-    "{0} listing",
-    "{0} listings"
-  ],
   "{0} ta safar topildi": [
     "{0} ride found",
     "{0} rides found"
@@ -1891,10 +1885,6 @@
     "{0} orders"
   ],
   "{0} gacha": "until {0}",
-  "{0} ta haydovchi": [
-    "{0} driver",
-    "{0} drivers"
-  ],
   "{0} ta o‘qilmagan": [
     "{0} unread",
     "{0} unread"
@@ -2138,5 +2128,10 @@
   "Bizga yozing": "Write to us",
   "Xabar qoldiring": "Leave a message",
   "Ism familiyangiz, telefon raqamingiz va izohingizni qoldiring — jamoamiz o‘zi siz bilan bog‘lanadi.": "Leave your full name, phone number and a comment — our team will get in touch with you.",
-  "Ism familiyangizni kiriting": "Enter your full name"
+  "Ism familiyangizni kiriting": "Enter your full name",
+  "Pochta olinadi": "Parcels accepted",
+  "Bagaj bor": "Luggage space",
+  "Vaqt kelishiladi": "Time negotiable",
+  "Telegram guruhidan": "From a Telegram group",
+  "Telegram’da yozish": "Message on Telegram"
 }
