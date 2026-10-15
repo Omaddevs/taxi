@@ -73,7 +73,7 @@ function DriverReferActive() {
       id: 'ig',
       label: t('Instagram'),
       href: INSTAGRAM_URL,
-      className: 'bg-[#fce7f3] text-[#E1306C]',
+      className: 'bg-[#fce7f3] dark:bg-[#33192a] text-[#E1306C]',
       icon: InstagramMark,
     },
     {

@@ -170,7 +170,7 @@ export function MobileHome() {
           hint={t('Avval ayol haydovchilarga')}
           badge={t('Xavfsiz')}
           badgeTone="hot"
-          className="col-span-2 bg-gradient-to-br from-[#fff0f5] to-[#fde2ec]"
+          className="col-span-2 bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
         >
           <img
             src="/landing/taxi-car-sm.webp"
@@ -179,7 +179,7 @@ export function MobileHome() {
             style={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
           />
         </Tile>
-        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] to-[#ffe7a3]">
+        <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] dark:from-[#3a3218] to-[#ffe7a3] dark:to-[#2b2410]">
           <img
             src="/home/driver-mascot.webp"
             alt=""

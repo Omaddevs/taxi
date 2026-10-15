@@ -89,9 +89,9 @@ export default function BecomeDriver() {
             <svg
               aria-hidden="true"
               viewBox="0 0 600 600"
-              className="pointer-events-none absolute -left-10 top-0 w-[420px] sm:w-[560px] lg:-left-14 lg:w-[620px]"
+              className="pointer-events-none absolute -left-10 top-0 w-[420px] text-[#e7e9ed] dark:text-[#2a2a36] sm:w-[560px] lg:-left-14 lg:w-[620px]"
             >
-              <path d="M40 150 H 560 M300 150 V 700" fill="none" stroke="#e7e9ed" strokeWidth="110" strokeLinecap="butt" />
+              <path d="M40 150 H 560 M300 150 V 700" fill="none" stroke="currentColor" strokeWidth="110" strokeLinecap="butt" />
             </svg>
 
             <span className="relative inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-[0.06em] text-brand-dark shadow-sm">

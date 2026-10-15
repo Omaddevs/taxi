@@ -276,7 +276,7 @@ export default function RideSearch() {
         <div className="mx-auto mb-1 mt-2.5 h-1.5 w-12 shrink-0 rounded-full bg-slate-300 lg:hidden" />
         <div className="no-scrollbar min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 pb-2 pt-2 lg:px-0 lg:pt-0">
           {women ? (
-            <div className="flex items-center gap-2 rounded-2xl bg-[#fde7f1] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
+            <div className="flex items-center gap-2 rounded-2xl bg-[#fde7f1] dark:bg-[#33192a] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
               <ShieldCheck className="h-4 w-4 shrink-0" />
               <span className="min-w-0 flex-1">{t('Ayollar uchun Taxi · avval ayol haydovchilarga')}</span>
               <button type="button" onClick={() => update({ service: 'all', seats: [] })} className="shrink-0 font-bold underline underline-offset-2">

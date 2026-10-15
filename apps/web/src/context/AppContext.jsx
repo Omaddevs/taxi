@@ -203,9 +203,9 @@ export function AppProvider({ children }) {
     }
   }, [rawUser?.id, rawUser?.language])
 
+  // Only remembered here — App.jsx applies the `dark` class, since public pages stay light.
   useEffect(() => {
     localStorage.setItem(THEME_KEY, theme)
-    document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
   useEffect(() => {

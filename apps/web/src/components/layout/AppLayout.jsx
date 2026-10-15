@@ -9,10 +9,17 @@ import { t } from '../../i18n'
 
 const fullBleed = ['/driver', '/sos']
 // Account screens (hamburger menu) draw their own header and run edge to edge on mobile.
-const accountScreens = ['/settings', '/settings/profile', '/payment-methods', '/addresses', '/promo', '/help', '/info', '/about']
+const accountScreens = ['/settings', '/settings/profile', '/payment-methods', '/payment-methods/add-card', '/addresses', '/promo', '/help', '/info', '/about', '/history']
 const hideTopMobile = ['/', '/taxi', '/women/taxi', '/history', '/ride', '/plus', '/fuel', '/map', '/wallet', ...accountScreens]
 const flushMobile = ['/plus', '/fuel', '/map', '/wallet']
 const mapScreens = ['/fuel', '/map', '/taxi', '/women/taxi', '/ride']
+
+// Pages that draw their own mobile header (ScreenHeader, with a back arrow): the app's top bar
+// would only repeat it, so it is hidden on phones there.
+const ownHeader = ['/cars', '/drivers', '/favorites', '/messages', '/notifications', '/payment', '/profile', '/roadside', '/results', '/ai']
+function hasOwnHeader(pathname) {
+  return ownHeader.includes(pathname) || /^\/(drivers|trip|hub)\/[^/]+$/.test(pathname)
+}
 
 function isHubMap(pathname) {
   return (
@@ -45,7 +52,8 @@ export function AppLayout() {
   }
   const mobileHome = pathname === '/'
   const account = accountScreens.includes(pathname)
-  const hideHeaderMobile = hideTopMobile.includes(pathname) || isHubMap(pathname) || isChat(pathname) || isOrder(pathname)
+  const hideHeaderMobile =
+    hideTopMobile.includes(pathname) || hasOwnHeader(pathname) || isHubMap(pathname) || isChat(pathname) || isOrder(pathname)
   const flush = flushMobile.includes(pathname) || isHubMap(pathname) || isOrder(pathname)
   const mapScreen = mapScreens.includes(pathname) || isHubMap(pathname) || isChat(pathname)
 

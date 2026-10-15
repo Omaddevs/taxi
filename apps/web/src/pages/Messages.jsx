@@ -104,7 +104,7 @@ export default function Messages() {
         </div>
       ) : (
         <>
-          <ScreenHeader title={t('Xabarlar')} back={false} right={totalUnread > 0 ? <Badge tone="pink">{totalUnread}</Badge> : undefined} />
+          <ScreenHeader title={t('Xabarlar')} right={totalUnread > 0 ? <Badge tone="pink">{totalUnread}</Badge> : undefined} />
           <PageTitle
             title={t('Xabarlar')}
             subtitle={t('Haydovchi va yo‘lovchi suhbatlari')}

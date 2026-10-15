@@ -104,7 +104,7 @@ export default function TripHistory() {
                       {item.from} → {item.to}
                     </p>
                     {item.womenOnly ? (
-                      <span className="mt-0.5 shrink-0 rounded-full bg-[#fde7f1] px-2 py-0.5 text-[10px] font-bold text-[#c2185b]">
+                      <span className="mt-0.5 shrink-0 rounded-full bg-[#fde7f1] dark:bg-[#33192a] px-2 py-0.5 text-[10px] font-bold text-[#c2185b]">
                         {t('🌸 Ayollar uchun')}
                       </span>
                     ) : null}

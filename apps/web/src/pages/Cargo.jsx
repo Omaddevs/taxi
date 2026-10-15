@@ -143,7 +143,7 @@ function RecentOrder({ order, onOpen }) {
 
 function PromoBanner() {
   return (
-    <div className="relative mt-5 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-soft via-[#eaf8f6] to-[#d3f0eb] p-5">
+    <div className="relative mt-5 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-soft via-[#eaf8f6] dark:via-[#15302a] to-[#d3f0eb] dark:to-[#123029] p-5">
       <div className="relative max-w-[60%]">
         <p className="text-lg font-extrabold leading-snug text-ink">
           {t('Nimaligidan qat’i nazar,')}

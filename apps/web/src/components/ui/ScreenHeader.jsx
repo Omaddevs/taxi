@@ -2,29 +2,33 @@ import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { t } from '../../i18n'
 
+// Phone-only page header (the app's top bar is hidden on these pages, see AppLayout): back arrow,
+// centred title, optional action — the same bar as the account screens. Sticks to the top.
 export function ScreenHeader({ title, subtitle, right, back = true, className = '' }) {
   const navigate = useNavigate()
+  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'))
 
   return (
     <header
-      className={`relative z-0 mb-3 mt-0 flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_6px_20px_rgba(28,28,40,0.05)] lg:hidden ${className}`}
+      className={`sticky top-0 z-30 -mx-4 -mt-4 mb-3 flex min-h-14 items-center gap-1 bg-canvas/95 px-2 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden ${className}`}
     >
       {back ? (
         <button
           type="button"
-          onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas text-ink"
+          onClick={goBack}
+          aria-label={t('Orqaga')}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink transition active:bg-black/5"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-6 w-6" strokeWidth={2.2} />
         </button>
       ) : (
-        <div className="h-10 w-10" />
+        <div className="h-11 w-11 shrink-0" />
       )}
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-base font-bold">{t(title)}</h1>
-        {subtitle ? <p className="truncate text-xs text-muted">{t(subtitle)}</p> : null}
+      <div className="min-w-0 flex-1 py-2 text-center">
+        <h1 className="truncate text-[17px] font-bold text-ink">{t(title)}</h1>
+        {subtitle ? <p className="truncate text-[12px] text-muted">{t(subtitle)}</p> : null}
       </div>
-      {right ?? <div className="h-10 w-10" />}
+      <div className="flex min-w-11 shrink-0 justify-end">{right}</div>
     </header>
   )
 }

@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Banknote, Check, ChevronRight, CreditCard, Plus, Wallet } from 'lucide-react'
+import { Check, ChevronRight, CreditCard, Plus, Wallet } from 'lucide-react'
 import { AccountScreen } from '../../components/account/AccountKit'
+import { NetworkMark, PaymentLogo } from '../../components/payment/PaymentLogos'
 import { useApp } from '../../context/AppContext'
 import { api } from '../../lib/api'
 import { ONLINE_PAYMENTS } from '../../lib/features'
@@ -12,10 +13,11 @@ import { t } from '../../i18n'
 // (ONLINE_PAYMENTS) cash is the only choice; the rest are listed under "Mavjud emas".
 
 const APPS = [
-  { id: 'click', title: 'Click', mark: 'click', tile: 'bg-[#4c8dff] text-white' },
-  { id: 'payme', title: 'Payme', mark: 'payme', tile: 'bg-[#33cccc] text-white' },
-  { id: 'uzum', title: 'Uzum Bank', mark: 'uzum', tile: 'bg-[#7b2ff7] text-white' },
+  { id: 'click', title: 'Click' },
+  { id: 'payme', title: 'Payme' },
+  { id: 'uzum', title: 'Uzum Bank' },
 ]
+const NETWORK_BY_BRAND = { Uzcard: 'uzcard', Humo: 'humo', Visa: 'visa', Mastercard: 'mastercard' }
 
 function Section({ title, children }) {
   return (
@@ -39,7 +41,7 @@ function Radio({ on, disabled }) {
 function Method({ leading, title, subtitle, selected, disabled, onSelect, to }) {
   const body = (
     <>
-      <span className="flex w-12 shrink-0 justify-center">{leading}</span>
+      <span className="flex w-14 shrink-0 justify-center">{leading}</span>
       <span className="flex min-w-0 flex-1 items-center gap-3 border-b border-line/80 py-4 group-last:border-b-0">
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-[17px] ${disabled ? 'text-muted' : 'text-ink'}`}>{title}</span>
@@ -70,7 +72,7 @@ export default function PaymentMethods() {
           {cards.map((c) => (
             <Method
               key={c.id}
-              leading={<CreditCard className="h-6 w-6 text-ink" />}
+              leading={NETWORK_BY_BRAND[c.brand] ? <NetworkMark network={NETWORK_BY_BRAND[c.brand]} /> : <CreditCard className="h-6 w-6 text-ink" />}
               title={`${c.brand} ···· ${c.last4}`}
               selected={current === c.id}
               onSelect={() => setPaymentMethod(c.id)}
@@ -89,18 +91,14 @@ export default function PaymentMethods() {
               </span>
             }
             title={t('Karta qo‘shish')}
-            subtitle={ONLINE_PAYMENTS ? null : t('Tez orada')}
-            to="/wallet"
+            subtitle={t('Uzcard, Humo, Visa, Mastercard')}
+            to="/payment-methods/add-card"
           />
         </Section>
 
         <Section title="Boshqa usullar">
           <Method
-            leading={
-              <span className="flex h-8 w-11 items-center justify-center rounded-md bg-emerald-500 text-white">
-                <Banknote className="h-5 w-5" />
-              </span>
-            }
+            leading={<PaymentLogo id="cash" />}
             title={t('Naqd pul')}
             subtitle={t('Safar oxirida haydovchiga')}
             selected={current === 'cash'}
@@ -110,7 +108,7 @@ export default function PaymentMethods() {
             ? APPS.map((m) => (
                 <Method
                   key={m.id}
-                  leading={<span className={`flex h-8 w-11 items-center justify-center rounded-md text-[10px] font-black lowercase ${m.tile}`}>{m.mark}</span>}
+                  leading={<PaymentLogo id={m.id} />}
                   title={m.title}
                   selected={current === m.id}
                   onSelect={() => setPaymentMethod(m.id)}
@@ -125,7 +123,7 @@ export default function PaymentMethods() {
               <Method
                 key={m.id}
                 disabled
-                leading={<span className={`flex h-8 w-11 items-center justify-center rounded-md text-[10px] font-black lowercase opacity-50 ${m.tile}`}>{m.mark}</span>}
+                leading={<PaymentLogo id={m.id} dim />}
                 title={m.title}
                 subtitle={t('Tez orada ulanadi')}
               />

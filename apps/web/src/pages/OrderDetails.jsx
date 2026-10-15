@@ -55,8 +55,8 @@ const STATUS = {
   PENDING: {
     label: 'Haydovchi qidirilmoqda',
     text: 'So‘rovingiz haydovchilarga yuborildi. Haydovchi qabul qilishi bilan sizga xabar beramiz.',
-    pill: 'bg-[#fff1e8] text-[#c2410c]',
-    banner: 'bg-[#fff1e8] text-[#9a3412]',
+    pill: 'bg-[#fff1e8] dark:bg-[#3a2618] text-[#c2410c]',
+    banner: 'bg-[#fff1e8] dark:bg-[#3a2618] text-[#9a3412]',
   },
   ACCEPTED: {
     label: 'Haydovchi topildi',

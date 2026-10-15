@@ -28,7 +28,7 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <ScreenHeader title={t('Profil')} back={false} right={<Link to="/settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"><Settings className="h-5 w-5" /></Link>} />
+      <ScreenHeader title={t('Profil')} right={<Link to="/settings" className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas"><Settings className="h-5 w-5" /></Link>} />
 
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-br from-brand to-brand-dark px-5 pb-10 pt-8 text-white">

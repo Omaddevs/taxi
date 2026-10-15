@@ -14,6 +14,7 @@ import {
   Star,
   X,
 } from 'lucide-react'
+import { AccountScreen } from '../components/account/AccountKit'
 import { useRateSheet } from '../components/ui/RateSheet'
 import { CargoDetailSheet } from '../components/cargo/CargoDetailSheet'
 import { useMyBookings } from '../lib/queries'
@@ -153,21 +154,21 @@ function isScheduled(item) {
 function KindIcon({ kind, large = false }) {
   if (large && kind === 'taxi') {
     return (
-      <span className="flex h-[72px] w-[84px] shrink-0 items-center justify-center rounded-2xl bg-brand-soft/70">
+      <span className="flex h-[72px] w-[84px] shrink-0 items-center justify-center rounded-2xl bg-white">
         <img src="/cars/cobalt.png" alt="" className="w-[76px] object-contain" />
       </span>
     )
   }
   if (large) {
     return (
-      <span className="flex h-[72px] w-[84px] shrink-0 items-center justify-center rounded-2xl bg-[#fff1e6]">
+      <span className="flex h-[72px] w-[84px] shrink-0 items-center justify-center rounded-2xl bg-[#fff1e6] dark:bg-[#3a2618]">
         <Package className="h-10 w-10 fill-[#e9b27a] text-[#b9773a]" strokeWidth={1.4} />
       </span>
     )
   }
   const Icon = kind === 'taxi' ? CarFront : Package
   return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-brand">
       <Icon className="h-6 w-6 fill-brand/90 text-brand" strokeWidth={1.8} />
     </span>
   )
@@ -176,7 +177,7 @@ function KindIcon({ kind, large = false }) {
 function SectionHeader({ title, onSeeAll }) {
   return (
     <div className="mb-3 mt-6 flex items-center justify-between">
-      <h2 className="text-[18px] font-extrabold text-ink">{t(title)}</h2>
+      <h2 className="text-[20px] font-extrabold tracking-tight text-ink">{t(title)}</h2>
       {onSeeAll ? (
         <button type="button" onClick={onSeeAll} className="flex items-center gap-1 text-[13px] font-semibold text-brand">
           {t('Barchasini ko‘rish')}{' '}<ChevronRight className="h-4 w-4" />
@@ -195,7 +196,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
   const openable = (item.kind === 'cargo' || item.source === 'bot') && onOpen
 
   return (
-    <div className="rounded-[22px] bg-white p-4 shadow-[0_8px_30px_rgba(16,42,67,0.06)]">
+    <div className="rounded-[22px] bg-canvas p-4">
       <div
         className={openable ? 'flex cursor-pointer gap-3' : 'flex gap-3'}
         onClick={openable ? () => onOpen(item) : undefined}
@@ -230,10 +231,10 @@ function ActiveCard({ item, onCancel, onOpen }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+      <div className="mt-3 flex items-center gap-2 border-t border-line/80 pt-3">
         {item.person ? (
           <>
-            <img src={item.person.avatar} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-brand-soft" />
+            <img src={item.person.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 truncate text-[14px] font-bold text-ink">
                 {t(item.person.name)}
@@ -323,7 +324,7 @@ function PastRow({ item, rated, onRate, onOpen }) {
     </>
   )
   const className =
-    'flex w-full items-center gap-3 rounded-[20px] bg-white p-3 text-left shadow-[0_6px_24px_rgba(16,42,67,0.05)]'
+    'flex w-full items-center gap-3 rounded-[22px] bg-canvas p-3 text-left transition active:scale-[0.99]'
   if ((item.kind === 'cargo' || item.source === 'bot') && onOpen) {
     return (
       <button type="button" onClick={() => onOpen(item)} className={className}>
@@ -342,10 +343,10 @@ function PastRow({ item, rated, onRate, onOpen }) {
 
 function EmptyState({ text, cta = false }) {
   return (
-    <div className="rounded-[22px] bg-white px-6 py-8 text-center shadow-[0_6px_24px_rgba(16,42,67,0.05)]">
+    <div className="rounded-[22px] bg-canvas px-6 py-8 text-center">
       <p className="text-[13.5px] text-muted">{t(text)}</p>
       {cta ? (
-        <Link to="/ride" className="mt-4 inline-flex h-10 items-center rounded-full bg-brand px-5 text-[13px] font-bold text-white">
+        <Link to="/ride" className="mt-4 inline-flex h-11 items-center rounded-[14px] bg-brand px-6 text-[14px] font-bold text-white">
           {t('Taxi chaqirish')}
         </Link>
       ) : null}
@@ -453,27 +454,25 @@ export default function Orders() {
   const loading = loadingBookings || loadingCargo
 
   return (
-    <div className="mx-auto max-w-2xl pt-[max(0px,env(safe-area-inset-top))]">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[28px] font-extrabold leading-tight tracking-tight text-ink">{t('Buyurtmalar')}</h1>
-          <p className="mt-0.5 text-[13.5px] text-muted">{t('Barcha buyurtmalaringiz shu yerda')}</p>
-        </div>
+    <AccountScreen
+      title="Buyurtmalar"
+      large
+      right={
         <button
           type="button"
           onClick={() => {
             setSearchOpen((v) => !v)
             setQuery('')
           }}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-[0_6px_20px_rgba(16,42,67,0.08)]"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition active:bg-canvas"
           aria-label={searchOpen ? t('Qidiruvni yopish') : t('Qidirish')}
         >
-          {searchOpen ? <X className="h-5 w-5" strokeWidth={2.4} /> : <Search className="h-5 w-5" strokeWidth={2.4} />}
+          {searchOpen ? <X className="h-6 w-6" strokeWidth={2.2} /> : <Search className="h-6 w-6" strokeWidth={2.2} />}
         </button>
-      </header>
-
+      }
+    >
       {searchOpen ? (
-        <div className="mt-3 flex h-12 items-center gap-2 rounded-2xl bg-white px-4 shadow-[0_6px_20px_rgba(16,42,67,0.06)]">
+        <div className="mb-3 flex h-12 items-center gap-2 rounded-[16px] bg-canvas px-4">
           <Search className="h-4 w-4 text-muted" />
           <input
             autoFocus
@@ -485,40 +484,38 @@ export default function Orders() {
         </div>
       ) : null}
 
-      <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {categories.map(({ id, label, icon: Icon }) => {
-          const on = category === id
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setCategory(id)}
-              className={`flex h-11 shrink-0 items-center gap-2 rounded-full pl-3.5 pr-2 text-[13px] font-semibold transition-colors ${
-                on ? 'bg-brand text-white shadow-[0_8px_20px_rgba(0,199,212,0.3)]' : 'bg-white text-ink shadow-[0_4px_14px_rgba(16,42,67,0.06)]'
-              }`}
-            >
-              <Icon className={`h-4.5 w-4.5 ${on ? '' : 'text-slate-600'}`} />
-              {t(label)}
-              <span
-                className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
-                  on ? 'bg-white text-brand' : 'bg-brand-soft text-brand-dark'
+      <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
+        <div className="flex min-w-max gap-1 rounded-[18px] bg-canvas p-1">
+          {categories.map(({ id, label, icon: Icon }) => {
+            const on = category === id
+            return (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setCategory(id)}
+                className={`flex h-11 flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[14px] px-3 text-[14px] font-semibold transition ${
+                  on ? 'bg-white text-ink shadow-[0_2px_8px_rgba(0,0,0,0.08)]' : 'text-muted'
                 }`}
               >
-                {counts[id]}
-              </span>
-            </button>
-          )
-        })}
+                <Icon className="h-4 w-4" />
+                {t(label)}
+                {counts[id] ? <span className={`text-[12px] font-bold ${on ? 'text-brand-dark' : 'text-muted'}`}>{counts[id]}</span> : null}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      <div className="mt-3 flex gap-1.5">
+      <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4">
         {statusTabs.map(({ id, label }) => (
           <button
             key={id}
             type="button"
+            aria-pressed={status === id}
             onClick={() => setStatus(id)}
-            className={`h-10 flex-auto whitespace-nowrap rounded-full px-2.5 text-[12.5px] font-semibold transition-colors ${
-              status === id ? 'bg-brand-soft text-ink' : 'bg-white text-slate-600'
+            className={`h-9 shrink-0 whitespace-nowrap rounded-full px-4 text-[14px] font-medium transition-colors ${
+              status === id ? 'bg-ink text-white' : 'bg-canvas text-ink'
             }`}
           >
             {t(label)}
@@ -566,6 +563,6 @@ export default function Orders() {
 
       {sheet}
       <CargoDetailSheet orderId={cargoId} onClose={() => setCargoId(null)} />
-    </div>
+    </AccountScreen>
   )
 }

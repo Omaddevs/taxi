@@ -8,7 +8,7 @@ const GENDER_CHIP = {
   COUPLE: { label: 'Er-xotin / oila', icon: '👫', cls: 'bg-violet-50 text-violet-700' },
 }
 
-export const WOMEN_CARD_CLASS = 'ring-2 ring-[#f5559a]/50 bg-gradient-to-b from-[#fff0f6] to-white'
+export const WOMEN_CARD_CLASS = 'ring-2 ring-[#f5559a]/50 bg-gradient-to-b from-[#fff0f6] dark:from-[#33192a] to-white'
 
 export function WomenOrderRibbon({ className = '' }) {
   return (

@@ -14,7 +14,7 @@ const SEAT_BOX = {
 }
 
 const SEAT_TONE = {
-  empty: 'bg-[#efe3c8] text-[#b9a57c]',
+  empty: 'bg-[#efe3c8] dark:bg-[#3a3426] text-[#b9a57c]',
   MALE: 'bg-seat-male text-white',
   FEMALE: 'bg-seat-female text-white',
 }

@@ -64,7 +64,7 @@ export function DriverAvatar({ driver, size = 'md' }) {
       {driver.avatarUrl ? (
         <img src={driver.avatarUrl} alt="" referrerPolicy="no-referrer" className="h-full w-full rounded-full object-cover ring-2 ring-white" />
       ) : (
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-brand-soft to-[#c7f1f4] font-extrabold text-brand-dark ring-2 ring-white">
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-brand-soft to-[#c7f1f4] dark:to-[#11474c] font-extrabold text-brand-dark ring-2 ring-white">
           {(driver.name || 'H').trim().charAt(0).toUpperCase() || <UserRound className="h-5 w-5" />}
         </span>
       )}

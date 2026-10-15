@@ -127,7 +127,7 @@ export default function DriverSettings() {
         <section>
           <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted">{t('Foydali xizmatlar')}</p>
           <div className="grid grid-cols-2 gap-3">
-            <Link to="/driver/roadside" className="relative overflow-hidden rounded-2xl bg-[#ffecec] p-4">
+            <Link to="/driver/roadside" className="relative overflow-hidden rounded-2xl bg-[#ffecec] dark:bg-[#3a1c1c] p-4">
               <span className="absolute right-3 top-3 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">SOS</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-red-500">
                 <Siren className="h-5 w-5" />
@@ -135,7 +135,7 @@ export default function DriverSettings() {
               <p className="mt-3 text-sm font-extrabold">{t('Yo‘lda yordam')}</p>
               <p className="mt-0.5 text-[11px] text-muted">{t('Usta · evakuator')}</p>
             </Link>
-            <Link to="/driver/fuel" className="relative overflow-hidden rounded-2xl bg-[#eef8f0] p-4">
+            <Link to="/driver/fuel" className="relative overflow-hidden rounded-2xl bg-[#eef8f0] dark:bg-[#15302a] p-4">
               <span className="absolute right-3 top-3 rounded-md bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">-3%</span>
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-600">
                 <Fuel className="h-5 w-5" />

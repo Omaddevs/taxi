@@ -73,7 +73,7 @@ export function RideRequestCard({ search, prominent = false }) {
     <div
       className={`rounded-2xl p-4 ${
         womenOnly
-          ? 'border-2 border-[#f5559a]/40 bg-gradient-to-b from-[#fff0f6] to-white shadow-sm'
+          ? 'border-2 border-[#f5559a]/40 bg-gradient-to-b from-[#fff0f6] dark:from-[#33192a] to-white shadow-sm'
           : prominent
             ? 'border-2 border-brand/30 bg-white shadow-sm'
             : 'border border-line bg-white'

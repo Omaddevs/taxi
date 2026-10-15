@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Banknote, Check, ChevronRight, CreditCard, Plus, ShieldCheck, Wallet } from 'lucide-react'
+import { Check, ChevronRight, CreditCard, Plus, ShieldCheck, Wallet } from 'lucide-react'
 import { ScreenHeader, PageTitle } from '../components/ui/ScreenHeader'
 import { Button } from '../components/ui/Button'
 import { cn, formatSom } from '../lib/utils'
@@ -10,15 +10,16 @@ import { api, ApiError } from '../lib/api'
 import { useApp } from '../context/AppContext'
 import { ONLINE_PAYMENTS } from '../lib/features'
 import { SoonBadge } from '../components/ui/SoonBadge'
+import { PaymentLogo } from '../components/payment/PaymentLogos'
 import { t } from '../i18n'
 
 // Methods that need no stored card. Until a real provider is live (ONLINE_PAYMENTS) everything
-// but cash stays "Tez orada". `mark` is the wordmark drawn on the method's brand-coloured tile.
+// but cash stays "Tez orada". Their logos: components/payment/PaymentLogos.
 const METHODS = [
-  { id: 'cash', title: 'Naqd pul', subtitle: 'Safar oxirida haydovchiga', icon: Banknote, tile: 'bg-emerald-50 text-emerald-600' },
-  { id: 'click', title: 'Click', subtitle: 'Click ilovasi orqali', mark: 'click', tile: 'bg-[#4c8dff] text-white' },
-  { id: 'payme', title: 'Payme', subtitle: 'Payme ilovasi orqali', mark: 'payme', tile: 'bg-[#33cccc] text-white' },
-  { id: 'uzum', title: 'Uzum Bank', subtitle: 'Uzum ilovasi orqali', mark: 'uzum', tile: 'bg-[#7b2ff7] text-white' },
+  { id: 'cash', title: 'Naqd pul', subtitle: 'Safar oxirida haydovchiga' },
+  { id: 'click', title: 'Click', subtitle: 'Click ilovasi orqali' },
+  { id: 'payme', title: 'Payme', subtitle: 'Payme ilovasi orqali' },
+  { id: 'uzum', title: 'Uzum Bank', subtitle: 'Uzum ilovasi orqali' },
 ]
 
 const cardClass = 'overflow-hidden rounded-[22px] bg-white shadow-[0_6px_20px_rgba(16,42,67,0.05)]'
@@ -125,7 +126,7 @@ export default function Payment() {
               disabled={soon}
               onClick={() => setPaymentMethod(item.id)}
               aria-pressed={paymentMethod === item.id}
-              tile={<Tile className={cn(item.tile, soon && 'opacity-80')} icon={item.icon} mark={item.mark} />}
+              tile={<span className="flex h-12 w-12 shrink-0 items-center justify-center"><PaymentLogo id={item.id} dim={soon} /></span>}
               title={t(item.title)}
               subtitle={t(item.subtitle)}
               muted={soon}

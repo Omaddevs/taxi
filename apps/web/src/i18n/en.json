@@ -1457,7 +1457,6 @@
   "Mijoz bekor qildi": "Customer cancelled",
   "Buyurtmani bekor qilmoqchimisiz?": "Do you want to cancel the order?",
   "Haydovchini baholang": "Rate the driver",
-  "Barcha buyurtmalaringiz shu yerda": "All your orders in one place",
   "Qidiruvni yopish": "Close search",
   "Qidirish": "Search",
   "Manzil yoki haydovchi bo‘yicha qidirish": "Search by address or driver",
@@ -2177,5 +2176,18 @@
   "O‘chirilgan": "Off",
   "Ilova tili": "App language",
   "Ochilganda tebranish": "Vibrate when opening",
-  "Hisobdan chiqasizmi?": "Sign out?"
+  "Hisobdan chiqasizmi?": "Sign out?",
+  "Bu karta turi qo‘llab-quvvatlanmaydi": "This card type isn't supported",
+  "Karta raqami noto‘g‘ri": "Invalid card number",
+  "Muddat noto‘g‘ri yoki o‘tib ketgan": "Invalid or expired date",
+  "Kartani qo‘shib bo‘lmadi": "Couldn't add the card",
+  "Karta ulash to‘lov tizimi ishga tushishi bilan ochiladi. Hozircha safar uchun naqd pul bilan to‘lang.": "Adding cards opens once the payment system goes live. For now, pay for rides in cash.",
+  "KARTA EGASI": "CARDHOLDER",
+  "Amal qilish muddati": "Expiry date",
+  "Karta ulangan telefon raqamiga tasdiqlash uchun SMS-kod yuboriladi.": "An SMS code will be sent to the phone linked to the card.",
+  "Karta egasi": "Cardholder",
+  "Qo‘shilmoqda…": "Adding…",
+  "Kartani qo‘shish": "Add card",
+  "Karta ma’lumotlari TaxiLine serverida saqlanmaydi": "Card details are not stored on TaxiLine servers",
+  "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard"
 }

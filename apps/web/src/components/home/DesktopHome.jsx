@@ -260,7 +260,7 @@ export function DesktopHome() {
           hint={t('Avval ayol haydovchilarga')}
           badge={t('Xavfsiz')}
           badgeTone="hot"
-          className="col-span-2 bg-gradient-to-br from-[#fff0f5] to-[#fde2ec]"
+          className="col-span-2 bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
           art="/landing/taxi-car-sm.webp"
           artClass="-right-10 bottom-2 w-[300px]"
           artStyle={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}

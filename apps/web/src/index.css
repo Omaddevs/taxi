@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* `dark:` follows the app's own theme switch (html.dark, set in App.jsx), not the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   /* Qo‘lyozma uslubidagi kichik yozuvlar (footer sarlavhalari va izohlari). */
@@ -281,7 +284,7 @@ html.dark {
   --color-muted: #9ca3af;
   --color-line: #2e2e3a;
   --color-canvas: #121218;
-  --color-brand-soft: #3a1424;
+  --color-brand-soft: #0d3438;
   --color-seat-male-soft: #16233f;
 }
 
@@ -298,6 +301,68 @@ html.dark .bg-white\/95 {
 html.dark .bg-canvas {
   background-color: #121218;
 }
+
+/* ── Dark theme: everything below maps the light-only colours used across the app onto dark
+   surfaces, so a screen written for the light theme stays readable without per-page work.
+   Surfaces: page #121218, card #1a1a24, raised #24242f. ── */
+
+/* Frosted white panels and sheets. */
+html.dark .bg-white\/50 { background-color: rgb(26 26 36 / 0.5); }
+html.dark .bg-white\/60 { background-color: rgb(26 26 36 / 0.6); }
+html.dark .bg-white\/70 { background-color: rgb(26 26 36 / 0.7); }
+html.dark .bg-white\/80 { background-color: rgb(26 26 36 / 0.8); }
+html.dark .bg-white\/85 { background-color: rgb(26 26 36 / 0.85); }
+html.dark .bg-white\/90 { background-color: rgb(26 26 36 / 0.9); }
+
+/* Neutral light greys used as raised surfaces / placeholders. */
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+html.dark .bg-\[\#f3f4f6\],
+html.dark .bg-\[\#f1f3f6\],
+html.dark .bg-\[\#e9eef2\],
+html.dark .bg-\[\#f6f7f9\],
+html.dark .bg-\[\#f0f2f5\],
+html.dark .bg-\[\#eef3f6\],
+html.dark .bg-\[\#f8fafb\],
+html.dark .bg-\[\#f0f1f3\],
+html.dark .bg-\[\#e9ebee\],
+html.dark .bg-\[\#e6e8eb\],
+html.dark .bg-\[\#eef6f7\],
+html.dark .bg-\[\#efeae2\],
+html.dark .bg-\[\#eef3f0\] {
+  background-color: #24242f;
+}
+html.dark .text-slate-400 { color: #8b8f9a; }
+html.dark .text-slate-500,
+html.dark .text-slate-600 { color: #a3a7b1; }
+
+/* Status tints: a soft wash of the hue instead of a pale block, and the text one step lighter. */
+html.dark .bg-emerald-50 { background-color: rgb(16 185 129 / 0.14); }
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 { background-color: rgb(245 158 11 / 0.14); }
+html.dark .bg-red-50 { background-color: rgb(239 68 68 / 0.14); }
+html.dark .bg-sky-50 { background-color: rgb(14 165 233 / 0.14); }
+html.dark .bg-orange-50 { background-color: rgb(249 115 22 / 0.14); }
+html.dark .bg-violet-50 { background-color: rgb(139 92 246 / 0.16); }
+html.dark .bg-rose-50,
+html.dark .bg-pink-50 { background-color: rgb(236 72 153 / 0.14); }
+html.dark .text-emerald-600,
+html.dark .text-emerald-700 { color: #34d399; }
+html.dark .text-amber-600,
+html.dark .text-amber-700 { color: #fbbf24; }
+html.dark .text-red-600,
+html.dark .text-red-700 { color: #f87171; }
+html.dark .text-sky-600,
+html.dark .text-sky-700 { color: #38bdf8; }
+html.dark .text-orange-600 { color: #fb923c; }
+html.dark .text-violet-600 { color: #a78bfa; }
+html.dark .text-pink-600,
+html.dark .text-rose-600 { color: #f472b6; }
+
+/* `bg-ink text-white` is the high-contrast chip/button. Ink turns light in the dark theme, so
+   its text turns dark instead of vanishing. */
+html.dark .bg-ink.text-white { color: #121218; }
+html.dark .bg-ink .text-white { color: #121218; }
 
 /* Bosh sahifa xaritasi — OSM plitkalarini och, yumshoq tusga keltiramiz (UI ustida ajralib tursin). */
 .home-map .leaflet-tile-pane {

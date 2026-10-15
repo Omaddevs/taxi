@@ -286,7 +286,7 @@ export default function TaxiMap({ women = false }) {
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" />
 
           {women ? (
-            <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#fde7f1] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
+            <div className="mb-3 flex items-center gap-2 rounded-2xl bg-[#fde7f1] dark:bg-[#33192a] px-4 py-2.5 text-[13px] font-semibold text-[#c2185b]">
               <ShieldCheck className="h-4 w-4 shrink-0" />
               {t('Ayollar uchun Taxi · avval ayol haydovchilarga')}
             </div>

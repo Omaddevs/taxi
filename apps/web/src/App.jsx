@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
+import { useApp } from './context/AppContext'
 import { useAuth } from './context/AuthContext'
 import { isDriverUser } from './lib/role'
 import Login from './pages/Login'
@@ -33,6 +35,7 @@ import Favorites from './pages/Favorites'
 import Settings from './pages/Settings'
 import ProfileEdit from './pages/account/ProfileEdit'
 import PaymentMethods from './pages/account/PaymentMethods'
+import AddCard from './pages/account/AddCard'
 import Addresses from './pages/account/Addresses'
 import { About, Info } from './pages/account/Info'
 import Notifications from './pages/Notifications'
@@ -91,9 +94,18 @@ function DriverShell() {
   return <DriverLayout />
 }
 
+// Public pages (landing, news, SEO pages, sign-in) are always light; the chosen theme applies
+// inside the app only.
+const LIGHT_ONLY = ['/welcome', '/news', '/haydovchi-bolish', '/aksiyalar', '/biznes', '/jamoa', '/aloqa', '/savollar', '/privacy', '/terms', '/login', '/register', '/google']
+const isLightOnly = (pathname) => LIGHT_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+
 export default function App() {
   const { pathname } = useLocation()
+  const { theme } = useApp()
   useScrollUnlockOnNavigate(pathname)
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark' && !isLightOnly(pathname))
+  }, [theme, pathname])
   return (
     <>
     <PhoneRequiredDialog />
@@ -140,6 +152,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/settings/profile" element={<ProfileEdit />} />
         <Route path="/payment-methods" element={<PaymentMethods />} />
+        <Route path="/payment-methods/add-card" element={<AddCard />} />
         <Route path="/addresses" element={<Addresses />} />
         <Route path="/info" element={<Info />} />
         <Route path="/about" element={<About />} />

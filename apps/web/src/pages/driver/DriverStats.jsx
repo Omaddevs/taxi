@@ -174,7 +174,7 @@ function LineChart({ points }) {
     <div className="overflow-hidden">
       <svg viewBox={`0 0 ${w} ${h}`} className="block h-auto w-full max-w-full" overflow="hidden">
         {[0, 0.25, 0.5, 0.75, 1].map((entry) => (
-          <line key={entry} x1={pad} x2={w - pad} y1={h - pad - entry * (h - pad * 2)} y2={h - pad - entry * (h - pad * 2)} stroke="#eceef2" />
+          <line key={entry} x1={pad} x2={w - pad} y1={h - pad - entry * (h - pad * 2)} y2={h - pad - entry * (h - pad * 2)} stroke="var(--color-line)" />
         ))}
         <path d={d} fill="none" stroke="#00c7d4" strokeWidth="2.5" />
         {coords.map(([x, y], i) => (
@@ -246,7 +246,7 @@ function Donut({ amount, sources }) {
   return (
     <div className="flex min-w-0 items-center gap-3 overflow-hidden">
       <svg viewBox="0 0 120 120" className="h-28 w-28 shrink-0" overflow="hidden">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="#f3f4f6" strokeWidth="14" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="var(--color-canvas)" strokeWidth="14" />
         {parts.map((p) => {
           const dash = (p.pct / 100) * c
           const el = (
