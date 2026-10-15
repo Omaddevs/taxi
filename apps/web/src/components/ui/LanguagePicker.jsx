@@ -64,7 +64,7 @@ function OptionRow({ lang, selected, highlighted, compact, ...props }) {
 }
 
 /* Telefon: pastdan chiqadigan panel · planshet/kompyuter: markazdagi ixcham oyna */
-function LanguageSheet({ onClose }) {
+export function LanguageSheet({ onClose }) {
   const { active, choose } = useChooseLanguage()
   const [shown, setShown] = useState(false)
 

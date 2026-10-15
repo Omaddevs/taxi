@@ -680,3 +680,20 @@ html.dark .bg-canvas {
   background: var(--pin, #00c7d4);
   box-shadow: 0 0 0 2px #fff;
 }
+
+/* Account screens (components/account/AccountKit.jsx): bottom sheet and full-screen menu. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes menu-in {
+  from { transform: translateX(-24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-anim { animation: none !important; }
+}

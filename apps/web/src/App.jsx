@@ -31,6 +31,10 @@ import SOS from './pages/SOS'
 import Help from './pages/Help'
 import Favorites from './pages/Favorites'
 import Settings from './pages/Settings'
+import ProfileEdit from './pages/account/ProfileEdit'
+import PaymentMethods from './pages/account/PaymentMethods'
+import Addresses from './pages/account/Addresses'
+import { About, Info } from './pages/account/Info'
 import Notifications from './pages/Notifications'
 import Drivers from './pages/Drivers'
 import DriverProfile from './pages/DriverProfile'
@@ -134,6 +138,11 @@ export default function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/profile" element={<ProfileEdit />} />
+        <Route path="/payment-methods" element={<PaymentMethods />} />
+        <Route path="/addresses" element={<Addresses />} />
+        <Route path="/info" element={<Info />} />
+        <Route path="/about" element={<About />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/drivers" element={<Drivers />} />
         <Route path="/drivers/:id" element={<DriverProfile />} />

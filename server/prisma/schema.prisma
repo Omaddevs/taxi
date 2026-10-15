@@ -223,6 +223,7 @@ model User {
   transactions        Transaction[]
   paymentCards        PaymentCard[]
   favorites           Favorite[]
+  savedPlaces         SavedPlace[]
   notifications       Notification[]
   refreshTokens       RefreshToken[]
   conversationsA      Conversation[]         @relation("ParticipantA")
@@ -1129,4 +1130,27 @@ model GroupDriverAd {
   @@index([status, expiresAt])
   @@index([dedupeKey, createdAt])
   @@index([createdAt])
+}
+
+enum SavedPlaceKind {
+  HOME
+  WORK
+  OTHER
+}
+
+// "Mening manzillarim": a passenger's saved addresses (menu → Manzillar). At most one HOME and
+// one WORK per user — the service upserts those; OTHER can be many, each with its own title.
+model SavedPlace {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      SavedPlaceKind @default(OTHER)
+  title     String?
+  address   String
+  lat       Float?
+  lng       Float?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId])
 }

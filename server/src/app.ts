@@ -12,6 +12,7 @@ import { adminWalletRouter, walletRouter } from './modules/wallet/wallet.routes.
 import { paymentsRouter } from './modules/payments/payments.routes.js'
 import { adminNotificationsRouter, notificationsRouter } from './modules/notifications/notifications.routes.js'
 import { favoritesRouter } from './modules/favorites/favorites.routes.js'
+import { savedPlacesRouter } from './modules/savedPlaces/savedPlaces.routes.js'
 import { adminPromoRouter, promoRouter } from './modules/promo/promo.routes.js'
 import { adminServicesRouter, servicesRouter } from './modules/services/services.routes.js'
 import { adminDriverSubscriptionsRouter, adminSubscriptionPlansRouter } from './modules/subscriptions/subscriptions.routes.js'
@@ -95,6 +96,7 @@ export function createApp() {
   app.use('/notifications', notificationsRouter)
   app.use('/admin/notifications', adminNotificationsRouter)
   app.use('/favorites', favoritesRouter)
+  app.use('/saved-places', savedPlacesRouter)
   app.use('/promo', promoRouter)
   app.use('/admin/promo', adminPromoRouter)
   app.use('/services', servicesRouter)
