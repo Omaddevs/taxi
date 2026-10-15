@@ -5,12 +5,9 @@ import {
   BusFront,
   ChevronRight,
   Clock,
-  Fuel,
   Menu,
   PersonStanding,
-  ShieldCheck,
   Sparkles,
-  Wrench,
   Zap,
 } from 'lucide-react'
 import { WhereToButton } from '../ui/WhereToButton'
@@ -256,10 +253,7 @@ export function MobileHome() {
           <p className="text-[17px] font-extrabold leading-[1.15]">{t('Tez orada yangi xizmatlar TaxiLine da')}</p>
           <ul className="mt-3 space-y-2 text-[13px] font-medium">
             {[
-              [Wrench, 'Avtoservis'],
-              [Fuel, 'Yoqilg‘i shahobchasi'],
               [BusFront, 'Shaharlararo avtobus'],
-              [ShieldCheck, 'Yo‘lda yordam'],
               [Sparkles, 'Bonus va chegirmalar'],
             ].map(([Icon, label]) => (
               <li key={label} className="flex items-center gap-2">

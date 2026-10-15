@@ -6,12 +6,9 @@ import {
   BusFront,
   ChevronRight,
   Clock,
-  Fuel,
   MapPin,
   PersonStanding,
-  ShieldCheck,
   Sparkles,
-  Wrench,
   Zap,
 } from 'lucide-react'
 import { WhereToButton } from '../ui/WhereToButton'
@@ -256,7 +253,7 @@ export function DesktopHome() {
       </section>
 
       {/* ── Xizmat plitkalari ── */}
-      <section className="grid grid-cols-4 gap-4">
+      <section className="grid grid-cols-5 gap-4">
         <Tile
           to="/women/taxi"
           title={t('Ayollar uchun Taxi')}
@@ -269,9 +266,6 @@ export function DesktopHome() {
           artStyle={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
         />
         <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} art="/home/box.webp" artClass="-bottom-4 -right-4 w-[140px]" />
-        <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')} art="/home/smart-map.png" artClass="-bottom-4 -right-4 w-[140px]" />
-        <Tile to="/hub/auto-service" title={t('Avtoservis')} hint={t('Ustaxonalar va xizmatlar')} art="/home/service.webp" artClass="-bottom-4 -right-4 w-[130px]" />
-        <Tile to="/fuel" title={t('Yoqilg‘i')} hint={t('Narxlar va manzillar')} art="/home/fuel.webp" artClass="-bottom-4 -right-4 w-[130px]" />
         <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="col-span-2" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
       </section>
 
@@ -282,9 +276,6 @@ export function DesktopHome() {
             <h3 className="text-[20px] font-extrabold tracking-tight text-ink">{t('Barcha xizmatlar')}</h3>
             <p className="text-[13px] text-muted">{t('Yo‘l, avtomobil va kundalik xizmatlar — bir joyda')}</p>
           </div>
-          <Link to="/map" className="flex items-center gap-1 text-[13px] font-bold text-brand-dark hover:underline">
-            {t('Xaritada ko‘rish')}{' '}<ChevronRight className="h-4 w-4" />
-          </Link>
         </div>
         <div className="grid grid-cols-6 gap-3 xl:grid-cols-8">
           {SERVICES.map(({ to, label, img, badge, wide }) => (
@@ -334,10 +325,7 @@ export function DesktopHome() {
           <p className="text-[24px] font-black leading-[1.1] tracking-tight">{t('Tez orada yangi xizmatlar TaxiLine da')}</p>
           <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5 text-[14px] font-medium">
             {[
-              [Wrench, 'Avtoservis'],
-              [Fuel, 'Yoqilg‘i shahobchasi'],
               [BusFront, 'Shaharlararo avtobus'],
-              [ShieldCheck, 'Yo‘lda yordam'],
               [Sparkles, 'Bonus va chegirmalar'],
             ].map(([Icon, label]) => (
               <li key={label} className="flex items-center gap-2">
