@@ -2212,10 +2212,10 @@
   "Karta ulash to‘lov tizimi ishga tushishi bilan ochiladi. Hozircha safar uchun naqd pul bilan to‘lang.": "Привязка карт откроется с запуском платёжной системы. Пока оплачивайте поездки наличными.",
   "KARTA EGASI": "ВЛАДЕЛЕЦ КАРТЫ",
   "Amal qilish muddati": "Срок действия",
-  "Karta ulangan telefon raqamiga tasdiqlash uchun SMS-kod yuboriladi.": "На номер, привязанный к карте, придёт SMS-код для подтверждения.",
   "Karta egasi": "Владелец карты",
   "Qo‘shilmoqda…": "Добавляем…",
   "Kartani qo‘shish": "Добавить карту",
   "Karta ma’lumotlari TaxiLine serverida saqlanmaydi": "Данные карты не хранятся на серверах TaxiLine",
-  "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard"
+  "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard",
+  "Karta turi": "Тип карты"
 }

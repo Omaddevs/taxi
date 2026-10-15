@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Info, Lock, MessageSquareText } from 'lucide-react'
+import { Info, Lock } from 'lucide-react'
 import { AccountScreen, PrimaryButton } from '../../components/account/AccountKit'
 import { NetworkMark } from '../../components/payment/PaymentLogos'
 import { api } from '../../lib/api'
@@ -9,12 +9,15 @@ import { cardNetwork, cardNumberValid, expiryValid, formatCardNumber, formatExpi
 import { ONLINE_PAYMENTS } from '../../lib/features'
 import { t } from '../../i18n'
 
-// To‘lov usullari → Karta qo‘shish: Uzcard, Humo, Visa, Mastercard. The number is checked here
+// To‘lov usullari → Karta qo‘shish: Uzcard, Humo, Visa, Mastercard. The network is picked from
+// the logos (Uzcard by default) or read from the number's first digits; Uzcard and Humo take
+// only the number and expiry, Visa and Mastercard also the CVV and the holder's name. The number is checked here
 // (network, length, Luhn for Visa/Mastercard, expiry) and never sent anywhere — only the network and the last four digits go
 // to the server, next to the provider's token. Until a payment provider is live (ONLINE_PAYMENTS)
 // the form explains that instead of saving.
 
 const NETWORKS = ['uzcard', 'humo', 'visa', 'mastercard']
+const PLACEHOLDER = { uzcard: '8600 0000 0000 0000', humo: '9860 0000 0000 0000', visa: '4000 0000 0000 0000', mastercard: '5100 0000 0000 0000' }
 
 const CARD_FACE = {
   uzcard: 'from-[#1d4f91] to-[#0f2f5c]',
@@ -39,13 +42,15 @@ export default function AddCard() {
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
   const [holder, setHolder] = useState('')
+  const [chosen, setChosen] = useState('uzcard')
   const [touched, setTouched] = useState(false)
   const [notice, setNotice] = useState('')
 
-  const network = cardNetwork(number)
+  // The digits decide once they name a network; until then the tapped logo does.
+  const network = cardNetwork(number) ?? chosen
   const local = isLocalNetwork(network)
   const numberDone = number.length >= 16
-  const numberError = numberDone && (!network ? t('Bu karta turi qo‘llab-quvvatlanmaydi') : !cardNumberValid(number) ? t('Karta raqami noto‘g‘ri') : '')
+  const numberError = numberDone && (!cardNetwork(number) ? t('Bu karta turi qo‘llab-quvvatlanmaydi') : !cardNumberValid(number) ? t('Karta raqami noto‘g‘ri') : '')
   const expiryError = expiry.length === 4 && !expiryValid(expiry) ? t('Muddat noto‘g‘ri yoki o‘tib ketgan') : ''
   const ready =
     cardNumberValid(number) && expiryValid(expiry) && (local || (/^\d{3}$/.test(cvv) && holder.trim().length >= 3))
@@ -75,20 +80,33 @@ export default function AddCard() {
     add.mutate()
   }
 
+  function choose(n) {
+    setChosen(n)
+    setNotice('')
+    // Digits of another network can't be this card's — start the number over.
+    if (cardNetwork(number) && cardNetwork(number) !== n) setNumber('')
+    if (isLocalNetwork(n)) {
+      setCvv('')
+      setHolder('')
+    }
+  }
+
   const shown = formatCardNumber(number.padEnd(16, '•'))
   return (
     <AccountScreen title="Karta qo‘shish">
       {/* Card face */}
       <div
         className={`relative mx-auto mt-1 aspect-[1.586] w-full max-w-[360px] overflow-hidden rounded-[24px] bg-gradient-to-br p-5 text-white shadow-[0_18px_40px_-18px_rgba(15,29,42,0.6)] transition-[background] duration-300 ${
-          network ? CARD_FACE[network] : 'from-brand to-brand-dark'
+          CARD_FACE[network]
         }`}
       >
         <span aria-hidden className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10" />
         <span aria-hidden className="absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-white/[0.07]" />
         <div className="relative flex items-start justify-between">
           <span className="h-8 w-11 rounded-md bg-gradient-to-br from-[#f6d77c] to-[#c9a23f] shadow-inner" aria-hidden />
-          <span className="flex h-9 items-center">{network ? <NetworkMark network={network} className="h-9" /> : null}</span>
+          <span className="flex h-9 items-center">
+            <NetworkMark network={network} className="h-9" />
+          </span>
         </div>
         <p className="relative mt-[13%] font-mono text-[clamp(18px,5.6vw,22px)] font-semibold tracking-[0.12em]" aria-hidden>
           {shown}
@@ -100,14 +118,19 @@ export default function AddCard() {
       </div>
 
       {/* Supported networks */}
-      <div className="mt-5 flex items-center justify-center gap-2.5">
+      <div className="mt-5 flex items-center justify-center gap-2.5" role="radiogroup" aria-label={t('Karta turi')}>
         {NETWORKS.map((n) => (
-          <span
+          <button
             key={n}
-            className={`rounded-[9px] p-[3px] transition ${network === n ? 'ring-2 ring-brand' : network ? 'opacity-35' : ''}`}
+            type="button"
+            role="radio"
+            aria-checked={network === n}
+            aria-label={NETWORK_NAME[n]}
+            onClick={() => choose(n)}
+            className={`rounded-[10px] p-[3px] transition active:scale-95 ${network === n ? 'ring-2 ring-brand' : 'opacity-40 hover:opacity-70'}`}
           >
             <NetworkMark network={n} className="h-10" />
-          </span>
+          </button>
         ))}
       </div>
 
@@ -117,7 +140,7 @@ export default function AddCard() {
           <input
             inputMode="numeric"
             autoComplete="cc-number"
-            placeholder="0000 0000 0000 0000"
+            placeholder={PLACEHOLDER[network]}
             value={formatCardNumber(number)}
             onChange={(e) => {
               setNumber(e.target.value.replace(/\D/g, '').slice(0, 19))
@@ -155,12 +178,7 @@ export default function AddCard() {
           )}
         </div>
 
-        {local ? (
-          <p className="flex items-start gap-3 rounded-[18px] bg-canvas px-4 py-3.5 text-[14px] leading-5 text-muted">
-            <MessageSquareText className="mt-0.5 h-5 w-5 shrink-0 text-brand-dark" />
-            {t('Karta ulangan telefon raqamiga tasdiqlash uchun SMS-kod yuboriladi.')}
-          </p>
-        ) : (
+        {local ? null : (
           <label className="block">
             <Label>{t('Karta egasi')}</Label>
             <input

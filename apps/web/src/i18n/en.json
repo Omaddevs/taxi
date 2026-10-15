@@ -2184,10 +2184,10 @@
   "Karta ulash to‘lov tizimi ishga tushishi bilan ochiladi. Hozircha safar uchun naqd pul bilan to‘lang.": "Adding cards opens once the payment system goes live. For now, pay for rides in cash.",
   "KARTA EGASI": "CARDHOLDER",
   "Amal qilish muddati": "Expiry date",
-  "Karta ulangan telefon raqamiga tasdiqlash uchun SMS-kod yuboriladi.": "An SMS code will be sent to the phone linked to the card.",
   "Karta egasi": "Cardholder",
   "Qo‘shilmoqda…": "Adding…",
   "Kartani qo‘shish": "Add card",
   "Karta ma’lumotlari TaxiLine serverida saqlanmaydi": "Card details are not stored on TaxiLine servers",
-  "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard"
+  "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard",
+  "Karta turi": "Card type"
 }
