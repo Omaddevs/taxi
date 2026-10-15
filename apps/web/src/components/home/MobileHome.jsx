@@ -131,16 +131,9 @@ export function MobileHome() {
             className="pointer-events-none absolute -right-10 bottom-9 w-[150px] max-w-none drop-shadow-lg"
           />
         </Tile>
-        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')}>
+        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} className="col-span-2">
           <img
             src="/home/box.webp"
-            alt=""
-            className="pointer-events-none absolute -bottom-3 -right-3 w-[108px] max-w-none drop-shadow-lg"
-          />
-        </Tile>
-        <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')}>
-          <img
-            src="/home/smart-map.png"
             alt=""
             className="pointer-events-none absolute -bottom-3 -right-3 w-[108px] max-w-none drop-shadow-lg"
           />
