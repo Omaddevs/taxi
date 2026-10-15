@@ -5,12 +5,12 @@ import { Info, Lock, MessageSquareText } from 'lucide-react'
 import { AccountScreen, PrimaryButton } from '../../components/account/AccountKit'
 import { NetworkMark } from '../../components/payment/PaymentLogos'
 import { api } from '../../lib/api'
-import { cardNetwork, expiryValid, formatCardNumber, formatExpiry, isLocalNetwork, luhnValid, NETWORK_NAME } from '../../lib/cards'
+import { cardNetwork, cardNumberValid, expiryValid, formatCardNumber, formatExpiry, isLocalNetwork, NETWORK_NAME } from '../../lib/cards'
 import { ONLINE_PAYMENTS } from '../../lib/features'
 import { t } from '../../i18n'
 
 // To‘lov usullari → Karta qo‘shish: Uzcard, Humo, Visa, Mastercard. The number is checked here
-// (network, Luhn, expiry) and never sent anywhere — only the network and the last four digits go
+// (network, length, Luhn for Visa/Mastercard, expiry) and never sent anywhere — only the network and the last four digits go
 // to the server, next to the provider's token. Until a payment provider is live (ONLINE_PAYMENTS)
 // the form explains that instead of saving.
 
@@ -45,10 +45,10 @@ export default function AddCard() {
   const network = cardNetwork(number)
   const local = isLocalNetwork(network)
   const numberDone = number.length >= 16
-  const numberError = numberDone && (!network ? t('Bu karta turi qo‘llab-quvvatlanmaydi') : !luhnValid(number) ? t('Karta raqami noto‘g‘ri') : '')
+  const numberError = numberDone && (!network ? t('Bu karta turi qo‘llab-quvvatlanmaydi') : !cardNumberValid(number) ? t('Karta raqami noto‘g‘ri') : '')
   const expiryError = expiry.length === 4 && !expiryValid(expiry) ? t('Muddat noto‘g‘ri yoki o‘tib ketgan') : ''
   const ready =
-    network && luhnValid(number) && expiryValid(expiry) && (local || (/^\d{3}$/.test(cvv) && holder.trim().length >= 3))
+    cardNumberValid(number) && expiryValid(expiry) && (local || (/^\d{3}$/.test(cvv) && holder.trim().length >= 3))
 
   const add = useMutation({
     mutationFn: () =>
@@ -88,7 +88,7 @@ export default function AddCard() {
         <span aria-hidden className="absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-white/[0.07]" />
         <div className="relative flex items-start justify-between">
           <span className="h-8 w-11 rounded-md bg-gradient-to-br from-[#f6d77c] to-[#c9a23f] shadow-inner" aria-hidden />
-          <span className="flex h-8 items-center">{network ? <NetworkMark network={network} light /> : null}</span>
+          <span className="flex h-9 items-center">{network ? <NetworkMark network={network} className="h-9" /> : null}</span>
         </div>
         <p className="relative mt-[13%] font-mono text-[clamp(18px,5.6vw,22px)] font-semibold tracking-[0.12em]" aria-hidden>
           {shown}
@@ -100,15 +100,13 @@ export default function AddCard() {
       </div>
 
       {/* Supported networks */}
-      <div className="mt-5 flex items-center justify-center gap-2">
+      <div className="mt-5 flex items-center justify-center gap-2.5">
         {NETWORKS.map((n) => (
           <span
             key={n}
-            className={`flex h-9 items-center rounded-xl bg-[#ffffff] px-2.5 ring-1 transition ${
-              network === n ? 'ring-2 ring-brand' : network ? 'opacity-40 ring-black/[0.06]' : 'ring-black/[0.06]'
-            }`}
+            className={`rounded-[9px] p-[3px] transition ${network === n ? 'ring-2 ring-brand' : network ? 'opacity-35' : ''}`}
           >
-            <NetworkMark network={n} className="h-[18px]" />
+            <NetworkMark network={n} className="h-10" />
           </span>
         ))}
       </div>

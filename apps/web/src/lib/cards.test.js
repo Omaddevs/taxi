@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cardNetwork, expiryValid, formatCardNumber, formatExpiry, luhnValid } from './cards'
+import { cardNetwork, cardNumberValid, expiryValid, formatCardNumber, formatExpiry, luhnValid } from './cards'
 
 describe('cardNetwork', () => {
   it('tells local and international cards apart', () => {
@@ -39,4 +39,15 @@ describe('expiry', () => {
 
 it('groups the card number by four', () => {
   expect(formatCardNumber('860012341234')).toBe('8600 1234 1234')
+})
+
+describe('cardNumberValid', () => {
+  it('needs 16 digits and Luhn only for international cards', () => {
+    expect(cardNumberValid('4111111111111111')).toBe(true)
+    expect(cardNumberValid('4111111111111112')).toBe(false)
+    expect(cardNumberValid('8600123412341234')).toBe(true)
+    expect(cardNumberValid('9860123412341234')).toBe(true)
+    expect(cardNumberValid('986012341234')).toBe(false)
+    expect(cardNumberValid('6011000000000004')).toBe(false)
+  })
 })

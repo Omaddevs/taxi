@@ -29,6 +29,14 @@ export function luhnValid(digits) {
   return sum % 10 === 0
 }
 
+/** A complete number for its network: 16 digits; Visa/Mastercard must also pass Luhn. Uzcard and
+ * Humo are confirmed by SMS at the provider, so a local check could only wrongly reject a real one. */
+export function cardNumberValid(digits) {
+  const network = cardNetwork(digits)
+  if (!network || digits.length !== 16) return false
+  return isLocalNetwork(network) || luhnValid(digits)
+}
+
 export const formatCardNumber = (digits) => digits.replace(/(\d{4})(?=\d)/g, '$1 ')
 
 /** "MMYY" digits → "MM/YY" while typing. */
