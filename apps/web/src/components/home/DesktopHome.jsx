@@ -9,12 +9,12 @@ import {
   Fuel,
   MapPin,
   PersonStanding,
-  Search,
   ShieldCheck,
   Sparkles,
   Wrench,
   Zap,
 } from 'lucide-react'
+import { WhereToButton } from '../ui/WhereToButton'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { DEFAULT_LOCATION } from '../../lib/geocode'
@@ -177,19 +177,7 @@ export function DesktopHome() {
               <ArrowUpDown className="h-4 w-4" />
             </button>
 
-            <button
-              type="button"
-              onClick={() => openPicker('to')}
-              className="flex h-16 w-full items-center gap-3 rounded-[20px] bg-canvas px-5 text-left transition hover:bg-[#eef1f5]"
-            >
-              <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">{t('Qayerga')}</span>
-                <span className={`block truncate text-[16px] font-semibold ${search.to ? 'text-ink' : 'text-muted'}`}>
-                  {search.to || t('Qayerga borasiz?')}
-                </span>
-              </span>
-            </button>
+            <WhereToButton value={search.to} label="Qayerga" placeholder="Qayerga borasiz?" onClick={() => openPicker('to')} />
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">

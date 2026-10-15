@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowLeft, Bookmark, Headset, Loader2, MapPin, Navigation, PersonStanding, Search, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Bookmark, Headset, Loader2, MapPin, Navigation, PersonStanding, ShieldCheck } from 'lucide-react'
+import { WhereToButton } from '../components/ui/WhereToButton'
 import { Link, useNavigate } from 'react-router-dom'
 import { Circle, MapContainer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -312,10 +313,7 @@ export default function TaxiMap({ women = false }) {
             </Link>
           </div>
 
-          <button type="button" onClick={() => setPicker('to')} className="mt-2.5 flex h-16 w-full items-center gap-3 rounded-2xl bg-canvas px-4 text-left">
-            <Search className="h-6 w-6 shrink-0 text-ink" strokeWidth={2.2} />
-            <span className="truncate text-[17px] font-bold text-muted">{t('Qayerga?')}</span>
-          </button>
+          <WhereToButton onClick={() => setPicker('to')} className="mt-2.5" />
 
           {destinations.length ? (
             <ul className="mt-1 divide-y divide-line">

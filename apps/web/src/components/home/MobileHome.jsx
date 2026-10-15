@@ -8,12 +8,12 @@ import {
   Fuel,
   Menu,
   PersonStanding,
-  Search,
   ShieldCheck,
   Sparkles,
   Wrench,
   Zap,
 } from 'lucide-react'
+import { WhereToButton } from '../ui/WhereToButton'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import { DEFAULT_LOCATION } from '../../lib/geocode'
@@ -197,16 +197,7 @@ export function MobileHome() {
           </Link>
         </div>
 
-        <button
-          type="button"
-          onClick={() => openPicker('to')}
-          className="flex h-14 w-full items-center gap-3 rounded-2xl bg-canvas px-4 text-left"
-        >
-          <Search className="h-5 w-5 shrink-0 text-ink" strokeWidth={2.4} />
-          <span className={`min-w-0 flex-1 truncate text-[16px] font-semibold ${search.to ? 'text-ink' : 'text-muted'}`}>
-            {search.to || t('Qayerga?')}
-          </span>
-        </button>
+        <WhereToButton value={search.to} onClick={() => openPicker('to')} />
 
         <RegionPicker
           variant="headless"
