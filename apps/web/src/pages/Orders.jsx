@@ -21,6 +21,8 @@ import { useMyBookings } from '../lib/queries'
 import { api } from '../lib/api'
 import { botOrderStatus } from '../lib/botOrder'
 import { avatarOrFallback } from '../lib/adapters'
+import { ANY_CAR_PHOTO, carForModel, carPhotoFor } from '../data/cars'
+import { priceLabel } from '../lib/ride'
 import { shortMonth } from '../lib/utils'
 import { t } from '../i18n'
 
@@ -109,6 +111,8 @@ function fromBooking(b) {
     price: b.totalPrice,
     status: b.status,
     person: personOf(b.rideOffer?.driver),
+    // The car that is actually coming.
+    carImage: b.rideOffer?.driver?.carImageUrl || carPhotoFor(b.rideOffer?.driver?.carModel),
   }
 }
 
@@ -125,10 +129,16 @@ function fromBotOrder(o) {
     from: place(o.fromRegion, o.fromDistrict),
     to: place(o.toRegion, o.toDistrict),
     at: o.departAt || o.createdAt,
+    // No departure time chosen: say what the request says ("Kelishiladi"…), not when it was made.
+    whenText: o.departAt ? null : o.whenText,
     price: o.price,
+    // A request without a fare is "Kelishiladi", not an empty corner.
+    priceText: priceLabel(o.price),
     status: botOrderStatus(o),
     person: o.driver ? { name, phone: o.driver.phone, avatar: avatarOrFallback(null, name), rating: null } : null,
     womenOnly: Boolean(o.womenOnly),
+    // Once a driver has it, their own car; until then the model the passenger asked for.
+    carImage: carPhotoFor((o.driver && carForModel(o.driver.carModel) && o.driver.carModel) || o.carBrand),
   }
 }
 
@@ -151,11 +161,11 @@ function isScheduled(item) {
   return ACTIVE.has(item.status) && new Date(item.at).getTime() - Date.now() > SCHEDULED_AHEAD_MS
 }
 
-function KindIcon({ kind, large = false }) {
+function KindIcon({ kind, large = false, carImage }) {
   if (large && kind === 'taxi') {
     return (
       <span className="flex h-[72px] w-[84px] shrink-0 items-center justify-center rounded-2xl bg-white">
-        <img src="/cars/cobalt.png" alt="" className="w-[76px] object-contain" />
+        <img src={carImage || ANY_CAR_PHOTO} alt="" className="max-h-[60px] w-[76px] object-contain" />
       </span>
     )
   }
@@ -191,7 +201,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const canCancel = item.kind === 'taxi' && (item.status === 'PENDING' || item.status === 'ACCEPTED')
   const label = ACTIVE_LABEL[item.source === 'bot' ? 'request' : item.kind][item.status]
-  const price = formatPrice(item.price)
+  const price = item.priceText || formatPrice(item.price)
   // Cargo orders open their detail sheet, ride requests their own page (progress, driver, cancel).
   const openable = (item.kind === 'cargo' || item.source === 'bot') && onOpen
 
@@ -204,19 +214,21 @@ function ActiveCard({ item, onCancel, onOpen }) {
         tabIndex={openable ? 0 : undefined}
         onKeyDown={openable ? (e) => e.key === 'Enter' && onOpen(item) : undefined}
       >
-        <KindIcon kind={item.kind} large />
+        <KindIcon kind={item.kind} large carImage={item.carImage} />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <p className="text-[16px] font-extrabold text-ink">{item.kind === 'taxi' ? (item.womenOnly ? t('🌸 Ayollar uchun taxi') : t('Taxi')) : t('Yetkazib berish')}</p>
             {price ? <p className="shrink-0 text-[16px] font-extrabold text-ink">{price}</p> : null}
           </div>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-dark">
-              {item.kind === 'taxi' ? <CarFront className="h-3.5 w-3.5 shrink-0" /> : <Package className="h-3.5 w-3.5 shrink-0" />}
-              <span className="truncate">{t(label)}</span>
-            </span>
-            <span className="shrink-0 text-[13px] font-semibold text-slate-600">{formatWhen(item.at)}</span>
-          </div>
+          {/* Status and time each get a line — side by side the status got cut off on phones. */}
+          <span className="mt-1 inline-flex max-w-full items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-dark">
+            {item.kind === 'taxi' ? <CarFront className="h-3.5 w-3.5 shrink-0" /> : <Package className="h-3.5 w-3.5 shrink-0" />}
+            <span className="truncate">{t(label)}</span>
+          </span>
+          <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-slate-600">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0 text-muted" />
+            {item.whenText ? (/^kelishiladi$/i.test(item.whenText) ? t('Vaqti kelishiladi') : item.whenText) : formatWhen(item.at)}
+          </p>
           <div className="relative mt-2 space-y-1 text-[13.5px] text-slate-600">
             <span className="absolute left-[4.5px] top-[11px] h-[calc(100%-22px)] border-l border-dashed border-brand/60" />
             <p className="flex items-center gap-2.5">
@@ -298,7 +310,7 @@ function ActiveCard({ item, onCancel, onOpen }) {
 
 function PastRow({ item, rated, onRate, onOpen }) {
   const badge = PAST_BADGE[item.status]
-  const price = formatPrice(item.price)
+  const price = item.priceText || formatPrice(item.price)
   const canRate = item.kind === 'taxi' && item.status === 'COMPLETED' && !rated
   const content = (
     <>

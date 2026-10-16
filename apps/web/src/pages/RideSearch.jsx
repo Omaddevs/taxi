@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { api, ApiError } from '../lib/api'
-import { CARS } from '../data/cars'
+import { ANY_CAR_PHOTO, CARS } from '../data/cars'
 import {
   PARTY_OPTIONS,
   RIDE_ACCENTS,
@@ -43,7 +43,7 @@ import { LandmarkSheet, LuggageSheet, SentSheet } from '../components/ride/Optio
 import { resumeAfterPhone } from '../components/auth/PhoneRequiredDialog'
 import { t } from '../i18n'
 
-const ANY_CAR = { id: '', tier: 'Istalgan avtomobil', title: 'Farqi yo‘q', photo: '/landing/taxi-car-sm.webp' }
+const ANY_CAR = { id: '', tier: 'Istalgan avtomobil', title: 'Farqi yo‘q', photo: ANY_CAR_PHOTO }
 const CAR_OPTIONS = [ANY_CAR, ...CARS]
 
 const card = 'rounded-[22px] bg-white shadow-[0_6px_20px_rgba(16,42,67,0.05)]'
