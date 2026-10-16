@@ -60,6 +60,9 @@ export const otpConfirmByIdSchema = z.object({
 export const rateViaBotSchema = z.object({
   raterTelegramId: z.string().min(1),
   rateeTelegramId: z.string().min(1),
+  // Set when known; the only handle on a passenger who never linked Telegram.
+  raterCoreUserId: z.string().min(1).nullish(),
+  rateeCoreUserId: z.string().min(1).nullish(),
   tripRef: z.string().min(1),
   direction: z.enum(['PASSENGER_RATES_DRIVER', 'DRIVER_RATES_PASSENGER']),
   stars: z.number().int().min(1).max(5),

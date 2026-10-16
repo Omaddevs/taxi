@@ -13,7 +13,8 @@ async def resolve_audience(session: AsyncSession, audience_filter: dict) -> list
     role = audience_filter.get("role")
     region = audience_filter.get("region")
 
-    query = select(BotUser).where(BotUser.blocked.is_(False))
+    # Web-only passengers (negative telegram ids) have no Telegram chat to receive it.
+    query = select(BotUser).where(BotUser.blocked.is_(False), BotUser.telegram_id > 0)
     if role:
         query = query.where(BotUser.role == role)
     if region:

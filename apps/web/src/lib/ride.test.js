@@ -4,13 +4,13 @@ import {
   clampPrice,
   dayOptions,
   formatMoney,
-  isSlotBookable,
+  firstFreeTime,
+  isTimeBookable,
   makePoint,
   pointFor,
   seatsComplete,
   seatsSummary,
   slotEnd,
-  timeSlots,
 } from './ride'
 
 // Tuesday 13 October 2026, 13:04 local time.
@@ -23,21 +23,26 @@ describe('day and time slots', () => {
     expect(days.map((d) => d.label)).toEqual(['Bugun', 'Ertaga', 'Indinga', 'Ju, 16 okt'])
   })
 
-  it('keeps a slot bookable until it ends', () => {
-    const slots = timeSlots('2026-10-13', NOW)
-    expect(slots).toHaveLength(48)
-    expect(slots.find((s) => s.time === '12:30').past).toBe(true)
-    expect(slots.find((s) => s.time === '13:00').past).toBe(false)
-    expect(slots.find((s) => s.time === '13:30').past).toBe(false)
-    expect(timeSlots('2026-10-14', NOW).some((s) => s.past)).toBe(false)
+  it('books any minute from now on, any minute on later days', () => {
+    expect(isTimeBookable('2026-10-13', '13:04', NOW)).toBe(true)
+    expect(isTimeBookable('2026-10-13', '13:47', NOW)).toBe(true)
+    expect(isTimeBookable('2026-10-13', '13:03', NOW)).toBe(false)
+    expect(isTimeBookable('2026-10-14', '00:01', NOW)).toBe(true)
   })
 
-  it('rejects past, missing and off-grid times', () => {
-    expect(isSlotBookable('2026-10-13', '13:30', NOW)).toBe(true)
-    expect(isSlotBookable('2026-10-13', '09:00', NOW)).toBe(false)
-    expect(isSlotBookable('2026-10-12', '23:30', NOW)).toBe(false)
-    expect(isSlotBookable('2026-10-13', '13:04', NOW)).toBe(false)
-    expect(isSlotBookable('2026-10-13', '', NOW)).toBe(false)
+  it('rejects past days, missing and malformed times', () => {
+    expect(isTimeBookable('2026-10-13', '09:00', NOW)).toBe(false)
+    expect(isTimeBookable('2026-10-12', '23:30', NOW)).toBe(false)
+    expect(isTimeBookable('2026-10-13', '', NOW)).toBe(false)
+    expect(isTimeBookable('2026-10-13', '24:00', NOW)).toBe(false)
+    expect(isTimeBookable('2026-10-13', '13:60', NOW)).toBe(false)
+    expect(isTimeBookable('', '13:30', NOW)).toBe(false)
+  })
+
+  it('starts today at the current minute and later days at midnight', () => {
+    expect(firstFreeTime('2026-10-13', NOW)).toBe('13:04')
+    expect(firstFreeTime('2026-10-15', NOW)).toBe('00:00')
+    expect(firstFreeTime('2026-10-12', NOW)).toBe('')
   })
 
   it('ends a slot half an hour later, across midnight too', () => {

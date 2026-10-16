@@ -1786,7 +1786,6 @@
   "Siz allaqachon tasdiqlangan haydovchisiz": "Вы уже подтверждённый водитель",
   "Siz hali tasdiqlangan haydovchi emassiz": "Вы ещё не подтверждённый водитель",
   "Sizda hali to‘lmagan faol elon bor — yangi elon joylashdan oldin uni to‘ldiring yoki yoping": "У вас есть незаполненное активное объявление — заполните или закройте его, прежде чем размещать новое",
-  "So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)": "Чтобы отправить запрос, свяжите аккаунт с Telegram-ботом (войдите через бота)",
   "Suhbat topilmadi": "Чат не найден",
   "Summa 0 bo‘lishi mumkin emas": "Сумма не может быть 0",
   "Tanlangan o‘rindiq allaqachon band": "Выбранное место уже занято",
@@ -2233,5 +2232,11 @@
   "Kun": "День",
   "Soat": "Час",
   "Daqiqa": "Минута",
-  "surib tasdiqlang": "проведите, чтобы подтвердить"
+  "surib tasdiqlang": "проведите, чтобы подтвердить",
+  "Saqlash va yuborish": "Сохранить и отправить",
+  "Telefon raqamini kiriting": "Введите номер телефона",
+  "Email noto‘g‘ri": "Неверный email",
+  "Haydovchi raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing.": "Чтобы сменить номер водителя, напишите в службу поддержки.",
+  "Haydovchilar siz bilan shu raqam orqali bog‘lanadi.": "Водители свяжутся с вами по этому номеру.",
+  "Haydovchi va xodim raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing": "Чтобы сменить номер водителя или сотрудника, напишите в службу поддержки"
 }

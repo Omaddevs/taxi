@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown, Phone, X } from 'lucide-react'
 import { FlagUz } from '../ui/Flags'
@@ -8,11 +8,19 @@ import { t } from '../../i18n'
 
 // Accounts made with Google start without a phone. The first time something needs one (booking,
 // cargo, a request to drivers…) the API answers PHONE_REQUIRED; lib/api.js turns that into this
-// event and the dialog below asks for the number once — no code — then the person just retries.
+// event and the dialog below asks for the number once — no code. The action that hit it can
+// register itself with resumeAfterPhone(): the button then reads e.g. "Saqlash va yuborish" and
+// the action runs again right after the number is saved; otherwise the person just retries.
 export const PHONE_REQUIRED_EVENT = 'taxiline:phone-required'
+const PHONE_RESUME_EVENT = 'taxiline:phone-resume'
 
 export function askForPhone(message) {
   window.dispatchEvent(new CustomEvent(PHONE_REQUIRED_EVENT, { detail: { message } }))
+}
+
+/** Call from the failed action's error handler (after PHONE_REQUIRED): `run` goes again once saved. */
+export function resumeAfterPhone(label, run) {
+  window.dispatchEvent(new CustomEvent(PHONE_RESUME_EVENT, { detail: { label, run } }))
 }
 
 export function PhoneRequiredDialog() {
@@ -23,6 +31,8 @@ export function PhoneRequiredDialog() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [resumeLabel, setResumeLabel] = useState('')
+  const resume = useRef(null)
   const ready = isCompletePhoneUz(phone)
 
   useEffect(() => {
@@ -30,10 +40,20 @@ export function PhoneRequiredDialog() {
       setReason(e.detail?.message || '')
       setError('')
       setSaved(false)
+      setResumeLabel('')
+      resume.current = null
       setOpen(true)
     }
+    function onResume(e) {
+      resume.current = e.detail?.run || null
+      setResumeLabel(e.detail?.label || '')
+    }
     window.addEventListener(PHONE_REQUIRED_EVENT, onRequired)
-    return () => window.removeEventListener(PHONE_REQUIRED_EVENT, onRequired)
+    window.addEventListener(PHONE_RESUME_EVENT, onResume)
+    return () => {
+      window.removeEventListener(PHONE_REQUIRED_EVENT, onRequired)
+      window.removeEventListener(PHONE_RESUME_EVENT, onResume)
+    }
   }, [])
 
   useEffect(() => {
@@ -56,7 +76,13 @@ export function PhoneRequiredDialog() {
     try {
       await api.post('/auth/phone', { phone: toE164Uz(phone) })
       await queryClient.invalidateQueries({ queryKey: ['me'] })
-      setSaved(true)
+      const run = resume.current
+      resume.current = null
+      if (run) {
+        // Straight back to what the person was doing (e.g. sending the request to drivers).
+        setOpen(false)
+        run()
+      } else setSaved(true)
     } catch (err) {
       setError(err.message || t('Raqamni saqlab bo‘lmadi'))
     } finally {
@@ -123,7 +149,7 @@ export function PhoneRequiredDialog() {
               disabled={saving || !ready}
               className="mt-4 h-12 w-full rounded-full bg-brand text-[15px] font-extrabold text-ink transition hover:bg-[#00b6c2] disabled:bg-[#e9eef2] disabled:text-ink/35"
             >
-              {saving ? t('Saqlanmoqda…') : t('Saqlash')}
+              {saving ? t('Saqlanmoqda…') : resumeLabel || t('Saqlash')}
             </button>
           </form>
         )}

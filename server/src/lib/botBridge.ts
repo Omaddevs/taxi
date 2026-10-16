@@ -126,9 +126,20 @@ export async function cancelBotOrder(telegramId: string, orderId: number): Promi
   })
 }
 
-export interface CreatePassengerOrderPayload {
-  telegramId: string
+/** A website passenger as the bot knows them: their linked Telegram account if any, and always
+ * their website account — enough for accounts that never linked Telegram (Google sign-up). */
+export interface PassengerWho {
+  telegramId?: string | null
+  coreUserId: string
+}
+
+const whoQuery = (who: PassengerWho) =>
+  new URLSearchParams({ coreUserId: who.coreUserId, ...(who.telegramId ? { telegramId: who.telegramId } : {}) }).toString()
+const whoBody = (who: PassengerWho) => ({ coreUserId: who.coreUserId, ...(who.telegramId ? { telegramId: who.telegramId } : {}) })
+
+export interface CreatePassengerOrderPayload extends PassengerWho {
   name: string
+  language?: string
   phone: string
   fromRegion: string
   fromDistrict?: string
@@ -173,33 +184,31 @@ export async function createPassengerBotOrder(
   })
 }
 
-export async function getPassengerBotOrders(telegramId: string): Promise<{ orders: PassengerBotOrder[] }> {
-  return botFetch<{ orders: PassengerBotOrder[] }>(`/webapp/passenger-orders?telegramId=${encodeURIComponent(telegramId)}`)
+export async function getPassengerBotOrders(who: PassengerWho): Promise<{ orders: PassengerBotOrder[] }> {
+  return botFetch<{ orders: PassengerBotOrder[] }>(`/webapp/passenger-orders?${whoQuery(who)}`)
 }
 
-export async function getPassengerBotOrder(telegramId: string, orderId: number): Promise<{ order: PassengerBotOrder }> {
-  return botFetch<{ order: PassengerBotOrder }>(
-    `/webapp/passenger-orders/${orderId}?telegramId=${encodeURIComponent(telegramId)}`,
-  )
+export async function getPassengerBotOrder(who: PassengerWho, orderId: number): Promise<{ order: PassengerBotOrder }> {
+  return botFetch<{ order: PassengerBotOrder }>(`/webapp/passenger-orders/${orderId}?${whoQuery(who)}`)
 }
 
 export async function updatePassengerBotOrder(
-  telegramId: string,
+  who: PassengerWho,
   orderId: number,
   patch: UpdatePassengerOrderPayload,
 ): Promise<{ order: PassengerBotOrder }> {
   // Re-renders every dispatched copy of the order in Telegram — same budget as creating one.
   return botFetch<{ order: PassengerBotOrder }>(`/webapp/passenger-orders/${orderId}`, {
     method: 'PATCH',
-    body: JSON.stringify({ telegramId, ...patch }),
+    body: JSON.stringify({ ...whoBody(who), ...patch }),
     timeoutMs: 30000,
   })
 }
 
-export async function cancelPassengerBotOrder(telegramId: string, orderId: number): Promise<{ order: PassengerBotOrder }> {
+export async function cancelPassengerBotOrder(who: PassengerWho, orderId: number): Promise<{ order: PassengerBotOrder }> {
   return botFetch<{ order: PassengerBotOrder }>(`/webapp/passenger-orders/${orderId}/cancel`, {
     method: 'POST',
-    body: JSON.stringify({ telegramId }),
+    body: JSON.stringify(whoBody(who)),
     timeoutMs: 30000,
   })
 }
@@ -281,13 +290,13 @@ export async function deleteAdminBotOrder(orderId: number): Promise<{ ok: true }
 }
 
 export async function ratePassengerBotOrder(
-  telegramId: string,
+  who: PassengerWho,
   orderId: number,
   data: { stars: number; tags?: string[]; comment?: string },
 ): Promise<{ ok: true }> {
   return botFetch<{ ok: true }>(`/webapp/passenger-orders/${orderId}/rate`, {
     method: 'POST',
-    body: JSON.stringify({ telegramId, ...data }),
+    body: JSON.stringify({ ...whoBody(who), ...data }),
   })
 }
 

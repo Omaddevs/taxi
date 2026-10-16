@@ -25,8 +25,8 @@ export default function TripHistory() {
   const inDriver = pathname.startsWith('/driver')
   const [tab, setTab] = useState('all')
   const { data: bookings = [], isLoading } = useMyBookings({ status: tab === 'all' ? undefined : tab })
-  // Bot orders for users also linked to taxiline-bot (User.telegramId) — empty list otherwise,
-  // so this merges in cleanly with no extra UI when there's nothing to show.
+  // Requests sent to drivers (taxiline-bot orders) — from the bot or from this site, linked to
+  // Telegram or not; an empty list merges in cleanly with no extra UI.
   const { data: botOrders = [] } = useQuery({
     queryKey: ['bot-orders', 'mine'],
     queryFn: () => api.get('/bot-orders/mine').then((res) => res.orders),

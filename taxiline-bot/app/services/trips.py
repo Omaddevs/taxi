@@ -12,6 +12,7 @@ from app.db.models import BotUser, DriverProfile, Order, OrderDispatch
 from app.i18n.translations import t
 from app.keyboards.trip import luggage_label, order_claim_kb, rating_kb, seat_label
 from app.services import groups as groups_service
+from app.services.users import is_web_only
 from app.tts.engine import synth
 
 logger = logging.getLogger(__name__)
@@ -488,7 +489,7 @@ async def perform_claim(
     await mark_all_taken(bot, session, order, except_dispatch_id=except_dispatch_id)
 
     client = await session.get(BotUser, order.bot_user_id)
-    if client is not None:
+    if client is not None and not is_web_only(client.telegram_id):
         try:
             await bot.send_message(
                 client.telegram_id,
@@ -515,7 +516,7 @@ async def perform_enroute(bot: Bot, session: AsyncSession, order_id: int, driver
     await confirm_enroute(session, order_id)
 
     client = await session.get(BotUser, order.bot_user_id)
-    if client is not None:
+    if client is not None and not is_web_only(client.telegram_id):
         try:
             await bot.send_message(client.telegram_id, t("driver_enroute_notify_client", client.language))
         except TelegramAPIError:
@@ -542,6 +543,7 @@ async def perform_complete(bot: Bot, session: AsyncSession, order_id: int, drive
     if client is not None:
         client.trips_count += 1
         await session.commit()
+    if client is not None and not is_web_only(client.telegram_id):
         try:
             await bot.send_message(
                 client.telegram_id,
@@ -592,7 +594,7 @@ async def perform_cancel_claim(bot: Bot, session: AsyncSession, order_id: int, d
         return None
 
     client = await session.get(BotUser, order.bot_user_id)
-    if client is not None:
+    if client is not None and not is_web_only(client.telegram_id):
         try:
             await bot.send_message(client.telegram_id, t("order_cancelled_by_driver_notify_client", client.language))
         except TelegramAPIError:

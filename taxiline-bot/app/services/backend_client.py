@@ -191,6 +191,8 @@ class BackendClient:
         stars: int,
         tags: list[str] | None = None,
         comment: str | None = None,
+        rater_core_user_id: str | None = None,
+        ratee_core_user_id: str | None = None,
     ) -> bool:
         try:
             resp = await self._client.post(
@@ -198,6 +200,9 @@ class BackendClient:
                 json={
                     "raterTelegramId": str(rater_telegram_id),
                     "rateeTelegramId": str(ratee_telegram_id),
+                    # Web-only passengers (negative telegram ids) are only known by their account.
+                    "raterCoreUserId": rater_core_user_id,
+                    "rateeCoreUserId": ratee_core_user_id,
                     "tripRef": trip_ref,
                     "direction": direction,
                     "stars": stars,

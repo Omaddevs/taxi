@@ -90,7 +90,6 @@
   "Siz allaqachon tasdiqlangan haydovchisiz",
   "Siz hali tasdiqlangan haydovchi emassiz",
   "Sizda hali to‘lmagan faol elon bor — yangi elon joylashdan oldin uni to‘ldiring yoki yoping",
-  "So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)",
   "Suhbat topilmadi",
   "Summa 0 bo‘lishi mumkin emas",
   "Tanlangan o‘rindiq allaqachon band",
@@ -128,5 +127,8 @@
   "Hujjatlarni yuborish uchun shaxsiy ma’lumotlarni qayta ishlashga rozilik bering",
   "Arizangiz bloklangan. Yordam xizmatiga murojaat qiling",
   "Izoh yozing",
-  "Ism familiyangizni kiriting"
+  "Ism familiyangizni kiriting",
+  "Haydovchi va xodim raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing",
+  "Raqam +998 XX XXX XX XX formatida, 9 xonali bo‘lishi kerak",
+  "Email noto‘g‘ri"
 ]

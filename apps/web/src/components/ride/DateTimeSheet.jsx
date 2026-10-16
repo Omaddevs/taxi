@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { User } from 'lucide-react'
-import { dayLabel, dayOptions, isSlotBookable, slotEnd, timeSlots } from '../../lib/ride'
+import { dayLabel, dayOptions, firstFreeTime, isTimeBookable, slotEnd } from '../../lib/ride'
 import { cn } from '../../lib/utils'
 import { Sheet } from './Sheet'
 import { SwipeButton } from './SwipeButton'
@@ -9,12 +9,11 @@ import { t } from '../../i18n'
 
 const pad = (n) => String(n).padStart(2, '0')
 const HOURS = Array.from({ length: 24 }, (_, h) => pad(h))
-const MINUTES = ['00', '30']
-const firstFree = (iso) => timeSlots(iso).find((s) => !s.past)?.time ?? ''
+const MINUTES = Array.from({ length: 60 }, (_, m) => pad(m))
 
 // "Sanani tanlang": three wheels — day, hour, minute — in the iOS picker style; the row on the
-// band in the middle is the choice. Departures go in half-hour slots, and a slot that has
-// already passed stays on its wheel, greyed, but can't be chosen.
+// band in the middle is the choice. Any minute can be picked; today's minutes that have already
+// passed stay on their wheel, greyed, but can't be chosen.
 export function DateTimeSheet({ open, onClose, accent, date, time, party, onConfirm }) {
   const days = dayOptions()
   const [day, setDay] = useState(date)
@@ -24,33 +23,33 @@ export function DateTimeSheet({ open, onClose, accent, date, time, party, onConf
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) {
-      // The given day if it still has a free slot, else the first one that does (late at night
-      // today has none left).
-      const start = [date, ...days.map((d) => d.iso)].find((iso) => days.some((d) => d.iso === iso) && firstFree(iso))
+      const start = days.some((d) => d.iso === date) ? date : days[0].iso
       setDay(start)
-      setSlot(isSlotBookable(start, time) ? time : firstFree(start))
+      setSlot(isTimeBookable(start, time) ? time : firstFreeTime(start))
     }
   }
 
-  const slots = timeSlots(day)
-  const past = new Set(slots.filter((s) => s.past).map((s) => s.time))
   const [hour, minute] = slot ? slot.split(':') : ['', '']
+  const free = (h, m) => isTimeBookable(day, `${h}:${m}`)
 
-  const dayItems = days.map((d) => ({ value: d.iso, label: d.label, disabled: !firstFree(d.iso) }))
-  const hourItems = HOURS.map((h) => ({ value: h, label: h, disabled: MINUTES.every((m) => past.has(`${h}:${m}`)) }))
-  const minuteItems = MINUTES.map((m) => ({ value: m, label: m, disabled: past.has(`${hour}:${m}`) }))
+  const dayItems = days.map((d) => ({ value: d.iso, label: d.label }))
+  // An hour is out once its last minute has passed.
+  const hourItems = HOURS.map((h) => ({ value: h, label: h, disabled: !free(h, '59') }))
+  const minuteItems = MINUTES.map((m) => ({ value: m, label: m, disabled: !free(hour, m) }))
 
   // Keep the time when it still works on the new day / hour, else the nearest one that does.
   function pickDay(iso) {
     setDay(iso)
-    setSlot((cur) => (isSlotBookable(iso, cur) ? cur : firstFree(iso)))
+    setSlot((cur) => (isTimeBookable(iso, cur) ? cur : firstFreeTime(iso)))
   }
   function pickHour(h) {
-    const options = [`${h}:${minute}`, ...MINUTES.map((m) => `${h}:${m}`)]
-    setSlot(options.find((s) => isSlotBookable(day, s)) ?? firstFree(day))
+    if (free(h, minute)) return setSlot(`${h}:${minute}`)
+    // The current hour today: from the current minute.
+    const m = MINUTES.find((x) => free(h, x))
+    setSlot(m ? `${h}:${m}` : firstFreeTime(day))
   }
   function pickMinute(m) {
-    if (isSlotBookable(day, `${hour}:${m}`)) setSlot(`${hour}:${m}`)
+    if (free(hour, m)) setSlot(`${hour}:${m}`)
   }
 
   return (

@@ -30,6 +30,7 @@ async def submit_rating(callback: CallbackQuery, session, bot_user) -> None:
             return
         rater_telegram_id = bot_user.telegram_id
         ratee_telegram_id = client.telegram_id
+        ratee_core_user_id = client.core_user_id  # the only way to find a web-only passenger
         direction = "DRIVER_RATES_PASSENGER"
     else:
         # Only the passenger who actually took this trip may rate its driver.
@@ -42,6 +43,7 @@ async def submit_rating(callback: CallbackQuery, session, bot_user) -> None:
             return
         rater_telegram_id = bot_user.telegram_id
         ratee_telegram_id = driver_bot_user.telegram_id
+        ratee_core_user_id = driver_bot_user.core_user_id
         direction = "PASSENGER_RATES_DRIVER"
 
     ok = await backend_client.submit_rating(
@@ -50,6 +52,8 @@ async def submit_rating(callback: CallbackQuery, session, bot_user) -> None:
         trip_ref=f"bot:{order_id}",
         direction=direction,
         stars=stars,
+        rater_core_user_id=bot_user.core_user_id,
+        ratee_core_user_id=ratee_core_user_id,
     )
 
     if not ok:

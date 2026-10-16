@@ -23,7 +23,7 @@ import {
   RIDE_ACCENTS,
   buildOrderPayload,
   dayLabel,
-  isSlotBookable,
+  isTimeBookable,
   makePoint,
   partyLabel,
   pointFor,
@@ -40,6 +40,7 @@ import { DateTimeSheet } from '../components/ride/DateTimeSheet'
 import { SeatSheet } from '../components/ride/SeatSheet'
 import { FareSheet } from '../components/ride/FareSheet'
 import { LandmarkSheet, LuggageSheet, SentSheet } from '../components/ride/OptionSheets'
+import { resumeAfterPhone } from '../components/auth/PhoneRequiredDialog'
 import { t } from '../i18n'
 
 const ANY_CAR = { id: '', tier: 'Istalgan avtomobil', title: 'Farqi yo‘q', photo: '/landing/taxi-car-sm.webp' }
@@ -202,7 +203,7 @@ export default function RideSearch() {
   const required = seatsRequired(party)
   const routeReady = Boolean(search.fromRegion && search.toRegion)
   // A slot chosen a while ago may have passed since.
-  const dateReady = search.dateChosen && isSlotBookable(search.date, search.time)
+  const dateReady = search.dateChosen && isTimeBookable(search.date, search.time)
   const seatsReady = seatsComplete({ ...party, seats })
   const priceReady = Boolean(search.priceMode)
   const step = nextStep({ routeReady, dateReady, seatsReady, priceReady })
@@ -215,7 +216,14 @@ export default function RideSearch() {
       update({ dateChosen: false, seats: [], price: null, priceMode: '', landmark: '' })
       queryClient.invalidateQueries({ queryKey: ['bot-orders', 'mine'] })
     },
-    onError: (err) => setNotice(err instanceof ApiError ? err.message : t('Xatolik yuz berdi, qayta urinib ko‘ring')),
+    onError: (err) => {
+      // No phone yet (Google account): the dialog asks for it, then sends this request itself.
+      if (err instanceof ApiError && err.code === 'PHONE_REQUIRED') {
+        resumeAfterPhone(t('Saqlash va yuborish'), () => send.mutate())
+        return
+      }
+      setNotice(err instanceof ApiError ? err.message : t('Xatolik yuz berdi, qayta urinib ko‘ring'))
+    },
   })
 
   function openStep(next) {

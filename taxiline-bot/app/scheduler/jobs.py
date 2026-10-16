@@ -44,7 +44,7 @@ async def _women_first_job(bot: Bot) -> None:
     async with session_scope() as session:
         for order in await trips_service.open_expired_women_orders(bot, session):
             client = await session.get(BotUser, order.bot_user_id)
-            if client is None:
+            if client is None or users_service.is_web_only(client.telegram_id):
                 continue
             try:
                 await bot.send_message(client.telegram_id, t("order_women_opened_client", client.language))
@@ -109,7 +109,7 @@ async def _claim_timeout_job(bot: Bot) -> None:
 
         for order, flaked_driver_id in released:
             client = await session.get(BotUser, order.bot_user_id)
-            if client is not None:
+            if client is not None and not users_service.is_web_only(client.telegram_id):
                 try:
                     await bot.send_message(client.telegram_id, t("order_reclaim_search", client.language))
                 except TelegramAPIError:

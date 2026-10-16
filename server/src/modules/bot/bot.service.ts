@@ -200,15 +200,20 @@ export async function issueTelegramLoginToken(telegramId: string) {
 export async function rateViaBot(input: {
   raterTelegramId: string
   rateeTelegramId: string
+  raterCoreUserId?: string | null
+  rateeCoreUserId?: string | null
   tripRef: string
   direction: RatingDirection
   stars: number
   tags?: string[]
   comment?: string
 }) {
+  const find = async (telegramId: string, coreUserId?: string | null) =>
+    (await prisma.user.findUnique({ where: { telegramId } })) ??
+    (coreUserId ? await prisma.user.findUnique({ where: { id: coreUserId } }) : null)
   const [rater, ratee] = await Promise.all([
-    prisma.user.findUnique({ where: { telegramId: input.raterTelegramId } }),
-    prisma.user.findUnique({ where: { telegramId: input.rateeTelegramId } }),
+    find(input.raterTelegramId, input.raterCoreUserId),
+    find(input.rateeTelegramId, input.rateeCoreUserId),
   ])
   if (!rater || !ratee) throw new NotFoundError('Foydalanuvchi topilmadi')
 

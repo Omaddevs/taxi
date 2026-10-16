@@ -1,7 +1,7 @@
 import type { z } from 'zod'
 import { env } from '../../config/env.js'
 import { prisma } from '../../lib/prisma.js'
-import { ForbiddenError, PhoneRequiredError, ValidationError } from '../../errors/AppError.js'
+import { ForbiddenError, NotFoundError, PhoneRequiredError, ValidationError } from '../../errors/AppError.js'
 import * as botBridge from '../../lib/botBridge.js'
 import { ONLINE_PAYMENTS_SOON } from '../../middleware/onlinePayments.js'
 import type { createPassengerOrderSchema, estimateFareSchema, updatePassengerOrderSchema } from './botOrders.schema.js'
@@ -78,14 +78,21 @@ export async function getFareEstimate(input: z.infer<typeof estimateFareSchema>)
   return estimateFare({ km, passengers: input.passengers, wholeCar: input.wholeCar }, await getFareRates())
 }
 
+/** The passenger as the bot knows them — a website account needn't have linked Telegram. */
+async function passengerWho(userId: string): Promise<botBridge.PassengerWho> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { telegramId: true } })
+  if (!user) throw new NotFoundError('Foydalanuvchi topilmadi')
+  return { telegramId: user.telegramId, coreUserId: userId }
+}
+
 export async function createPassengerOrder(userId: string, input: CreateInput) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { telegramId: true, name: true, phone: true },
+    select: { telegramId: true, name: true, phone: true, language: true },
   })
-  if (!user?.telegramId) {
-    throw new ForbiddenError('So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)')
-  }
+  if (!user) throw new NotFoundError('Foydalanuvchi topilmadi')
+  // Drivers call the passenger on this number, so it's the one thing a request can't go without.
+  // Telegram isn't needed: an account that never linked it (Google sign-up) books as itself.
   if (!user.phone) throw new PhoneRequiredError()
   assertPaymentMethod(input.paymentMethod)
 
@@ -94,6 +101,8 @@ export async function createPassengerOrder(userId: string, input: CreateInput) {
   return botBridge.createPassengerBotOrder({
     ...rest,
     telegramId: user.telegramId,
+    coreUserId: userId,
+    language: user.language ?? undefined,
     name: user.name || 'Yo‘lovchi',
     phone: user.phone,
     whenText: formatWhen(date, time),
@@ -106,28 +115,24 @@ export async function createPassengerOrder(userId: string, input: CreateInput) {
 }
 
 export async function getMyPassengerOrders(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { telegramId: true } })
-  if (!user?.telegramId) return { orders: [] }
-  return botBridge.getPassengerBotOrders(user.telegramId)
+  return botBridge.getPassengerBotOrders(await passengerWho(userId))
 }
 
 export async function getMyPassengerOrder(userId: string, orderId: number) {
-  const telegramId = await requireTelegramId(userId)
-  return botBridge.getPassengerBotOrder(telegramId, orderId)
+  return botBridge.getPassengerBotOrder(await passengerWho(userId), orderId)
 }
 
 export async function updateMyPassengerOrder(userId: string, orderId: number, input: UpdateInput) {
-  const telegramId = await requireTelegramId(userId)
+  const who = await passengerWho(userId)
   const { date, time, ...rest } = input
-  return botBridge.updatePassengerBotOrder(telegramId, orderId, {
+  return botBridge.updatePassengerBotOrder(who, orderId, {
     ...rest,
     ...(date && time ? { whenText: formatWhen(date, time), departAt: departAtOf(date, time, { strict: true }) } : {}),
   })
 }
 
 export async function cancelMyPassengerOrder(userId: string, orderId: number) {
-  const telegramId = await requireTelegramId(userId)
-  return botBridge.cancelPassengerBotOrder(telegramId, orderId)
+  return botBridge.cancelPassengerBotOrder(await passengerWho(userId), orderId)
 }
 
 export async function rateMyPassengerOrder(
@@ -135,6 +140,5 @@ export async function rateMyPassengerOrder(
   orderId: number,
   data: { stars: number; tags?: string[]; comment?: string },
 ) {
-  const telegramId = await requireTelegramId(userId)
-  return botBridge.ratePassengerBotOrder(telegramId, orderId, data)
+  return botBridge.ratePassengerBotOrder(await passengerWho(userId), orderId, data)
 }

@@ -1776,7 +1776,6 @@
   "Siz allaqachon tasdiqlangan haydovchisiz": "You're already an approved driver",
   "Siz hali tasdiqlangan haydovchi emassiz": "You're not an approved driver yet",
   "Sizda hali to‘lmagan faol elon bor — yangi elon joylashdan oldin uni to‘ldiring yoki yoping": "You have an active ride that isn't full yet — fill or close it before posting a new one",
-  "So‘rov yuborish uchun hisobingizni Telegram bot bilan bog‘lang (bot orqali kiring)": "To send a request, link your account to the Telegram bot (sign in via the bot)",
   "Suhbat topilmadi": "Chat not found",
   "Summa 0 bo‘lishi mumkin emas": "The amount can't be 0",
   "Tanlangan o‘rindiq allaqachon band": "The selected seat is already taken",
@@ -2205,5 +2204,11 @@
   "Kun": "Day",
   "Soat": "Hour",
   "Daqiqa": "Minute",
-  "surib tasdiqlang": "slide to confirm"
+  "surib tasdiqlang": "slide to confirm",
+  "Saqlash va yuborish": "Save and send",
+  "Telefon raqamini kiriting": "Enter your phone number",
+  "Email noto‘g‘ri": "Invalid email",
+  "Haydovchi raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing.": "To change a driver’s number, contact support.",
+  "Haydovchilar siz bilan shu raqam orqali bog‘lanadi.": "Drivers will contact you on this number.",
+  "Haydovchi va xodim raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing": "To change a driver’s or staff member’s number, contact support"
 }

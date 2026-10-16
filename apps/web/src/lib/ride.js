@@ -93,21 +93,26 @@ export function slotEnd(time) {
   return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`
 }
 
-/** The day's half-hour departure slots. A slot stays bookable until it ends. */
-export function timeSlots(iso, now = new Date()) {
-  const diff = daysFromToday(iso, now)
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
-  return Array.from({ length: (24 * 60) / SLOT_MINUTES }, (_, i) => {
-    const start = i * SLOT_MINUTES
-    return {
-      time: `${pad(Math.floor(start / 60))}:${pad(start % 60)}`,
-      past: diff < 0 || (diff === 0 && start + SLOT_MINUTES <= nowMinutes),
-    }
-  })
+/** Minutes after midnight of "HH:MM", or null when it isn't a valid time. */
+function minutesOf(time) {
+  const m = /^(\d{2}):(\d{2})$/.exec(time || '')
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null
+  return Number(m[1]) * 60 + Number(m[2])
 }
 
-export function isSlotBookable(iso, time, now = new Date()) {
-  return Boolean(iso && time) && timeSlots(iso, now).some((slot) => slot.time === time && !slot.past)
+/** Any minute can be chosen; today only from the current minute on, never a past day. */
+export function isTimeBookable(iso, time, now = new Date()) {
+  const minutes = minutesOf(time)
+  if (!iso || minutes === null) return false
+  const diff = daysFromToday(iso, now)
+  return diff > 0 || (diff === 0 && minutes >= now.getHours() * 60 + now.getMinutes())
+}
+
+/** The earliest bookable time of a day: now for today, midnight for the days after. */
+export function firstFreeTime(iso, now = new Date()) {
+  const diff = daysFromToday(iso, now)
+  if (diff < 0) return ''
+  return diff === 0 ? `${pad(now.getHours())}:${pad(now.getMinutes())}` : '00:00'
 }
 
 /** "180 000" */

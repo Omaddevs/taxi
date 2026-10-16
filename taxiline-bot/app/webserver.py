@@ -513,7 +513,9 @@ async def driver_gender(request: web.Request) -> web.Response:
 async def passenger_order_create(request: web.Request) -> web.Response:
     """A passenger looking for a car on the website: becomes a normal bot Order, dispatched to
     the same driver groups / driver DMs as a Telegram order, and shows up in the website's
-    driver section. Identity is the passenger's linked Telegram account."""
+    driver section. Identity is the passenger's linked Telegram account — or, for a website
+    account that never linked Telegram (Google sign-up), the website account itself (coreUserId),
+    which gets a web-only BotUser of its own (see users_service.is_web_only)."""
     if not _authorized(request):
         return web.json_response({"error": "unauthorized"}, status=401)
     try:
@@ -522,10 +524,11 @@ async def passenger_order_create(request: web.Request) -> web.Response:
         return web.json_response({"error": "invalid json"}, status=400)
 
     telegram_id = payload.get("telegramId")
+    core_user_id = payload.get("coreUserId")
     from_region = (payload.get("fromRegion") or "").strip()
     to_region = (payload.get("toRegion") or "").strip()
-    if not telegram_id or not from_region or not to_region:
-        return web.json_response({"error": "telegramId, fromRegion and toRegion are required"}, status=400)
+    if not (telegram_id or core_user_id) or not from_region or not to_region:
+        return web.json_response({"error": "telegramId or coreUserId, fromRegion and toRegion are required"}, status=400)
     try:
         passengers = max(1, min(int(payload.get("passengers") or 1), 8))
     except (TypeError, ValueError):
@@ -533,7 +536,17 @@ async def passenger_order_create(request: web.Request) -> web.Response:
 
     bot: Bot = request.app["bot"]
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
+        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id)) if telegram_id else None
+        if bot_user is None and core_user_id:
+            if not payload.get("phone"):
+                return web.json_response({"error": "phone_required"}, status=400)
+            bot_user = await users_service.get_or_create_web_only(
+                session,
+                core_user_id=str(core_user_id),
+                phone=str(payload["phone"]),
+                name=(payload.get("name") or "").strip()[:120] or None,
+                language=str(payload.get("language") or "uz"),
+            )
         if bot_user is None:
             return web.json_response({"error": "bot_user_not_found"}, status=404)
 
@@ -572,12 +585,13 @@ async def passenger_order_create(request: web.Request) -> web.Response:
         )
         sent = await trips_service.dispatch_order(bot, session, order)
 
-        lang = bot_user.language or "uz"
-        created_key = trips_service.created_message_key(order)
-        try:
-            await bot.send_message(bot_user.telegram_id, t(created_key if sent else "no_group_for_region", lang))
-        except TelegramAPIError:
-            pass
+        if not users_service.is_web_only(bot_user.telegram_id):
+            lang = bot_user.language or "uz"
+            created_key = trips_service.created_message_key(order)
+            try:
+                await bot.send_message(bot_user.telegram_id, t(created_key if sent else "no_group_for_region", lang))
+            except TelegramAPIError:
+                pass
 
         return web.json_response({"order": _serialize_order(order), "sent": sent}, status=201)
 
@@ -719,17 +733,19 @@ async def passenger_order_rate(request: web.Request) -> web.Response:
         return web.json_response({"error": "invalid json"}, status=400)
 
     telegram_id = payload.get("telegramId")
+    core_user_id = payload.get("coreUserId")
     stars = payload.get("stars")
-    if not telegram_id or not isinstance(stars, int) or not 1 <= stars <= 5:
-        return web.json_response({"error": "telegramId and stars(1-5) required"}, status=400)
+    if not (telegram_id or core_user_id) or not isinstance(stars, int) or not 1 <= stars <= 5:
+        return web.json_response({"error": "telegramId or coreUserId, and stars(1-5) required"}, status=400)
 
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
-        if bot_user is None:
+        users = await _passenger_users(session, telegram_id, core_user_id)
+        if not users:
             return web.json_response({"error": "not_found"}, status=404)
 
         order = await session.get(Order, order_id)
-        if order is None or order.bot_user_id != bot_user.id or order.status != "COMPLETED":
+        bot_user = _owner(users, order)
+        if bot_user is None or order.status != "COMPLETED":
             return web.json_response({"error": "invalid_state"}, status=409)
 
         driver = await session.get(DriverProfile, order.assigned_driver_id) if order.assigned_driver_id else None
@@ -740,6 +756,8 @@ async def passenger_order_rate(request: web.Request) -> web.Response:
         ok = await backend_client.submit_rating(
             rater_telegram_id=bot_user.telegram_id,
             ratee_telegram_id=driver_bot_user.telegram_id,
+            rater_core_user_id=bot_user.core_user_id,
+            ratee_core_user_id=driver_bot_user.core_user_id,
             trip_ref=f"bot:{order_id}",
             direction="PASSENGER_RATES_DRIVER",
             stars=stars,
@@ -751,20 +769,42 @@ async def passenger_order_rate(request: web.Request) -> web.Response:
         return web.json_response({"ok": True})
 
 
+async def _passenger_users(session, telegram_id, core_user_id) -> list[BotUser]:
+    """Everyone a website passenger is in the bot: the Telegram-linked BotUser and/or the web-only
+    one — orders made before they linked Telegram stay theirs."""
+    users: list[BotUser] = []
+    if telegram_id:
+        linked = await users_service.get_by_telegram_id(session, int(telegram_id))
+        if linked is not None:
+            users.append(linked)
+    if core_user_id:
+        web_only = await users_service.get_web_only(session, str(core_user_id))
+        if web_only is not None:
+            users.append(web_only)
+    return users
+
+
+def _owner(users: list[BotUser], order: Order | None) -> BotUser | None:
+    if order is None:
+        return None
+    return next((u for u in users if u.id == order.bot_user_id), None)
+
+
 @routes.get("/webapp/passenger-orders")
 async def passenger_orders(request: web.Request) -> web.Response:
     if not _authorized(request):
         return web.json_response({"error": "unauthorized"}, status=401)
 
     telegram_id = request.query.get("telegramId")
-    if not telegram_id:
-        return web.json_response({"error": "telegramId required"}, status=400)
+    core_user_id = request.query.get("coreUserId")
+    if not (telegram_id or core_user_id):
+        return web.json_response({"error": "telegramId or coreUserId required"}, status=400)
 
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
-        if bot_user is None:
-            return web.json_response({"orders": []})
-        orders = await trips_service.list_my_trips(session, bot_user, limit=50)
+        orders = []
+        for bot_user in await _passenger_users(session, telegram_id, core_user_id):
+            orders += await trips_service.list_my_trips(session, bot_user, limit=50)
+        orders = sorted(orders, key=lambda o: o.created_at, reverse=True)[:50]
         driver_ids = {o.assigned_driver_id for o in orders if o.assigned_driver_id}
         drivers: dict[int, DriverProfile] = {}
         if driver_ids:
@@ -776,18 +816,20 @@ async def passenger_orders(request: web.Request) -> web.Response:
 
 
 def _passenger_order_request(request: web.Request, payload: dict | None):
-    """Shared guard for the passenger's single-order endpoints: (order_id, telegram_id) or an
-    error response. `payload` is the parsed body for POST/PATCH, None for GET."""
+    """Shared guard for the passenger's single-order endpoints: (order_id, telegram_id,
+    core_user_id) or an error response. `payload` is the parsed body for POST/PATCH, None for GET."""
     if not _authorized(request):
         return web.json_response({"error": "unauthorized"}, status=401)
     try:
         order_id = int(request.match_info["order_id"])
     except ValueError:
         return web.json_response({"error": "invalid order id"}, status=400)
-    telegram_id = payload.get("telegramId") if payload is not None else request.query.get("telegramId")
-    if not telegram_id:
-        return web.json_response({"error": "telegramId required"}, status=400)
-    return order_id, telegram_id
+    source = payload if payload is not None else request.query
+    telegram_id = source.get("telegramId")
+    core_user_id = source.get("coreUserId")
+    if not (telegram_id or core_user_id):
+        return web.json_response({"error": "telegramId or coreUserId required"}, status=400)
+    return order_id, telegram_id, core_user_id
 
 
 async def _passenger_order_response(session, order: Order) -> web.Response:
@@ -800,12 +842,11 @@ async def passenger_order_get(request: web.Request) -> web.Response:
     guard = _passenger_order_request(request, None)
     if isinstance(guard, web.Response):
         return guard
-    order_id, telegram_id = guard
+    order_id, telegram_id, core_user_id = guard
 
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
         order = await session.get(Order, order_id)
-        if bot_user is None or order is None or order.bot_user_id != bot_user.id:
+        if _owner(await _passenger_users(session, telegram_id, core_user_id), order) is None:
             return web.json_response({"error": "not_found"}, status=404)
         return await _passenger_order_response(session, order)
 
@@ -820,7 +861,7 @@ async def passenger_order_update(request: web.Request) -> web.Response:
     guard = _passenger_order_request(request, payload)
     if isinstance(guard, web.Response):
         return guard
-    order_id, telegram_id = guard
+    order_id, telegram_id, core_user_id = guard
 
     changes = _order_extras(payload)
     if "whenText" in payload:
@@ -839,9 +880,9 @@ async def passenger_order_update(request: web.Request) -> web.Response:
 
     bot: Bot = request.app["bot"]
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
         existing = await session.get(Order, order_id)
-        if bot_user is None or existing is None or existing.bot_user_id != bot_user.id:
+        bot_user = _owner(await _passenger_users(session, telegram_id, core_user_id), existing)
+        if bot_user is None:
             return web.json_response({"error": "not_found"}, status=404)
         if existing.women_only:
             changes.pop("passenger_gender", None)
@@ -860,13 +901,13 @@ async def passenger_order_cancel(request: web.Request) -> web.Response:
     guard = _passenger_order_request(request, payload)
     if isinstance(guard, web.Response):
         return guard
-    order_id, telegram_id = guard
+    order_id, telegram_id, core_user_id = guard
 
     bot: Bot = request.app["bot"]
     async with session_scope() as session:
-        bot_user = await users_service.get_by_telegram_id(session, int(telegram_id))
         existing = await session.get(Order, order_id)
-        if bot_user is None or existing is None or existing.bot_user_id != bot_user.id:
+        bot_user = _owner(await _passenger_users(session, telegram_id, core_user_id), existing)
+        if bot_user is None:
             return web.json_response({"error": "not_found"}, status=404)
         order = await trips_service.perform_passenger_cancel(bot, session, order_id, bot_user)
         if order is None:

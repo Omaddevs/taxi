@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime
 
 from sqlalchemy import or_, select
@@ -10,6 +11,46 @@ from app.db.models import AdminGrant, BotUser
 async def get_by_telegram_id(session: AsyncSession, telegram_id: int) -> BotUser | None:
     result = await session.execute(select(BotUser).where(BotUser.telegram_id == telegram_id))
     return result.scalar_one_or_none()
+
+
+# Website passengers who never linked Telegram (signed up with Google) still book rides: they get a
+# BotUser of their own, keyed by the website account (core_user_id) and given a negative
+# telegram_id — real Telegram user ids are always positive, so the sign alone marks "web only"
+# and nothing tries to message them in Telegram.
+def is_web_only(telegram_id: int | None) -> bool:
+    return telegram_id is not None and telegram_id < 0
+
+
+def web_only_telegram_id(core_user_id: str) -> int:
+    return -(int(hashlib.sha256(core_user_id.encode()).hexdigest()[:13], 16) + 1)
+
+
+async def get_web_only(session: AsyncSession, core_user_id: str) -> BotUser | None:
+    return await get_by_telegram_id(session, web_only_telegram_id(core_user_id))
+
+
+async def get_or_create_web_only(
+    session: AsyncSession, *, core_user_id: str, phone: str, name: str | None, language: str = "uz"
+) -> BotUser:
+    user = await get_web_only(session, core_user_id)
+    if user is not None:
+        changed = False
+        if phone and user.phone != phone:
+            user.phone, changed = phone, True
+        if name and user.name != name:
+            user.name, changed = name, True
+        if changed:
+            await session.commit()
+        return user
+    return await create(
+        session,
+        telegram_id=web_only_telegram_id(core_user_id),
+        phone=phone,
+        name=name,
+        username=None,
+        language=language if language in ("uz", "ru", "en") else "uz",
+        core_user_id=core_user_id,
+    )
 
 
 async def list_admins(session: AsyncSession) -> list[BotUser]:
