@@ -2201,5 +2201,9 @@
   "Piyodalarni o‘tkazib yuboryapmiz": "Letting pedestrians cross",
   "Omadbek Egamberdiyev": "Omadbek Egamberdiyev",
   "Sahifa topilmadi": "Page not found",
-  "Bu manzil mavjud emas yoki ko‘chirilgan. Bosh sahifaga qayting yoki savollar bo‘limiga qarang.": "This address doesn’t exist or has moved. Go back to the home page or check the FAQ."
+  "Bu manzil mavjud emas yoki ko‘chirilgan. Bosh sahifaga qayting yoki savollar bo‘limiga qarang.": "This address doesn’t exist or has moved. Go back to the home page or check the FAQ.",
+  "Kun": "Day",
+  "Soat": "Hour",
+  "Daqiqa": "Minute",
+  "surib tasdiqlang": "slide to confirm"
 }
