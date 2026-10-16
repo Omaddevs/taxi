@@ -265,7 +265,7 @@ export function DesktopHome() {
           artClass="-right-10 bottom-2 w-[300px]"
           artStyle={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
         />
-        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} art="/home/box.webp" artClass="-bottom-4 -right-4 w-[140px]" />
+        <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')} art="/home/parcel-hands.webp" artClass="-bottom-3 -right-1 w-[128px]" />
         <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="col-span-2" art="/home/driver-mascot.webp" artClass="-bottom-2 right-1 w-[96px]" />
       </section>
 

@@ -151,9 +151,9 @@ export function MobileHome() {
         </Tile>
         <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')}>
           <img
-            src="/home/box.webp"
+            src="/home/parcel-hands.webp"
             alt=""
-            className="pointer-events-none absolute -bottom-3 -right-3 w-[108px] max-w-none drop-shadow-lg"
+            className="pointer-events-none absolute -bottom-2 -right-1 w-[96px] max-w-none drop-shadow-lg"
           />
         </Tile>
         <Tile to="/map" title={t('Smart Xarita')} hint={t('Yangi')}>
