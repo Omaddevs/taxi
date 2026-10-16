@@ -637,50 +637,6 @@ html.dark .bg-ink .text-white { color: #121218; }
   }
 }
 
-/* Landing — "Butun O‘zbekiston bo‘ylab" tarmoq xaritasi va hududlar karuseli */
-@keyframes regions-flow {
-  to {
-    stroke-dashoffset: -110;
-  }
-}
-@keyframes regions-float {
-  0%,
-  100% {
-    transform: translate(-50%, -50%);
-  }
-  50% {
-    transform: translate(-50%, calc(-50% - 7px));
-  }
-}
-@keyframes regions-chip-float {
-  0%,
-  100% {
-    transform: translate(-50%, -50%);
-  }
-  50% {
-    transform: translate(-50%, calc(-50% + 6px));
-  }
-}
-.regions-flow {
-  animation: regions-flow 4s linear infinite;
-}
-.regions-node {
-  animation: regions-float 5s ease-in-out infinite;
-}
-.regions-chip {
-  animation: regions-chip-float 6s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .regions-flow,
-  .regions-node,
-  .regions-chip {
-    animation: none;
-  }
-  .regions-taxi {
-    display: none;
-  }
-}
-
 /* Landing — foydalanuvchilar fikrlari: ustunlar cheksiz vertikal suzadi (ro‘yxat ikki nusxada) */
 @keyframes testimonial-scroll {
   from {

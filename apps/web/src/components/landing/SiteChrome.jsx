@@ -19,20 +19,27 @@ const SITE_NAV = [
 ]
 
 const ACTIVE_LINK = 'text-ink underline decoration-brand decoration-[3px] underline-offset-[10px]'
+// Pastga aylantirilgandagi "pill" ko‘rinish: har bir havola dumaloq tugma, faoli — to‘q.
+const PILL_LINK = 'whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-semibold text-ink/70 transition hover:bg-black/[0.05] hover:text-ink xl:px-4 2xl:text-[15px]'
+const PILL_ACTIVE = 'bg-ink! text-white! shadow-[0_6px_14px_-4px_rgba(15,29,42,0.45)]'
+// Oq, yarim shaffof "orolcha" — logo, menyu va o‘ng tomondagi tugmalar shu fonda turadi.
+const ISLAND = 'bg-white/95 shadow-[0_10px_30px_-12px_rgba(15,29,42,0.28)] ring-1 ring-black/[0.06] backdrop-blur-md'
 
 // `floating` — landing'da: sahifa `showAfter` px dan pastga aylantirilganda tepada qotib
 // turadigan navbar sifatida silliq tushadi (hero ichidagi menyu ko‘rinmay qolgandan keyin).
+// Pastga aylantirilganda (yoki `floating` holatda) navbar uch "orolcha"ga ajraladi: chapda logo,
+// o‘rtada menyu, o‘ngda til, Kirish va menyu tugmasi — orasidan sahifa ko‘rinib turadi.
 export function SiteHeader({ floating = false, showAfter = 420 }) {
   const [shown, setShown] = useState(!floating)
+  const [scrolled, setScrolled] = useState(floating)
   const link = 'whitespace-nowrap text-[14px] font-semibold text-ink/75 transition hover:text-ink 2xl:text-[16px]'
 
   useEffect(() => {
-    if (!floating) return undefined
     let frame = 0
     const update = () => {
       frame = 0
-      const next = window.scrollY > showAfter
-      setShown(next)
+      if (floating) setShown(window.scrollY > showAfter)
+      else setScrolled(window.scrollY > 12)
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update)
@@ -45,54 +52,83 @@ export function SiteHeader({ floating = false, showAfter = 420 }) {
     }
   }, [floating, showAfter])
 
+  const pill = floating || scrolled
   const position = floating
-    ? `fixed inset-x-0 top-0 shadow-[0_10px_30px_-12px_rgba(15,29,42,0.25)] transition-[transform,opacity] duration-300 ease-out ${
-        shown ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'
-      }`
+    ? `fixed inset-x-0 top-0 transition-[transform,opacity] duration-300 ease-out ${shown ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'}`
     : 'sticky top-0'
+  // (Sahifa ichidagi sticky header balandligi o‘zgarmaydi — kontent sakramasin.)
+  // Odatdagi holatda — butun enli oq panel; "pill" holatda fon yo‘qoladi, orolchalar qoladi.
+  const bar = pill ? 'border-transparent bg-transparent' : 'border-black/[0.05] bg-white/85 backdrop-blur-md'
 
   return (
     <header
       aria-hidden={floating && !shown ? 'true' : undefined}
       inert={floating && !shown ? true : undefined}
-      className={`${position} z-[100] border-b border-black/[0.05] bg-white/85 backdrop-blur-md`}
+      className={`${position} z-[100] border-b transition-[background-color,border-color] duration-300 ${bar}`}
     >
-      <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-4 sm:h-[72px] sm:gap-6 sm:px-6">
-        <Link to="/" className="flex min-w-0 items-center gap-2.5" aria-label={t('TaxiLine — bosh sahifa')}>
-          <Logo size={38} className="sm:h-11! sm:w-11!" />
-          <Wordmark className="text-[20px] sm:text-[23px]" />
+      <div
+        className={`mx-auto flex max-w-site items-center gap-2 px-3 transition-[height,padding] duration-300 sm:gap-3 sm:px-6 ${floating ? 'h-[72px] pt-2 sm:h-[80px]' : 'h-16 sm:h-[72px]'}`}
+      >
+        <Link
+          to="/"
+          className={`flex min-w-0 shrink-0 items-center gap-2 rounded-full transition-all duration-300 ${pill ? `${ISLAND} h-12 py-1 pl-1.5 pr-4` : 'gap-2.5'}`}
+          aria-label={t('TaxiLine — bosh sahifa')}
+        >
+          <Logo size={pill ? 36 : 38} className={pill ? '' : 'sm:h-11! sm:w-11!'} />
+          <Wordmark className={pill ? 'text-[19px] sm:text-[20px]' : 'text-[20px] sm:text-[23px]'} />
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-5 xl:gap-7 lg:flex">
-          {SITE_NAV.map((item) =>
-            item.menu ? (
-              <NavDropdown key={item.menu} menu={item.menu} className={link} activeClassName={ACTIVE_LINK} />
-            ) : (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? ACTIVE_LINK : ''}`}>
-                {t(item.label)}
-              </NavLink>
-            ),
-          )}
-          <Link
-            to="/aksiyalar#random"
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-1.5 text-[14px] font-bold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-ink 2xl:text-[16px]"
-          >
-            <Gift className="h-4 w-4" /> {t('Random mijoz')}
-          </Link>
-        </nav>
+        {pill ? (
+          <nav className={`mx-auto hidden h-12 items-center gap-0.5 rounded-full p-1 lg:flex ${ISLAND}`}>
+            {SITE_NAV.map((item) =>
+              item.menu ? (
+                <NavDropdown key={item.menu} menu={item.menu} className={PILL_LINK} activeClassName={PILL_ACTIVE} />
+              ) : (
+                <NavLink key={item.to} to={item.to} className={({ isActive }) => `${PILL_LINK} ${isActive ? PILL_ACTIVE : ''}`}>
+                  {t(item.label)}
+                </NavLink>
+              ),
+            )}
+            <Link
+              to="/aksiyalar#random"
+              className="ml-0.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-2 text-[14px] font-bold text-brand-dark transition hover:bg-brand hover:text-ink 2xl:text-[15px]"
+            >
+              <Gift className="h-4 w-4" /> {t('Random mijoz')}
+            </Link>
+          </nav>
+        ) : (
+          <nav className="ml-auto hidden items-center gap-5 xl:gap-7 lg:flex">
+            {SITE_NAV.map((item) =>
+              item.menu ? (
+                <NavDropdown key={item.menu} menu={item.menu} className={link} activeClassName={ACTIVE_LINK} />
+              ) : (
+                <NavLink key={item.to} to={item.to} className={({ isActive }) => `${link} ${isActive ? ACTIVE_LINK : ''}`}>
+                  {t(item.label)}
+                </NavLink>
+              ),
+            )}
+            <Link
+              to="/aksiyalar#random"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-soft px-3.5 py-1.5 text-[14px] font-bold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-ink 2xl:text-[16px]"
+            >
+              <Gift className="h-4 w-4" /> {t('Random mijoz')}
+            </Link>
+          </nav>
+        )}
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
-          <LanguageChip compact wrapperClassName="hidden sm:block" />
+        <div
+          className={`ml-auto flex shrink-0 items-center gap-2 rounded-full transition-all duration-300 lg:ml-0 ${pill ? `${ISLAND} h-12 p-1` : ''}`}
+        >
+          <LanguageChip compact wrapperClassName="hidden sm:block" className={pill ? 'shadow-none! ring-0! bg-black/[0.04]!' : ''} />
           <Link
             to="/login"
             className="spin-border flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-4 text-[13px] font-extrabold text-white shadow-[0_8px_18px_rgba(15,29,42,0.2)] transition hover:bg-black sm:px-5"
           >
             <LogIn className="h-4 w-4" /> {t('Kirish')}
           </Link>
-          <SiteMobileMenu buttonClassName="lg:hidden" />
+          <SiteMobileMenu buttonClassName={`lg:hidden ${pill ? 'bg-black/[0.04]' : ''}`} />
         </div>
       </div>
-
     </header>
   )
 }

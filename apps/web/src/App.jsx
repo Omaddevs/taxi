@@ -7,6 +7,7 @@ import { isDriverUser } from './lib/role'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import GoogleFinish from './pages/GoogleFinish'
+import NotFound from './pages/NotFound'
 import { PhoneRequiredDialog } from './components/auth/PhoneRequiredDialog'
 import { useScrollUnlockOnNavigate } from './lib/scrollLock'
 import Landing from './pages/Landing'
@@ -200,6 +201,8 @@ export default function App() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="help" element={<Help />} />
       </Route>
+      {/* Mavjud bo‘lmagan har qanday manzil */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
     </>
   )
