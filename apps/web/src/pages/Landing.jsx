@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
@@ -34,6 +34,7 @@ import { api } from '../lib/api'
 import { usePromotions } from '../lib/queries'
 import { NavDropdown } from '../components/landing/NavDropdown'
 import { ConsentField, DocumentUploads } from '../components/landing/ApplicationExtras'
+import { SuccessSheet } from '../components/landing/SuccessSheet'
 import { useDocumentUploads } from '../components/landing/useDocumentUploads'
 import { CONSENT_VERSION } from '../data/consent'
 import { REGIONS } from '../data/uzbekistan'
@@ -124,15 +125,46 @@ function FeatureCard({ icon: Icon, title, text, tone }) {
 
 const DOTS = 4
 
+/** A translated sentence with "{0}" → the phone number, bold and never broken across lines. */
+function withPhone(template, phone) {
+  const [before, after = ''] = template.split('{0}')
+  return (
+    <>
+      {before}
+      <b className="whitespace-nowrap font-bold text-[#1a2b3c]">{phone}</b>
+      {after}
+    </>
+  )
+}
+
 function Showcase() {
-  const navigate = useNavigate()
   const [phone, setPhone] = useState(maskPhoneUz('+998'))
   const [active, setActive] = useState(0)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+  const [sent, setSent] = useState(null) // { phone, duplicate } once the application is in
   const scroller = useRef(null)
 
-  function onSubmit(e) {
+  // The hero's quick driver application: just a phone number. It lands in the admin panel's
+  // "Arizalar" (POST /leads with activity 'driver' → a driver application); the operator calls back.
+  async function onSubmit(e) {
     e.preventDefault()
-    navigate('/register', { state: { phone: isCompletePhoneUz(phone) ? phone : undefined } })
+    if (sending) return
+    if (!isCompletePhoneUz(phone)) {
+      setError(t('Telefon raqamni to‘liq kiriting'))
+      return
+    }
+    setError('')
+    setSending(true)
+    try {
+      const res = await api.post('/leads', { phone: toE164Uz(phone), activity: 'driver' })
+      setSent({ phone, duplicate: Boolean(res?.duplicate) })
+      setPhone(maskPhoneUz('+998'))
+    } catch (err) {
+      setError(err.message || t('Arizani yuborib bo‘lmadi. Qayta urinib ko‘ring.'))
+    } finally {
+      setSending(false)
+    }
   }
 
   function onScroll() {
@@ -251,23 +283,45 @@ function Showcase() {
                 <span className="font-semibold text-ink">+998</span>
                 <input
                   value={maskLocalPhoneUz(phone)}
-                  onChange={(e) => setPhone(maskPhoneUz(e.target.value))}
+                  onChange={(e) => {
+                    setPhone(maskPhoneUz(e.target.value))
+                    setError('')
+                  }}
                   placeholder={t('Telefon raqam')}
                   type="tel"
                   inputMode="numeric"
                   autoComplete="tel"
                   maxLength={12}
                   aria-label={t('Telefon raqam')}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'hero-apply-error' : undefined}
                   className="min-w-0 flex-1 bg-transparent font-semibold tracking-wide text-ink outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-slate-400"
                 />
               </label>
               <button
                 type="submit"
-                className="spin-border h-12 whitespace-nowrap rounded-full bg-ink px-8 text-[14px] font-bold uppercase tracking-[0.03em] text-white lg:px-6 xl:px-8 shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a] 2xl:h-14 2xl:px-10 2xl:text-[16px]"
+                disabled={sending}
+                className="spin-border h-12 whitespace-nowrap rounded-full bg-ink px-8 disabled:opacity-70 text-[14px] font-bold uppercase tracking-[0.03em] text-white lg:px-6 xl:px-8 shadow-[0_10px_20px_rgba(15,29,42,0.25)] transition hover:bg-[#0f1d2a] 2xl:h-14 2xl:px-10 2xl:text-[16px]"
               >
-                {t('Ariza qoldirish')}
+                {sending ? t('Yuborilmoqda…') : t('Ariza qoldirish')}
               </button>
             </form>
+            {error ? (
+              <p id="hero-apply-error" role="alert" className="relative mt-3 inline-flex rounded-full bg-white/90 px-4 py-1.5 text-[13px] font-semibold text-red-600">
+                {error}
+              </p>
+            ) : null}
+            <SuccessSheet
+              open={Boolean(sent)}
+              title={t('Arizangiz qabul qilindi!')}
+              text={withPhone(
+                sent?.duplicate
+                  ? t('Bu raqamdan ariza avvalroq kelgan. Operatorimiz {0} raqamiga tez orada qo‘ng‘iroq qiladi.')
+                  : t('Rahmat! Operatorimiz tez orada {0} raqamiga qo‘ng‘iroq qiladi.'),
+                sent?.phone,
+              )}
+              onClose={() => setSent(null)}
+            />
           </div>
         </div>
 

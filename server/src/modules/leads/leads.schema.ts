@@ -43,7 +43,9 @@ export const sendLeadMessageSchema = z.object({
 
 // Landing sahifadagi ochiq "Haydovchi bo‘ling" formasi
 export const websiteLeadSchema = z.object({
-  name: z.string().trim().min(2, 'Ism familiyangizni kiriting').max(120),
+  // Optional only for a driver: the landing hero takes just a phone number (the operator asks the
+  // rest on the call). A passenger request still needs a name — see createWebsiteLead.
+  name: z.string().trim().min(2, 'Ism familiyangizni kiriting').max(120).optional(),
   phone: z.string().min(9).max(20),
   city: z.string().trim().max(80).optional(),
   activity: z.enum(['driver', 'passenger']).default('driver'),

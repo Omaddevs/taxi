@@ -157,7 +157,7 @@ const ACTIVITY_LABEL = { driver: 'Haydovchi', passenger: 'Yo‘lovchi' } as cons
 // qilish kerak" ro‘yxatiga tushadi. Bir raqamdan ochiq ariza bo‘lsa, yangisi ochilmaydi —
 // mavjudi yangilanadi (takroriy bosish yoki qayta yuborishda ro‘yxat to‘lib ketmasligi uchun).
 export async function createWebsiteLead(input: {
-  name: string
+  name?: string
   phone: string
   city?: string
   activity: keyof typeof ACTIVITY_LABEL
@@ -181,6 +181,8 @@ export async function createWebsiteLead(input: {
   if (input.activity === 'driver') {
     return submitWebsiteApplication({ fullName: input.name, phone, fromRegion: input.fromRegion, toRegion: input.toRegion, tokens, ...consent })
   }
+  if (!input.name) throw new ValidationError('Ism familiyangizni kiriting')
+  const name = input.name
   const leadType: LeadType = input.activity === 'passenger' ? 'PASSENGER' : 'DRIVER'
   const route = input.fromRegion || input.toRegion ? `Yo‘nalish: ${input.fromRegion || '—'} → ${input.toRegion || '—'}` : null
   const note = [`Faoliyat: ${ACTIVITY_LABEL[input.activity]}`, input.city ? `Shahar: ${input.city}` : null, route].filter(Boolean).join(' · ')
@@ -193,14 +195,14 @@ export async function createWebsiteLead(input: {
   if (open) {
     await prisma.lead.update({
       where: { id: open.id },
-      data: { name: input.name, note, leadType, followUpAt: new Date(), ...consent },
+      data: { name, note, leadType, followUpAt: new Date(), ...consent },
     })
     return { ok: true, duplicate: true, documents: await attachDocuments({ leadId: open.id }, tokens) }
   }
 
   const lead = await prisma.lead.create({
     data: {
-      name: input.name,
+      name,
       phone,
       source,
       note,

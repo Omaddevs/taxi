@@ -244,7 +244,7 @@ export async function createApplication(
  * of opening a second one. The car is not asked for there — staff fill it in before approving.
  */
 export async function submitWebsiteApplication(input: {
-  fullName: string
+  fullName?: string
   phone: string
   fromRegion?: string
   toRegion?: string
@@ -255,8 +255,11 @@ export async function submitWebsiteApplication(input: {
   const user = await prisma.user.upsert({
     where: { phone: input.phone },
     update: {},
-    create: { phone: input.phone, name: input.fullName },
+    create: { phone: input.phone, name: input.fullName ?? null },
   })
+  // The landing hero sends only a phone: fall back to the account's name, else a marker the
+  // operator fills in after the call.
+  const fullName = input.fullName || user.name || 'Ism kiritilmagan'
   const consent = input.consentAt ? { consentAt: input.consentAt, consentVersion: input.consentVersion ?? null } : {}
   const route = { ...(input.fromRegion ? { region: input.fromRegion } : {}), ...(input.toRegion ? { toRegion: input.toRegion } : {}) }
 
@@ -265,7 +268,7 @@ export async function submitWebsiteApplication(input: {
   const application = existing
     ? await prisma.driverApplication.update({ where: { id: existing.id }, data: { ...route, ...consent } })
     : await prisma.driverApplication.create({
-        data: { userId: user.id, fullName: input.fullName, phone: input.phone, carModel: '', plate: '', source: 'WEBAPP', ...route, ...consent },
+        data: { userId: user.id, fullName, phone: input.phone, carModel: '', plate: '', source: 'WEBAPP', ...route, ...consent },
       })
   return { ok: true, duplicate: Boolean(existing), documents: await attachDocuments({ applicationId: application.id }, input.tokens) }
 }

@@ -2217,5 +2217,8 @@
   "Kartani qo‘shish": "Добавить карту",
   "Karta ma’lumotlari TaxiLine serverida saqlanmaydi": "Данные карты не хранятся на серверах TaxiLine",
   "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard",
-  "Karta turi": "Тип карты"
+  "Karta turi": "Тип карты",
+  "Telefon raqamni to‘liq kiriting": "Введите номер телефона полностью",
+  "Bu raqamdan ariza avvalroq kelgan. Operatorimiz {0} raqamiga tez orada qo‘ng‘iroq qiladi.": "Заявка с этого номера уже есть. Оператор скоро позвонит на {0}.",
+  "Rahmat! Operatorimiz tez orada {0} raqamiga qo‘ng‘iroq qiladi.": "Спасибо! Оператор скоро позвонит на {0}."
 }

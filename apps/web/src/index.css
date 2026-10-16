@@ -755,6 +755,10 @@ html.dark .bg-ink .text-white { color: #121218; }
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+@keyframes seal-pop {
+  from { transform: scale(0.4) rotate(-25deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
 @keyframes menu-in {
   from { transform: translateX(-24px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }

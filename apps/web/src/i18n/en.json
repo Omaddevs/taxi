@@ -2189,5 +2189,8 @@
   "Kartani qo‘shish": "Add card",
   "Karta ma’lumotlari TaxiLine serverida saqlanmaydi": "Card details are not stored on TaxiLine servers",
   "Uzcard, Humo, Visa, Mastercard": "Uzcard, Humo, Visa, Mastercard",
-  "Karta turi": "Card type"
+  "Karta turi": "Card type",
+  "Telefon raqamni to‘liq kiriting": "Enter the full phone number",
+  "Bu raqamdan ariza avvalroq kelgan. Operatorimiz {0} raqamiga tez orada qo‘ng‘iroq qiladi.": "We already have an application from this number. An operator will call {0} soon.",
+  "Rahmat! Operatorimiz tez orada {0} raqamiga qo‘ng‘iroq qiladi.": "Thank you! An operator will call {0} soon."
 }
