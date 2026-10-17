@@ -31,7 +31,7 @@ function AuthBrandPanel() {
         <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
 
         <Link to="/" className="relative flex items-center gap-3 self-start" aria-label={t('TaxiLine — bosh sahifa')}>
-          <Logo size={48} className="2xl:h-14! 2xl:w-14!" />
+          <Logo size={48} tone="dark" className="2xl:h-14! 2xl:w-14!" />
           <span className="text-[25px] font-extrabold tracking-tight 2xl:text-[29px]">
             {t('Taxi')}<span className="text-brand">{t('Line')}</span>
           </span>

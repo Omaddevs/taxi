@@ -1,31 +1,40 @@
-import logo from '../../assets/logo.png'
-import logoPin from '../../assets/logo-pin.png'
+import logo from '../../assets/logo.webp'
+import logoDark from '../../assets/logo-dark.webp'
 import { t } from '../../i18n'
 
-export function Logo({ size = 36, className = '' }) {
-  return (
+// The TaxiLine mark: a black pin with the van driving out of it. On dark backgrounds the pin
+// gets a cyan rim and glow (logo-dark) so it doesn't sink into the page.
+//   tone="auto"  — follows the app theme (html.dark)
+//   tone="light" / "dark" — for a spot whose background doesn't change with the theme
+function Mark({ size, className, tone, alt }) {
+  const img = (src, extra = '') => (
     <img
-      src={logo}
-      alt="TaxiLine"
+      src={src}
+      alt={alt}
       width={size}
       height={size}
-      className={`shrink-0 object-contain ${className}`}
+      draggable={false}
+      className={`shrink-0 select-none object-contain ${extra} ${className}`}
       style={{ width: size, height: size }}
     />
+  )
+  if (tone === 'light') return img(logo)
+  if (tone === 'dark') return img(logoDark)
+  return (
+    <>
+      {img(logo, 'dark:hidden')}
+      {img(logoDark, 'hidden dark:block')}
+    </>
   )
 }
 
-export function LogoPin({ size = 28, className = '' }) {
-  return (
-    <img
-      src={logoPin}
-      alt=""
-      width={size}
-      height={size}
-      className={`shrink-0 object-contain ${className}`}
-      style={{ width: size, height: size }}
-    />
-  )
+export function Logo({ size = 36, className = '', tone = 'auto' }) {
+  return <Mark size={size} className={className} tone={tone} alt="TaxiLine" />
+}
+
+// The same mark (it's a pin already) — kept as its own name for the places that show it alone.
+export function LogoPin({ size = 28, className = '', tone = 'auto' }) {
+  return <Mark size={size} className={className} tone={tone} alt="" />
 }
 
 export function Wordmark({ className = '' }) {

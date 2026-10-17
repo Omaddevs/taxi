@@ -44,7 +44,7 @@ import { useAuth } from '../../context/AuthContext'
 import { api } from '../../lib/api'
 import { cn } from '../../lib/utils'
 import { Logo } from '../ui/Logo'
-import logoMark from '../../assets/logo.png'
+import logoMark from '../../assets/logo-dark.webp' // the sidebar is dark
 import { BOT_SETTINGS_PAGES } from '../../lib/botSettings'
 import type { AnalyticsSummary, StaffDetail } from '../../types'
 import type { PanelRole } from '../../lib/tokens'
