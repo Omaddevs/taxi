@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { clipped } from '../../lib/zod.js'
 
 const phone = z.string().trim().regex(/^\+998\d{9}$/, 'Telefon +998XXXXXXXXX ko‘rinishida bo‘lsin')
 
@@ -8,21 +9,21 @@ export const GROUP_AD_FEATURES = ['CARGO', 'AIRCON', 'LUGGAGE', 'WIFI', 'WOMEN']
 // ad_format.parse_ad recognised. Everything but the source and text is a best guess.
 export const ingestGroupAdSchema = z.object({
   chatId: z.string().min(1).max(32),
-  chatTitle: z.string().max(200).optional(),
+  chatTitle: clipped(200).optional(),
   chatUsername: z.string().max(64).optional(),
   messageId: z.string().max(32).optional(),
   authorTelegramId: z.string().regex(/^\d{1,20}$/),
-  authorName: z.string().trim().min(1).max(200),
+  authorName: clipped(200).pipe(z.string().min(1)),
   authorUsername: z.string().max(64).optional(),
   // A group admin posting as the group itself: the author name is the group's, not a driver's.
   anonymous: z.boolean().optional(),
-  text: z.string().trim().min(1).max(4096),
-  origins: z.array(z.string().max(60)).max(10).default([]),
-  destinations: z.array(z.string().max(60)).max(10).default([]),
+  text: clipped(4096, 16384).pipe(z.string().min(1)),
+  origins: z.array(clipped(60)).max(10).default([]),
+  destinations: z.array(clipped(60)).max(10).default([]),
   phones: z.array(phone).max(5).default([]),
-  departure: z.string().max(80).optional(),
+  departure: clipped(80).optional(),
   seats: z.number().int().min(1).max(8).optional(),
-  car: z.string().max(60).optional(),
+  car: clipped(60).optional(),
   features: z.array(z.enum(GROUP_AD_FEATURES)).max(GROUP_AD_FEATURES.length).default([]),
 })
 

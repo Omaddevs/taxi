@@ -42,3 +42,22 @@ describe('dedupeKey', () => {
     expect(dedupeKey(base)).not.toBe(dedupeKey({ ...base, from: 'Samarqand', to: 'Toshkent' }))
   })
 })
+
+describe('ingestGroupAdSchema', async () => {
+  const { ingestGroupAdSchema } = await import('./groupDriverAds.schema.js')
+  const base = { chatId: '-1001', authorTelegramId: '42', authorName: 'Ali', text: 'Toshkent → Samarqand' }
+
+  it('cuts an over-long, emoji-heavy name to 200 characters instead of refusing the ad', () => {
+    // 150 emoji = 150 characters for the bot (Python), 300 UTF-16 units here — this used to 400.
+    const name = '🚕'.repeat(150) + 'a'.repeat(100)
+    const parsed = ingestGroupAdSchema.parse({ ...base, authorName: name })
+    expect(Array.from(parsed.authorName)).toHaveLength(200)
+    expect(parsed.authorName.startsWith('🚕')).toBe(true)
+    expect(parsed.authorName).not.toMatch(/[\uD800-\uDBFF]$/) // never half an emoji
+  })
+
+  it('still refuses an empty name and absurdly long input', () => {
+    expect(() => ingestGroupAdSchema.parse({ ...base, authorName: '   ' })).toThrow()
+    expect(() => ingestGroupAdSchema.parse({ ...base, text: 'x'.repeat(20000) })).toThrow()
+  })
+})

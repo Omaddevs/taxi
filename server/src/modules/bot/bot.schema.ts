@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { clipped } from '../../lib/zod.js'
 
 const phoneSchema = z.string().min(7, 'Telefon raqami noto‘g‘ri').max(20, 'Telefon raqami noto‘g‘ri')
 
@@ -10,7 +11,7 @@ export const linkUserSchema = z.object({
   phone: phoneSchema,
   telegramId: z.string().min(1),
   language: z.enum(['uz', 'ru', 'en']).optional(),
-  name: z.string().min(1).max(120).optional(),
+  name: clipped(120).transform((v) => v || undefined).optional(),
   role: z.enum(['PASSENGER', 'DRIVER']).optional(),
   source: z.enum(['BOT', 'GROUP', 'WEBAPP']).optional(),
   telegramUsername: z.string().max(64).optional(),
@@ -19,7 +20,7 @@ export const linkUserSchema = z.object({
 export const syncDriverSchema = z.object({
   phone: phoneSchema,
   telegramId: z.string().min(1),
-  name: z.string().min(1).max(120).optional(),
+  name: clipped(120).transform((v) => v || undefined).optional(),
   carModel: z.string().min(1).max(80),
   plate: z.string().min(1).max(20),
   approved: z.boolean(),
@@ -74,7 +75,7 @@ export const rateViaBotSchema = z.object({
 const kirishIdentitySchema = z.object({
   telegramId: z.string().regex(/^\d+$/),
   telegramUsername: z.string().max(64).optional(),
-  name: z.string().trim().max(120).optional(),
+  name: clipped(120).optional(),
   language: z.enum(['uz', 'ru', 'en']).optional(),
   phone: z.string().max(20).optional(),
 })

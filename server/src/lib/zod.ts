@@ -14,6 +14,18 @@ export function optionalTrimmed(min: number, max: number, message: string) {
   )
 }
 
+/** Free text from Telegram (names, titles, ads) is cut to size rather than refused: the bot cuts by
+ *  Python characters and Telegram allows long names, but an emoji counts twice here — refusing
+ *  would sink the whole request. Cut by code point so an emoji is never split; `hardMax` only
+ *  stops abuse. */
+export function clipped(max: number, hardMax = max * 4) {
+  return z
+    .string()
+    .trim()
+    .max(hardMax)
+    .transform((v) => Array.from(v).slice(0, max).join(''))
+}
+
 export function optionalPassword() {
   return z.preprocess(
     blankToUndefined,
