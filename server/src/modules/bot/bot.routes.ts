@@ -10,6 +10,7 @@ import * as botController from './bot.controller.js'
 import {
   kirishAutofillSchema,
   kirishCodeSchema,
+  kirishPhoneClaimSchema,
   kirishProfileSchema,
   linkUserSchema,
   otpConfirmByIdSchema,
@@ -45,6 +46,7 @@ botRouter.post(
 botRouter.post('/kirish/code', validate({ body: kirishCodeSchema }), asyncRoute(botController.kirishCode))
 botRouter.post('/kirish/profile', validate({ body: kirishProfileSchema }), asyncRoute(botController.kirishGetProfile))
 botRouter.post('/kirish/autofill', validate({ body: kirishAutofillSchema }), asyncRoute(botController.kirishAutofill))
+botRouter.post('/kirish/phone-claim', validate({ body: kirishPhoneClaimSchema }), asyncRoute(botController.kirishPhoneClaim))
 botRouter.post('/rate', validate({ body: rateViaBotSchema }), asyncRoute(botController.rateViaBot))
 // Cargo "✅ Qabul qilish" / "✅ Yetkazildi" buttons in Telegram.
 botRouter.post('/cargo-claim', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.claimViaBot))

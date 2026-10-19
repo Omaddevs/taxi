@@ -596,18 +596,3 @@ export async function googleRegister(ticket: string, meta?: SessionMeta) {
   if (linked) return signInGoogleUser(linked, profile, meta)
   return createGoogleUser(profile, meta)
 }
-
-// "Add your number" — for an account without one (Google sign-up), the first time an action
-// needs it. No code (the person asked not to be bothered with one); stored unverified. A
-// number that already belongs to another account is refused rather than taken over.
-export async function addPhone(userId: string, rawPhone: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId } })
-  if (!user) throw new UnauthorizedError()
-  if (user.phone) throw new ConflictError('Akkauntingizda telefon raqam allaqachon bor')
-  const phone = normalizePhone(rawPhone)
-  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
-  if (owner) {
-    throw new ConflictError('Bu raqam boshqa akkauntga tegishli. Boshqa raqam kiriting yoki o‘sha raqam bilan kiring')
-  }
-  return prisma.user.update({ where: { id: userId }, data: { phone, verified: false } })
-}

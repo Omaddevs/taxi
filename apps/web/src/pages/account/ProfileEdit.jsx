@@ -7,10 +7,12 @@ import { useApp } from '../../context/AppContext'
 import { api } from '../../lib/api'
 import { isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../../lib/utils'
 import { t } from '../../i18n'
+import { PhoneConfirmPanel, usePhoneClaim } from '../../components/auth/PhoneConfirm'
 
 // Menu → name, or Sozlamalar → Shaxsiy ma’lumotlar. Everything here is the person's own to change —
-// name, phone, email, gender — whether they signed up with their number or with Google. The one
-// exception is a driver's number: it's tied to their driver profile, so support changes it.
+// name, phone, email, gender — whether they signed up with their number or with Google. A new
+// number is saved only once it's confirmed in Telegram (PhoneConfirm.jsx). The one exception is
+// a driver's number: it's tied to their driver profile, so support changes it.
 const fieldCls =
   'h-14 w-full rounded-[18px] bg-canvas px-4 text-[16px] text-ink outline-none ring-brand/40 placeholder:text-muted focus:ring-2 disabled:text-muted'
 
@@ -36,26 +38,37 @@ export default function ProfileEdit() {
 
   const phoneDigits = localPhoneDigitsUz(form.phone)
   const phoneChanged = !phoneLocked && toE164Uz(form.phone) !== (user.phone || '+998')
-  const dirty =
-    form.name.trim() !== (user.name || '') ||
-    form.email.trim() !== (user.email || '') ||
-    form.gender !== (user.gender || '') ||
-    phoneChanged
+  const detailsChanged =
+    form.name.trim() !== (user.name || '') || form.email.trim() !== (user.email || '') || form.gender !== (user.gender || '')
+  const dirty = detailsChanged || phoneChanged
+
+  function flashSaved() {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  const phoneClaim = usePhoneClaim(async (phone) => {
+    await queryClient.invalidateQueries({ queryKey: ['me'] })
+    setForm((f) => ({ ...f, phone: maskPhoneUz(phone) }))
+    flashSaved()
+  })
 
   const save = useMutation({
-    mutationFn: () =>
-      api.patch('/users/me', {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        gender: form.gender || undefined,
-        ...(phoneChanged ? { phone: toE164Uz(form.phone) } : {}),
-      }),
-    onSuccess: (me) => {
-      queryClient.setQueryData(['me'], (prev) => (prev ? { ...prev, ...me } : prev))
-      queryClient.invalidateQueries({ queryKey: ['me'] })
-      setForm(initialForm({ ...user, ...me }))
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
+    mutationFn: async () => {
+      const me = detailsChanged
+        ? await api.patch('/users/me', { name: form.name.trim(), email: form.email.trim(), gender: form.gender || undefined })
+        : null
+      const claimed = phoneChanged ? await phoneClaim.start(toE164Uz(form.phone)) : false
+      return { me, claimed }
+    },
+    onSuccess: ({ me, claimed }) => {
+      if (me) {
+        queryClient.setQueryData(['me'], (prev) => (prev ? { ...prev, ...me } : prev))
+        queryClient.invalidateQueries({ queryKey: ['me'] })
+        setForm((f) => ({ ...initialForm({ ...user, ...me }), phone: f.phone }))
+      }
+      // The new number is saved once it's confirmed in Telegram — the panel below takes over.
+      if (!claimed) flashSaved()
     },
     onError: (err) => setProblem(err?.message || t('Saqlab bo‘lmadi')),
   })
@@ -97,7 +110,10 @@ export default function ProfileEdit() {
             <input
               id="profile-phone"
               value={maskLocalPhoneUz(form.phone)}
-              onChange={(e) => set('phone')(maskPhoneUz(e.target.value))}
+              onChange={(e) => {
+                set('phone')(maskPhoneUz(e.target.value))
+                phoneClaim.cancel()
+              }}
               disabled={phoneLocked}
               placeholder="90 123 45 67"
               type="tel"
@@ -110,8 +126,19 @@ export default function ProfileEdit() {
           <p className="mt-2 px-1 text-[13px] text-muted">
             {phoneLocked
               ? t('Haydovchi raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing.')
-              : t('Haydovchilar siz bilan shu raqam orqali bog‘lanadi.')}
+              : t('Haydovchilar siz bilan shu raqam orqali bog‘lanadi. Yangi raqam Telegram orqali tasdiqlanadi.')}
           </p>
+          {phoneClaim.error ? <p className="mt-2 px-1 text-[13px] font-semibold text-red-500">{t(phoneClaim.error)}</p> : null}
+          {phoneClaim.claim ? (
+            <div className="mt-3">
+              <PhoneConfirmPanel
+                claim={phoneClaim.claim}
+                state={phoneClaim.state}
+                onRetry={() => phoneClaim.start(phoneClaim.claim.phone)}
+                onCancel={phoneClaim.cancel}
+              />
+            </div>
+          ) : null}
         </div>
 
         <label className="block">

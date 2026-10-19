@@ -9,3 +9,9 @@ export const updateMeSchema = z.object({
   language: z.enum(['uz', 'oz', 'ru', 'en']).optional(),
   gender: z.enum(['MALE', 'FEMALE']).optional(),
 })
+
+export const startPhoneClaimSchema = z.object({
+  phone: z.string().trim().min(7, 'Telefon raqami noto‘g‘ri').max(20, 'Telefon raqami noto‘g‘ri'),
+})
+
+export const phoneClaimTokenSchema = z.object({ token: z.string().regex(/^[0-9a-f]{32}$/) })

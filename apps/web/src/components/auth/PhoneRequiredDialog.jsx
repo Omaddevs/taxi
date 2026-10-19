@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronDown, Phone, X } from 'lucide-react'
 import { FlagUz } from '../ui/Flags'
-import { api } from '../../lib/api'
+import { usePhoneClaim, PhoneConfirmPanel } from './PhoneConfirm'
 import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../../lib/utils'
 import { t } from '../../i18n'
 
 // Accounts made with Google start without a phone. The first time something needs one (booking,
 // cargo, a request to drivers…) the API answers PHONE_REQUIRED; lib/api.js turns that into this
-// event and the dialog below asks for the number once — no code. The action that hit it can
+// event and the dialog below asks for the number once, confirmed in Telegram (PhoneConfirm.jsx)
+// — no SMS code. The action that hit it can
 // register itself with resumeAfterPhone(): the button then reads e.g. "Saqlash va yuborish" and
 // the action runs again right after the number is saved; otherwise the person just retries.
 export const PHONE_REQUIRED_EVENT = 'taxiline:phone-required'
@@ -29,11 +30,20 @@ export function PhoneRequiredDialog() {
   const [reason, setReason] = useState('')
   const [phone, setPhone] = useState(maskPhoneUz('+998'))
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [resumeLabel, setResumeLabel] = useState('')
   const resume = useRef(null)
   const ready = isCompletePhoneUz(phone)
+  const phoneClaim = usePhoneClaim(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['me'] })
+    const run = resume.current
+    resume.current = null
+    if (run) {
+      // Straight back to what the person was doing (e.g. sending the request to drivers).
+      setOpen(false)
+      run()
+    } else setSaved(true)
+  })
 
   useEffect(() => {
     function onRequired(e) {
@@ -56,6 +66,12 @@ export function PhoneRequiredDialog() {
     }
   }, [])
 
+  // A claim belongs to one opening of the dialog.
+  const cancelClaim = phoneClaim.cancel
+  useEffect(() => {
+    if (!open) cancelClaim()
+  }, [open, cancelClaim])
+
   useEffect(() => {
     if (!open) return undefined
     const onKey = (e) => e.key === 'Escape' && setOpen(false)
@@ -72,22 +88,7 @@ export function PhoneRequiredDialog() {
       return
     }
     setError('')
-    setSaving(true)
-    try {
-      await api.post('/auth/phone', { phone: toE164Uz(phone) })
-      await queryClient.invalidateQueries({ queryKey: ['me'] })
-      const run = resume.current
-      resume.current = null
-      if (run) {
-        // Straight back to what the person was doing (e.g. sending the request to drivers).
-        setOpen(false)
-        run()
-      } else setSaved(true)
-    } catch (err) {
-      setError(err.message || t('Raqamni saqlab bo‘lmadi'))
-    } finally {
-      setSaving(false)
-    }
+    await phoneClaim.start(toE164Uz(phone))
   }
 
   return (
@@ -120,7 +121,7 @@ export function PhoneRequiredDialog() {
             </span>
             <h2 id="phone-dialog-title" className="mt-4 text-[19px] font-extrabold text-ink">{t('Telefon raqamingizni qo‘shing')}</h2>
             <p className="mt-1.5 text-[14px] leading-5 text-muted">
-              {reason || t('Davom etish uchun raqam kerak')} {t('— haydovchi siz bilan shu raqam orqali bog‘lanadi. Bir marta so‘raladi, kod kerak emas.')}
+              {reason || t('Davom etish uchun raqam kerak')} {t('— haydovchi siz bilan shu raqam orqali bog‘lanadi. Raqam bir marta, Telegram orqali tasdiqlanadi.')}
             </p>
 
             <label className="relative mt-5 block">
@@ -131,7 +132,10 @@ export function PhoneRequiredDialog() {
                 <ChevronDown className="h-3.5 w-3.5 text-muted" />
                 <input
                   value={maskLocalPhoneUz(phone)}
-                  onChange={(e) => setPhone(maskPhoneUz(e.target.value))}
+                  onChange={(e) => {
+                    setPhone(maskPhoneUz(e.target.value))
+                    phoneClaim.cancel()
+                  }}
                   placeholder="87 735 36 36"
                   type="tel"
                   inputMode="numeric"
@@ -142,15 +146,28 @@ export function PhoneRequiredDialog() {
                 />
               </div>
             </label>
-            {error ? <p className="mt-2 text-[13px] font-semibold text-red-500">{t(error)}</p> : null}
+            {error || phoneClaim.error ? (
+              <p className="mt-2 text-[13px] font-semibold text-red-500">{t(error || phoneClaim.error)}</p>
+            ) : null}
 
-            <button
-              type="submit"
-              disabled={saving || !ready}
-              className="mt-4 h-12 w-full rounded-full bg-brand text-[15px] font-extrabold text-ink transition hover:bg-[#00b6c2] disabled:bg-[#e9eef2] disabled:text-ink/35"
-            >
-              {saving ? t('Saqlanmoqda…') : resumeLabel || t('Saqlash')}
-            </button>
+            {phoneClaim.claim ? (
+              <div className="mt-4">
+                <PhoneConfirmPanel
+                  claim={phoneClaim.claim}
+                  state={phoneClaim.state}
+                  onRetry={() => phoneClaim.start(phoneClaim.claim.phone)}
+                  onCancel={phoneClaim.cancel}
+                />
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={phoneClaim.busy || !ready}
+                className="mt-4 h-12 w-full rounded-full bg-brand text-[15px] font-extrabold text-ink transition hover:bg-[#00b6c2] disabled:bg-[#e9eef2] disabled:text-ink/35"
+              >
+                {phoneClaim.busy ? t('Saqlanmoqda…') : resumeLabel || t('Davom etish')}
+              </button>
+            )}
           </form>
         )}
       </div>

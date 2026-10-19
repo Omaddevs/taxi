@@ -29,7 +29,6 @@
   "Davom etish": "Продолжить",
   "Telefon raqamingizni qo‘shing": "Добавьте номер телефона",
   "Davom etish uchun raqam kerak": "Для продолжения нужен номер",
-  "— haydovchi siz bilan shu raqam orqali bog‘lanadi. Bir marta so‘raladi, kod kerak emas.": "— водитель свяжется с вами по этому номеру. Спрашиваем один раз, код не нужен.",
   "Telefon raqam": "Номер телефона",
   "Saqlanmoqda…": "Сохранение…",
   "Saqlash": "Сохранить",
@@ -2237,7 +2236,15 @@
   "Telefon raqamini kiriting": "Введите номер телефона",
   "Email noto‘g‘ri": "Неверный email",
   "Haydovchi raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing.": "Чтобы сменить номер водителя, напишите в службу поддержки.",
-  "Haydovchilar siz bilan shu raqam orqali bog‘lanadi.": "Водители свяжутся с вами по этому номеру.",
   "Haydovchi va xodim raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing": "Чтобы сменить номер водителя или сотрудника, напишите в службу поддержки",
-  "Vaqti kelishiladi": "Время по договорённости"
+  "Vaqti kelishiladi": "Время по договорённости",
+  "{0} raqamini Telegram orqali tasdiqlang": "Подтвердите номер {0} через Telegram",
+  "Vaqt tugadi. Qaytadan urinib ko‘ring.": "Время истекло. Попробуйте ещё раз.",
+  "@{0} ochiladi — «📱 Raqamimni yuborish» tugmasini bosing. Raqam Telegram’dagi raqamingizga mos bo‘lsa, shu yerning o‘zida saqlanadi.": "Откроется @{0} — нажмите «📱 Отправить мой номер». Если номер совпадёт с вашим номером в Telegram, он сохранится прямо здесь.",
+  "Qaytadan urinish": "Попробовать снова",
+  "Telegram orqali tasdiqlash": "Подтвердить через Telegram",
+  "Tasdiq kutilmoqda…": "Ждём подтверждения…",
+  "— haydovchi siz bilan shu raqam orqali bog‘lanadi. Raqam bir marta, Telegram orqali tasdiqlanadi.": "— водитель свяжется с вами по этому номеру. Номер подтверждается один раз, через Telegram.",
+  "Haydovchilar siz bilan shu raqam orqali bog‘lanadi. Yangi raqam Telegram orqali tasdiqlanadi.": "Водители свяжутся с вами по этому номеру. Новый номер подтверждается через Telegram.",
+  "Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang": "Чтобы сменить номер, подтвердите его через Telegram"
 }

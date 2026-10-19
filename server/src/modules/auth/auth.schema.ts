@@ -49,7 +49,3 @@ export const googleSignInSchema = z.object({
 export const googleRegisterSchema = z.object({
   ticket: z.string().min(20).max(4000),
 })
-
-export const addPhoneSchema = z.object({
-  phone: phoneSchema,
-})

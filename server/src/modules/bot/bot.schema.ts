@@ -87,3 +87,10 @@ export const kirishCodeSchema = kirishIdentitySchema.extend({
 export const kirishProfileSchema = kirishIdentitySchema
 
 export const kirishAutofillSchema = kirishIdentitySchema.extend({ enabled: z.boolean() })
+// The site's "confirm your number" link: the token from it plus the contact the person shared.
+export const kirishPhoneClaimSchema = z.object({
+  token: z.string().regex(/^[0-9a-f]{32}$/),
+  telegramId: z.string().min(1).max(32),
+  telegramUsername: z.string().max(64).optional(),
+  phone: z.string().min(7).max(20),
+})

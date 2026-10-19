@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import * as botService from './bot.service.js'
 import { confirmOtpByRequestId, confirmOtpViaBot, kirishIssueCode, kirishProfile, kirishSetAutofill } from '../auth/auth.service.js'
+import { confirmPhoneClaim } from '../users/phoneClaim.service.js'
 
 function serializeUser(user: {
   id: string
@@ -76,6 +77,10 @@ export async function kirishCode(req: Request, res: Response) {
 
 export async function kirishGetProfile(req: Request, res: Response) {
   res.json(await kirishProfile(req.body))
+}
+
+export async function kirishPhoneClaim(req: Request, res: Response) {
+  res.json(await confirmPhoneClaim(req.body))
 }
 
 export async function kirishAutofill(req: Request, res: Response) {

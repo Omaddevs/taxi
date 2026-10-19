@@ -163,8 +163,8 @@ class BackendClient:
     async def kirish_profile(self, payload: dict) -> dict | None:
         return await self._kirish("profile", payload)
 
-    async def kirish_autofill(self, payload: dict) -> dict | None:
-        return await self._kirish("autofill", payload)
+    async def kirish_phone_claim(self, payload: dict) -> dict | None:
+        return await self._kirish("phone-claim", payload)
 
     async def confirm_otp_by_request_id(
         self, otp_request_id: str, telegram_id: int, username: str | None = None

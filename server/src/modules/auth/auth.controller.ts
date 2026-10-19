@@ -92,8 +92,3 @@ export async function googleRegister(req: Request, res: Response) {
   const { user, accessToken, refreshToken } = await authService.googleRegister(req.body.ticket, sessionMeta(req))
   res.json({ user: serializeUser(user), accessToken, refreshToken })
 }
-
-export async function addPhone(req: Request, res: Response) {
-  const user = await authService.addPhone(req.user!.id, req.body.phone)
-  res.json({ phone: user.phone })
-}

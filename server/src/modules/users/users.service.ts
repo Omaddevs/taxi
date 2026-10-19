@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../errors/AppError.js'
+import { NotFoundError, ValidationError } from '../../errors/AppError.js'
 import { normalizePhone } from '../../lib/otp.js'
 
 const PUBLIC_USER_SELECT = {
@@ -50,34 +50,17 @@ export async function updateMe(
   patch: { name?: string; email?: string; phone?: string; avatarUrl?: string; language?: string; gender?: 'MALE' | 'FEMALE' },
 ) {
   const { phone: rawPhone, email, ...rest } = patch
+  // The number changes only through Telegram (phoneClaim.service). Sending the current one back
+  // (forms send every field) is fine; a different one is refused rather than silently ignored.
+  if (rawPhone !== undefined) {
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { phone: true } })
+    if (normalizePhone(rawPhone) !== me?.phone) {
+      throw new ValidationError('Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang')
+    }
+  }
   const data: Record<string, unknown> = { ...rest }
   if (email !== undefined) data.email = email || null
-  if (rawPhone !== undefined) Object.assign(data, await phoneChange(userId, rawPhone))
   return prisma.user.update({ where: { id: userId }, data, select: PUBLIC_USER_SELECT })
-}
-
-/* Shaxsiy ma'lumotlar → Telefon: anyone can change their own number, Google sign-ups included —
-   no code, like adding one (there's no SMS; the login code goes through Telegram, which a new
-   number can still use). Stored unverified. Refused: a number another account already has, and
-   the accounts whose number is wired into something else — a driver's (their driver profile in
-   the bot) and staff (it's their admin login). */
-async function phoneChange(userId: string, rawPhone: string) {
-  const phone = normalizePhone(rawPhone)
-  if (!/^\+998\d{9}$/.test(phone)) throw new ValidationError('Raqam +998 XX XXX XX XX formatida, 9 xonali bo‘lishi kerak')
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { phone: true, role: true, staffKind: true, driver: { select: { id: true } } },
-  })
-  if (!user) throw new NotFoundError('User not found')
-  if (user.phone === phone) return {}
-  if (user.staffKind || user.role === 'DRIVER' || user.driver) {
-    throw new ForbiddenError('Haydovchi va xodim raqamini o‘zgartirish uchun qo‘llab-quvvatlash xizmatiga yozing')
-  }
-  const owner = await prisma.user.findUnique({ where: { phone }, select: { id: true } })
-  if (owner && owner.id !== userId) {
-    throw new ConflictError('Bu raqam boshqa akkauntga tegishli. Boshqa raqam kiriting yoki o‘sha raqam bilan kiring')
-  }
-  return { phone, verified: false }
 }
 
 export async function listUsers(filter: { q?: string; role?: 'PASSENGER' | 'DRIVER' | 'ADMIN' }) {

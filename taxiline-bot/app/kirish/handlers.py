@@ -1,7 +1,7 @@
 """@taxiline_kirish_bot handlers.
 
 /start, /kirish → a sign-in code · /royxatdan_otish → a registration code · /profil ·
-/sozlamalar (the "fill the code in on the website by itself" switch) · /help (admin contact).
+/sozlamalar · /help (admin contact) · t.me/<bot>?start=ph_<token> confirms a number typed on the site.
 
 People are recognised by their Telegram id; the first time, the bot asks for their number
 through Telegram's own contact button and accepts it only if the contact is their own
@@ -142,6 +142,41 @@ async def push_code(bot: Bot, telegram_id: int, code: str, phone: str, intent: s
 # ── flows ──────────────────────────────────────────────────────────────────────────────────
 
 
+# The site's "add / change your number" opens t.me/<bot>?start=ph_<token>: the person shares their
+# contact, and the server saves the number only if it is the one they typed on the site.
+async def _ask_phone_claim(message: Message, state: FSMContext, token: str) -> None:
+    await state.set_state(KirishFlow.sharing_contact)
+    await state.update_data(after="phone_claim", claim_token=token)
+    await message.answer(
+        "📱 <b>Raqamni tasdiqlash</b>\n\n"
+        "Saytda kiritgan raqamingizni tasdiqlash uchun pastdagi <b>«📱 Raqamimni yuborish»</b> tugmasini bosing. "
+        "Telegram raqamingizni o'zi yuboradi.",
+        parse_mode="HTML",
+        reply_markup=contact_kb(),
+    )
+
+
+PHONE_CLAIM_REPLIES = {
+    "ok": "✅ Raqam tasdiqlandi. Saytga qayting — davom etishingiz mumkin.",
+    "mismatch": "⚠️ Telegram'dagi raqamingiz saytda kiritilgan <b>{phone}</b> raqamiga mos emas. "
+    "Saytda o'z raqamingizni kiriting va qaytadan bosing.",
+    "taken": "⚠️ Bu raqam boshqa TaxiLine akkauntiga tegishli. O'sha raqam bilan saytga kiring.",
+    "locked": "⚠️ Haydovchi va xodim raqamini o'zgartirish uchun adminga yozing (🆘 Yordam).",
+    "expired": "⌛️ Havola eskirgan. Saytda «Telegram orqali tasdiqlash»ni qaytadan bosing.",
+}
+
+
+async def _finish_phone_claim(message: Message, state: FSMContext, token: str, phone: str) -> None:
+    await state.clear()
+    result = await backend_client.kirish_phone_claim({**_identity(message.from_user, phone), "token": token})
+    if result is None:
+        await message.answer("⚠️ Xizmat vaqtincha ishlamayapti. Birozdan so'ng qayta urinib ko'ring.", reply_markup=main_kb())
+        return
+    status = result.get("status", "expired")
+    text = PHONE_CLAIM_REPLIES.get(status, PHONE_CLAIM_REPLIES["expired"])
+    await message.answer(text.format(phone=html.escape(format_phone(result.get("phone") or ""))), parse_mode="HTML", reply_markup=main_kb())
+
+
 async def _ask_contact(message: Message, state: FSMContext, after: str) -> None:
     await state.set_state(KirishFlow.sharing_contact)
     await state.update_data(after=after)
@@ -237,6 +272,9 @@ async def _show_profile(message: Message, state: FSMContext, user: User, *, sett
 async def start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await state.clear()
     payload = (command.args or "").strip().lower()
+    if payload.startswith("ph_"):
+        await _ask_phone_claim(message, state, payload[len("ph_") :])
+        return
     await message.answer(
         f"👋 Assalomu alaykum, {html.escape(message.from_user.first_name or '')}!\n\n"
         "Bu — <b>TaxiLine kirish boti</b>. Bu yerda taxiline.uz saytiga kirish va ro'yxatdan o'tish uchun "
@@ -286,7 +324,7 @@ async def help_view(message: Message) -> None:
         "• <b>/kirish</b> — saytga kirish kodi\n"
         "• <b>/royxatdan_otish</b> — ro'yxatdan o'tish kodi\n"
         "• <b>/profil</b> — ma'lumotlaringiz\n"
-        "• <b>/sozlamalar</b> — kodni saytga avtomatik yozishni yoqish/o'chirish\n\n"
+        "• <b>/sozlamalar</b> — sozlamalar va xavfsizlik\n\n"
         "Kod kelmayaptimi, kirib bo'lmayaptimi yoki boshqa muammo bormi? Adminga yozing — tez orada javob beramiz.",
         parse_mode="HTML",
         reply_markup=builder.as_markup(),
@@ -299,7 +337,11 @@ async def contact_shared(message: Message, state: FSMContext) -> None:
     if contact.user_id != message.from_user.id:
         await message.answer("⚠️ Faqat o'zingizning raqamingizni yuboring — pastdagi tugmani bosing.", reply_markup=contact_kb())
         return
-    after = (await state.get_data()).get("after", "login")
+    data = await state.get_data()
+    after = data.get("after", "login")
+    if after == "phone_claim":
+        await _finish_phone_claim(message, state, data.get("claim_token", ""), contact.phone_number)
+        return
     if after in ("profile", "settings"):
         await _show_profile(message, state, message.from_user, settings_view=after == "settings", phone=contact.phone_number)
         return
