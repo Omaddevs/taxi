@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Check, User } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, Move3d, User } from 'lucide-react'
 import { SEAT_LABEL, WHOLE_CAR_SEATS, seatsSummary } from '../../lib/ride'
 import { cn } from '../../lib/utils'
 import { Sheet, SheetButton } from './Sheet'
@@ -90,6 +90,90 @@ function CarTopView({ seats, activePosition, onSeat }) {
             onClick={() => onSeat(position)}
           />
         ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The 3D cabin (seat3d.js, loaded on demand): tap a seat to pick it, drag to look around. Falls
+ * back to the flat top view where WebGL isn't available.
+ */
+function SeatStage({ seats, activePosition, onSeat }) {
+  const host = useRef(null)
+  const engine = useRef(null)
+  const onSeatRef = useRef(onSeat)
+  const [mode, setMode] = useState('loading')
+  const [dragged, setDragged] = useState(false)
+
+  useEffect(() => {
+    onSeatRef.current = onSeat
+  })
+
+  useEffect(() => {
+    let cancelled = false
+    import('./seat3d')
+      .then(({ SeatScene, webglAvailable }) => {
+        if (cancelled || !host.current) return
+        if (!webglAvailable()) return setMode('flat')
+        try {
+          engine.current = new SeatScene(host.current, {
+            onSeat: (position) => onSeatRef.current(position),
+            reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+          })
+          if (import.meta.env.DEV) window.__seatScene = engine.current
+          setMode('3d')
+        } catch {
+          setMode('flat')
+        }
+      })
+      .catch(() => !cancelled && setMode('flat'))
+    return () => {
+      cancelled = true
+      engine.current?.dispose()
+      engine.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    engine.current?.update(seats, activePosition)
+  }, [seats, activePosition, mode])
+
+  // The hint goes away once the person has turned the car around.
+  useEffect(() => {
+    const el = host.current
+    if (mode !== '3d' || !el) return undefined
+    const mo = new MutationObserver(() => el.dataset.dragged && setDragged(true))
+    mo.observe(el, { attributes: true, attributeFilter: ['data-dragged'] })
+    return () => mo.disconnect()
+  }, [mode])
+
+  if (mode === 'flat') return <CarTopView seats={seats} activePosition={activePosition} onSeat={onSeat} />
+
+  return (
+    <div className="relative mx-auto h-[340px] w-full max-w-[420px] sm:h-[380px]">
+      <div ref={host} className={cn('absolute inset-0 transition-opacity duration-500', mode === '3d' ? 'opacity-100' : 'opacity-0')} />
+      {mode === 'loading' ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-[260px] w-[150px] animate-pulse rounded-[70px_70px_50px_50px] bg-black/[0.06]" />
+        </div>
+      ) : null}
+      {mode === '3d' && !dragged ? (
+        <span className="pointer-events-none absolute left-1/2 top-2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/85 px-3 py-1 text-[12px] font-semibold text-muted shadow-sm backdrop-blur">
+          <Move3d className="h-3.5 w-3.5" /> {t('Aylantirish uchun suring')}
+        </span>
+      ) : null}
+      {/* Keyboard and screen readers: the same seats as plain buttons. */}
+      <div className="sr-only">
+        {Object.keys(SEAT_BOX).map((position) => {
+          const gender = seats.find((s) => s.position === position)?.gender
+          return (
+            <button key={position} type="button" aria-pressed={Boolean(gender)} onClick={() => onSeat(position)}>
+              {t(SEAT_LABEL[position])}
+              {gender ? ` — ${t(gender === 'FEMALE' ? 'Ayol' : 'Erkak')}` : ''}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
@@ -186,8 +270,8 @@ export function SeatSheet({ open, onClose, accent, seats, required, wholeCar = f
           : t('{0} ta joy tanlang va har biriga kim o‘tirishini belgilang.', required)}
       </p>
 
-      <div className="rounded-[24px] bg-canvas px-4 pb-4 pt-6">
-        <CarTopView seats={draft} activePosition={active} onSeat={tapSeat} />
+      <div className="overflow-hidden rounded-[24px] bg-gradient-to-b from-canvas to-[#e7ebf0] px-2 pb-4 pt-2 dark:to-[#1a1a24]">
+        <SeatStage seats={draft} activePosition={active} onSeat={tapSeat} />
         <Legend />
       </div>
 
