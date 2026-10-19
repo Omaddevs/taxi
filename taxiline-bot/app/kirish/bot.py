@@ -12,7 +12,7 @@ COMMANDS = [
     BotCommand(command="kirish", description="Saytga kirish kodi"),
     BotCommand(command="royxatdan_otish", description="Ro'yxatdan o'tish kodi"),
     BotCommand(command="profil", description="Profil"),
-    BotCommand(command="sozlamalar", description="Kodni saytga avto-yozish"),
+    BotCommand(command="sozlamalar", description="Sozlamalar va xavfsizlik"),
     BotCommand(command="help", description="Yordam va admin bilan aloqa"),
 ]
 
