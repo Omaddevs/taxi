@@ -458,7 +458,10 @@ export async function refreshTokens(rawRefreshToken: string, meta?: SessionMeta)
   const user = await prisma.user.findUnique({ where: { id: row.userId } })
   if (!user) throw new UnauthorizedError()
 
-  await prisma.refreshToken.update({ where: { id: row.id }, data: { revoked: true } })
+  // Revoke-if-still-valid in one statement: two refreshes racing with the same token can't both
+  // get a new pair.
+  const revoked = await prisma.refreshToken.updateMany({ where: { id: row.id, revoked: false }, data: { revoked: true } })
+  if (revoked.count === 0) throw new UnauthorizedError('Refresh token yaroqsiz yoki bekor qilingan')
 
   if (isPanelRole(payload.role)) {
     if (!user.staffActive || !user.passwordHash || !user.staffKind) throw new UnauthorizedError('Refresh token yaroqsiz')
@@ -486,7 +489,12 @@ export async function telegramExchange(code: string, meta?: SessionMeta) {
   const user = await prisma.user.findUnique({ where: { id: token.userId } })
   if (!user) throw new UnauthorizedError()
 
-  await prisma.telegramLoginToken.update({ where: { id: token.id }, data: { consumedAt: new Date() } })
+  // Single use even when the link is opened twice at once.
+  const consumed = await prisma.telegramLoginToken.updateMany({
+    where: { id: token.id, consumedAt: null },
+    data: { consumedAt: new Date() },
+  })
+  if (consumed.count === 0) throw new UnauthorizedError('Havola yaroqsiz yoki eskirgan')
   await prisma.user.update({
     where: { id: user.id },
     data: { fromWebapp: true, lastSeenAt: new Date() },

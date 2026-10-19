@@ -38,8 +38,16 @@ export async function chargeForBooking(userId: string, bookingId: string, method
     const rider = await prisma.user.findUnique({ where: { id: userId }, select: { balance: true } })
     if (!rider || rider.balance < amount) throw new ValidationError('Hisobingizda mablag‘ yetarli emas')
 
+    // Serializable + the checks repeated inside: two taps on "To'lash" at once can neither pay
+    // twice nor take the balance below zero.
     return prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: userId }, data: { balance: { decrement: amount } } })
+      const paid = await tx.transaction.findFirst({ where: { bookingId, type: 'RIDE_PAYMENT', status: 'SUCCESS' } })
+      if (paid) throw new ConflictError('Bu bron uchun to‘lov allaqachon amalga oshirilgan')
+      const debited = await tx.user.updateMany({
+        where: { id: userId, balance: { gte: amount } },
+        data: { balance: { decrement: amount } },
+      })
+      if (debited.count === 0) throw new ValidationError('Hisobingizda mablag‘ yetarli emas')
       await tx.user.update({ where: { id: driverUserId }, data: { balance: { increment: amount } } })
       const riderTx = await tx.transaction.create({
         data: {
@@ -66,7 +74,7 @@ export async function chargeForBooking(userId: string, bookingId: string, method
         },
       })
       return riderTx
-    })
+    }, { isolationLevel: 'Serializable' })
   }
 
   // Cash changes hands in the car — there is nothing for the payment provider to charge.

@@ -72,8 +72,15 @@ export async function payout(userId: string, amount: number, cardId: string) {
   const card = await prisma.paymentCard.findUnique({ where: { id: cardId } })
   if (!card || card.userId !== userId) throw new NotFoundError('Karta topilmadi')
 
-  const [transaction] = await prisma.$transaction([
-    prisma.transaction.create({
+  const transaction = await prisma.$transaction(async (tx) => {
+    // The balance check above is advisory; this one is atomic, so two payouts at once can't
+    // both pass it and take the balance below zero.
+    const debited = await tx.user.updateMany({
+      where: { id: userId, balance: { gte: amount } },
+      data: { balance: { decrement: amount } },
+    })
+    if (debited.count === 0) throw new ConflictError('Balans yetarli emas')
+    return tx.transaction.create({
       data: {
         userId,
         type: 'PAYOUT',
@@ -83,9 +90,8 @@ export async function payout(userId: string, amount: number, cardId: string) {
         provider: card.brand,
         providerRef: `****${card.last4}`,
       },
-    }),
-    prisma.user.update({ where: { id: userId }, data: { balance: { decrement: amount } } }),
-  ])
+    })
+  })
 
   await createNotification(
     userId,
@@ -144,8 +150,14 @@ export async function adjustBalance(userId: string, amount: number, title: strin
   if (amount === 0) throw new ConflictError('Summa 0 bo‘lishi mumkin emas')
   if (amount < 0 && user.balance + amount < 0) throw new ConflictError('Balans yetarli emas')
 
-  const [transaction] = await prisma.$transaction([
-    prisma.transaction.create({
+  const transaction = await prisma.$transaction(async (tx) => {
+    // A deduction only goes through while the balance still covers it (atomic, see payout).
+    const changed = await tx.user.updateMany({
+      where: { id: userId, ...(amount < 0 ? { balance: { gte: -amount } } : {}) },
+      data: { balance: { increment: amount } },
+    })
+    if (changed.count === 0) throw new ConflictError('Balans yetarli emas')
+    return tx.transaction.create({
       data: {
         userId,
         type: amount > 0 ? 'TOPUP' : 'PAYOUT',
@@ -154,9 +166,8 @@ export async function adjustBalance(userId: string, amount: number, title: strin
         title,
         provider: 'admin',
       },
-    }),
-    prisma.user.update({ where: { id: userId }, data: { balance: { increment: amount } } }),
-  ])
+    })
+  })
 
   await createNotification(
     userId,

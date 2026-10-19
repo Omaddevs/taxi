@@ -82,12 +82,12 @@ export async function exchangeGoogleCode(code: string): Promise<GoogleProfile> {
 // phone-based). The verified Google profile rides along in this short-lived signed ticket
 // between the two steps, so nothing about it can be altered by the browser in between.
 export function issueSignupTicket(profile: GoogleProfile) {
-  return jwt.sign(profile, env.JWT_ACCESS_SECRET, { audience: TICKET_AUDIENCE, expiresIn: TICKET_TTL })
+  return jwt.sign(profile, env.JWT_ACCESS_SECRET, { audience: TICKET_AUDIENCE, expiresIn: TICKET_TTL, algorithm: 'HS256' })
 }
 
 export function readSignupTicket(ticket: string): GoogleProfile {
   try {
-    const payload = jwt.verify(ticket, env.JWT_ACCESS_SECRET, { audience: TICKET_AUDIENCE }) as GoogleProfile
+    const payload = jwt.verify(ticket, env.JWT_ACCESS_SECRET, { audience: TICKET_AUDIENCE, algorithms: ['HS256'] }) as GoogleProfile
     return { sub: payload.sub, email: payload.email ?? null, name: payload.name ?? null, picture: payload.picture ?? null }
   } catch {
     throw new UnauthorizedError('Vaqt tugadi — Google orqali qaytadan kiring')

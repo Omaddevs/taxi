@@ -11,6 +11,7 @@ services/backend_client.py. Two things live here:
 """
 
 import asyncio
+import hmac
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -51,7 +52,8 @@ _KIND_TO_KEY = {
 
 
 def _authorized(request: web.Request) -> bool:
-    return request.headers.get("X-Bot-Secret") == settings.bot_api_secret
+    # Constant-time, so response timing tells nothing about the secret.
+    return hmac.compare_digest(request.headers.get("X-Bot-Secret", "").encode(), settings.bot_api_secret.encode())
 
 
 @routes.post("/webapp/booking-created")

@@ -148,7 +148,7 @@ export async function handleWebhookEvent(payload: any): Promise<void> {
 
 export function buildOAuthUrl(adminId: string): string {
   if (!isConfigured()) throw new ValidationError('Instagram integratsiyasi hali sozlanmagan')
-  const state = jwt.sign({ sub: adminId, purpose: 'instagram_oauth' }, env.JWT_ACCESS_SECRET, { expiresIn: '10m' })
+  const state = jwt.sign({ sub: adminId, purpose: 'instagram_oauth' }, env.JWT_ACCESS_SECRET, { expiresIn: '10m', algorithm: 'HS256' })
   const params = new URLSearchParams({
     client_id: env.INSTAGRAM_APP_ID,
     redirect_uri: env.INSTAGRAM_REDIRECT_URI,
@@ -162,12 +162,15 @@ export function buildOAuthUrl(adminId: string): string {
 export async function exchangeCodeForAccount(code: string, state: string): Promise<{ igUsername: string }> {
   if (!isConfigured()) throw new ValidationError('Instagram integratsiyasi hali sozlanmagan')
 
-  let payload: { sub: string }
+  let payload: { sub: string; purpose?: string }
   try {
-    payload = jwt.verify(state, env.JWT_ACCESS_SECRET) as { sub: string }
+    payload = jwt.verify(state, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'] }) as { sub: string; purpose?: string }
   } catch {
     throw new ValidationError('Ulanish so‘rovi eskirgan, qaytadan urinib ko‘ring')
   }
+  // Only a state minted by buildOAuthUrl (for an admin) — not any token signed with the same
+  // secret, such as a user's access token, which the public callback would otherwise accept.
+  if (payload.purpose !== 'instagram_oauth') throw new ValidationError('Ulanish so‘rovi yaroqsiz')
 
   const tokenRes = await fetch(
     `${GRAPH_BASE}/oauth/access_token?${new URLSearchParams({
