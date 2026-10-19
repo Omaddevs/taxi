@@ -12,6 +12,7 @@ import { api } from '../../lib/api'
 import { useApp } from '../../context/AppContext'
 import { formatPhoneUz, formatSom, maskPhoneUz } from '../../lib/utils'
 import { t } from '../../i18n'
+import { toastError } from '../../components/ui/Feedback'
 
 const SEAT_LAYOUT = ['FRONT', 'REAR_LEFT', 'REAR_MIDDLE', 'REAR_RIGHT']
 
@@ -35,6 +36,7 @@ function departLabel(iso) {
 function ActiveOfferView({ offer, onClosed }) {
   const queryClient = useQueryClient()
   const closeOffer = useMutation({
+    onError: toastError,
     mutationFn: () => api.patch(`/drivers/me/offers/${offer.id}`, { status: 'CLOSED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['driver-offers'] })

@@ -47,6 +47,7 @@ import { FareSheet } from '../components/ride/FareSheet'
 import { LandmarkSheet, LuggageSheet } from '../components/ride/OptionSheets'
 import { useRateSheet } from '../components/ui/RateSheet'
 import { t } from '../i18n'
+import { confirmAction } from '../components/ui/Feedback'
 
 const DRIVER_TAGS = ['Toza salon', 'Xushmuomala', 'Vaqtida keldi', 'Xavfsiz haydash', 'Yoqimli suhbat']
 const PAYMENT_LABEL = { cash: 'Naqd', click: 'Click', payme: 'Payme', uzum: 'Uzum Bank', wallet: 'Hamyon' }
@@ -434,7 +435,7 @@ export default function OrderDetails() {
               disabled={busy}
               className={editable ? '' : 'col-span-2'}
               onClick={() => {
-                if (window.confirm(t('Buyurtmani bekor qilmoqchimisiz?'))) cancel.mutate()
+                confirmAction({ title: 'Buyurtmani bekor qilmoqchimisiz?', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' }).then((ok) => ok && cancel.mutate())
               }}
             >
               {cancel.isPending ? t('Bekor qilinmoqda…') : t('Bekor qilish')}

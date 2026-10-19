@@ -13,6 +13,7 @@ import { DriverHeader, RouteStops, StatusBadge } from './ui'
 import { mergeDriverOrders, isActiveStatus, filterByWorkRegions } from './orders'
 import 'leaflet/dist/leaflet.css'
 import { t } from '../../i18n'
+import { confirmAction } from '../../components/ui/Feedback'
 
 const UZ_CENTER = [41.3, 64.6]
 const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
@@ -197,7 +198,9 @@ export default function DriverMap() {
     else if (order.status === 'ONGOING') complete.mutate(order.id, { onSuccess: () => promptRatePassenger(order) })
   }
 
-  function onCancel(order) {
+  async function onCancel(order) {
+    const ok = await confirmAction({ title: 'Buyurtmani bekor qilasizmi?', message: 'Yo‘lovchiga xabar boradi.', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' })
+    if (!ok) return
     if (order.kind === 'bot') cancelBot.mutate(order.botId)
     else cancelBooking.mutate(order.id)
   }

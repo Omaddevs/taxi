@@ -14,6 +14,7 @@ import { DriverHeader, RouteStops, SeatChips } from './ui'
 import { bookingToDriverOrder, mergeDriverOrders } from './orders'
 import { OrderAudience } from '../../components/trip/OrderAudience'
 import { t } from '../../i18n'
+import { confirmAction } from '../../components/ui/Feedback'
 
 const PASSENGER_TAGS = ['Xushmuomala', 'Vaqtida chiqdi', 'Toza va ozoda']
 
@@ -229,8 +230,15 @@ export default function DriverOrder() {
     })
   }
 
-  function onCancel() {
+  async function onCancel() {
     if (!canCancel) return
+    const pending = order.kind !== 'bot' && order.status === 'PENDING'
+    const ok = await confirmAction(
+      pending
+        ? { title: 'So‘rovni rad etasizmi?', confirmLabel: 'Ha, rad etish', cancelLabel: 'Qaytish' }
+        : { title: 'Buyurtmani bekor qilasizmi?', message: 'Yo‘lovchiga xabar boradi.', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' },
+    )
+    if (!ok) return
     if (order.kind === 'bot') cancelBot.mutate(order.botId)
     else if (order.status === 'PENDING') reject.mutate(order.id)
     else cancelBooking.mutate(order.id)

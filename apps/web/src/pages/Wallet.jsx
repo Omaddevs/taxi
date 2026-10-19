@@ -8,6 +8,7 @@ import { formatSom } from '../lib/utils'
 import { ONLINE_PAYMENTS } from '../lib/features'
 import { SoonBadge } from '../components/ui/SoonBadge'
 import { t } from '../i18n'
+import { confirmAction, toastError } from '../components/ui/Feedback'
 
 function formatPan(value) {
   return value
@@ -50,6 +51,7 @@ export default function Wallet() {
   })
 
   const deleteCardMutation = useMutation({
+    onError: toastError,
     mutationFn: (id) => api.delete(`/wallet/cards/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet-cards'] }),
   })
@@ -220,7 +222,11 @@ export default function Wallet() {
                 <button
                   type="button"
                   aria-label={t('Kartani o‘chirish')}
-                  onClick={() => deleteCardMutation.mutate(c.id)}
+                  onClick={() =>
+                    confirmAction({ title: 'Kartani o‘chirasizmi?', message: `•••• ${c.last4}`, confirmLabel: 'O‘chirish', cancelLabel: 'Qaytish' }).then(
+                      (ok) => ok && deleteCardMutation.mutate(c.id),
+                    )
+                  }
                   className="absolute right-3 top-12 rounded-full bg-black/20 p-1.5"
                 >
                   <Trash2 className="h-3.5 w-3.5" />

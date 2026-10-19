@@ -998,7 +998,6 @@
   "Sizda hali yuklar yo‘q": "У вас пока нет грузов",
   "Yangi yuk kelganda shu yerda va Telegramda ko‘rasiz.": "Новые грузы появятся здесь и в Telegram.",
   "«Ochiq» bo‘limidan yuk qabul qiling.": "Примите груз в разделе «Открытые».",
-  "Yukdan voz kechasizmi? U boshqa haydovchilarga qayta ochiladi.": "Отказаться от груза? Он снова откроется для других водителей.",
   "✅ Qabul qilish ·": "✅ Принять ·",
   "Voz kechish": "Отказаться",
   "✅ Yetkazildi": "✅ Доставлено",
@@ -2246,5 +2245,16 @@
   "Tasdiq kutilmoqda…": "Ждём подтверждения…",
   "— haydovchi siz bilan shu raqam orqali bog‘lanadi. Raqam bir marta, Telegram orqali tasdiqlanadi.": "— водитель свяжется с вами по этому номеру. Номер подтверждается один раз, через Telegram.",
   "Haydovchilar siz bilan shu raqam orqali bog‘lanadi. Yangi raqam Telegram orqali tasdiqlanadi.": "Водители свяжутся с вами по этому номеру. Новый номер подтверждается через Telegram.",
-  "Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang": "Чтобы сменить номер, подтвердите его через Telegram"
+  "Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang": "Чтобы сменить номер, подтвердите его через Telegram",
+  "Ha": "Да",
+  "Yo‘q": "Нет",
+  "Ha, bekor qilish": "Да, отменить",
+  "Qaytish": "Назад",
+  "Yo‘lovchiga xabar boradi.": "Пассажир получит уведомление.",
+  "Yukdan voz kechasizmi?": "Отказаться от груза?",
+  "U boshqa haydovchilarga qayta ochiladi.": "Он снова станет доступен другим водителям.",
+  "Ha, voz kechish": "Да, отказаться",
+  "So‘rovni rad etasizmi?": "Отклонить запрос?",
+  "Ha, rad etish": "Да, отклонить",
+  "Kartani o‘chirasizmi?": "Удалить карту?"
 }

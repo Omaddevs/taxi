@@ -13,6 +13,7 @@ import { formatSom } from '../lib/utils'
 import { useShare } from '../components/ui/ShareSheet'
 import { useApp } from '../context/AppContext'
 import { t } from '../i18n'
+import { confirmAction, toastError } from '../components/ui/Feedback'
 
 export default function TripDetails() {
   const { id } = useParams()
@@ -33,6 +34,7 @@ export default function TripDetails() {
   })
 
   const createBooking = useMutation({
+    onError: toastError,
     mutationFn: () => api.post('/bookings', { rideOfferId: id, seats: selectedSeats, luggage: 0 }),
     onSuccess: (created) => {
       setBooking(created)
@@ -44,6 +46,7 @@ export default function TripDetails() {
   })
 
   const cancelBooking = useMutation({
+    onError: toastError,
     mutationFn: () => api.patch(`/bookings/${booking.id}/cancel`, { reason: 'Yo‘lovchi tomonidan bekor qilindi' }),
     onSuccess: (updated) => setBooking(updated),
   })
@@ -124,7 +127,9 @@ export default function TripDetails() {
               if (item.action === 'call' && trip.driver.phone) window.location.href = `tel:${trip.driver.phone.replace(/\s/g, '')}`
               else if (item.action === 'chat' && booking?.conversationId) navigate(`/messages/${booking.conversationId}`)
               else if (item.action === 'cancel') {
-                if (booking && !['CANCELLED', 'COMPLETED'].includes(booking.status)) cancelBooking.mutate()
+                if (booking && !['CANCELLED', 'COMPLETED'].includes(booking.status)) {
+                  confirmAction({ title: 'Buyurtmani bekor qilmoqchimisiz?', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' }).then((ok) => ok && cancelBooking.mutate())
+                }
                 else navigate('/history')
               } else if (item.action === 'share') onShare()
             }}

@@ -995,7 +995,6 @@
   "Sizda hali yuklar yo‘q": "You have no cargo yet",
   "Yangi yuk kelganda shu yerda va Telegramda ko‘rasiz.": "New cargo will appear here and in Telegram.",
   "«Ochiq» bo‘limidan yuk qabul qiling.": "Accept cargo from the “Open” tab.",
-  "Yukdan voz kechasizmi? U boshqa haydovchilarga qayta ochiladi.": "Give up this cargo? It will reopen for other drivers.",
   "✅ Qabul qilish ·": "✅ Accept ·",
   "Voz kechish": "Give up",
   "✅ Yetkazildi": "✅ Delivered",
@@ -2218,5 +2217,16 @@
   "Tasdiq kutilmoqda…": "Waiting for confirmation…",
   "— haydovchi siz bilan shu raqam orqali bog‘lanadi. Raqam bir marta, Telegram orqali tasdiqlanadi.": "— the driver will contact you on this number. It is confirmed once, via Telegram.",
   "Haydovchilar siz bilan shu raqam orqali bog‘lanadi. Yangi raqam Telegram orqali tasdiqlanadi.": "Drivers will contact you on this number. A new number is confirmed via Telegram.",
-  "Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang": "To change your number, confirm it via Telegram"
+  "Raqamni o‘zgartirish uchun uni Telegram orqali tasdiqlang": "To change your number, confirm it via Telegram",
+  "Ha": "Yes",
+  "Yo‘q": "No",
+  "Ha, bekor qilish": "Yes, cancel",
+  "Qaytish": "Go back",
+  "Yo‘lovchiga xabar boradi.": "The passenger will be notified.",
+  "Yukdan voz kechasizmi?": "Give up this cargo?",
+  "U boshqa haydovchilarga qayta ochiladi.": "It will be open to other drivers again.",
+  "Ha, voz kechish": "Yes, give it up",
+  "So‘rovni rad etasizmi?": "Decline this request?",
+  "Ha, rad etish": "Yes, decline",
+  "Kartani o‘chirasizmi?": "Remove this card?"
 }

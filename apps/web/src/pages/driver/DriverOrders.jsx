@@ -10,6 +10,7 @@ import { DriverHeader, DriverSheet, DriverTabs, StatusBadge, RouteStops, SeatChi
 import { mergeDriverOrders, isActiveStatus, filterByWorkRegions, isToday } from './orders'
 import { OrderAudience, WOMEN_CARD_CLASS } from '../../components/trip/OrderAudience'
 import { t } from '../../i18n'
+import { confirmAction } from '../../components/ui/Feedback'
 
 const TABS = [
   { id: 'all', label: 'Barchasi' },
@@ -154,7 +155,11 @@ export default function DriverOrders() {
               order={order}
               onDetails={() => navigate(`/driver/orders/${order.id}`)}
               onAccept={() => (order.kind === 'bot' ? claim.mutate(order.botId) : accept.mutate(order.id))}
-              onReject={() => order.kind === 'booking' && reject.mutate(order.id)}
+              onReject={async () => {
+                if (order.kind !== 'booking') return
+                const ok = await confirmAction({ title: 'So‘rovni rad etasizmi?', confirmLabel: 'Ha, rad etish', cancelLabel: 'Qaytish' })
+                if (ok) reject.mutate(order.id)
+              }}
               busy={accept.isPending || reject.isPending || claim.isPending}
             />
           ))

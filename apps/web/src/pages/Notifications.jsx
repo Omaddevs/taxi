@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Button'
 import { api, ApiError } from '../lib/api'
 import { DriverHeader } from './driver/ui'
 import { t } from '../i18n'
+import { toastError } from '../components/ui/Feedback'
 
 function SatisfactionRating({ ticketId }) {
   const [rating, setRating] = useState(0)
@@ -88,6 +89,7 @@ export default function Notifications() {
   })
 
   const markAllRead = useMutation({
+    onError: toastError,
     mutationFn: () => api.patch('/notifications/read-all'),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   })

@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { LocationPreview } from '../components/chat/LocationPreview'
 import { ChatAttachSheet } from '../components/chat/ChatAttachSheet'
 import { t } from '../i18n'
+import { toastError } from '../components/ui/Feedback'
 
 function timeLabel(iso) {
   return new Date(iso).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
@@ -86,6 +87,11 @@ export default function Chat() {
 
   const sendMessage = useMutation({
     mutationFn: (body) => api.post(`/conversations/${id}/messages`, body),
+    // The box is cleared on send; a message that didn't go out comes back so it isn't lost.
+    onError: (err, body) => {
+      if (body?.type === 'TEXT' && body.text !== LOCATION_REQUEST_TEXT) setText((prev) => prev || body.text)
+      toastError(err)
+    },
     onSuccess: (message) => {
       queryClient.setQueryData(['messages', id], (prev) => prependMessage(prev, message))
       queryClient.invalidateQueries({ queryKey: ['conversations'] })

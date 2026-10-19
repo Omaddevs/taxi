@@ -29,6 +29,7 @@ import { SoonBadge } from '../../components/ui/SoonBadge'
 import { REFERRAL_ENABLED } from '../../lib/features'
 import { OrderAudience, WOMEN_CARD_CLASS } from '../../components/trip/OrderAudience'
 import { t } from '../../i18n'
+import { toastError } from '../../components/ui/Feedback'
 
 export default function DriverHome() {
   const { user, gpsFix, watchUserLocation, stopWatchingLocation, autoAccept, workRegions, notifsEnabled } = useApp()
@@ -72,15 +73,18 @@ export default function DriverHome() {
   const approved = stats?.approved ?? user?.driver?.approved ?? false
 
   const toggleOnline = useMutation({
+    onError: toastError,
     mutationFn: (next) => api.patch('/drivers/me/status', { online: next }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['driver-stats'] }),
   })
 
   const claimBot = useMutation({
+    onError: toastError,
     mutationFn: (id) => api.post(`/bot-orders/driver/${id}/claim`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['driver-bot-orders'] }),
   })
   const acceptBooking = useMutation({
+    onError: toastError,
     mutationFn: (id) => api.patch(`/bookings/${id}/accept`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['driver-bookings'] })

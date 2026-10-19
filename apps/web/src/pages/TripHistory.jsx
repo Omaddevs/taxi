@@ -11,6 +11,7 @@ import { bookingToHistoryItem, botOrderToHistoryItem, BOOKING_STATUS_LABEL, BOOK
 import { formatSom } from '../lib/utils'
 import { DriverHeader } from './driver/ui'
 import { t } from '../i18n'
+import { toastError } from '../components/ui/Feedback'
 
 const DRIVER_TAGS = ['Toza salon', 'Xushmuomala', 'Vaqtida keldi', 'Xavfsiz haydash', 'Yoqimli suhbat']
 
@@ -39,6 +40,7 @@ export default function TripHistory() {
   const [ratedIds, setRatedIds] = useState(() => new Set())
   const { openRating, sheet } = useRateSheet()
   const rate = useMutation({
+    onError: toastError,
     mutationFn: ({ item, stars, tags, comment }) => {
       if (item.source === 'bot') {
         const orderId = Number(String(item.id).replace('bot-', ''))

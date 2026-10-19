@@ -37,6 +37,7 @@ import { PlateInput, isValidPlateUz } from '../../components/ui/PlateInput'
 import { UZ_REGIONS } from '../../data/regions'
 import { DriverHeader, DriverSheet, Toggle } from './ui'
 import { t } from '../../i18n'
+import { toastError } from '../../components/ui/Feedback'
 
 const driverServices = [
   { id: 'map', to: '/driver/smart-map', title: 'Smart xarita', icon: Map },
@@ -57,6 +58,7 @@ export default function DriverSettings() {
 
   const { data: stats } = useQuery({ queryKey: ['driver-stats'], queryFn: () => api.get('/drivers/me/stats') })
   const toggleOnline = useMutation({
+    onError: toastError,
     mutationFn: (online) => api.patch('/drivers/me/status', { online }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['driver-stats'] }),
   })

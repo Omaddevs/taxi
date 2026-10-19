@@ -8,6 +8,7 @@ import { googleMapsUrl } from '../../lib/geo'
 import { cargoTypes, cargoVehicles } from '../../data/mock'
 import { DriverHeader, DriverSheet, RouteStops, StatusBadge } from './ui'
 import { t } from '../../i18n'
+import { confirmAction } from '../../components/ui/Feedback'
 
 const icons = {
   file: FileText,
@@ -157,7 +158,7 @@ export default function DriverCargo() {
           onClaim={() => claim.mutate(openId)}
           onComplete={() => complete.mutate(openId)}
           onRelease={() => {
-            if (window.confirm('Yukdan voz kechasizmi? U boshqa haydovchilarga qayta ochiladi.')) release.mutate(openId)
+            confirmAction({ title: 'Yukdan voz kechasizmi?', message: 'U boshqa haydovchilarga qayta ochiladi.', confirmLabel: 'Ha, voz kechish', cancelLabel: 'Qaytish' }).then((ok) => ok && release.mutate(openId))
           }}
         />
       ) : null}

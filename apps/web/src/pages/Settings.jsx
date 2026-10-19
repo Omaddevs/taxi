@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { findLanguage } from '../data/languages'
 import { canVibrate, setVibrateOnOpen, vibrateOnOpenEnabled } from '../lib/vibrate'
 import { t } from '../i18n'
+import { confirmAction } from '../components/ui/Feedback'
 
 // Menu → Sozlamalar. Only settings that really do something: profile, theme, language, the
 // open-buzz (where the device can vibrate), notifications and signing out.
@@ -51,7 +52,7 @@ export default function Settings() {
       </Group>
 
       <Group>
-        <Row icon={LogOut} title="Chiqish" danger chevron={false} onClick={() => window.confirm(t('Hisobdan chiqasizmi?')) && logout()} />
+        <Row icon={LogOut} title="Chiqish" danger chevron={false} onClick={() => confirmAction({ title: 'Hisobdan chiqasizmi?', confirmLabel: 'Chiqish', cancelLabel: 'Qaytish' }).then((ok) => ok && logout())} />
       </Group>
 
       <Sheet open={themeOpen} title="Tungi rejim" onClose={() => setThemeOpen(false)}>

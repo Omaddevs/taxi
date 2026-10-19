@@ -8,6 +8,7 @@ import { googleMapsUrl } from '../../lib/geo'
 import { cargoTypes, cargoVehicles } from '../../data/mock'
 import { lockScroll } from '../../lib/scrollLock'
 import { t } from '../../i18n'
+import { confirmAction } from '../../components/ui/Feedback'
 
 const typeById = Object.fromEntries(cargoTypes.map((item) => [item.id, item]))
 const vehicleById = Object.fromEntries(cargoVehicles.map((v) => [v.id, v]))
@@ -185,7 +186,7 @@ export function CargoDetailSheet({ orderId, onClose }) {
                 type="button"
                 disabled={cancel.isPending}
                 onClick={() => {
-                  if (window.confirm('Buyurtmani bekor qilasizmi?')) cancel.mutate()
+                  confirmAction({ title: 'Buyurtmani bekor qilmoqchimisiz?', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' }).then((ok) => ok && cancel.mutate())
                 }}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 text-sm font-bold text-rose-600 disabled:opacity-50"
               >

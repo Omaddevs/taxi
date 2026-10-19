@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import GoogleFinish from './pages/GoogleFinish'
 import NotFound from './pages/NotFound'
 import { PhoneRequiredDialog } from './components/auth/PhoneRequiredDialog'
+import { FeedbackHost } from './components/ui/Feedback'
 import { useScrollUnlockOnNavigate } from './lib/scrollLock'
 import Landing from './pages/Landing'
 import News from './pages/News'
@@ -110,6 +111,7 @@ export default function App() {
   return (
     <>
     <PhoneRequiredDialog />
+    <FeedbackHost />
     <Routes>
       <Route path="/welcome" element={<WelcomeRedirect />} />
       <Route path="/news" element={<News />} />

@@ -25,6 +25,7 @@ import { ANY_CAR_PHOTO, carForModel, carPhotoFor } from '../data/cars'
 import { priceLabel } from '../lib/ride'
 import { shortMonth } from '../lib/utils'
 import { t } from '../i18n'
+import { confirmAction, toastError } from '../components/ui/Feedback'
 
 const DRIVER_TAGS = ['Toza salon', 'Xushmuomala', 'Vaqtida keldi', 'Xavfsiz haydash', 'Yoqimli suhbat']
 const ACTIVE = new Set(['PENDING', 'ACCEPTED', 'ONGOING'])
@@ -425,6 +426,7 @@ export default function Orders() {
     status === 'COMPLETED' ? t('Bajarilgan buyurtmalar') : status === 'CANCELLED' ? t('Bekor qilingan buyurtmalar') : t('So‘nggi buyurtmalar')
 
   const cancel = useMutation({
+    onError: toastError,
     mutationFn: (item) =>
       item.source === 'bot'
         ? api.post(`/bot-orders/mine/${item.id}/cancel`)
@@ -435,14 +437,15 @@ export default function Orders() {
   const { openRating, sheet } = useRateSheet()
   const [cargoId, setCargoId] = useState(null)
   const rate = useMutation({
+    onError: toastError,
     mutationFn: ({ item, stars, tags, comment }) =>
       item.source === 'bot'
         ? api.post(`/bot-orders/mine/${item.id}/rating`, { stars, tags, comment })
         : api.post(`/bookings/${item.id}/rating`, { stars, tags, comment }),
   })
 
-  function handleCancel(item) {
-    if (!window.confirm(t('Buyurtmani bekor qilmoqchimisiz?'))) return
+  async function handleCancel(item) {
+    if (!(await confirmAction({ title: 'Buyurtmani bekor qilmoqchimisiz?', confirmLabel: 'Ha, bekor qilish', cancelLabel: 'Qaytish' }))) return
     cancel.mutate(item)
   }
 
