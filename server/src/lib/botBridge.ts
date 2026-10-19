@@ -462,6 +462,33 @@ export async function deleteBotGroupAd(id: number): Promise<{ ok: true }> {
   return botFetch<{ ok: true }>(`/webapp/admin/group-ads/${id}`, { method: 'DELETE', ...GROUP_TIMEOUT })
 }
 
+// ── Takroriy e'lonlar himoyasi (taxiline-bot/app/services/repeat_guard.py) ──────────────────
+export interface RepeatGuardReport {
+  totals: { posts: number; cooldown: number; duplicate: number; mutes: number }
+  offenders: {
+    chatId: number
+    chatTitle: string | null
+    telegramId: number
+    name: string | null
+    strikes: number
+    mutes: number
+    lastAt: string | null
+    mutedUntil: string | null
+  }[]
+}
+
+export async function getRepeatGuardReport(days: number): Promise<RepeatGuardReport> {
+  return botFetch<RepeatGuardReport>(`/webapp/admin/repeat-guard?days=${days}`, GROUP_TIMEOUT)
+}
+
+export async function repeatGuardUnmute(chatId: number, telegramId: number): Promise<{ ok: true }> {
+  return botFetch<{ ok: true }>('/webapp/admin/repeat-guard/unmute', {
+    method: 'POST',
+    body: JSON.stringify({ chatId, telegramId }),
+    ...GROUP_TIMEOUT,
+  })
+}
+
 // ── Aloqa: «Tel qilish» calls (bot's call_logs table, see taxiline-bot/app/services/calls.py) ──
 export interface RecordedCall {
   phone: string

@@ -36,6 +36,8 @@ SECTIONS: list[tuple[str, str, str]] = [
     ("clients", "Mijozlar", "Bot ichidagi mijoz oqimi"),
     ("format_ads", "E'lon shabloni", "E'lon matni o'zgarmaydi — bot tepasiga TaxiLine sarlavhasi, pastiga e'lon egasi va tugmalarni qo'yadi"),
     ("group_ads", "Guruh e'lonlari", "Ochiq guruhdagi xabarlar: yo'lovchi/haydovchi so'rovi va matnlar"),
+    ("repeat", "Takroriy e'lonlar", "Bir kishi guruhga qayta-qayta e'lon tashlamasin. Har bir guruhda alohida yoqiladi: "
+     "Guruhlar → «Guruh xizmatlari»"),
 ]
 
 FIELDS: list[Field] = [
@@ -56,6 +58,8 @@ FIELDS: list[Field] = [
           "«taxiline.uz saytiga kirish» deb so'raydi. Ishlashi uchun @BotFather → /setdomain → saytingiz domeni"),
     Field("features.auto_cleanup", "features", "Bot xabarlarini guruhdan avtomatik o'chirish", "bool", True,
           "So'rov va javob xabarlari belgilangan vaqtdan keyin o'chadi"),
+    Field("features.repeat_guard", "features", "Takroriy e'lonlardan himoya", "bool", True,
+          "O'chirilsa, hech bir guruhda kutish vaqti, bir xil e'lon va jazo qoidalari ishlamaydi"),
     Field("admin_contact_url", "general", "Admin havolasi", "url", settings.admin_contact_url,
           "«Adminga yozish» tugmalari shu manzilni ochadi, masalan https://t.me/taxiline_toshkent"),
     Field("driver_subscription_days", "drivers", "Obuna muddati (kun)", "int", settings.driver_subscription_days,
@@ -99,6 +103,35 @@ FIELDS: list[Field] = [
           "Eslab qolingan haydovchi tez-tez yozsa, xabari jim o'chiriladi va javob shu oraliqda bir marta chiqadi", 1, 1440),
     Field("group_ads.allow_subscribed_drivers", "group_ads", "Obunasi faol haydovchilar erkin yozadi", "bool", True,
           "Tasdiqlangan va obunasi faol haydovchilarning xabarlari o'chirilmaydi"),
+    Field("repeat.cooldown_minutes", "repeat", "Kutish vaqti (daqiqa)", "int", 120,
+          "«Kutish vaqti» yoqilgan guruhda bir kishi shuncha vaqtda faqat 1 ta e'lon joylaydi. 120 = 2 soat",
+          5, 1440),
+    Field("repeat.duplicate_hours", "repeat", "Bir xil e'lonni taqiqlash muddati (soat)", "int", 12,
+          "«Bir xil e'lon» yoqilgan guruhda shu matn yoki shu telefon raqamli e'lon shuncha soat qayta "
+          "joylanmaydi — boshqa akkauntdan yozilsa ham", 1, 72),
+    Field("repeat.strikes_to_mute", "repeat", "Necha marta buzsa jazolanadi", "int", 3,
+          "«Jazo» yoqilgan guruhda shuncha marta e'loni o'chirilgan kishi vaqtincha yoza olmaydi", 1, 20),
+    Field("repeat.strike_window_hours", "repeat", "Buzilishlarni hisoblash davri (soat)", "int", 24,
+          "Shu davrdan eski buzilishlar hisobga olinmaydi", 1, 168),
+    Field("repeat.mute_hours", "repeat", "Birinchi jazo muddati (soat)", "int", 6,
+          "Bot guruhda «foydalanuvchilarni cheklash» huquqiga ega bo'lishi kerak", 1, 168),
+    Field("repeat.mute_repeat_hours", "repeat", "Takroriy jazo muddati (soat)", "int", 24,
+          "7 kun ichida yana jazolansa", 1, 720),
+    Field("repeat.exempt_subscribed", "repeat", "Obunasi faol haydovchilarga cheklov yo'q", "bool", False,
+          "Tasdiqlangan va obunasi faol haydovchilar istagancha e'lon joylay oladi"),
+    Field("repeat.notify_private", "repeat", "Sababini shaxsiy xabarda tushuntirish", "bool", True,
+          "Botni ochmagan bo'lsa, xabar guruhga yoziladi"),
+    Field("repeat.notify_group", "repeat", "Shaxsiy xabar yetmasa, guruhda ogohlantirish", "bool", True,
+          "Ogohlantirish 45 soniyadan keyin o'chadi; bir kishiga 10 daqiqada bir marta"),
+    Field("repeat.cooldown_text", "repeat", "Kutish vaqti buzilganda", "longtext",
+          "⏳ {name}, bu guruhga e'lonni {interval}da bir marta joylash mumkin. Keyingi e'loningizni soat {time} dan keyin yozing.",
+          "{name} — ism, {interval} — kutish vaqti, {time} — qachondan yozish mumkin"),
+    Field("repeat.duplicate_text", "repeat", "Bir xil e'lon qayta joylanganda", "longtext",
+          "♻️ {name}, bu e'lon guruhda allaqachon bor. Bir xil e'lonni qayta-qayta joylamang — uni soat {time} dan keyin qayta yozishingiz mumkin.",
+          "{name} — ism, {time} — qachondan yozish mumkin"),
+    Field("repeat.mute_text", "repeat", "Jazolanganda", "longtext",
+          "🔇 {name}, e'lonlar qayta-qayta joylangani uchun guruhga {hours} soat yoza olmaysiz (soat {time} gacha).",
+          "{name} — ism, {hours} — necha soat, {time} — cheklov tugaydigan vaqt"),
 ]
 
 _BY_KEY = {f.key: f for f in FIELDS}

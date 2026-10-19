@@ -10,6 +10,7 @@ from app.services import bot_config
 from app.services import formatted_ads as formatted_ads_service
 from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
+from app.services import repeat_guard as repeat_guard_service
 
 SPAM_MARKERS = ("http://", "https://", "t.me/", "@")
 
@@ -92,6 +93,9 @@ class GroupGuardMiddleware(BaseMiddleware):
                 if not groups_service.check_rate_limit(event.chat.id, event.from_user.id):
                     await _try_delete(bot, event)
                     return None
+
+        if await repeat_guard_service.check(bot, session, group, event):
+            return None
 
         if group.settings.get("ad_router") and await group_ads_service.intercept(
             bot, session, group, event, data.get("bot_user")

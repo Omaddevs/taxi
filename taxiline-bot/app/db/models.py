@@ -389,3 +389,27 @@ class CallLog(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
     __table_args__ = (Index("ix_call_logs_ad", "ad_kind", "ad_id"),)
+
+
+class GroupPostEvent(Base):
+    """Takroriy e'lon himoyasi (services/repeat_guard.py) jurnali: guruhga qabul qilingan e'lon
+    (POST), qoidani buzib o'chirilgan e'lon (STRIKE) va vaqtincha yozishdan cheklash (MUTE).
+    Bazada turgani uchun bot qayta ishga tushsa ham hisob yo'qolmaydi; 14 kundan eskisi o'chadi."""
+
+    __tablename__ = "group_post_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger)
+    user_telegram_id: Mapped[int] = mapped_column(BigInteger)
+    user_name: Mapped[str | None] = mapped_column(nullable=True)
+    kind: Mapped[str] = mapped_column()  # POST | STRIKE | MUTE
+    reason: Mapped[str | None] = mapped_column(nullable=True)  # cooldown | duplicate (STRIKE)
+    fingerprint: Mapped[str | None] = mapped_column(nullable=True)  # normalized-text hash (POST)
+    phones: Mapped[str | None] = mapped_column(nullable=True)  # ",998901234567," (POST)
+    until: Mapped[datetime | None] = mapped_column(nullable=True)  # MUTE: cheklov tugaydigan vaqt
+    created_at: Mapped[datetime] = mapped_column(index=True)
+
+    __table_args__ = (
+        Index("ix_group_post_events_user", "chat_id", "user_telegram_id", "kind", "created_at"),
+        Index("ix_group_post_events_chat", "chat_id", "kind", "created_at"),
+    )

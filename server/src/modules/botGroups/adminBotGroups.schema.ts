@@ -55,6 +55,15 @@ export const updateBotSettingsSchema = z.object({
   values: z.record(z.string(), z.union([z.string().max(2000), z.number(), z.boolean()])),
 })
 
+export const repeatGuardQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(14).default(1),
+})
+
+export const repeatGuardUnmuteSchema = z.object({
+  chatId: z.number().int(),
+  telegramId: z.number().int().positive(),
+})
+
 export const listGroupAdsQuerySchema = z.object({
   status: z.enum(['PENDING', 'SENT', 'TAKEN', 'DRIVER', 'EXPIRED', 'CANCELLED']).optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),

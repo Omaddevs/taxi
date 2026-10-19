@@ -16,6 +16,9 @@ DEFAULT_SETTINGS = {
     "require_invites": False,
     "format_ads": False,
     "ad_router": False,
+    "repeat_guard": False,
+    "duplicate_guard": False,
+    "repeat_mute": False,
     # Group.id of the closed driver group that receives this open group's passenger ads.
     "linked_group_id": None,
 }

@@ -13,6 +13,8 @@ import {
   updateBotSettingsSchema,
   updateGroupAdSchema,
   updateGroupSchema,
+  repeatGuardQuerySchema,
+  repeatGuardUnmuteSchema,
 } from './adminBotGroups.schema.js'
 
 export const adminBotGroupsRouter = Router()
@@ -27,6 +29,20 @@ adminBotSettingsRouter.patch(
   requireRole('ADMIN'),
   validate({ body: updateBotSettingsSchema }),
   asyncRoute(controller.updateBotSettings),
+)
+adminBotSettingsRouter.get(
+  '/repeat-guard',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ query: repeatGuardQuerySchema }),
+  asyncRoute(controller.repeatGuardReport),
+)
+adminBotSettingsRouter.post(
+  '/repeat-guard/unmute',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ body: repeatGuardUnmuteSchema }),
+  asyncRoute(controller.repeatGuardUnmute),
 )
 adminBotSettingsRouter.get(
   '/group-ads',

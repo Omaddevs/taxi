@@ -13,6 +13,7 @@ import { Switch } from '../components/ui/Switch'
 import { AdsLog } from '../components/bot/AdsLog'
 import { CallsReport } from '../components/bot/CallsReport'
 import { GroupLinks } from '../components/bot/GroupLinks'
+import { RepeatGuardReport } from '../components/bot/RepeatGuardReport'
 import { BOT_SETTINGS_PAGES } from '../lib/botSettings'
 import type { BotSettingField, BotSettingsResponse, BotSettingsSection } from '../types'
 
@@ -37,7 +38,16 @@ export default function BotSettings() {
           options={BOT_SETTINGS_PAGES.map((p) => ({ value: p.slug, label: p.label }))}
         />
       </div>
-      {section === 'ads-log' ? <AdsLog /> : section === 'calls' ? <CallsReport /> : <SettingsSection sectionKey={slugToKey(section)} />}
+      {section === 'ads-log' ? (
+        <AdsLog />
+      ) : section === 'calls' ? (
+        <CallsReport />
+      ) : (
+        <>
+          <SettingsSection sectionKey={slugToKey(section)} />
+          {section === 'repeat' ? <RepeatGuardReport /> : null}
+        </>
+      )}
     </div>
   )
 }

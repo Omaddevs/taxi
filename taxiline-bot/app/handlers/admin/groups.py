@@ -21,6 +21,9 @@ SETTING_LABELS = {
     "require_invites": "➕ Yozish uchun kamida 2 kishi taklif qilish talabi",
     "format_ads": "🧾 E'lonlarga TaxiLine sarlavhasi va tugmalar qo'shish",
     "ad_router": "🙋 Yo'lovchi/haydovchi so'rovi (yo'lovchini yopiq guruhga yuborish)",
+    "repeat_guard": "🔁 Takroriy e'lon: kutish vaqti (bir kishi — N soatda 1 e'lon)",
+    "duplicate_guard": "♻️ Bir xil e'lonni qayta joylashni taqiqlash",
+    "repeat_mute": "🔇 Qayta-qayta buzganni vaqtincha yozishdan cheklash",
 }
 
 

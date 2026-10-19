@@ -34,6 +34,7 @@ from app.services import cargo as cargo_service
 from app.services import drivers as drivers_service
 from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
+from app.services import repeat_guard as repeat_guard_service
 from app.services import trips as trips_service
 from app.services import users as users_service
 from app.services.backend_client import backend_client
@@ -1477,6 +1478,37 @@ async def admin_update_bot_settings(request: web.Request) -> web.Response:
         except ValueError as exc:
             return web.json_response({"error": str(exc)}, status=400)
     return web.json_response(bot_config.describe())
+
+
+@routes.get("/webapp/admin/repeat-guard")
+async def admin_repeat_guard(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        days = min(max(int(request.query.get("days", "1")), 1), 14)
+    except ValueError:
+        days = 1
+    async with session_scope() as session:
+        report = await repeat_guard_service.stats(session, datetime.utcnow() - timedelta(days=days))
+    return web.json_response(report)
+
+
+@routes.post("/webapp/admin/repeat-guard/unmute")
+async def admin_repeat_guard_unmute(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        payload = await request.json()
+        chat_id = int(payload["chatId"])
+        telegram_id = int(payload["telegramId"])
+    except (ValueError, KeyError, TypeError):
+        return web.json_response({"error": "chatId va telegramId kerak"}, status=400)
+    async with session_scope() as session:
+        try:
+            await repeat_guard_service.unmute(request.app["bot"], session, chat_id, telegram_id)
+        except TelegramAPIError as exc:
+            return web.json_response({"error": f"Telegram cheklovni olib bo‘lmadi: {exc.message}"}, status=400)
+    return web.json_response({"ok": True})
 
 
 @routes.get("/webapp/admin/group-ads")

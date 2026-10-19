@@ -44,6 +44,24 @@ export async function deleteGroup(req: Request, res: Response) {
   res.json(result)
 }
 
+export async function repeatGuardReport(req: Request, res: Response) {
+  const { days } = req.query as unknown as { days: number }
+  res.json(await botBridge.getRepeatGuardReport(days))
+}
+
+export async function repeatGuardUnmute(req: Request, res: Response) {
+  const { chatId, telegramId } = req.body as { chatId: number; telegramId: number }
+  const result = await botBridge.repeatGuardUnmute(chatId, telegramId)
+  await writeAudit({
+    actorId: req.user!.id,
+    action: 'BOT_REPEAT_GUARD_UNMUTE',
+    targetType: 'TelegramUser',
+    targetId: String(telegramId),
+    meta: { chatId },
+  })
+  res.json(result)
+}
+
 export async function getBotSettings(_req: Request, res: Response) {
   res.json(await botBridge.getBotSettings())
 }
