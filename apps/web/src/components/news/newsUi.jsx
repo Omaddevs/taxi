@@ -389,30 +389,25 @@ function FacebookIcon(props) {
   )
 }
 
-function XIcon(props) {
+function InstagramIcon(props) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L2 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none" />
     </svg>
   )
 }
 
-function WhatsAppIcon(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1.1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z" />
-    </svg>
-  )
-}
-
+// Instagram'da veb orqali havola ulashib bo‘lmaydi: telefonda tizimning ulashish oynasi (Instagram ham
+// shu yerda) ochiladi, kompyuterda esa havola nusxalanib, Instagram yangi oynada ochiladi.
 export function shareTargets(url, title) {
   const u = encodeURIComponent(url)
   const text = encodeURIComponent(title)
   return [
     { id: 'telegram', label: 'Telegram', icon: TelegramIcon, href: `https://t.me/share/url?url=${u}&text=${text}`, color: 'hover:bg-[#2AABEE]' },
+    { id: 'instagram', label: 'Instagram', icon: InstagramIcon, href: 'https://www.instagram.com/', color: 'hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7]', native: true },
     { id: 'facebook', label: 'Facebook', icon: FacebookIcon, href: `https://www.facebook.com/sharer/sharer.php?u=${u}`, color: 'hover:bg-[#1877F2]' },
-    { id: 'x', label: 'X', icon: XIcon, href: `https://x.com/intent/post?url=${u}&text=${text}`, color: 'hover:bg-black' },
-    { id: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon, href: `https://wa.me/?text=${text}%20${u}`, color: 'hover:bg-[#25D366]' },
   ]
 }
 
@@ -438,10 +433,35 @@ export function ShareButtons({ url, title, tone = 'light', vertical = false }) {
       ? 'bg-white/10 text-white ring-1 ring-white/10 hover:text-white'
       : 'bg-white text-ink ring-1 ring-black/[0.08] hover:text-white hover:ring-transparent'
   const btn = `flex h-11 w-11 items-center justify-center rounded-full transition ${base}`
+
+  async function shareNative(e, fallback) {
+    e.preventDefault()
+    const touch = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+    if (touch && navigator.share) {
+      try {
+        await navigator.share({ title, url })
+        return
+      } catch (err) {
+        if (err?.name === 'AbortError') return
+      }
+    }
+    await copy(url)
+    window.open(fallback, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className={`flex gap-2 ${vertical ? 'flex-col' : 'flex-wrap'}`}>
       {shareTargets(url, title).map((s) => (
-        <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label} className={`${btn} ${s.color}`}>
+        <a
+          key={s.id}
+          href={s.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={s.label}
+          title={s.label}
+          className={`${btn} ${s.color}`}
+          onClick={s.native ? (e) => shareNative(e, s.href) : undefined}
+        >
           <s.icon className="h-[18px] w-[18px]" />
         </a>
       ))}
