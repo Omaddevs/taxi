@@ -403,7 +403,7 @@ export class SeatScene {
     renderer.domElement.style.display = 'block'
     renderer.domElement.style.width = '100%'
     renderer.domElement.style.height = '100%'
-    renderer.domElement.style.touchAction = 'none'
+    renderer.domElement.style.touchAction = 'pan-y'
     host.appendChild(renderer.domElement)
     this.renderer = renderer
 
@@ -555,7 +555,8 @@ export class SeatScene {
           if (Math.abs(dx) + Math.abs(dy) > 6) this.drag.moved = true
           if (this.drag.moved) {
             this.yawGoal = THREE.MathUtils.clamp(this.drag.yaw - dx * 0.008, -1.25, 1.25)
-            this.pitchGoal = THREE.MathUtils.clamp(this.drag.pitch - dy * 0.006, 0.45, 1.2)
+            // On touch screens vertical swipes scroll the sheet, so only a mouse tilts the view.
+            if (e.pointerType === 'mouse') this.pitchGoal = THREE.MathUtils.clamp(this.drag.pitch - dy * 0.006, 0.45, 1.2)
             this.lastInteraction = performance.now()
             this.host.dataset.dragged = '1'
           }
@@ -733,6 +734,8 @@ export class SeatScene {
     })
     this.scene.environment?.dispose()
     this.renderer.dispose()
+    // Browsers keep only ~16 live WebGL contexts; reopening the sheet must not run out of them.
+    this.renderer.forceContextLoss()
     el.remove()
   }
 }
