@@ -34,6 +34,15 @@ function ArticleBody({ body }) {
   return <div className="news-content text-[17px] sm:text-[18px] 2xl:text-[20px]" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
+// Katta bosh harf faqat matn harf bilan boshlansa — emoji yoki raqam kattalashib ketmasin.
+function startsWithLetter(body) {
+  const text = String(body || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z#0-9]+;/gi, ' ')
+    .trimStart()
+  return /^\p{L}/u.test(text)
+}
+
 // Har bir maqola bir sessiyada bir marta sanaladi.
 function useCountView(slug, ready) {
   useEffect(() => {
@@ -332,7 +341,7 @@ export default function NewsDetail() {
                     </div>
                   </div>
                   <div className="min-w-0 max-w-[760px] 2xl:max-w-[820px]">
-                    <div className="news-dropcap">
+                    <div className={`news-article ${startsWithLetter(post.body) ? 'news-dropcap' : ''}`}>
                       <ArticleBody body={post.body} />
                     </div>
 
