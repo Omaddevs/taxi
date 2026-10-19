@@ -12,7 +12,6 @@ import { Field, inputClass } from '../components/ui/Chart'
 import { SkeletonTable } from '../components/ui/EmptyState'
 import { ChannelChips } from '../components/people/ChannelChips'
 import { EmailPersonModal } from '../components/people/PeopleActions'
-import { RevealSecret } from '../components/ui/RevealSecret'
 import { displayName, formatDateTime, formatPhoneUz, formatSom } from '../lib/utils'
 import { BOOKING_LABEL, BOOKING_TONE, CHANNEL_LABEL, ROLE_LABEL, ROLE_TONE, TX_TYPE_LABEL } from '../lib/labels'
 import type { PersonDetail } from '../types'
@@ -201,7 +200,7 @@ export default function PersonDetailPage() {
                 <div className="flex items-start justify-between gap-3">
                   <dt className="text-muted">Parol</dt>
                   <dd className="text-right">
-                    <RevealSecret value={person.loginPassword} empty="Hali saqlanmagan" />
+                    <span className="text-sm text-muted">{person.hasPassword ? '🔒 O‘rnatilgan (shifrlangan)' : 'O‘rnatilmagan'}</span>
                   </dd>
                 </div>
               ) : null}

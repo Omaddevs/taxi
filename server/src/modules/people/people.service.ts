@@ -113,14 +113,13 @@ export async function listPeople(filter: { q?: string; kind?: 'all' | 'passenger
   }
 }
 
-export async function getPerson(id: string, actorRole?: JwtRole) {
+export async function getPerson(id: string) {
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { ...PERSON_SELECT, staffKind: true, loginPassword: true, deletedAt: true },
+    select: { ...PERSON_SELECT, staffKind: true, passwordHash: true, deletedAt: true },
   })
   if (!user || user.staffKind || user.deletedAt) throw new NotFoundError('Foydalanuvchi topilmadi')
-  const { staffKind: _staffKind, loginPassword, ...person } = user
-  const canSeePassword = actorRole === 'ADMIN' || actorRole === 'SUPPORT_OPERATOR'
+  const { staffKind: _staffKind, passwordHash, ...person } = user
 
   const [recentBookings, recentTransactions, ratingsReceived, driverBookings] = await Promise.all([
     prisma.booking.findMany({
@@ -176,7 +175,8 @@ export async function getPerson(id: string, actorRole?: JwtRole) {
 
   return {
     ...person,
-    loginPassword: canSeePassword ? loginPassword : null,
+    // Passwords are kept only as a hash — staff see whether one is set, never the password.
+    hasPassword: Boolean(passwordHash),
     recentBookings,
     recentTransactions,
     ratingsReceived,
@@ -230,7 +230,7 @@ export async function updatePerson(
         ...(patch.language ? { language: patch.language } : {}),
         ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
         ...(patch.verified === undefined ? {} : { verified: patch.verified }),
-        ...(passwordHash ? { passwordHash, loginPassword: patch.password } : {}),
+        ...(passwordHash ? { passwordHash } : {}),
       },
       select: PERSON_SELECT,
     })

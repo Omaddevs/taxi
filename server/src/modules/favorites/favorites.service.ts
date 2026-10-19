@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma.js'
 import { NotFoundError } from '../../errors/AppError.js'
+import { OFFER_DRIVER_SELECT } from '../offers/offers.service.js'
 
 export async function listFavorites(userId: string) {
   const favorites = await prisma.favorite.findMany({
@@ -7,7 +8,7 @@ export async function listFavorites(userId: string) {
     orderBy: { createdAt: 'desc' },
     include: {
       rideOffer: {
-        include: { driver: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } }, service: true },
+        include: { driver: { select: { ...OFFER_DRIVER_SELECT, user: { select: { id: true, name: true, avatarUrl: true } } } }, service: true },
       },
     },
   })

@@ -2,6 +2,7 @@ import type { Server as HttpServer } from 'node:http'
 import { Server as SocketIOServer } from 'socket.io'
 import { verifyAccessToken } from './jwt.js'
 import { env } from '../config/env.js'
+import { prisma } from './prisma.js'
 import { driverRoom, conversationRoom, userRoom } from '../realtime/events.js'
 
 let io: SocketIOServer | undefined
@@ -27,11 +28,25 @@ export function initSocket(httpServer: HttpServer) {
   io.on('connection', (socket) => {
     if (socket.data.userId) socket.join(userRoom(socket.data.userId))
 
-    socket.on('driver:join', (driverId: string) => {
-      if (socket.data.userId) socket.join(driverRoom(driverId))
+    // Rooms carry other people's bookings and messages — join only your own driver profile and
+    // conversations you are part of.
+    socket.on('driver:join', async (driverId: unknown) => {
+      if (typeof driverId !== 'string') return
+      const own = await prisma.driver
+        .findFirst({ where: { id: driverId, userId: socket.data.userId }, select: { id: true } })
+        .catch(() => null)
+      if (own) socket.join(driverRoom(driverId))
     })
-    socket.on('conversation:join', (conversationId: string) => {
-      socket.join(conversationRoom(conversationId))
+    socket.on('conversation:join', async (conversationId: unknown) => {
+      if (typeof conversationId !== 'string') return
+      const userId = socket.data.userId
+      const mine = await prisma.conversation
+        .findFirst({
+          where: { id: conversationId, OR: [{ participantAId: userId }, { participantBId: userId }] },
+          select: { id: true },
+        })
+        .catch(() => null)
+      if (mine) socket.join(conversationRoom(conversationId))
     })
   })
 

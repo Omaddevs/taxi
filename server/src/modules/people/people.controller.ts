@@ -10,7 +10,7 @@ export async function listPeople(req: Request, res: Response) {
 }
 
 export async function getPerson(req: Request, res: Response) {
-  res.json(await peopleService.getPerson(req.params.id, req.user!.role))
+  res.json(await peopleService.getPerson(req.params.id))
 }
 
 export async function updatePerson(req: Request, res: Response) {

@@ -436,7 +436,7 @@ export async function adminLogin(rawPhone: string, password: string, meta?: Sess
   const role = jwtRoleFromStaff(staffKind)
   await prisma.user.update({
     where: { id: user.id },
-    data: { lastSeenAt: new Date(), loginPassword: password },
+    data: { lastSeenAt: new Date() },
   })
   const tokens = await issueTokenPair(user.id, role, meta)
   return { user: { ...user, role, staffKind }, ...tokens }

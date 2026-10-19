@@ -8,7 +8,6 @@ import { Badge, Button, Card } from '../components/ui/Button'
 import { FilterPills } from '../components/ui/Filters'
 import { Field, inputClass } from '../components/ui/Chart'
 import { KpiBar } from '../components/ui/KpiBar'
-import { RevealSecret } from '../components/ui/RevealSecret'
 import { SkeletonTable } from '../components/ui/EmptyState'
 import { StatCard } from '../components/ui/StatCard'
 import { displayName, formatDateTime, formatPhoneUz, formatSom, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
@@ -158,7 +157,7 @@ export default function OperatorDetail() {
             <div className="flex items-start justify-between gap-3">
               <dt className="text-muted">Parol</dt>
               <dd>
-                <RevealSecret value={data.loginPassword} empty="O‘rnatib saqlang" />
+                <span className="text-sm text-muted">🔒 Shifrlangan — faqat yangisini o‘rnatish mumkin</span>
               </dd>
             </div>
             <div className="flex justify-between gap-3">

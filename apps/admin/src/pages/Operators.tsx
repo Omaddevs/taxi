@@ -10,7 +10,6 @@ import { FilterPills, SearchInput } from '../components/ui/Filters'
 import { EmptyState, SkeletonTable } from '../components/ui/EmptyState'
 import { Modal } from '../components/ui/Modal'
 import { Field, inputClass } from '../components/ui/Chart'
-import { RevealSecret } from '../components/ui/RevealSecret'
 import { cn, displayName, formatPhoneUz, isCompletePhoneUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
 import { STAFF_LABEL, STAFF_TONE } from '../lib/labels'
 import type { StaffKind, StaffKpiRow, StaffRow } from '../types'
@@ -67,10 +66,6 @@ export default function Operators() {
       ),
     },
     { header: 'Lavozim', cell: (u) => <Badge tone={STAFF_TONE[u.staffKind]}>{STAFF_LABEL[u.staffKind]}</Badge> },
-    {
-      header: 'Parol',
-      cell: (u) => <RevealSecret value={u.loginPassword} empty="O‘rnatilmagan" />,
-    },
     {
       header: 'KPI (bugun)',
       cell: (u) => {

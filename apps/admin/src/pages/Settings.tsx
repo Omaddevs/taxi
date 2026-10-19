@@ -4,7 +4,6 @@ import { Monitor, ShieldOff } from 'lucide-react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button, Card } from '../components/ui/Button'
 import { Field, inputClass } from '../components/ui/Chart'
-import { RevealSecret } from '../components/ui/RevealSecret'
 import { useAuth } from '../context/AuthContext'
 import { api, API_BASE, ApiError } from '../lib/api'
 import { formatDateTime, formatPhoneUz, isCompletePhoneUz, localPhoneDigitsUz, maskLocalPhoneUz, toE164Uz } from '../lib/utils'
@@ -76,7 +75,7 @@ export default function Settings() {
             <div className="flex items-start justify-between gap-3">
               <dt className="text-muted">Parol</dt>
               <dd>
-                <RevealSecret value={data?.loginPassword} empty="O‘rnatib saqlang — keyin ko‘rinadi" />
+                <span className="text-sm text-muted">🔒 Shifrlangan — faqat yangisini o‘rnatish mumkin</span>
               </dd>
             </div>
           </dl>

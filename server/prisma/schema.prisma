@@ -187,7 +187,7 @@ model User {
   role             Role          @default(PASSENGER)
   verified         Boolean       @default(false)
   passwordHash     String? // panel login (admin / operators)
-  loginPassword    String? // last set password, shown only in admin/support panels
+  loginPassword    String? // no longer written (passwords live only in passwordHash); kept null
   staffKind        StaffKind?
   staffActive      Boolean       @default(true)
   busy             Boolean       @default(false) // manual "band" toggle shown to teammates in the Operators list

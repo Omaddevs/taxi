@@ -4,8 +4,24 @@ import { notifyGroupOfferPosted } from '../../lib/botNotify.js'
 import { writeAudit } from '../../lib/audit.js'
 import type { Gender, SeatPosition } from '@prisma/client'
 
+// Offers are public (search needs no login), so the driver comes as a short card — never the
+// whole Driver row: that would hand out their live location, licence number and archive notes.
+export const OFFER_DRIVER_SELECT = {
+  id: true,
+  userId: true,
+  carModel: true,
+  plate: true,
+  carImageUrl: true,
+  ratingAvg: true,
+  ratingCount: true,
+  tripsCount: true,
+  online: true,
+  createdAt: true,
+  user: { select: { id: true, name: true, avatarUrl: true, phone: true } },
+} as const
+
 const OFFER_INCLUDE = {
-  driver: { include: { user: { select: { id: true, name: true, avatarUrl: true, phone: true } } } },
+  driver: { select: OFFER_DRIVER_SELECT },
   service: true,
   seats: true,
 } as const

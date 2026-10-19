@@ -14,7 +14,6 @@ const STAFF_SELECT = {
   staffActive: true,
   busy: true,
   verified: true,
-  loginPassword: true,
   lastSeenAt: true,
   createdAt: true,
   updatedAt: true,
@@ -84,7 +83,6 @@ export async function createStaff(
         data: {
           name: input.name,
           passwordHash,
-          loginPassword: input.password,
           verified: true,
           staffKind: input.kind,
           staffActive: true,
@@ -96,7 +94,6 @@ export async function createStaff(
           phone,
           name: input.name,
           passwordHash,
-          loginPassword: input.password,
           verified: true,
           role: 'PASSENGER',
           staffKind: input.kind,
@@ -140,7 +137,7 @@ export async function updateStaff(
       ...(patch.kind ? { staffKind: patch.kind } : {}),
       ...(patch.staffActive === undefined ? {} : { staffActive: patch.staffActive }),
       ...(phone ? { phone } : {}),
-      ...(passwordHash ? { passwordHash, loginPassword: patch.password } : {}),
+      ...(passwordHash ? { passwordHash } : {}),
     },
     select: STAFF_SELECT,
   })
@@ -357,7 +354,6 @@ export async function logActivity(
 export async function salesDashboard(operatorId: string, period: KpiPeriod = 'DAY') {
   const operator = await prisma.user.findUnique({ where: { id: operatorId }, select: STAFF_SELECT })
   if (operator?.staffKind !== 'SALES') throw new ForbiddenError('Bu panel faqat sotuv operatorlari uchun')
-  const { loginPassword: _pw, ...safeOperator } = operator
 
   const { from, to } = { from: kpiPeriodStart(period), to: new Date() }
 
@@ -410,7 +406,7 @@ export async function salesDashboard(operatorId: string, period: KpiPeriod = 'DA
     .sort((a, b) => b.score - a.score)
 
   return {
-    operator: safeOperator,
+    operator,
     period,
     range: { from, to },
     target: targets,

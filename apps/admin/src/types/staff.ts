@@ -14,7 +14,6 @@ export interface StaffRow {
   busy: boolean
   online: boolean
   verified: boolean
-  loginPassword?: string | null
   lastSeenAt?: string | null
   createdAt: string
   updatedAt: string
@@ -65,7 +64,6 @@ export interface StaffKpiSlice {
 }
 
 export interface StaffDetail extends StaffRow {
-  loginPassword: string | null
   kpis: StaffKpiSlice[]
   lifetime: KpiNumbers
   contacts: StaffContacts
