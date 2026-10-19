@@ -72,153 +72,243 @@ function radialTexture(inner, outer) {
 
 // ── Car body ────────────────────────────────────────────────────────────────────────────────
 
-/** Top-down outline (shape y = -world z): a rounded nose, straight flanks, a rounded tail. */
-function outline(halfW, front, rear) {
-  const s = new THREE.Shape()
-  const nose = 0.5
-  const tail = 0.38
-  s.moveTo(-halfW + 0.12, -rear)
-  s.lineTo(halfW - 0.12, -rear)
-  s.quadraticCurveTo(halfW, -rear, halfW, -rear + tail)
-  s.lineTo(halfW, front - nose)
-  s.bezierCurveTo(halfW, front - 0.12, halfW - 0.22, front, halfW - 0.5, front)
-  s.lineTo(-halfW + 0.5, front)
-  s.bezierCurveTo(-halfW + 0.22, front, -halfW, front - 0.12, -halfW, front - nose)
-  s.lineTo(-halfW, -rear + tail)
-  s.quadraticCurveTo(-halfW, -rear, -halfW + 0.12, -rear)
-  return s
-}
-
-function roundedRect(x0, y0, x1, y1, r) {
-  const p = new THREE.Path()
-  p.moveTo(x0 + r, y0)
-  p.lineTo(x1 - r, y0)
-  p.quadraticCurveTo(x1, y0, x1, y0 + r)
-  p.lineTo(x1, y1 - r)
-  p.quadraticCurveTo(x1, y1, x1 - r, y1)
-  p.lineTo(x0 + r, y1)
-  p.quadraticCurveTo(x0, y1, x0, y1 - r)
-  p.lineTo(x0, y0 + r)
-  p.quadraticCurveTo(x0, y0, x0 + r, y0)
-  return p
-}
-
-function extrudeUp(shape, depth, bevel) {
+/** A side silhouette (shape x = world z, y = up) extruded across the car, `half` each side of x=0. */
+function sideSlab(shape, half, bevel) {
+  const depth = Math.max(half * 2 - bevel * 2, 0.001)
   const g = new THREE.ExtrudeGeometry(shape, {
     depth,
     bevelEnabled: true,
     bevelThickness: bevel,
     bevelSize: bevel,
     bevelSegments: 5,
-    curveSegments: 24,
+    curveSegments: 28,
   })
-  g.rotateX(-Math.PI / 2) // shape xy → world x/-z, extrusion → +y
+  g.rotateY(-Math.PI / 2) // extrusion → world -x
+  g.translate(depth / 2, 0, 0)
+  g.computeVertexNormals()
+  return g
+}
+
+/** Pulls a clip's corners in towards the centre line past `from` (towards `to`) — the rounded
+ * nose and tail seen from above. */
+function roundPlan(g, from, to, amount) {
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const t = THREE.MathUtils.smoothstep(pos.getZ(i), Math.min(from, to), Math.max(from, to))
+    const k = from < to ? t : 1 - t
+    pos.setX(i, pos.getX(i) * (1 - amount * k * k))
+  }
+  pos.needsUpdate = true
+  g.computeVertexNormals()
+  return g
+}
+
+/** The Chevrolet bowtie: a wide bar crossed by a short upright one, slanted. */
+function bowtie(material, x, y, z, ry = 0) {
+  const g = new THREE.Group()
+  const bar = new THREE.Mesh(new RoundedBoxGeometry(0.15, 0.036, 0.016, 2, 0.008), material)
+  bar.rotation.z = -0.12
+  const post = new THREE.Mesh(new RoundedBoxGeometry(0.05, 0.075, 0.016, 2, 0.008), material)
+  post.rotation.z = -0.12
+  g.add(bar, post)
+  g.position.set(x, y, z)
+  g.rotation.y = ry
   return g
 }
 
 function buildCar(mats) {
   const car = new THREE.Group()
 
-  // Lower body: one shell with the cabin cut out of it (beltline at ~0.94 m).
-  const body = outline(0.84, 1.95, 1.88)
-  body.holes.push(roundedRect(-0.74, -1.12, 0.74, 0.6, 0.16)) // cabin opening, shape y = -z
-  const shell = new THREE.Mesh(extrudeUp(body, 0.44, 0.13), mats.paint)
-  shell.position.y = 0.38
-  car.add(shell)
+  // Chevrolet Cobalt, roof off. The body is built from its side silhouette: a front clip (bumper,
+  // grille, sloping hood), a rear clip (high trunk, bumper) and the two door panels between them,
+  // each extruded across the car; the clips are then rounded off in plan view at the corners.
+  const WHEEL_R = 0.33
+  const ARCH_R = 0.41
+  const FRONT_AXLE = -1.3
+  const REAR_AXLE = 1.3
 
-  // Sills and bumpers in dark trim, under the paint line.
-  const skirt = new THREE.Mesh(extrudeUp(outline(0.86, 1.98, 1.91), 0.1, 0.05), mats.trim)
-  skirt.position.y = 0.24
-  car.add(skirt)
+  const front = new THREE.Shape()
+  front.moveTo(-0.62, 1.0)
+  front.quadraticCurveTo(-1.5, 0.98, -2.06, 0.86) // hood, sloping down to the nose
+  front.quadraticCurveTo(-2.24, 0.82, -2.26, 0.66) // hood edge into the grille
+  front.quadraticCurveTo(-2.3, 0.42, -2.22, 0.24) // bumper face
+  front.lineTo(FRONT_AXLE - ARCH_R, 0.22)
+  front.lineTo(FRONT_AXLE - ARCH_R, WHEEL_R)
+  front.absarc(FRONT_AXLE, WHEEL_R, ARCH_R, Math.PI, 0, true)
+  front.lineTo(FRONT_AXLE + ARCH_R, 0.22)
+  front.lineTo(-0.62, 0.22)
+  front.closePath()
 
-  // Hood crease and trunk lid: gentle raised panels.
-  const hood = new THREE.Mesh(new RoundedBoxGeometry(1.36, 0.06, 1.06, 4, 0.03), mats.paint)
-  hood.position.set(0, 0.94, -1.28)
-  hood.rotation.x = -0.07
-  car.add(hood)
-  const trunk = new THREE.Mesh(new RoundedBoxGeometry(1.36, 0.06, 0.6, 4, 0.03), mats.paint)
-  trunk.position.set(0, 0.96, 1.48)
-  trunk.rotation.x = 0.05
-  car.add(trunk)
+  const rearStart = 1.2
+  const archTop = Math.acos((rearStart - REAR_AXLE) / ARCH_R) // where the rear arch meets the doors
+  const rear = new THREE.Shape()
+  rear.moveTo(rearStart, 1.0)
+  rear.quadraticCurveTo(1.6, 1.03, 2.02, 1.0) // high trunk deck
+  rear.quadraticCurveTo(2.22, 1.02, 2.25, 0.86) // rear edge
+  rear.quadraticCurveTo(2.29, 0.5, 2.2, 0.24) // bumper face
+  rear.lineTo(REAR_AXLE + ARCH_R, 0.22)
+  rear.lineTo(REAR_AXLE + ARCH_R, WHEEL_R)
+  rear.absarc(REAR_AXLE, WHEEL_R, ARCH_R, 0, archTop, false)
+  rear.closePath()
 
-  // Twin brand stripes over the hood and the trunk lid.
-  for (const x of [-0.13, 0.13]) {
-    const onHood = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.012, 1.0, 2, 0.005), mats.stripe)
-    onHood.position.set(x, 0.976, -1.28)
-    onHood.rotation.x = -0.07
-    car.add(onHood)
-    const onTrunk = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.012, 0.56, 2, 0.005), mats.stripe)
-    onTrunk.position.set(x, 0.996, 1.48)
-    onTrunk.rotation.x = 0.05
-    car.add(onTrunk)
-  }
+  const door = new THREE.Shape()
+  door.moveTo(-0.62, 0.97)
+  door.quadraticCurveTo(0.3, 0.97, rearStart, 1.0) // beltline rising to the rear
+  door.lineTo(rearStart, WHEEL_R + Math.sin(archTop) * ARCH_R)
+  door.absarc(REAR_AXLE, WHEEL_R, ARCH_R, archTop, Math.PI, false)
+  door.lineTo(REAR_AXLE - ARCH_R, 0.22)
+  door.lineTo(-0.62, 0.22)
+  door.closePath()
 
-  // Brand stripe along both flanks.
+  const frontClip = new THREE.Mesh(roundPlan(sideSlab(front, 0.86, 0.08), -1.6, -2.3, 0.14), mats.paint)
+  const rearClip = new THREE.Mesh(roundPlan(sideSlab(rear, 0.86, 0.08), 1.75, 2.3, 0.09), mats.paint)
+  car.add(frontClip, rearClip)
   for (const side of [-1, 1]) {
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.07, 3.0), mats.stripe)
-    stripe.position.set(side * 0.935, 0.66, 0.05)
-    car.add(stripe)
+    const panel = new THREE.Mesh(sideSlab(door, 0.05, 0.035), mats.paint)
+    panel.position.x = side * 0.825
+    car.add(panel)
   }
 
-  // Windshield: a tinted pane leaning back, framed by A-pillars and a header.
-  // Base on the scuttle in front of the dash, top leaning back over the front seats.
+  // Two creases running down the hood.
+  for (const x of [-0.3, 0.3]) {
+    const crease = new THREE.Mesh(new RoundedBoxGeometry(0.03, 0.02, 1.3, 2, 0.008), mats.paint)
+    crease.position.set(x, 0.985, -1.32)
+    crease.rotation.x = -0.075
+    car.add(crease)
+  }
+
+  // Wheel wells: dark liners inside the arches.
+  const well = new THREE.CylinderGeometry(ARCH_R - 0.01, ARCH_R - 0.01, 1.6, 28, 1, true, 0, Math.PI)
+  well.rotateZ(Math.PI / 2)
+  for (const z of [FRONT_AXLE, REAR_AXLE]) {
+    const liner = new THREE.Mesh(well, mats.well)
+    liner.position.set(0, WHEEL_R, z)
+    car.add(liner)
+  }
+
+  // Sills and the lower bumpers in black.
+  for (const side of [-1, 1]) {
+    const sill = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.09, 1.66, 3, 0.03), mats.trim)
+    sill.position.set(side * 0.84, 0.25, -0.02)
+    car.add(sill)
+  }
+
+  // Body line, door seams, handles and the TaxiLine stripe along each side.
+  for (const side of [-1, 1]) {
+    const x = side * 0.878
+    const crease = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.018, 3.9), mats.paint)
+    crease.position.set(x, 0.82, 0)
+    car.add(crease)
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.06, 3.4), mats.stripe)
+    stripe.position.set(x + side * 0.002, 0.6, 0.05)
+    car.add(stripe)
+    for (const z of [-0.62, 0.36, 1.08]) {
+      const seam = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.62, 0.008), mats.seam)
+      seam.position.set(x + side * 0.003, 0.66, z)
+      car.add(seam)
+    }
+    for (const z of [-0.12, 0.84]) {
+      const handle = new THREE.Mesh(new RoundedBoxGeometry(0.03, 0.035, 0.16, 2, 0.012), mats.chrome)
+      handle.position.set(x + side * 0.01, 0.9, z)
+      car.add(handle)
+    }
+  }
+
+  // Windshield: a tinted pane leaning back, black A-pillars and header.
   const glass = new THREE.Mesh(new RoundedBoxGeometry(1.44, 0.016, 0.62, 2, 0.006), mats.glass)
-  glass.position.set(0, 1.16, -0.62)
+  glass.position.set(0, 1.18, -0.6)
   glass.rotation.x = -0.82
   car.add(glass)
   for (const side of [-1, 1]) {
     const pillar = new THREE.Mesh(new RoundedBoxGeometry(0.07, 0.06, 0.66, 2, 0.025), mats.trim)
-    pillar.position.set(side * 0.74, 1.16, -0.62)
+    pillar.position.set(side * 0.74, 1.18, -0.6)
     pillar.rotation.x = -0.82
     car.add(pillar)
   }
   const header = new THREE.Mesh(new RoundedBoxGeometry(1.55, 0.06, 0.08, 2, 0.025), mats.trim)
-  header.position.set(0, 1.4, -0.39)
+  header.position.set(0, 1.42, -0.37)
   car.add(header)
-  // Wheel arches: dark lips over each wheel.
-  const arch = new THREE.TorusGeometry(0.38, 0.045, 8, 28, Math.PI)
-  arch.rotateY(Math.PI / 2)
-  for (const [x, z] of [[-0.93, -1.28], [0.93, -1.28], [-0.93, 1.26], [0.93, 1.26]]) {
-    const lip = new THREE.Mesh(arch, mats.trim)
-    lip.position.set(x, 0.36, z)
-    car.add(lip)
-  }
 
-  // Mirrors.
+  // Door mirrors: black base, body-colour cap.
   for (const side of [-1, 1]) {
-    const mirror = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.12, 0.08, 3, 0.03), mats.paint)
-    mirror.position.set(side * 1.0, 1.0, -0.62)
-    car.add(mirror)
-    const face = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.01), mats.glass)
-    face.position.set(side * 1.0, 1.0, -0.575)
-    car.add(face)
+    const base = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.07, 0.12, 2, 0.02), mats.trim)
+    base.position.set(side * 0.9, 1.03, -0.5)
+    const cap = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.13, 0.1, 3, 0.04), mats.paint)
+    cap.position.set(side * 1.0, 1.06, -0.5)
+    car.add(base, cap)
   }
 
-  // Lights and grille.
+  // Nose: swept headlights, chrome-barred upper grille with the gold bowtie, a wide lower
+  // grille and round fog lamps.
   for (const side of [-1, 1]) {
-    const head = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.07, 0.1, 3, 0.03), mats.headlight)
-    head.position.set(side * 0.55, 0.86, -2.0)
-    head.rotation.y = side * 0.25
-    car.add(head)
-    const tail = new THREE.Mesh(new RoundedBoxGeometry(0.36, 0.07, 0.08, 3, 0.03), mats.taillight)
-    tail.position.set(side * 0.55, 0.88, 1.94)
-    tail.rotation.y = -side * 0.22
-    car.add(tail)
+    const lamp = new THREE.Mesh(new RoundedBoxGeometry(0.44, 0.13, 0.3, 4, 0.05), mats.headlight)
+    lamp.position.set(side * 0.56, 0.76, -2.25)
+    lamp.rotation.set(0.16, side * 0.42, 0)
+    car.add(lamp)
+    const inner = new THREE.Mesh(new THREE.SphereGeometry(0.05, 16, 10), mats.chrome)
+    inner.position.set(side * 0.6, 0.77, -2.38)
+    car.add(inner)
+    const fog = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.03, 18), mats.headlight)
+    fog.rotation.x = Math.PI / 2
+    fog.position.set(side * 0.6, 0.42, -2.37)
+    const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 8, 20), mats.chrome)
+    bezel.position.set(side * 0.6, 0.42, -2.385)
+    car.add(fog, bezel)
   }
-  const grille = new THREE.Mesh(new RoundedBoxGeometry(0.62, 0.1, 0.06, 3, 0.025), mats.trim)
-  grille.position.set(0, 0.72, -2.02)
-  car.add(grille)
+  const upper = new THREE.Mesh(new RoundedBoxGeometry(0.74, 0.1, 0.06, 3, 0.03), mats.grille)
+  upper.position.set(0, 0.71, -2.37)
+  const chromeBar = new THREE.Mesh(new RoundedBoxGeometry(0.78, 0.028, 0.05, 2, 0.012), mats.chrome)
+  chromeBar.position.set(0, 0.775, -2.38)
+  const lower = new THREE.Mesh(new RoundedBoxGeometry(0.92, 0.2, 0.06, 3, 0.05), mats.grille)
+  lower.position.set(0, 0.49, -2.39)
+  car.add(upper, chromeBar, lower)
+  for (const y of [0.46, 0.54]) {
+    const slat = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.012, 0.02), mats.chrome)
+    slat.position.set(0, y, -2.42)
+    car.add(slat)
+  }
+  car.add(bowtie(mats.gold, 0, 0.745, -2.41))
 
-  // Wheels: tyre, rim and a few spokes.
-  const tyre = new THREE.CylinderGeometry(0.33, 0.33, 0.23, 32)
+  // Tail: wraparound lamps, chrome trunk strip with the bowtie, plate and the rear bumper.
+  for (const side of [-1, 1]) {
+    const lamp = new THREE.Mesh(new RoundedBoxGeometry(0.46, 0.15, 0.2, 4, 0.05), mats.taillight)
+    lamp.position.set(side * 0.58, 0.9, 2.28)
+    lamp.rotation.y = -side * 0.38
+    car.add(lamp)
+  }
+  const strip = new THREE.Mesh(new RoundedBoxGeometry(0.62, 0.035, 0.03, 2, 0.012), mats.chrome)
+  strip.position.set(0, 0.86, 2.36)
+  const plate = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.12, 0.02, 2, 0.01), mats.plate)
+  plate.position.set(0, 0.64, 2.37)
+  const rearLower = new THREE.Mesh(new RoundedBoxGeometry(1.2, 0.1, 0.06, 3, 0.03), mats.trim)
+  rearLower.position.set(0, 0.3, 2.33)
+  car.add(strip, plate, rearLower, bowtie(mats.gold, 0, 0.92, 2.37, Math.PI))
+
+  // Wheels: tyre, silver five-spoke alloy, hub cap.
+  const tyre = new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, 0.22, 36)
   tyre.rotateZ(Math.PI / 2)
-  const rim = new THREE.CylinderGeometry(0.21, 0.21, 0.24, 24)
+  const rim = new THREE.CylinderGeometry(0.2, 0.2, 0.225, 30)
   rim.rotateZ(Math.PI / 2)
-  for (const [x, z] of [[-0.82, -1.28], [0.82, -1.28], [-0.82, 1.26], [0.82, 1.26]]) {
+  for (const [x, z] of [[-0.8, FRONT_AXLE], [0.8, FRONT_AXLE], [-0.8, REAR_AXLE], [0.8, REAR_AXLE]]) {
+    const side = Math.sign(x)
     const w = new THREE.Group()
     w.add(new THREE.Mesh(tyre, mats.tyre))
-    w.add(new THREE.Mesh(rim, mats.rim))
-    w.position.set(x, 0.33, z)
+    w.add(new THREE.Mesh(rim, mats.rimDark))
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2
+      const spoke = new THREE.Mesh(new RoundedBoxGeometry(0.03, 0.17, 0.05, 2, 0.012), mats.rim)
+      spoke.position.set(side * 0.115, Math.cos(a) * 0.1, Math.sin(a) * 0.1)
+      spoke.rotation.x = a
+      w.add(spoke)
+    }
+    const lip = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.014, 8, 30), mats.rim)
+    lip.rotation.y = Math.PI / 2
+    lip.position.x = side * 0.115
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.03, 16), mats.rim)
+    hub.rotation.z = Math.PI / 2
+    hub.position.x = side * 0.12
+    w.add(lip, hub)
+    w.position.set(x, WHEEL_R, z)
     car.add(w)
   }
 
@@ -228,16 +318,16 @@ function buildCar(mats) {
   floor.receiveShadow = true
   car.add(floor)
   for (const side of [-1, 1]) {
-    const door = new THREE.Mesh(new RoundedBoxGeometry(0.06, 0.5, 1.66, 3, 0.02), mats.cabin)
-    door.position.set(side * 0.71, 0.66, 0.24)
-    door.receiveShadow = true
-    car.add(door)
+    const doorCard = new THREE.Mesh(new RoundedBoxGeometry(0.06, 0.5, 1.66, 3, 0.02), mats.cabin)
+    doorCard.position.set(side * 0.76, 0.68, 0.24)
+    doorCard.receiveShadow = true
+    car.add(doorCard)
     const rest = new THREE.Mesh(new RoundedBoxGeometry(0.09, 0.05, 0.5, 3, 0.02), mats.leatherDark)
-    rest.position.set(side * 0.67, 0.78, -0.05)
+    rest.position.set(side * 0.72, 0.8, -0.05)
     car.add(rest)
   }
   const back = new THREE.Mesh(new RoundedBoxGeometry(1.44, 0.48, 0.06, 3, 0.02), mats.cabin)
-  back.position.set(0, 0.68, 1.1)
+  back.position.set(0, 0.66, 1.16)
   car.add(back)
 
   const dash = new THREE.Mesh(new RoundedBoxGeometry(1.46, 0.24, 0.36, 4, 0.08), mats.cabin)
@@ -385,7 +475,7 @@ const DEFAULT_PITCH = 0.66 // radians from the vertical
 const TARGET = new THREE.Vector3(0, 0.6, 0.0)
 
 export class SeatScene {
-  constructor(host, { onSeat, reducedMotion = false }) {
+  constructor(host, { onSeat, onIcons, reducedMotion = false }) {
     this.host = host
     this.onSeat = onSeat
     this.reducedMotion = reducedMotion
@@ -439,10 +529,17 @@ export class SeatScene {
       floor: new THREE.MeshStandardMaterial({ color: COLORS.floor, roughness: 0.95 }),
       leatherDark: new THREE.MeshStandardMaterial({ color: '#4a5260', roughness: 0.6 }),
       glass: m({ color: '#24394d', roughness: 0.04, metalness: 0.1, clearcoat: 1, transparent: true, opacity: 0.42, depthWrite: false }),
-      headlight: m({ color: '#ffffff', emissive: '#e8f6ff', emissiveIntensity: 0.9, roughness: 0.1, clearcoat: 1 }),
+      headlight: m({ color: '#c9d3de', metalness: 0.55, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.02, emissive: '#eaf6ff', emissiveIntensity: 0.25 }),
       taillight: m({ color: '#b3122f', emissive: '#e11d48', emissiveIntensity: 0.7, roughness: 0.2, clearcoat: 1 }),
       screen: new THREE.MeshStandardMaterial({ color: '#0f1720', emissive: '#00a3ae', emissiveIntensity: 0.35, roughness: 0.2 }),
       tyre: new THREE.MeshStandardMaterial({ color: '#16191d', roughness: 0.9 }),
+      chrome: new THREE.MeshStandardMaterial({ color: '#e6e9ee', roughness: 0.15, metalness: 1 }),
+      gold: new THREE.MeshStandardMaterial({ color: '#d6a73a', roughness: 0.25, metalness: 1 }),
+      grille: new THREE.MeshStandardMaterial({ color: '#121519', roughness: 0.45 }),
+      well: new THREE.MeshStandardMaterial({ color: '#0e1013', roughness: 0.95, side: THREE.DoubleSide }),
+      seam: new THREE.MeshBasicMaterial({ color: '#b9c0c9' }),
+      plate: new THREE.MeshStandardMaterial({ color: '#f4f5f7', roughness: 0.5 }),
+      rimDark: new THREE.MeshStandardMaterial({ color: '#30343a', roughness: 0.5, metalness: 0.6 }),
       rim: new THREE.MeshStandardMaterial({ color: '#c7ccd3', roughness: 0.25, metalness: 0.9 }),
       driverSeat: m({ color: COLORS.driverSeat, roughness: 0.55, sheen: 0.4, sheenColor: '#ffffff' }),
       skin: new THREE.MeshStandardMaterial({ color: COLORS.skin, roughness: 0.65 }),
@@ -456,7 +553,7 @@ export class SeatScene {
 
     // Soft contact shadow under the car.
     const shadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.0, 5.0),
+      new THREE.PlaneGeometry(3.0, 5.4),
       new THREE.MeshBasicMaterial({ map: radialTexture('rgba(15,23,32,0.42)', 'rgba(15,23,32,0)'), transparent: true, depthWrite: false }),
     )
     shadow.rotation.x = -Math.PI / 2
@@ -509,12 +606,13 @@ export class SeatScene {
     }
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60)
-    this.yaw = this.reducedMotion ? DEFAULT_YAW : DEFAULT_YAW + 0.9
+    this.yaw = this.reducedMotion ? DEFAULT_YAW : DEFAULT_YAW + 2.5
     this.pitch = DEFAULT_PITCH
-    this.yawGoal = DEFAULT_YAW
+    this.yawGoal = this.yaw
     this.pitchGoal = DEFAULT_PITCH
     this.distance = 7
-    this.lastInteraction = 0
+    // Hold the opening view (the Cobalt's face) for a moment, then swing round to the seats.
+    this.lastInteraction = performance.now() - (this.reducedMotion ? 3500 : 2600)
 
     this.glowTarget = new THREE.Color()
     this.raycaster = new THREE.Raycaster()
@@ -523,6 +621,13 @@ export class SeatScene {
     this.bind()
 
     this.resize()
+    if (onIcons) {
+      try {
+        onIcons(this.renderIcons())
+      } catch {
+        /* the legend falls back to flat icons */
+      }
+    }
     this.ro = new ResizeObserver(() => this.resize())
     this.ro.observe(host)
 
@@ -554,7 +659,7 @@ export class SeatScene {
           const dy = e.clientY - this.drag.y
           if (Math.abs(dx) + Math.abs(dy) > 6) this.drag.moved = true
           if (this.drag.moved) {
-            this.yawGoal = THREE.MathUtils.clamp(this.drag.yaw - dx * 0.008, -1.25, 1.25)
+            this.yawGoal = THREE.MathUtils.clamp(this.drag.yaw - dx * 0.008, -2.9, 2.9)
             // On touch screens vertical swipes scroll the sheet, so only a mouse tilts the view.
             if (e.pointerType === 'mouse') this.pitchGoal = THREE.MathUtils.clamp(this.drag.pitch - dy * 0.006, 0.45, 1.2)
             this.lastInteraction = performance.now()
@@ -630,6 +735,72 @@ export class SeatScene {
     ;(this.dying ??= []).push(person)
   }
 
+  /** Legend icons: an empty seat, a man and a woman on their tinted seats, rendered with the same
+   * materials and lights as the car — drawn into a corner of this canvas before the first frame
+   * and copied out as PNG data URLs. */
+  renderIcons(size = 112) {
+    const pr = this.renderer.getPixelRatio()
+    const { width, height } = this.renderer.domElement
+    const px = Math.round(size * pr)
+    if (width < px * 3 || height < px) return null
+
+    const scene = new THREE.Scene()
+    scene.environment = this.scene.environment
+    scene.environmentIntensity = 0.9
+    scene.add(new THREE.HemisphereLight('#ffffff', '#6b7686', 0.6))
+    const light = new THREE.DirectionalLight('#fff7ee', 2.2)
+    light.position.set(-1.5, 3, -2.5)
+    scene.add(light)
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20)
+    const target = new THREE.Vector3(0, 0.92, 0.06)
+    camera.position.copy(target).add(new THREE.Vector3(0.62, 0.42, -1).normalize().multiplyScalar(2.35))
+    camera.lookAt(target)
+
+    const geometry = seatGeometry(0.5, true)
+    const kinds = ['EMPTY', 'MALE', 'FEMALE']
+    const made = []
+    this.renderer.setScissorTest(true)
+    this.renderer.setClearColor(0x000000, 0)
+    kinds.forEach((kind, i) => {
+      const tint = new THREE.Color(COLORS.leather)
+      if (kind !== 'EMPTY') tint.lerp(new THREE.Color(COLORS[kind === 'FEMALE' ? 'female' : 'male']), 0.42)
+      const material = new THREE.MeshPhysicalMaterial({ color: tint, roughness: 0.5, sheen: 0.5, sheenColor: '#ffffff' })
+      const group = new THREE.Group()
+      group.add(new THREE.Mesh(geometry, material))
+      if (kind !== 'EMPTY') {
+        const person = personGroup(kind, this.mats)
+        person.position.set(0, CUSHION_Y, 0.04)
+        group.add(person)
+      }
+      scene.add(group)
+      made.push(group, material)
+      this.renderer.setViewport(i * size, 0, size, size)
+      this.renderer.setScissor(i * size, 0, size, size)
+      this.renderer.clear()
+      this.renderer.render(scene, camera)
+      scene.remove(group)
+    })
+    this.renderer.setScissorTest(false)
+    this.renderer.setViewport(0, 0, width / pr, height / pr)
+
+    // Copy the three squares out before the browser clears the drawing buffer.
+    const icons = {}
+    kinds.forEach((kind, i) => {
+      const c = document.createElement('canvas')
+      c.width = c.height = px
+      c.getContext('2d').drawImage(this.renderer.domElement, i * px, height - px, px, px, 0, 0, px, px)
+      icons[kind] = c.toDataURL('image/png')
+    })
+    this.renderer.clear()
+
+    geometry.dispose()
+    for (const item of made) {
+      if (item.isMaterial) item.dispose()
+      else item.traverse((o) => o.isMesh && o.geometry !== geometry && o.geometry.dispose())
+    }
+    return icons
+  }
+
   /** Page coordinates of a seat's cushion — used by tests to tap it like a person would. */
   seatPoint(position) {
     const spec = SEATS[position]
@@ -646,7 +817,7 @@ export class SeatScene {
     this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
     // Fit the car's length in portrait, its width in landscape.
-    const fitH = 4.6 / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)))
+    const fitH = 5.2 / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)))
     const fitW = 3.0 / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * this.camera.aspect)
     this.distance = Math.max(fitH * 1.02, fitW)
     this.camera.updateProjectionMatrix()

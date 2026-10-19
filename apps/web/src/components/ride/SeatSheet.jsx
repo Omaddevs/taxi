@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Move3d, User } from 'lucide-react'
+import { Armchair, Check, Move3d, User } from 'lucide-react'
 import { SEAT_LABEL, WHOLE_CAR_SEATS, seatsSummary } from '../../lib/ride'
 import { cn } from '../../lib/utils'
 import { Sheet, SheetButton } from './Sheet'
@@ -99,15 +99,17 @@ function CarTopView({ seats, activePosition, onSeat }) {
  * The 3D cabin (seat3d.js, loaded on demand): tap a seat to pick it, drag to look around. Falls
  * back to the flat top view where WebGL isn't available.
  */
-function SeatStage({ seats, activePosition, onSeat }) {
+function SeatStage({ seats, activePosition, onSeat, onIcons }) {
   const host = useRef(null)
   const engine = useRef(null)
   const onSeatRef = useRef(onSeat)
+  const onIconsRef = useRef(onIcons)
   const [mode, setMode] = useState('loading')
   const [dragged, setDragged] = useState(false)
 
   useEffect(() => {
     onSeatRef.current = onSeat
+    onIconsRef.current = onIcons
   })
 
   useEffect(() => {
@@ -119,6 +121,7 @@ function SeatStage({ seats, activePosition, onSeat }) {
         try {
           engine.current = new SeatScene(host.current, {
             onSeat: (position) => onSeatRef.current(position),
+            onIcons: (icons) => onIconsRef.current?.(icons),
             reducedMotion: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
           })
           if (import.meta.env.DEV) window.__seatScene = engine.current
@@ -179,18 +182,44 @@ function SeatStage({ seats, activePosition, onSeat }) {
   )
 }
 
-function Legend() {
+const LEGEND = [
+  { kind: 'EMPTY', label: 'Bo‘sh', tile: 'from-[#f6eedd] to-[#e2d0aa] dark:from-[#3a3426] dark:to-[#2b261c]', text: 'text-[#9c8656]', Icon: Armchair },
+  { kind: 'MALE', label: 'Erkak', tile: 'from-seat-male-soft to-[#bfd4fb] dark:to-[#1d3263]', text: 'text-seat-male', Icon: User },
+  { kind: 'FEMALE', label: 'Ayol', tile: 'from-seat-female-soft to-[#f8c6d9] dark:to-[#4a1a2c]', text: 'text-seat-female', Icon: User },
+]
+
+/** Legend: a rendered 3D tile per state (flat icons until/unless the scene can draw them) and how
+ * many seats are in it right now. */
+function Legend({ icons, seats }) {
+  const count = {
+    EMPTY: WHOLE_CAR_SEATS - seats.length,
+    MALE: seats.filter((s) => s.gender === 'MALE').length,
+    FEMALE: seats.filter((s) => s.gender === 'FEMALE').length,
+  }
   return (
-    <div className="mt-3 flex items-center justify-center gap-5 text-[13px] font-semibold text-muted">
-      {[
-        ['bg-[#d8c7a3]', 'Bo‘sh'],
-        ['bg-seat-male', 'Erkak'],
-        ['bg-seat-female', 'Ayol'],
-      ].map(([dot, label]) => (
-        <span key={label} className="flex items-center gap-1.5">
-          <span className={cn('h-3 w-3 rounded', dot)} />
-          {t(label)}
-        </span>
+    <div className="mt-2 grid grid-cols-3 gap-2">
+      {LEGEND.map(({ kind, label, tile, text, Icon }) => (
+        <div
+          key={kind}
+          className="flex items-center gap-2 rounded-2xl bg-white/80 p-1.5 pr-2.5 shadow-[0_6px_18px_-10px_rgba(15,29,42,0.35)] ring-1 ring-black/[0.05] backdrop-blur"
+        >
+          <span
+            className={cn(
+              'relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br shadow-[inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-6px_10px_-6px_rgba(15,29,42,0.25)]',
+              tile,
+            )}
+          >
+            {icons?.[kind] ? (
+              <img src={icons[kind]} alt="" className="h-[124%] w-[124%] max-w-none object-contain drop-shadow-[0_3px_3px_rgba(15,29,42,0.25)]" />
+            ) : (
+              <Icon className={cn('h-5 w-5', text)} strokeWidth={2.4} />
+            )}
+          </span>
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-[13px] font-bold text-ink">{t(label)}</span>
+            <span className={cn('block text-[12px] font-semibold', text)}>{t('{0} ta', count[kind])}</span>
+          </span>
+        </div>
       ))}
     </div>
   )
@@ -205,6 +234,7 @@ export function SeatSheet({ open, onClose, accent, seats, required, wholeCar = f
   const [draft, setDraft] = useState(seats)
   const [active, setActive] = useState(null)
   const [wasOpen, setWasOpen] = useState(false)
+  const [icons, setIcons] = useState(null)
 
   if (open !== wasOpen) {
     setWasOpen(open)
@@ -271,8 +301,8 @@ export function SeatSheet({ open, onClose, accent, seats, required, wholeCar = f
       </p>
 
       <div className="overflow-hidden rounded-[24px] bg-gradient-to-b from-canvas to-[#e7ebf0] px-2 pb-4 pt-2 dark:to-[#1a1a24]">
-        <SeatStage seats={draft} activePosition={active} onSeat={tapSeat} />
-        <Legend />
+        <SeatStage seats={draft} activePosition={active} onSeat={tapSeat} onIcons={setIcons} />
+        <Legend icons={icons} seats={draft} />
       </div>
 
       {active && activeGender ? (
