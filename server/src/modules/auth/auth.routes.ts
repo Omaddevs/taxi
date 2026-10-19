@@ -18,10 +18,12 @@ import {
 export const authRouter = Router()
 
 // Sign-in endpoints are rate limited per IP and, where a phone is given, per number: codes go to
-// the owner's Telegram (no flooding them), and passwords/codes can't be guessed at speed.
+// the owner's Telegram (no flooding them), and passwords/codes can't be guessed at speed. The
+// per-number caps are the tight ones; per IP stays generous — mobile carriers put many people
+// behind one address.
 const TEN_MIN = 10 * 60_000
-authRouter.post('/otp/request', rateLimit(20, TEN_MIN), rateLimit(5, TEN_MIN, byBodyPhone), validate({ body: otpRequestSchema }), asyncRoute(authController.requestOtp))
-authRouter.post('/otp/verify', rateLimit(30, TEN_MIN), rateLimit(15, TEN_MIN, byBodyPhone), validate({ body: otpVerifySchema }), asyncRoute(authController.verifyOtp))
+authRouter.post('/otp/request', rateLimit(100, TEN_MIN), rateLimit(5, TEN_MIN, byBodyPhone), validate({ body: otpRequestSchema }), asyncRoute(authController.requestOtp))
+authRouter.post('/otp/verify', rateLimit(150, TEN_MIN), rateLimit(15, TEN_MIN, byBodyPhone), validate({ body: otpVerifySchema }), asyncRoute(authController.verifyOtp))
 // Public: keyed on the unguessable otpRequestId (not the phone), safe for the webapp to poll
 // while showing the code-entry screen — see auth.service.pollOtp for why that's safe.
 // The code screen polls every 2 s; 600 per 10 min leaves room for a few tabs behind one IP.

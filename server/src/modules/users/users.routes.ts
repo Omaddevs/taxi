@@ -16,7 +16,7 @@ usersRouter.patch('/me', requireAuth, validate({ body: updateMeSchema }), asyncR
 usersRouter.post(
   '/me/phone',
   requireAuth,
-  rateLimit(20, 10 * 60_000),
+  rateLimit(60, 10 * 60_000),
   validate({ body: startPhoneClaimSchema }),
   asyncRoute(async (req, res) => {
     res.json(await phoneClaims.startPhoneClaim(req.user!.id, req.body.phone))
