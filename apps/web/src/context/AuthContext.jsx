@@ -81,14 +81,13 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  // While pending, returns { pending: true, code } — `code` autofills the input the moment
-  // Telegram (or SMS) has actually delivered it, no typing required to at least see it. Once
-  // the code has been confirmed — either typed into this same form (verifyOtp) or tapped in
-  // Telegram (bot -> /bot/otp-confirm) — returns { pending: false } and logs in exactly like
-  // verifyOtp does. Meant to be called on an interval while the code screen is up.
+  // Returns { pending: true } until the owner confirms the code in Telegram (bot ->
+  // /bot/otp-confirm); then { pending: false } and logs in exactly like verifyOtp does. A code
+  // typed into this form signs in through verifyOtp itself. Meant to be called on an interval
+  // while the code screen is up.
   async function pollOtp(otpRequestId) {
     const data = await api.get(`/auth/otp/poll?otpRequestId=${encodeURIComponent(otpRequestId)}`)
-    if (data.pending) return { pending: true, code: data.code || null }
+    if (data.pending) return { pending: true }
     setTokens(data.accessToken, data.refreshToken)
     setAuthUser(data.user)
     setStatus('authed')

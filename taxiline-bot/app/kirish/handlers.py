@@ -185,22 +185,13 @@ async def _send_code(message: Message, state: FSMContext, user: User, intent: st
     )
 
 
-def _autofill_kb(enabled: bool) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(
-        text="⬜️ Avto-yozishni o'chirish" if enabled else "✅ Avto-yozishni yoqish",
-        callback_data=f"kir:af:{0 if enabled else 1}",
-    )
-    return builder.as_markup()
-
-
-def _settings_text(enabled: bool) -> str:
-    state_text = "✅ <b>Yoqilgan</b>" if enabled else "⬜️ <b>O'chiq</b>"
+# Autofill (the site filling the code in by itself) is gone: the site showed the code to whoever
+# typed the number in, not only to its owner. The code is always typed in from this bot.
+def _settings_text() -> str:
     return (
         "⚙️ <b>Sozlamalar</b>\n\n"
-        f"✍️ Kodni saytga avtomatik yozish: {state_text}\n\n"
-        "Yoqilsa, saytdagi kirish sahifasida kod o'zi paydo bo'ladi — faqat «Tasdiqlash»ni bosasiz. "
-        "O'chiq bo'lsa, kodni shu botdan olib, o'zingiz kiritasiz (xavfsizroq)."
+        "🔒 Kirish kodini saytga o'zingiz kiritasiz — uni shu botdan oling. "
+        "Kodni hech kimga bermang, TaxiLine xodimlari ham uni so'ramaydi."
     )
 
 
@@ -211,7 +202,6 @@ def _profile_text(profile: dict) -> str:
         f"Ism: <b>{html.escape(profile.get('name') or '—')}</b>",
         f"Telefon: <b>{html.escape(format_phone(profile.get('phone') or ''))}</b>",
         f"Turi: {ROLE_LABELS.get(profile.get('role'), profile.get('role') or '—')}",
-        f"Kodni saytga avto-yozish: {'✅ yoqilgan' if profile.get('otpAutofill') else '⬜️ o‘chiq'}",
     ]
     if not profile.get("telegramLinked"):
         lines += ["", "⚠️ Bu raqam boshqa Telegram akkauntga bog'langan — sozlamalarni faqat o'sha akkaunt o'zgartira oladi."]
@@ -234,10 +224,8 @@ async def _show_profile(message: Message, state: FSMContext, user: User, *, sett
         await _ask_contact(message, state, "settings" if settings_view else "profile")
         return
     await state.clear()
-    enabled = bool(profile.get("otpAutofill"))
-    text = _settings_text(enabled) if settings_view else _profile_text(profile)
-    markup = _autofill_kb(enabled) if profile.get("telegramLinked") else None
-    await message.answer(text, parse_mode="HTML", reply_markup=markup)
+    text = _settings_text() if settings_view else _profile_text(profile)
+    await message.answer(text, parse_mode="HTML")
     if phone:
         await message.answer("Menyu 👇", reply_markup=main_kb())
 
@@ -344,15 +332,10 @@ async def code_from_button(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(F.data.startswith("kir:af:"))
 async def toggle_autofill(callback: CallbackQuery) -> None:
-    enabled = callback.data.endswith(":1")
-    result = await backend_client.kirish_autofill({**_identity(callback.from_user), "enabled": enabled})
-    if not result or not result.get("linked"):
-        await callback.answer("Avval /kirish orqali raqamingizni tasdiqlang.", show_alert=True)
-        return
-    now_enabled = bool(result.get("otpAutofill"))
-    await callback.answer("✅ Yoqildi" if now_enabled else "⬜️ O'chirildi")
+    # Buttons from before autofill was removed, still sitting in old chats.
+    await callback.answer("Bu funksiya xavfsizlik uchun o'chirildi.", show_alert=True)
     try:
-        await callback.message.edit_text(_settings_text(now_enabled), parse_mode="HTML", reply_markup=_autofill_kb(now_enabled))
+        await callback.message.edit_text(_settings_text(), parse_mode="HTML")
     except Exception:
         pass
 

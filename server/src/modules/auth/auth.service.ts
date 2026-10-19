@@ -55,6 +55,24 @@ function clearCachedOtpCode(otpRequestId: string) {
   otpCodeCache.delete(otpRequestId)
 }
 
+// Requests the owner confirmed from Telegram (bot tap / deep link), waiting for the webapp's
+// poll to collect the session — once. "consumed" alone is not proof: a code burnt on wrong
+// attempts is consumed too, and a typed-in code already got its session from verifyOtp.
+const otpConfirmedForPoll = new Map<string, number>()
+
+function markConfirmedForPoll(otpRequestId: string) {
+  const now = Date.now()
+  for (const [id, until] of otpConfirmedForPoll) if (until < now) otpConfirmedForPoll.delete(id)
+  otpConfirmedForPoll.set(otpRequestId, now + OTP_TTL_MS)
+}
+
+/** True at most once per confirmed request; synchronous, so two racing polls can't both win. */
+function claimConfirmedForPoll(otpRequestId: string) {
+  const until = otpConfirmedForPoll.get(otpRequestId)
+  otpConfirmedForPoll.delete(otpRequestId)
+  return until !== undefined && until >= Date.now()
+}
+
 // Register collects name + language (same as taxiline-bot) and must survive the Telegram-tap
 // poll path, which never re-sends the form fields. Kept next to the plaintext OTP cache and
 // dropped as soon as the code is consumed.
@@ -356,10 +374,11 @@ export async function verifyOtp(
 // Called by the bot (POST /bot/otp-confirm) when the user taps "✅ Tasdiqlash va kirish" in
 // Telegram — consumes the OTP exactly like typing it in would, but doesn't issue tokens or
 // touch RefreshToken (the bot has no use for a session; the webapp's poll below issues the
-// actual tokens once it observes the code as consumed).
+// actual tokens once, see otpConfirmedForPoll).
 export async function confirmOtpViaBot(rawPhone: string, code: string): Promise<void> {
   const phone = normalizePhone(rawPhone)
-  await consumeValidOtp(phone, code)
+  const otp = await consumeValidOtp(phone, code)
+  markConfirmedForPoll(otp.id)
 }
 
 // Called by the bot when someone opens it through the webapp's `t.me/<bot>?start=otp_<id>`
@@ -376,6 +395,7 @@ export async function confirmOtpByRequestId(
 
   await prisma.otpCode.update({ where: { id: otp.id }, data: { consumed: true } })
   clearCachedOtpCode(otp.id)
+  markConfirmedForPoll(otp.id)
 
   const profile = otpProfileById.get(otp.id) ?? otpProfileByPhone.get(otp.phone)
   if (profile) {
@@ -386,19 +406,14 @@ export async function confirmOtpByRequestId(
   return { phone: otp.phone }
 }
 
-// Polled by the webapp while showing the code-entry screen. Keyed on the unguessable
-// OtpCode id (not the phone number) returned from requestOtp — that's what stops a third
-// party from polling someone else's phone number and racing a legitimately typed-in verify.
-// While still pending, hands back the plaintext code (from the short-lived cache above) so the
-// webapp can fill the input by itself — but only for people who switched that on in
-// @taxiline_kirish_bot → Sozlamalar ("avto-to'ldirish"); by default the code must be typed in.
+// Polled by the webapp while showing the code-entry screen. Whoever called /auth/otp/request
+// holds the otpRequestId — that proves nothing about owning the phone, so poll never reveals
+// the code (the old "avto-to'ldirish" did, to anyone who typed the number in) and only issues
+// a session for a request the owner confirmed from Telegram, once. Everything else is pending.
 export async function pollOtp(otpRequestId: string, meta?: SessionMeta) {
+  if (!claimConfirmedForPoll(otpRequestId)) return { pending: true as const, code: null }
   const otp = await prisma.otpCode.findUnique({ where: { id: otpRequestId } })
-  if (!otp || !otp.consumed) {
-    if (!otp) return { pending: true as const, code: null }
-    const owner = await prisma.user.findUnique({ where: { phone: otp.phone }, select: { otpAutofill: true } })
-    return { pending: true as const, code: owner?.otpAutofill ? peekCachedOtpCode(otpRequestId) : null }
-  }
+  if (!otp) return { pending: true as const, code: null }
 
   const user = await finalizeVerifiedPhone(otp.phone, takeOtpProfile(otp.id, otp.phone))
   const appRole = await appRoleForUser(user)

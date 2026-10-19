@@ -37,10 +37,6 @@ export default function Login() {
           navigate(homePathForRole(result.user), { replace: true })
           return
         }
-        // Only sent for accounts that switched on autofill in the kirish bot's Sozlamalar.
-        if (result.code) {
-          setCode((prev) => prev || result.code)
-        }
       } catch {
         /* retry next tick */
       }

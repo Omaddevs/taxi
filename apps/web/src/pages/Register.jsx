@@ -50,9 +50,6 @@ export default function Register() {
           navigate(homePathForRole(result.user), { replace: true })
           return
         }
-        if (result.code) {
-          setCode((prev) => prev || result.code)
-        }
       } catch {
         /* retry next tick */
       }
