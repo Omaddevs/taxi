@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { requireAuth, requireRole } from '../../middleware/auth.js'
 import { validate } from '../../middleware/validate.js'
+import { rateLimit } from '../../middleware/rateLimit.js'
 import * as newsService from './news.service.js'
 import {
   createNewsSchema,
@@ -32,6 +33,22 @@ newsRouter.get(
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     res.send(Buffer.from(img.data))
+  }),
+)
+newsRouter.get(
+  '/sidebar',
+  asyncRoute(async (_req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'public, max-age=60')
+    res.json(await newsService.sidebar())
+  }),
+)
+newsRouter.post(
+  '/:slug/view',
+  rateLimit(60, 10 * 60_000),
+  validate({ params: slugParamSchema }),
+  asyncRoute(async (req: Request, res: Response) => {
+    await newsService.registerView(req.params.slug)
+    res.status(204).end()
   }),
 )
 newsRouter.get(

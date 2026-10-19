@@ -82,7 +82,29 @@ function serializeCard(p: NewsPost) {
     pinned: p.pinned,
     publishedAt: p.publishedAt,
     readingMinutes: readingMinutes(p.body),
+    tags: p.tags,
+    views: p.views,
   }
+}
+
+// Maqola sahifasidagi qo‘shimcha maydonlar (admin ham, sayt ham bir xil ko‘radi).
+function serializeExtras(p: NewsPost) {
+  return {
+    authorName: p.authorName,
+    authorRole: p.authorRole,
+    authorAvatar: p.authorAvatar,
+    coverCaption: p.coverCaption,
+    bannerTitle: p.bannerTitle,
+    bannerText: p.bannerText,
+    bannerLabel: p.bannerLabel,
+    bannerUrl: p.bannerUrl,
+    bannerImage: p.bannerImage,
+  }
+}
+
+// Ro‘yxatdagi qisqa havolalar uchun (sidebar, oldingi/keyingi) — matn va muqovadan boshqasi kerak emas.
+function serializeLink(p: NewsPost) {
+  return { id: p.id, slug: p.slug, title: p.title, coverUrl: p.coverUrl, category: p.category, publishedAt: p.publishedAt, views: p.views }
 }
 
 const PUBLIC_WHERE: Prisma.NewsPostWhereInput = { published: true }
@@ -90,8 +112,23 @@ const PUBLIC_ORDER: Prisma.NewsPostOrderByWithRelationInput[] = [{ pinned: 'desc
 
 // ── Public ─────────────────────────────────────────────────────────────────────────────────
 
-export async function listPublic(params: { category?: NewsCategory; page: number; pageSize: number }) {
-  const where = { ...PUBLIC_WHERE, ...(params.category ? { category: params.category } : {}) }
+export async function listPublic(params: { category?: NewsCategory; q?: string; tag?: string; page: number; pageSize: number }) {
+  const q = params.q?.trim()
+  const tag = params.tag?.replace(/^#+/, '').trim()
+  const where: Prisma.NewsPostWhereInput = {
+    ...PUBLIC_WHERE,
+    ...(params.category ? { category: params.category } : {}),
+    ...(tag ? { tags: { has: tag } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { excerpt: { contains: q, mode: 'insensitive' } },
+            { tags: { has: q.replace(/^#+/, '') } },
+          ],
+        }
+      : {}),
+  }
   const [total, rows] = await Promise.all([
     prisma.newsPost.count({ where }),
     prisma.newsPost.findMany({
@@ -104,15 +141,65 @@ export async function listPublic(params: { category?: NewsCategory; page: number
   return { items: rows.map(serializeCard), total, page: params.page, pageSize: params.pageSize }
 }
 
+// Yangiliklar sahifasi va maqolaning o‘ng ustuni: so‘nggi, ko‘p o‘qilgan, tanlangan va mashhur teglar.
+export async function sidebar() {
+  const [latest, popular, pinned, tagRows] = await Promise.all([
+    prisma.newsPost.findMany({ where: PUBLIC_WHERE, orderBy: [{ publishedAt: 'desc' }], take: 5 }),
+    prisma.newsPost.findMany({ where: { ...PUBLIC_WHERE, views: { gt: 0 } }, orderBy: [{ views: 'desc' }, { publishedAt: 'desc' }], take: 5 }),
+    prisma.newsPost.findMany({ where: { ...PUBLIC_WHERE, pinned: true }, orderBy: [{ publishedAt: 'desc' }], take: 4 }),
+    prisma.newsPost.findMany({ where: PUBLIC_WHERE, orderBy: [{ publishedAt: 'desc' }], take: 200, select: { tags: true } }),
+  ])
+  const counts = new Map<string, number>()
+  for (const row of tagRows) for (const tag of row.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+  const tags = [...counts]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 14)
+    .map(([name, count]) => ({ name, count }))
+  return {
+    latest: latest.map(serializeCard),
+    popular: popular.map(serializeCard),
+    pinned: pinned.map(serializeCard),
+    tags,
+  }
+}
+
 export async function getPublic(slug: string) {
   const post = await prisma.newsPost.findFirst({ where: { ...PUBLIC_WHERE, slug } })
   if (!post) throw new NotFoundError('Yangilik topilmadi')
-  const related = await prisma.newsPost.findMany({
-    where: { ...PUBLIC_WHERE, id: { not: post.id } },
-    orderBy: [{ publishedAt: 'desc' }],
-    take: 3,
-  })
-  return { ...serializeCard(post), body: post.body, updatedAt: post.updatedAt, related: related.map(serializeCard) }
+  const at = post.publishedAt ?? post.createdAt
+  const [sameCategory, newer, older] = await Promise.all([
+    prisma.newsPost.findMany({
+      where: { ...PUBLIC_WHERE, id: { not: post.id }, category: post.category },
+      orderBy: [{ publishedAt: 'desc' }],
+      take: 3,
+    }),
+    prisma.newsPost.findFirst({ where: { ...PUBLIC_WHERE, publishedAt: { gt: at } }, orderBy: [{ publishedAt: 'asc' }] }),
+    prisma.newsPost.findFirst({ where: { ...PUBLIC_WHERE, publishedAt: { lt: at } }, orderBy: [{ publishedAt: 'desc' }] }),
+  ])
+  // O‘xshash yangiliklar: avval shu bo‘limdan, yetmasa — eng so‘nggilaridan.
+  let related = sameCategory
+  if (related.length < 3) {
+    const fill = await prisma.newsPost.findMany({
+      where: { ...PUBLIC_WHERE, id: { notIn: [post.id, ...related.map((r) => r.id)] } },
+      orderBy: [{ publishedAt: 'desc' }],
+      take: 3 - related.length,
+    })
+    related = [...related, ...fill]
+  }
+  return {
+    ...serializeCard(post),
+    ...serializeExtras(post),
+    body: post.body,
+    updatedAt: post.updatedAt,
+    prev: older ? serializeLink(older) : null,
+    next: newer ? serializeLink(newer) : null,
+    related: related.map(serializeCard),
+  }
+}
+
+// Ko‘rishlar soni. Brauzer har bir maqola uchun bir sessiyada bir marta yuboradi; IP bo‘yicha cheklangan.
+export async function registerView(slug: string) {
+  await prisma.newsPost.updateMany({ where: { ...PUBLIC_WHERE, slug }, data: { views: { increment: 1 } } })
 }
 
 // ── Admin ──────────────────────────────────────────────────────────────────────────────────
@@ -125,7 +212,14 @@ export async function listAdmin() {
 export async function getAdmin(id: string) {
   const p = await prisma.newsPost.findUnique({ where: { id } })
   if (!p) throw new NotFoundError('Yangilik topilmadi')
-  return { ...serializeCard(p), body: p.body, published: p.published, updatedAt: p.updatedAt, createdAt: p.createdAt }
+  return {
+    ...serializeCard(p),
+    ...serializeExtras(p),
+    body: p.body,
+    published: p.published,
+    updatedAt: p.updatedAt,
+    createdAt: p.createdAt,
+  }
 }
 
 type NewsInput = {
@@ -137,6 +231,47 @@ type NewsInput = {
   category?: NewsCategory
   published?: boolean
   pinned?: boolean
+  tags?: string[]
+  authorName?: string
+  authorRole?: string
+  authorAvatar?: string
+  coverCaption?: string
+  bannerTitle?: string
+  bannerText?: string
+  bannerLabel?: string
+  bannerUrl?: string
+  bannerImage?: string
+}
+
+const EXTRA_FIELDS = [
+  'authorName',
+  'authorRole',
+  'authorAvatar',
+  'coverCaption',
+  'bannerTitle',
+  'bannerText',
+  'bannerLabel',
+  'bannerUrl',
+  'bannerImage',
+] as const
+
+// Qo‘shimcha maydonlar: kelmagani o‘zgarmaydi, bo‘sh satr — tozalanadi. Teglar takrorlanmaydi.
+function extrasData(input: NewsInput) {
+  const data: Partial<Record<(typeof EXTRA_FIELDS)[number], string | null>> & { tags?: string[] } = {}
+  for (const key of EXTRA_FIELDS) {
+    const value = input[key]
+    if (value !== undefined) data[key] = value || null
+  }
+  if (input.tags) {
+    const seen = new Set<string>()
+    data.tags = input.tags.filter((t) => {
+      const k = t.toLowerCase()
+      if (seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
+  }
+  return data
 }
 
 export async function create(input: NewsInput & { title: string; excerpt: string; body: string }, actorId: string) {
@@ -152,6 +287,7 @@ export async function create(input: NewsInput & { title: string; excerpt: string
       published: input.published ?? false,
       pinned: input.pinned ?? false,
       publishedAt: input.published ? new Date() : null,
+      ...extrasData(input),
     },
   })
   await writeAudit({ actorId, action: 'news.create', targetType: 'NewsPost', targetId: post.id, meta: { title: post.title } })
@@ -178,6 +314,7 @@ export async function update(id: string, input: NewsInput, actorId: string) {
       category: input.category,
       pinned: input.pinned,
       published: input.published,
+      ...extrasData(input),
       // First publish stamps the date; re-publishing keeps the original date.
       publishedAt: input.published && !current.publishedAt ? new Date() : undefined,
     },

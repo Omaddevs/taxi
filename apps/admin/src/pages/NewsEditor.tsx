@@ -6,14 +6,19 @@ import {
   ArrowLeft,
   Check,
   Clock,
+  Eye,
   ExternalLink,
+  Hash,
   ImagePlus,
   Loader2,
+  Megaphone,
   Pin,
   RefreshCw,
   Send,
   Trash2,
   Type,
+  UserRound,
+  X,
 } from 'lucide-react'
 import { api, ApiError } from '../lib/api'
 import { fileToDataUrl, ImageCropModal } from '../components/news/ImageCropModal'
@@ -38,10 +43,48 @@ interface Draft {
   category: NewsCategory
   published: boolean
   pinned: boolean
+  tags: string[]
+  authorName: string
+  authorRole: string
+  authorAvatar: string
+  coverCaption: string
+  bannerTitle: string
+  bannerText: string
+  bannerLabel: string
+  bannerUrl: string
+  bannerImage: string
 }
 
-const EMPTY: Draft = { title: '', slug: '', excerpt: '', body: '', coverUrl: '', category: 'NEWS', published: false, pinned: false }
+const EMPTY: Draft = {
+  title: '',
+  slug: '',
+  excerpt: '',
+  body: '',
+  coverUrl: '',
+  category: 'NEWS',
+  published: false,
+  pinned: false,
+  tags: [],
+  authorName: '',
+  authorRole: '',
+  authorAvatar: '',
+  coverCaption: '',
+  bannerTitle: '',
+  bannerText: '',
+  bannerLabel: '',
+  bannerUrl: '',
+  bannerImage: '',
+}
 const EXCERPT_MAX = 320
+const TAGS_MAX = 8
+
+// Kesib yuklanadigan rasmlar: muqova, muallif surati va yon banner rasmi.
+type ImageField = 'coverUrl' | 'authorAvatar' | 'bannerImage'
+const IMAGE_FIELDS: Record<ImageField, { title: string; aspect: number }> = {
+  coverUrl: { title: 'Muqova rasmini kesish', aspect: 16 / 10 },
+  authorAvatar: { title: 'Muallif suratini kesish', aspect: 1 },
+  bannerImage: { title: 'Banner rasmini kesish', aspect: 4 / 3 },
+}
 
 const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const inline = (t: string) => esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')
@@ -69,6 +112,16 @@ function toDraft(p: NewsPost): Draft {
     category: p.category,
     published: p.published,
     pinned: p.pinned,
+    tags: p.tags ?? [],
+    authorName: p.authorName ?? '',
+    authorRole: p.authorRole ?? '',
+    authorAvatar: p.authorAvatar ?? '',
+    coverCaption: p.coverCaption ?? '',
+    bannerTitle: p.bannerTitle ?? '',
+    bannerText: p.bannerText ?? '',
+    bannerLabel: p.bannerLabel ?? '',
+    bannerUrl: p.bannerUrl ?? '',
+    bannerImage: p.bannerImage ?? '',
   }
 }
 
@@ -114,6 +167,130 @@ function useAutoGrow(value: string) {
   return ref
 }
 
+const inputCls =
+  'w-full rounded-xl border border-line bg-canvas/50 px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-brand focus:bg-white'
+
+function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-semibold text-ink">{label}</span>
+      {children}
+      {hint ? <span className="mt-1 block text-[11px] text-muted">{hint}</span> : null}
+    </label>
+  )
+}
+
+function TagInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+  const [text, setText] = useState('')
+  const full = value.length >= TAGS_MAX
+
+  function commit(raw: string) {
+    const parts = raw
+      .split(',')
+      .map((t) => t.replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 32))
+      .filter((t) => t.length >= 2)
+    setText('')
+    if (!parts.length) return
+    const next = [...value]
+    for (const tag of parts) {
+      if (next.length >= TAGS_MAX) break
+      if (!next.some((t) => t.toLowerCase() === tag.toLowerCase())) next.push(tag)
+    }
+    onChange(next)
+  }
+
+  return (
+    <div>
+      <div className="flex min-h-[46px] flex-wrap items-center gap-1.5 rounded-xl border border-line bg-canvas/50 p-1.5 transition focus-within:border-brand focus-within:bg-white">
+        {value.map((tag) => (
+          <span key={tag} className="inline-flex items-center gap-1 rounded-lg bg-brand-soft py-1 pl-2.5 pr-1 text-xs font-semibold text-brand-dark">
+            #{tag}
+            <button
+              type="button"
+              onClick={() => onChange(value.filter((t) => t !== tag))}
+              className="rounded p-0.5 transition hover:bg-white/70"
+              aria-label={`${tag} tegini o‘chirish`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        {!full ? (
+          <input
+            value={text}
+            onChange={(e) => {
+              const v = e.target.value
+              if (v.includes(',')) commit(v)
+              else setText(v)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                commit(text)
+              } else if (e.key === 'Backspace' && !text && value.length) {
+                onChange(value.slice(0, -1))
+              }
+            }}
+            onBlur={() => commit(text)}
+            placeholder={value.length ? 'Yana teg…' : 'Masalan: Toshkent, Aksiya'}
+            className="min-w-[110px] flex-1 bg-transparent px-1.5 py-1 text-sm text-ink outline-none placeholder:text-slate-400"
+            aria-label="Teg qo‘shish"
+          />
+        ) : null}
+      </div>
+      <p className="mt-1.5 text-[11px] text-muted">
+        Enter yoki vergul bilan qo‘shing · {value.length}/{TAGS_MAX}
+      </p>
+    </div>
+  )
+}
+
+function ImagePickButton({
+  url,
+  busy,
+  onPick,
+  onClear,
+  shape,
+  label,
+}: {
+  url: string
+  busy: boolean
+  onPick: () => void
+  onClear: () => void
+  shape: 'round' | 'wide'
+  label: string
+}) {
+  const box = shape === 'round' ? 'h-14 w-14 rounded-full' : 'aspect-[4/3] w-24 rounded-xl'
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onPick}
+        className={cn(
+          'relative flex shrink-0 items-center justify-center overflow-hidden border-2 border-dashed border-line bg-canvas text-muted transition hover:border-brand/60 hover:text-brand-dark',
+          url && 'border-solid border-transparent',
+          box,
+        )}
+        aria-label={label}
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-5 w-5" />}
+      </button>
+      <div className="flex flex-col items-start gap-0.5">
+        <button type="button" onClick={onPick} className="text-sm font-semibold text-ink hover:text-brand-dark">
+          {url ? 'Almashtirish' : label}
+        </button>
+        {url ? (
+          <button type="button" onClick={onClear} className="text-xs font-semibold text-red-500 hover:text-red-600">
+            Olib tashlash
+          </button>
+        ) : (
+          <span className="text-[11px] text-muted">JPG, PNG, WebP</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Sahifa ────────────────────────────────────────────────────────────────────────────────
 
 export default function NewsEditor() {
@@ -132,10 +309,11 @@ export default function NewsEditor() {
   const [saved, setSaved] = useState<Draft>(EMPTY)
   const [slugTouched, setSlugTouched] = useState(false)
   const [stats, setStats] = useState({ words: 0, chars: 0 })
-  const [coverSrc, setCoverSrc] = useState<string | null>(null)
+  const [crop, setCrop] = useState<{ src: string; field: ImageField } | null>(null)
+  const [pickField, setPickField] = useState<ImageField>('coverUrl')
   const [errors, setErrors] = useState<Partial<Record<keyof Draft | 'form', string>>>({})
   const [toast, setToast] = useState<string | null>(null)
-  const [coverBusy, setCoverBusy] = useState(false)
+  const [busyField, setBusyField] = useState<ImageField | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const titleRef = useAutoGrow(draft.title)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -181,6 +359,9 @@ export default function NewsEditor() {
     if (d.excerpt.trim().length < 10) e.excerpt = 'Qisqa tavsif kamida 10 ta belgi bo‘lsin'
     if (stats.chars < 20 && !/<img/.test(d.body)) e.body = 'Matn kamida 20 ta belgi bo‘lsin'
     if (d.slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(d.slug)) e.slug = 'Faqat kichik lotin harflari, raqam va "-"'
+    const link = d.bannerUrl.trim()
+    if (link && !/^https?:\/\//.test(link) && !/^\/(?!\/)/.test(link)) e.bannerUrl = 'Havola https:// yoki / bilan boshlansin'
+    if (link && !d.bannerTitle.trim()) e.bannerTitle = 'Banner sarlavhasini yozing'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -196,6 +377,16 @@ export default function NewsEditor() {
         category: d.category,
         published: d.published,
         pinned: d.pinned,
+        tags: d.tags,
+        authorName: d.authorName.trim(),
+        authorRole: d.authorRole.trim(),
+        authorAvatar: d.authorAvatar,
+        coverCaption: d.coverCaption.trim(),
+        bannerTitle: d.bannerTitle.trim(),
+        bannerText: d.bannerText.trim(),
+        bannerLabel: d.bannerLabel.trim(),
+        bannerUrl: d.bannerUrl.trim(),
+        bannerImage: d.bannerImage,
       }
       return isNew ? api.post<NewsPost>('/admin/news', payload) : api.patch<NewsPost>(`/admin/news/${id}`, payload)
     },
@@ -241,26 +432,34 @@ export default function NewsEditor() {
     return () => window.removeEventListener('keydown', onKey)
   }, [submit, save.isPending])
 
-  async function onPickFile(file: File | undefined) {
+  async function onPickFile(file: File | undefined, field: ImageField = pickField) {
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      setErrors((e) => ({ ...e, coverUrl: 'Faqat rasm fayli yuklang' }))
+      setErrors((e) => ({ ...e, [field]: 'Faqat rasm fayli yuklang' }))
       return
     }
-    setCoverBusy(true)
+    setBusyField(field)
     try {
-      setCoverSrc(await fileToDataUrl(file))
+      setCrop({ src: await fileToDataUrl(file), field })
     } catch (err) {
-      setErrors((e) => ({ ...e, coverUrl: err instanceof Error ? err.message : 'Rasmni o‘qib bo‘lmadi' }))
+      setErrors((e) => ({ ...e, [field]: err instanceof Error ? err.message : 'Rasmni o‘qib bo‘lmadi' }))
     } finally {
-      setCoverBusy(false)
+      setBusyField(null)
+    }
+  }
+
+  function pickImage(field: ImageField) {
+    setPickField(field)
+    if (fileRef.current) {
+      fileRef.current.value = ''
+      fileRef.current.click()
     }
   }
 
   function onDrop(e: DragEvent) {
     e.preventDefault()
     setDragOver(false)
-    onPickFile(e.dataTransfer.files?.[0])
+    onPickFile(e.dataTransfer.files?.[0], 'coverUrl')
   }
 
   if (!isNew && existing.isLoading) {
@@ -450,7 +649,12 @@ export default function NewsEditor() {
             />
             <Switch checked={draft.pinned} onChange={(v) => set('pinned', v)} label="Tepada mahkamlash" hint="Ro‘yxatning boshida turadi" />
             {existing.data?.publishedAt ? (
-              <p className="mt-3 border-t border-line pt-3 text-xs text-muted">Chop etilgan: {formatDateTime(existing.data.publishedAt)}</p>
+              <p className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted">
+                <span>Chop etilgan: {formatDateTime(existing.data.publishedAt)}</span>
+                <span className="inline-flex items-center gap-1 font-semibold text-ink" title="Ko‘rishlar">
+                  <Eye className="h-3.5 w-3.5" /> {existing.data.views ?? 0}
+                </span>
+              </p>
             ) : null}
           </SideCard>
 
@@ -479,7 +683,7 @@ export default function NewsEditor() {
               <div className="group relative aspect-[16/10] overflow-hidden rounded-2xl bg-canvas">
                 <img src={draft.coverUrl} alt="" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/50 opacity-0 transition group-hover:opacity-100">
-                  <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
+                  <Button size="sm" variant="outline" onClick={() => pickImage('coverUrl')}>
                     <ImagePlus className="h-4 w-4" /> Almashtirish
                   </Button>
                   <Button size="sm" variant="danger" onClick={() => set('coverUrl', '')}>
@@ -490,7 +694,7 @@ export default function NewsEditor() {
             ) : (
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
+                onClick={() => pickImage('coverUrl')}
                 onDragOver={(e) => {
                   e.preventDefault()
                   setDragOver(true)
@@ -502,7 +706,7 @@ export default function NewsEditor() {
                   dragOver ? 'border-brand bg-brand-soft' : 'border-line hover:border-brand/60 hover:bg-canvas',
                 )}
               >
-                {coverBusy ? (
+                {busyField === 'coverUrl' ? (
                   <Loader2 className="h-6 w-6 animate-spin text-brand-dark" />
                 ) : (
                   <>
@@ -517,6 +721,107 @@ export default function NewsEditor() {
             )}
             {errors.coverUrl ? <p className="mt-2 text-xs font-semibold text-red-500">{errors.coverUrl}</p> : null}
             {!draft.coverUrl ? <p className="mt-2 text-xs text-muted">Rasm bo‘lmasa, saytda brend rangidagi fon va taksi ko‘rsatiladi.</p> : null}
+            <div className="mt-3">
+              <Field label="Rasm izohi" hint="Muqova ostida kichik yozuv bo‘lib chiqadi">
+                <input
+                  value={draft.coverCaption}
+                  onChange={(e) => set('coverCaption', e.target.value.slice(0, 160))}
+                  placeholder="Foto: TaxiLine matbuot xizmati"
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          </SideCard>
+
+          <SideCard title="Teglar">
+            <TagInput value={draft.tags} onChange={(v) => set('tags', v)} />
+          </SideCard>
+
+          <SideCard title="Muallif">
+            <ImagePickButton
+              url={draft.authorAvatar}
+              busy={busyField === 'authorAvatar'}
+              onPick={() => pickImage('authorAvatar')}
+              onClear={() => set('authorAvatar', '')}
+              shape="round"
+              label="Surat yuklash"
+            />
+            {errors.authorAvatar ? <p className="mt-2 text-xs font-semibold text-red-500">{errors.authorAvatar}</p> : null}
+            <div className="mt-4 space-y-3">
+              <Field label="Ismi">
+                <input
+                  value={draft.authorName}
+                  onChange={(e) => set('authorName', e.target.value.slice(0, 60))}
+                  placeholder="TaxiLine tahririyati"
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Lavozimi">
+                <input
+                  value={draft.authorRole}
+                  onChange={(e) => set('authorRole', e.target.value.slice(0, 60))}
+                  placeholder="Masalan: Matbuot kotibi"
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+            <p className="mt-3 flex items-start gap-1.5 text-[11px] text-muted">
+              <UserRound className="mt-px h-3.5 w-3.5 shrink-0" /> Bo‘sh qolsa, «TaxiLine tahririyati» deb ko‘rsatiladi.
+            </p>
+          </SideCard>
+
+          <SideCard title="Yon banner">
+            <p className="-mt-1 mb-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted">
+              <Megaphone className="mt-px h-3.5 w-3.5 shrink-0" /> Maqolaning o‘ng ustunida chiqadi. Bo‘sh qolsa, standart «TaxiLine bilan yo‘lga chiqing» banneri ko‘rsatiladi.
+            </p>
+            <div className="space-y-3">
+              <ImagePickButton
+                url={draft.bannerImage}
+                busy={busyField === 'bannerImage'}
+                onPick={() => pickImage('bannerImage')}
+                onClear={() => set('bannerImage', '')}
+                shape="wide"
+                label="Fon rasmi"
+              />
+              {errors.bannerImage ? <p className="text-xs font-semibold text-red-500">{errors.bannerImage}</p> : null}
+              <Field label="Sarlavha">
+                <input
+                  value={draft.bannerTitle}
+                  onChange={(e) => set('bannerTitle', e.target.value.slice(0, 80))}
+                  placeholder="Shaharlararo safarga joy band qiling"
+                  className={inputCls}
+                />
+              </Field>
+              {errors.bannerTitle ? <p className="text-xs font-semibold text-red-500">{errors.bannerTitle}</p> : null}
+              <Field label="Matn">
+                <textarea
+                  value={draft.bannerText}
+                  onChange={(e) => set('bannerText', e.target.value.slice(0, 200))}
+                  rows={2}
+                  placeholder="Qisqa taklif matni"
+                  className={cn(inputCls, 'resize-none')}
+                />
+              </Field>
+              <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-2">
+                <Field label="Tugma">
+                  <input
+                    value={draft.bannerLabel}
+                    onChange={(e) => set('bannerLabel', e.target.value.slice(0, 30))}
+                    placeholder="Batafsil"
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Havola">
+                  <input
+                    value={draft.bannerUrl}
+                    onChange={(e) => set('bannerUrl', e.target.value.slice(0, 500))}
+                    placeholder="/register yoki https://"
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+              {errors.bannerUrl ? <p className="text-xs font-semibold text-red-500">{errors.bannerUrl}</p> : null}
+            </div>
           </SideCard>
 
           <SideCard title="Saytdagi kartochka">
@@ -536,6 +841,16 @@ export default function NewsEditor() {
                 <p className="text-[11px] text-muted">Bugun · {minutes} daqiqa</p>
                 <p className="mt-1 line-clamp-2 text-[15px] font-extrabold leading-snug text-ink">{draft.title || 'Sarlavha'}</p>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">{draft.excerpt || 'Qisqa tavsif shu yerda ko‘rinadi'}</p>
+                {draft.tags.length ? (
+                  <p className="mt-2 flex flex-wrap gap-1">
+                    {draft.tags.slice(0, 3).map((t) => (
+                      <span key={t} className="inline-flex items-center rounded-md bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-muted">
+                        <Hash className="h-2.5 w-2.5" />
+                        {t}
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
               </div>
             </div>
           </SideCard>
@@ -554,16 +869,16 @@ export default function NewsEditor() {
         </div>
       </div>
 
-      {coverSrc ? (
+      {crop ? (
         <ImageCropModal
-          src={coverSrc}
-          title="Muqova rasmini kesish"
-          lockAspect={16 / 10}
+          src={crop.src}
+          title={IMAGE_FIELDS[crop.field].title}
+          lockAspect={IMAGE_FIELDS[crop.field].aspect}
           onDone={(url) => {
-            set('coverUrl', url)
-            setCoverSrc(null)
+            set(crop.field, url)
+            setCrop(null)
           }}
-          onCancel={() => setCoverSrc(null)}
+          onCancel={() => setCrop(null)}
         />
       ) : null}
 

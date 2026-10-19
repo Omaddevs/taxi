@@ -90,8 +90,13 @@ export default function News() {
                   {p.title}
                 </button>
                 <p className="mt-1 line-clamp-2 text-sm text-muted">{p.excerpt}</p>
-                <p className="mt-3 text-xs text-muted">
-                  {p.publishedAt ? `Chop etilgan: ${formatDateTime(p.publishedAt)}` : `Tahrirlangan: ${formatDateTime(p.updatedAt)}`}
+                <p className="mt-3 flex items-center justify-between gap-2 text-xs text-muted">
+                  <span>{p.publishedAt ? `Chop etilgan: ${formatDateTime(p.publishedAt)}` : `Tahrirlangan: ${formatDateTime(p.updatedAt)}`}</span>
+                  {p.published ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 font-semibold text-ink" title="Ko‘rishlar">
+                      <Eye className="h-3.5 w-3.5" /> {p.views ?? 0}
+                    </span>
+                  ) : null}
                 </p>
                 <div className="mt-auto flex flex-wrap items-center gap-1 pt-4">
                   <Button size="sm" variant="soft" onClick={() => navigate(`/news/${p.id}`)}>

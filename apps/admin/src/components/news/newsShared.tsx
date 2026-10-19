@@ -15,6 +15,17 @@ export interface NewsPost {
   publishedAt: string | null
   updatedAt: string
   readingMinutes: number
+  tags: string[]
+  views: number
+  authorName: string | null
+  authorRole: string | null
+  authorAvatar: string | null
+  coverCaption: string | null
+  bannerTitle: string | null
+  bannerText: string | null
+  bannerLabel: string | null
+  bannerUrl: string | null
+  bannerImage: string | null
 }
 
 export const CATEGORY_LABEL: Record<NewsCategory, string> = {

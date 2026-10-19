@@ -1009,7 +1009,22 @@ model NewsPost {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  // Maqola sahifasidagi qo‘shimcha ma’lumotlar (admin paneldan, hammasi ixtiyoriy)
+  tags         String[] @default([]) // "#Aksiya", "#Toshkent" — saytda teg bo‘yicha filtrlanadi
+  authorName   String? // bo‘sh bo‘lsa "TaxiLine tahririyati"
+  authorRole   String?
+  authorAvatar String? // /news/images/:id havolasi
+  coverCaption String? // muqova ostidagi izoh: "Foto: TaxiLine"
+  views        Int      @default(0)
+  // O‘ng ustundagi banner; sarlavha bo‘sh bo‘lsa standart "TaxiLine bilan yo‘lga chiqing" ko‘rsatiladi
+  bannerTitle  String?
+  bannerText   String?
+  bannerLabel  String?
+  bannerUrl    String?
+  bannerImage  String?
+
   @@index([published, publishedAt])
+  @@index([published, views])
 }
 
 // Images used inside news posts (cover + inline). Stored in the DB so no file storage is needed;
