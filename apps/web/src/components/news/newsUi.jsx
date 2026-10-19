@@ -57,11 +57,14 @@ export function CategoryChip({ category, onDark = false, className = '' }) {
   )
 }
 
-export function TagChip({ tag, className = '' }) {
+export function TagChip({ tag, outline = false, className = '' }) {
+  const look = outline
+    ? 'bg-white px-4 py-1.5 text-[13px] font-bold text-ink ring-black/[0.1] hover:ring-brand hover:text-brand-dark'
+    : 'bg-canvas px-3 py-1 text-[12px] font-semibold text-ink/70 ring-black/[0.06] hover:bg-brand-soft hover:text-brand-dark'
   return (
     <Link
       to={newsListUrl({ tag })}
-      className={`inline-flex items-center rounded-full bg-canvas px-3 py-1 text-[12px] font-semibold text-ink/70 ring-1 ring-black/[0.06] transition hover:bg-brand-soft hover:text-brand-dark ${className}`}
+      className={`inline-flex items-center rounded-full ring-1 transition ${look} ${className}`}
     >
       #{tag}
     </Link>

@@ -346,12 +346,10 @@ export default function NewsDetail() {
                     </div>
 
                     {post.tags?.length ? (
-                      <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-black/[0.06] pt-6">
-                        <span className="mr-1 inline-flex items-center gap-1 text-[14px] font-bold text-ink/55">
-                          <Hash className="h-4 w-4" /> {t('Teglar:')}
-                        </span>
+                      <div className="mt-10 flex flex-wrap items-center gap-2.5 border-t border-dashed border-black/[0.12] pt-6">
+                        <span className="mr-2 text-[13px] font-medium text-ink/45">{t('Mavzular')}</span>
                         {post.tags.map((tag) => (
-                          <TagChip key={tag} tag={tag} className="text-[13px]" />
+                          <TagChip key={tag} tag={tag} outline />
                         ))}
                       </div>
                     ) : null}
