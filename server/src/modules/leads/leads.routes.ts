@@ -86,9 +86,12 @@ publicLeadsRouter.post(
 // Ochiq: arizaga ilova qilinadigan hujjatni yuklash. Fayl so‘rov tanasida xom holda keladi
 // (Content-Type: application/octet-stream), nomi va turi sarlavhalarda: X-File-Name (URI-kodlangan)
 // va X-File-Type. Javobdagi `token` keyin POST /leads dagi `documents` ro‘yxatiga qo‘yiladi.
+// One application takes at most MAX_DOCUMENTS_PER_LEAD (8) files of up to 15 MB: room for a
+// retry or two per IP, and a daily cap so the upload disk can't be filled from one address.
 publicLeadsRouter.post(
   '/documents',
-  rateLimit(40, 10 * 60_000),
+  rateLimit(16, 10 * 60_000),
+  rateLimit(40, 24 * 60 * 60_000),
   validate({ query: uploadDocumentQuerySchema }),
   asyncRoute(async (req, res) => {
     leadDocuments.assertDocumentSize(req.headers['content-length'])

@@ -2,8 +2,32 @@
 	email {$ACME_EMAIL}
 }
 
+# Security headers for every site. HSTS without includeSubDomains/preload — other subdomains
+# of the domain may not be on HTTPS. A full Content-Security-Policy is still to come; until
+# then CSP carries only frame-ancestors.
+(security) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), camera=(), microphone=(), payment=(), usb=()"
+		-Server
+		-X-Powered-By
+	}
+}
+
 {$WEB_DOMAIN} {
 	encode zstd gzip
+	import security
+	# The site opens as a Telegram mini app, which Telegram Web shows in a frame; the admin
+	# panel under /admin may not be framed at all.
+	@admin path /admin /admin/*
+	@site not path /admin /admin/*
+	header @site Content-Security-Policy "frame-ancestors 'self' https://web.telegram.org https://*.web.telegram.org"
+	header @admin {
+		Content-Security-Policy "frame-ancestors 'none'"
+		X-Frame-Options "DENY"
+	}
 
 	# Admin panel lives under /admin (built with base /admin/). handle_path strips the prefix
 	# so the admin container keeps serving from its own root.
@@ -34,5 +58,8 @@ www.{$WEB_DOMAIN} {
 # REST API + Socket.IO (Caddy proxies WebSocket upgrades automatically).
 {$API_DOMAIN} {
 	encode zstd gzip
+	import security
+	header Content-Security-Policy "frame-ancestors 'none'"
+	header X-Frame-Options "DENY"
 	reverse_proxy server:4000
 }

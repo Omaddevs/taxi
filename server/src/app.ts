@@ -56,6 +56,7 @@ declare global {
 
 export function createApp() {
   const app = express()
+  app.disable('x-powered-by')
 
   if (env.TRUST_PROXY) app.set('trust proxy', 1)
   app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }))
