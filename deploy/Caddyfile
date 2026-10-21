@@ -63,3 +63,10 @@ www.{$WEB_DOMAIN} {
 	header X-Frame-Options "DENY"
 	reverse_proxy server:4000
 }
+
+# AyolQadami (/opt/ayolqadami, its own compose project) shares this VPS. Its web container serves
+# plain HTTP on the taxiline_default bridge gateway, so only this Caddy reaches it; it sets its own
+# security headers and CSP, and proxies api.* to its Next.js server.
+ayolqadami.uz, www.ayolqadami.uz, api.ayolqadami.uz {
+	reverse_proxy 172.18.0.1:8090
+}
