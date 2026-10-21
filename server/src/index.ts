@@ -5,12 +5,14 @@ import { initSocket } from './lib/socket.js'
 import { ensureAdminFromEnv } from './lib/ensureAdmin.js'
 import { startBookingScheduler } from './modules/bookings/bookings.scheduler.js'
 import { startSubscriptionScheduler } from './modules/subscriptions/subscriptions.lifecycle.js'
+import { startNewsImageSweeper } from './modules/news/news.images.js'
 
 const app = createApp()
 const httpServer = createServer(app)
 initSocket(httpServer)
 startBookingScheduler()
 startSubscriptionScheduler()
+startNewsImageSweeper()
 ensureAdminFromEnv().catch((err) => console.error('ensureAdminFromEnv failed:', err))
 
 httpServer.listen(env.PORT, () => {

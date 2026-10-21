@@ -21,7 +21,7 @@ from app.services import groups as groups_service
 from app.services import repeat_guard as repeat_guard_service
 from app.services import trips as trips_service
 from app.services import users as users_service
-from app.tts.engine import synth
+from app.tts.engine import prune_cache, synth
 
 
 async def _inactivity_job(bot: Bot) -> None:
@@ -143,6 +143,10 @@ async def _repeat_guard_prune_job() -> None:
         await repeat_guard_service.prune(session)
 
 
+async def _tts_cache_prune_job() -> None:
+    prune_cache()
+
+
 async def _formatted_ads_relabel_job(bot: Bot) -> None:
     async with session_scope() as session:
         await formatted_ads_service.relabel(bot, session)
@@ -165,6 +169,7 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     scheduler.add_job(_group_ads_cleanup_job, "interval", minutes=1, args=[bot], id="group_ads_cleanup")
     scheduler.add_job(_formatted_ads_relabel_job, "interval", minutes=1, args=[bot], id="formatted_ads_relabel")
     scheduler.add_job(_repeat_guard_prune_job, "interval", hours=6, id="repeat_guard_prune")
+    scheduler.add_job(_tts_cache_prune_job, "interval", hours=6, next_run_time=datetime.now(), id="tts_cache_prune")
     # Once, right after start: cards posted by the previous version get the current buttons.
     scheduler.add_job(_refresh_card_buttons_job, "date", args=[bot], id="refresh_card_buttons")
     return scheduler
