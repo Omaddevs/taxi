@@ -262,6 +262,7 @@ export const REGIONS = [
       'Xiva shahri',
       'Bog‘ot',
       'Gurlan',
+      'Hazorasp',
       'Xiva',
       'Xonqa',
       'Qo‘shko‘pir',
@@ -287,6 +288,7 @@ export const REGIONS = [
       'Yakkasaroy',
       'Yashnobod',
       'Yangi hayot',
+      'Yangi Toshkent',
       'Yunusobod',
     ],
   },
@@ -321,20 +323,42 @@ export function searchUzPlaces(query) {
   return hits.sort((x, y) => Number(y.active) - Number(x.active)).slice(0, 24)
 }
 
-// Viloyatlar bosqichma-bosqich ochiladi: hozircha faqat shu hududlarda xizmat ishlaydi,
-// qolganlari ro‘yxatda "Tez orada" bo‘lib turadi.
-export const ACTIVE_REGION_IDS = new Set(['toshkent-sh', 'toshkent-vil', 'andijon', 'samarqand'])
+// Viloyatlar bosqichma-bosqich ochiladi: ro‘yxatdan olib tashlangan hudud "Tez orada" bo‘lib turadi.
+// Hozir xizmat barcha viloyatlarda ishlaydi.
+export const ACTIVE_REGION_IDS = new Set(REGIONS.map((r) => r.id))
 
 export function isRegionActive(name) {
   const region = getRegion(name)
   return Boolean(region && ACTIVE_REGION_IDS.has(region.id))
 }
 
-// Faol hududlar tepada, qolganlari alifbo tartibida.
+// Toshkent tepada, keyin faol hududlar alifbo tartibida, so‘ng "Tez orada"lar.
+const PINNED_REGION_IDS = ['toshkent-sh', 'toshkent-vil']
+const byName = (a, b) => a.name.localeCompare(b.name, 'uz')
 export const REGIONS_BY_AVAILABILITY = [
-  ...['toshkent-sh', 'toshkent-vil', 'andijon', 'samarqand'].map((id) => REGIONS.find((r) => r.id === id)),
-  ...REGIONS.filter((r) => !ACTIVE_REGION_IDS.has(r.id)).sort((a, b) => a.name.localeCompare(b.name, 'uz')),
+  ...PINNED_REGION_IDS.map((id) => REGIONS.find((r) => r.id === id)),
+  ...REGIONS.filter((r) => !PINNED_REGION_IDS.includes(r.id) && ACTIVE_REGION_IDS.has(r.id)).sort(byName),
+  ...REGIONS.filter((r) => !ACTIVE_REGION_IDS.has(r.id)).sort(byName),
 ]
+
+// Tuman ichidagi qishloq, mahalla va shaharchalar (OpenStreetMap, scripts/places/ bilan yig‘iladi).
+// public/places/<id>.json: { "<tuman>": [["<nom>", lat, lng, "q" | "m" | "t"], …] }
+const placesCache = new Map()
+
+export function loadRegionPlaces(name) {
+  const region = getRegion(name)
+  if (!region) return Promise.resolve({})
+  if (!placesCache.has(region.id)) {
+    const request = fetch(`/places/${region.id}.json`)
+      .then((res) => (res.ok ? res.json() : {}))
+      .catch(() => {
+        placesCache.delete(region.id)
+        return {}
+      })
+    placesCache.set(region.id, request)
+  }
+  return placesCache.get(region.id)
+}
 
 // Nominatim viloyat/shahar nomini uz, en yoki ru tilida qaytarishi mumkin.
 const REGION_STEMS = {

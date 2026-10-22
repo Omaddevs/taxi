@@ -2246,5 +2246,18 @@
   "Do‘stlaringiz bilan ulashing — ular ham xabardor bo‘lsin.": "Share it with friends so they stay in the loop too.",
   "O‘xshash yangiliklar": "Related news",
   "Mavzular": "Topics",
-  "Aylantirish uchun suring": "Drag to rotate"
+  "Aylantirish uchun suring": "Drag to rotate",
+  "Qishloq": "Village",
+  "Mahalla": "Neighbourhood",
+  "Shaharcha": "Town",
+  "Tumanlar": "Districts",
+  "Butun tuman": "Whole district",
+  "{0}: qishloq yoki mahalla": "{0}: village or neighbourhood",
+  "{0}: tuman yoki qishloq": "{0}: district or village",
+  "{0} ta qishloq va mahalla": [
+    "{0} village or neighbourhood",
+    "{0} villages and neighbourhoods"
+  ],
+  "Hazorasp": "Hazorasp",
+  "Yangi Toshkent": "Yangi Toshkent"
 }

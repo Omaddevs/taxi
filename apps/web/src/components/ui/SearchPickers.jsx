@@ -21,6 +21,7 @@ import {
   formatPlace,
   getRegion,
   isRegionActive,
+  loadRegionPlaces,
   matchRegion,
   searchUzPlaces,
 } from '../../data/uzbekistan'
@@ -724,6 +725,8 @@ function CarPickIcon({ className }) {
   )
 }
 
+const PLACE_KIND = { q: 'Qishloq', m: 'Mahalla', t: 'Shaharcha' }
+
 function PlaceRow({ title, subtitle, soon, selected, onClick }) {
   return (
     <button
@@ -784,6 +787,8 @@ export function RegionPicker({
   const [query, setQuery] = useState('')
   const [notice, setNotice] = useState('')
   const [locating, setLocating] = useState(false)
+  const [district, setDistrict] = useState('')
+  const [places, setPlaces] = useState({ region: null, data: null })
   const [prevOpen, setPrevOpen] = useState(open)
 
   if (open !== prevOpen) {
@@ -797,21 +802,67 @@ export function RegionPicker({
     }
   }
 
+  // Viloyat ochilganda uning qishloq/mahallalari bir marta yuklanadi.
+  useEffect(() => {
+    if (!open || !picked || step === 'region') return undefined
+    let cancelled = false
+    loadRegionPlaces(picked).then((data) => {
+      if (!cancelled) setPlaces({ region: picked, data })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [open, picked, step])
+
   const districts = getRegion(picked)?.districts || []
+  const regionPlaces = places.region === picked ? places.data : null
+  const villages = (step === 'village' && regionPlaces?.[district]) || []
   const q = query.trim().toLowerCase()
-  const searchHits = !q
-    ? []
-    : step === 'district'
-      ? districts
-          .filter((d) => d.toLowerCase().includes(q))
-          .map((d) => ({ type: 'district', region: picked, place: d, active: true }))
-      : searchUzPlaces(query)
+  const villageHit = (inDistrict, [name, lat, lng, kind], withDistrict) => ({
+    type: 'village',
+    region: picked,
+    place: `${inDistrict}, ${name}`,
+    title: name,
+    subtitle: withDistrict ? `${inDistrict} · ${t(PLACE_KIND[kind])}` : t(PLACE_KIND[kind]),
+    coords: { lat, lng },
+    active: true,
+  })
+  let searchHits = []
+  if (q && step === 'village') {
+    searchHits = villages.filter((v) => v[0].toLowerCase().includes(q)).map((v) => villageHit(district, v, false))
+  } else if (q && step === 'district') {
+    searchHits = districts
+      .filter((d) => d.toLowerCase().includes(q))
+      .map((d) => ({ type: 'district', region: picked, place: d, active: true }))
+    for (const [name, list] of Object.entries(regionPlaces || {})) {
+      for (const v of list) {
+        if (searchHits.length >= 60) break
+        if (v[0].toLowerCase().includes(q)) searchHits.push(villageHit(name, v, true))
+      }
+    }
+  } else if (q) {
+    searchHits = searchUzPlaces(query)
+  }
   const display = formatPlace(region, place) || t('Tanlang')
 
   function pickRegion(name) {
     setPicked(name)
     setQuery('')
     setStep('district')
+  }
+
+  // Tumanda qishloq/mahalla ro‘yxati bo‘lsa — keyingi bosqich, bo‘lmasa tumanning o‘zi tanlanadi.
+  async function pickDistrict(regionName, name) {
+    const data = regionName === places.region ? places.data : await loadRegionPlaces(regionName)
+    if (data?.[name]?.length) {
+      setPicked(regionName)
+      setPlaces({ region: regionName, data })
+      setDistrict(name)
+      setQuery('')
+      setStep('village')
+    } else {
+      pickPlace(regionName, name)
+    }
   }
 
   function pickPlace(nextRegion, nextPlace, coords) {
@@ -872,7 +923,13 @@ export function RegionPicker({
 
   const InputIcon = side === 'to' ? Flag : PersonStanding
   const placeholder =
-    step === 'district' ? t('{0}: tuman qidiring', picked) : side === 'to' ? t('Qayerga?') : t('Viloyat yoki manzil')
+    step === 'village'
+      ? t('{0}: qishloq yoki mahalla', district)
+      : step === 'district'
+        ? t('{0}: tuman yoki qishloq', picked)
+        : side === 'to'
+          ? t('Qayerga?')
+          : t('Viloyat yoki manzil')
 
   let trigger = null
   if (variant === 'row') {
@@ -995,16 +1052,36 @@ export function RegionPicker({
             </div>
           ) : null}
 
+          {step === 'village' && !q ? (
+            <div className="flex items-center gap-2 border-b border-line px-2 py-2">
+              <button
+                type="button"
+                onClick={() => setStep('district')}
+                className="flex h-9 items-center gap-1 rounded-full px-2 text-sm font-bold text-brand"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                {t('Tumanlar')}
+              </button>
+              <span className="min-w-0 flex-1 truncate pr-2 text-right text-sm font-bold">{district}</span>
+            </div>
+          ) : null}
+
           {q ? (
             searchHits.length ? (
               searchHits.map((hit) => (
                 <PlaceRow
                   key={`${hit.region}-${hit.place}`}
-                  title={hit.place || hit.region}
-                  subtitle={hit.place ? hit.region : t('Viloyat · tumanlarni ochish')}
+                  title={hit.title || hit.place || hit.region}
+                  subtitle={hit.subtitle || (hit.place ? hit.region : t('Viloyat · tumanlarni ochish'))}
                   soon={!hit.active}
                   selected={hit.region === region && hit.place === place}
-                  onClick={() => (hit.type === 'region' ? pickRegion(hit.region) : pickPlace(hit.region, hit.place))}
+                  onClick={() =>
+                    hit.type === 'region'
+                      ? pickRegion(hit.region)
+                      : hit.type === 'district'
+                        ? pickDistrict(hit.region, hit.place)
+                        : pickPlace(hit.region, hit.place, hit.coords)
+                  }
                 />
               ))
             ) : (
@@ -1020,15 +1097,34 @@ export function RegionPicker({
                 onClick={() => pickRegion(item.name)}
               />
             ))
-          ) : (
+          ) : step === 'district' ? (
             districts.map((item) => (
               <PlaceRow
                 key={item}
                 title={t(item)}
-                selected={picked === region && item === place}
-                onClick={() => pickPlace(picked, item)}
+                subtitle={regionPlaces?.[item]?.length ? t('{0} ta qishloq va mahalla', regionPlaces[item].length) : ''}
+                selected={picked === region && (item === place || place?.startsWith(`${item}, `))}
+                onClick={() => pickDistrict(picked, item)}
               />
             ))
+          ) : (
+            <>
+              <PlaceRow
+                title={t('Butun tuman')}
+                subtitle={district}
+                selected={picked === region && district === place}
+                onClick={() => pickPlace(picked, district)}
+              />
+              {villages.map(([name, lat, lng, kind]) => (
+                <PlaceRow
+                  key={`${name}-${lat}`}
+                  title={name}
+                  subtitle={t(PLACE_KIND[kind])}
+                  selected={picked === region && place === `${district}, ${name}`}
+                  onClick={() => pickPlace(picked, `${district}, ${name}`, { lat, lng })}
+                />
+              ))}
+            </>
           )}
         </div>
       </div>

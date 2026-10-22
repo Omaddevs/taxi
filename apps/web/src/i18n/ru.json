@@ -2274,5 +2274,19 @@
   "Do‘stlaringiz bilan ulashing — ular ham xabardor bo‘lsin.": "Поделитесь с друзьями — пусть они тоже будут в курсе.",
   "O‘xshash yangiliklar": "Похожие новости",
   "Mavzular": "Темы",
-  "Aylantirish uchun suring": "Проведите, чтобы повернуть"
+  "Aylantirish uchun suring": "Проведите, чтобы повернуть",
+  "Qishloq": "Село",
+  "Mahalla": "Махалля",
+  "Shaharcha": "Посёлок",
+  "Tumanlar": "Районы",
+  "Butun tuman": "Весь район",
+  "{0}: qishloq yoki mahalla": "{0}: село или махалля",
+  "{0}: tuman yoki qishloq": "{0}: район или село",
+  "{0} ta qishloq va mahalla": [
+    "{0} село и махалля",
+    "{0} села и махалли",
+    "{0} сёл и махаллей"
+  ],
+  "Hazorasp": "Хазарасп",
+  "Yangi Toshkent": "Янги Ташкент"
 }
