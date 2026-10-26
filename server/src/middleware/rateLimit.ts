@@ -16,11 +16,17 @@ export function rateLimit(max: number, windowMs: number, key: (req: Request) => 
     const recent = (hits.get(id) ?? []).filter((t) => now - t < windowMs)
     if (recent.length >= max) return next(new TooManyRequestsError('Juda ko‘p urinish. Birozdan so‘ng qayta urinib ko‘ring.'))
     recent.push(now)
+    // Re-insert so the Map stays ordered least-recently-hit first.
+    hits.delete(id)
     hits.set(id, recent)
     if (hits.size > MAX_KEYS) {
-      // Drop the idle keys first, so a flood of fresh IPs can't wipe the counts of active ones.
+      // Drop idle keys, then the least recently hit ones that are still under the cap. Blocked keys
+      // are never evicted: flooding the limiter with fresh IPs or phones must not reset a lockout.
       for (const [k, times] of hits) if (now - times[times.length - 1] >= windowMs) hits.delete(k)
-      if (hits.size > MAX_KEYS) hits.clear()
+      for (const [k, times] of hits) {
+        if (hits.size <= MAX_KEYS) break
+        if (k !== id && times.filter((t) => now - t < windowMs).length < max) hits.delete(k)
+      }
     }
     next()
   }

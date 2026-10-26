@@ -27,6 +27,15 @@ describe('rateLimit', () => {
     expect(run(limiter, { ip: '3.3.3.3', body: { phone: '+998901234567' } })).toMatchObject({ statusCode: 429 })
   })
 
+  it('keeps a lockout when flooded with more keys than it can hold', () => {
+    const limiter = rateLimit(2, 60_000)
+    run(limiter, { ip: '9.9.9.9' })
+    run(limiter, { ip: '9.9.9.9' })
+    expect(run(limiter, { ip: '9.9.9.9' })).toMatchObject({ statusCode: 429 })
+    for (let i = 0; i < 6000; i++) run(limiter, { ip: `10.0.${i >> 8}.${i & 255}` })
+    expect(run(limiter, { ip: '9.9.9.9' })).toMatchObject({ statusCode: 429 })
+  })
+
   it('passes requests without a phone to the per-IP limiter instead', () => {
     const limiter = rateLimit(1, 60_000, byBodyPhone)
     expect(run(limiter, { ip: '1.1.1.1', body: {} })).toBeUndefined()

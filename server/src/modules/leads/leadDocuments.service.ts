@@ -1,13 +1,13 @@
 import { randomBytes } from 'node:crypto'
 import { createReadStream, createWriteStream } from 'node:fs'
-import { mkdir, stat, unlink } from 'node:fs/promises'
+import { mkdir, stat, statfs, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import { Transform, type Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { Prisma } from '@prisma/client'
 import type { Response } from 'express'
 import { env } from '../../config/env.js'
-import { AppError, NotFoundError, ValidationError } from '../../errors/AppError.js'
+import { AppError, NotFoundError, ServiceUnavailableError, ValidationError } from '../../errors/AppError.js'
 import { prisma } from '../../lib/prisma.js'
 
 // Documents an applicant attaches to the "Haydovchi bo‘ling" form (passport, licence, car papers).
@@ -26,6 +26,10 @@ export const MAX_DOCUMENT_BYTES = 15 * 1024 * 1024
 export const MAX_DOCUMENTS_PER_LEAD = 8
 const TOO_LARGE = 'Fayl hajmi 15 MB dan oshmasligi kerak'
 const UNCLAIMED_TTL_MS = 24 * 60 * 60 * 1000
+// Per-IP caps don't stop many addresses at once; these bound what anonymous uploads can take overall.
+const MAX_UNCLAIMED_BYTES = 2 * 1024 * 1024 * 1024
+const MIN_FREE_DISK_BYTES = 5 * 1024 * 1024 * 1024
+const BUSY = 'Hozir fayl qabul qilib bo‘lmaydi. Birozdan so‘ng qayta urinib ko‘ring'
 
 const DIR = path.resolve(env.UPLOAD_DIR, 'lead-documents')
 const fileOf = (storageKey: string) => path.join(DIR, storageKey)
@@ -56,9 +60,17 @@ export function assertDocumentSize(contentLength: string | undefined) {
   if (Number.isFinite(declared) && declared > MAX_DOCUMENT_BYTES) throw new ValidationError(TOO_LARGE)
 }
 
+async function assertRoomForUpload() {
+  const unclaimed = await prisma.leadDocument.aggregate({ where: { leadId: null, applicationId: null }, _sum: { size: true } })
+  if ((unclaimed._sum.size ?? 0) + MAX_DOCUMENT_BYTES > MAX_UNCLAIMED_BYTES) throw new ServiceUnavailableError(BUSY)
+  const disk = await statfs(DIR).catch(() => null)
+  if (disk && disk.bavail * disk.bsize < MIN_FREE_DISK_BYTES) throw new ServiceUnavailableError(BUSY)
+}
+
 /** Streams an upload to disk and records it. Returns the token that later attaches it to a lead. */
 export async function saveDocument(body: Readable, meta: { kind: DocumentKind; fileName?: string; mime?: string }) {
   await mkdir(DIR, { recursive: true })
+  await assertRoomForUpload()
   const storageKey = randomBytes(16).toString('hex')
   const file = fileOf(storageKey)
 
