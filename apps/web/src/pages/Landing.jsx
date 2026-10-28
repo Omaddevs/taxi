@@ -25,6 +25,7 @@ import { TELEGRAM_BOT } from '../components/auth/AuthChrome'
 import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/SiteChrome'
 import { Regions } from '../components/landing/Regions'
 import { Testimonials } from '../components/landing/Testimonials'
+import { TelegramCommunities } from '../components/landing/TelegramCommunities'
 import { Logo, Wordmark } from '../components/ui/Logo'
 import { LanguageChip } from '../components/ui/LanguagePicker'
 import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
@@ -43,6 +44,9 @@ import { isCompletePhoneUz, maskLocalPhoneUz, maskPhoneUz, toE164Uz } from '../l
 import { siteJsonLd } from '../seo/pages'
 import { useJsonLd, useSeo } from '../seo/useSeo'
 import { t } from '../i18n'
+
+// Foydalanuvchilar fikrlari bo‘limi (demo sharhlar) — hozircha yashirin.
+const SHOW_TESTIMONIALS = false
 
 // `highlight` — ajralib turadigan band.
 const NAV = [
@@ -1646,8 +1650,11 @@ export default function Landing() {
         <Join />
         <Business />
         <Promotions />
-        <Testimonials />
+        {/* Foydalanuvchilar fikrlari hozircha o‘chiq — sharhlar namuna (demo). Haqiqiy fikrlar
+            tayyor bo‘lgach (keyinchalik admin paneldan boshqariladi) qayta yoqiladi. */}
+        {SHOW_TESTIMONIALS ? <Testimonials /> : null}
         <RandomClient />
+        <TelegramCommunities />
         <Faq />
         <Regions />
       </main>
