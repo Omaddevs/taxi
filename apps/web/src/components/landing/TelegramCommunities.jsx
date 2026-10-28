@@ -7,7 +7,7 @@ import { t } from '../../i18n'
    Kartalar to‘xtovsiz suzuvchi lenta: ro‘yxat ikki nusxada, siljish rAF orqali transform bilan
    (subpiksel — silliq), bir nusxa o‘tganda boshiga sezilmasdan qaytadi. Sichqoncha ustiga kelsa
    asta to‘xtaydi; barmoq/sichqoncha bilan surish va ← → tugmalari ishlaydi.
-   Rasmlar: Wikimedia Commons (CC0 / CC BY / CC BY-SA) — mualliflar bo‘lim ostida ko‘rsatiladi. */
+   Rasmlar: Wikimedia Commons (CC0 / CC BY / CC BY-SA) — muallif rasm izohida (title) — litsenziya talabi. */
 const PLACES = {
   tv: { src: '/routes/toshkent-teleminora.webp', label: 'Toshkent teleminorasi', credit: 'Nikol Khagay (CC BY-SA 4.0)' },
   nest: { src: '/routes/toshkent-nest-one.webp', label: 'Nest One, Toshkent Siti', credit: 'ShNajimova (CC BY 4.0)' },
@@ -76,6 +76,7 @@ function Card({ item, index, clone }) {
         <img
           src={top.src}
           alt={t(top.label)}
+          title={`${t(top.label)} — Wikimedia Commons: ${top.credit}`}
           loading="lazy"
           decoding="async"
           draggable={false}
@@ -89,6 +90,7 @@ function Card({ item, index, clone }) {
         <img
           src={bottom.src}
           alt={t(bottom.label)}
+          title={`${t(bottom.label)} — Wikimedia Commons: ${bottom.credit}`}
           loading="lazy"
           decoding="async"
           draggable={false}
@@ -318,10 +320,6 @@ export function TelegramCommunities() {
             ))}
           </div>
         </div>
-
-        <p className="mt-6 text-[11.5px] leading-[1.5] text-ink/40">
-          {t('Rasmlar: Wikimedia Commons')} — {Object.values(PLACES).map((p) => p.credit).join(', ')}
-        </p>
       </div>
     </section>
   )
