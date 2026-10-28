@@ -70,3 +70,14 @@ www.{$WEB_DOMAIN} {
 ayolqadami.uz, www.ayolqadami.uz, api.ayolqadami.uz {
 	reverse_proxy 172.18.0.1:8090
 }
+
+# SportON (/opt/sporton, its own compose project) — same arrangement on 172.18.0.1:8091. Its nginx
+# serves the site and proxies /api, /admin and /kabinet to its Next.js backend on one origin.
+sporton.uz {
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy 172.18.0.1:8091
+}
+
+www.sporton.uz, api.sporton.uz {
+	redir https://sporton.uz{uri} permanent
+}
