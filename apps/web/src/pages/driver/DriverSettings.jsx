@@ -15,6 +15,7 @@ import {
   Heart,
   LogOut,
   Map,
+  MessageCircle,
   MapPin,
   Moon,
   Shield,
@@ -26,6 +27,8 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react'
+import { SupportChat } from '../../components/landing/SupportChat'
+import { openSupportChat } from '../../components/landing/supportChatBus'
 import { useApp } from '../../context/AppContext'
 import { useAuth } from '../../context/AuthContext'
 import { api } from '../../lib/api'
@@ -203,6 +206,7 @@ export default function DriverSettings() {
         <Group>
           <Row icon={Shield} color="bg-indigo-50 text-indigo-700" title={t('Xavfsizlik')} sub={t('Telefon, ID va maxfiylik')} onClick={() => setSheet('security')} />
           <Row to="/driver/help" icon={HelpCircle} color="bg-sky-50 text-sky-600" title={t('Yordam va qo‘llab-quvvatlash')} sub={t('Yordam markazi va tez aloqa')} />
+          <Row icon={MessageCircle} color="bg-brand-soft text-brand" title={t('Yordamchi chat')} sub={t('Savollaringizga darhol javob')} onClick={openSupportChat} />
         </Group>
 
         <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-left">
@@ -222,6 +226,7 @@ export default function DriverSettings() {
         </p>
       </div>
 
+      <SupportChat placement="driver" />
       {sheet === 'profile' ? <ProfileSheet user={user} name={t(name)} onClose={() => setSheet(null)} /> : null}
       {sheet === 'car' ? <CarSheet user={user} onClose={() => setSheet(null)} /> : null}
       {sheet === 'docs' ? <DocsSheet user={user} onClose={() => setSheet(null)} /> : null}

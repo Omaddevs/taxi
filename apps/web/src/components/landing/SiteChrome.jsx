@@ -5,7 +5,6 @@ import { Logo, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
 import { SiteMobileMenu } from './SiteMobileMenu'
 import { NavDropdown } from './NavDropdown'
-import { SupportChat } from './SupportChat'
 import { usePromotions } from '../../lib/queries'
 import { t } from '../../i18n'
 
@@ -354,10 +353,7 @@ export function ScrollTopButton() {
   const r = 25
   const c = 2 * Math.PI * r
 
-  // Yordamchi chat tugmasi har doim shu tugmaning ustida turadi — ikkalasi bir joyda ulanadi.
   return (
-    <>
-    <SupportChat />
     <button
       type="button"
       onClick={toTop}
@@ -374,6 +370,5 @@ export function ScrollTopButton() {
       </svg>
       <ArrowUp className="relative h-5 w-5 transition-transform duration-300 group-hover:-translate-y-0.5" strokeWidth={2.4} />
     </button>
-    </>
   )
 }

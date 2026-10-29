@@ -27,6 +27,7 @@ import { Regions } from '../components/landing/Regions'
 import { Testimonials } from '../components/landing/Testimonials'
 import { TelegramCommunities } from '../components/landing/TelegramCommunities'
 import { openSupportChat } from '../components/landing/supportChatBus'
+import { SupportChat } from '../components/landing/SupportChat'
 import { Logo, Wordmark } from '../components/ui/Logo'
 import { LanguageChip } from '../components/ui/LanguagePicker'
 import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
@@ -1669,6 +1670,7 @@ export default function Landing() {
       </main>
       <SiteFooter />
       <ScrollTopButton />
+      <SupportChat />
     </div>
   )
 }

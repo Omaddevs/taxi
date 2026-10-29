@@ -13,6 +13,23 @@ const SUPPORT_BOT_URL = 'https://t.me/taxilines_bot'
 const STORE_KEY = 'taxiline-support-chat'
 const HELLO = { from: 'bot', kind: 'hello' }
 
+// Joylashuv: landing — "tepaga" tugmasi ustida; app — profil sahifasi (pastki panel yo‘q);
+// driver — haydovchi profili (pastda doimiy navigatsiya paneli bor, uning ustida turadi).
+const PLACEMENT = {
+  landing: {
+    button: 'bottom-[calc(max(20px,env(safe-area-inset-bottom))+68px)] right-4 sm:bottom-[92px] sm:right-6 2xl:bottom-[100px]',
+    panel: 'bottom-[calc(max(20px,env(safe-area-inset-bottom))+136px)] right-4 sm:bottom-[164px] sm:right-6 2xl:bottom-[180px]',
+  },
+  app: {
+    button: 'bottom-[max(20px,env(safe-area-inset-bottom))] right-4 sm:bottom-6 sm:right-6',
+    panel: 'bottom-[calc(max(20px,env(safe-area-inset-bottom))+68px)] right-4 sm:bottom-[92px] sm:right-6 2xl:bottom-[100px]',
+  },
+  driver: {
+    button: 'bottom-[calc(max(10px,env(safe-area-inset-bottom))+80px)] right-4 sm:right-6',
+    panel: 'bottom-[calc(max(10px,env(safe-area-inset-bottom))+148px)] right-4 sm:right-6',
+  },
+}
+
 // Kalit so‘zlar — o‘zbekcha (lotin/kirill ildizlari), ruscha va inglizcha; matn kichik harf va
 // apostroflarsiz solishtiriladi. Javob matnlari t() orqali tarjima qilinadi.
 const FAQ_KEYS = [
@@ -30,7 +47,7 @@ const TOPICS = [
     q: 'Qanday ro‘yxatdan o‘taman?',
     a: 'Kirish uchun telefon raqamingizning o‘zi yetarli: raqamni kiriting va Telegram orqali tasdiqlang.',
     keys: ['royxat', 'kirish', 'login', 'akkaunt', 'регистр', 'войти', 'вход', 'sign', 'register'],
-    link: { to: '/register', label: 'Ro‘yxatdan o‘tish' },
+    link: { to: '/register', label: 'Ro‘yxatdan o‘tish', landingOnly: true },
   },
   {
     id: 'price',
@@ -43,14 +60,14 @@ const TOPICS = [
     q: 'Random mijoz o‘yini nima?',
     a: 'Tasodifiy tanlangan mijozlarimizning borish yoki qaytish yo‘l haqini TaxiLine to‘lab beradi! Ishtirok etish uchun ism, familiya va raqamingizni qoldiring hamda Telegram kanal va guruhimizga qo‘shiling.',
     keys: ['random', 'oyin', 'sovga', 'golib', 'yutuq', 'розыгр', 'подар', 'giveaway', 'prize'],
-    link: { to: '/#random', label: 'Ishtirok etish' },
+    link: { to: '/#random', label: 'Ishtirok etish', landingOnly: true },
   },
   {
     id: 'groups',
     q: 'Telegram guruhlaringiz bormi?',
     a: 'Ha. Yo‘nalishingiz bo‘yicha guruhlarda haydovchi va yo‘lovchilar bir-birini tez topadi, rasmiy kanalda esa yangiliklar va aksiyalar e’lon qilinadi.',
     keys: ['guruh', 'kanal', 'telegram', 'групп', 'канал', 'group', 'channel'],
-    link: { to: '/#telegram', label: 'Guruhlarni ko‘rish' },
+    link: { to: '/#telegram', label: 'Guruhlarni ko‘rish', landingOnly: true },
   },
   {
     id: 'contact',
@@ -63,6 +80,8 @@ const TOPICS = [
 ]
 
 const QUICK = ['faq-0', 'faq-1', 'price', 'register', 'random', 'contact']
+// Kirgan foydalanuvchiga ro‘yxatdan o‘tish savoli kerak emas.
+const QUICK_IN_APP = ['faq-0', 'faq-1', 'price', 'faq-3', 'random', 'contact']
 
 function normalize(text) {
   return text
@@ -109,15 +128,17 @@ function writeHistory(list) {
   }
 }
 
-function BotLinks({ topic }) {
+function BotLinks({ topic, inApp }) {
+  // Landingdagi bo‘limlar (/#random…) va ro‘yxatdan o‘tish ilova ichida ma'nosiz — ko‘rsatmaymiz.
+  const link = topic?.link && !(inApp && topic.link.landingOnly) ? topic.link : null
   return (
     <div className="mt-2.5 flex flex-wrap gap-2">
-      {topic?.link ? (
+      {link ? (
         <Link
-          to={topic.link.to}
+          to={link.to}
           className="inline-flex h-8 items-center gap-1 rounded-full bg-white px-3 text-[12.5px] font-bold text-ink ring-1 ring-line transition hover:bg-ink hover:text-white"
         >
-          {t(topic.link.label)} <ArrowRight className="h-3.5 w-3.5" />
+          {t(link.label)} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       ) : null}
       {!topic || topic.bot ? (
@@ -134,30 +155,31 @@ function BotLinks({ topic }) {
   )
 }
 
-function Message({ msg }) {
+function Message({ msg, inApp }) {
   const topic = msg.topic ? TOPICS.find((x) => x.id === msg.topic) : null
   if (msg.from === 'user') {
     return (
       <div className="flex justify-end">
-        <p className="max-w-[82%] rounded-[18px] rounded-br-md bg-ink px-3.5 py-2.5 text-[14px] leading-[1.45] text-white">{msg.text}</p>
+        <p className="max-w-[82%] rounded-[18px] rounded-br-md bg-[#1d2229] px-3.5 py-2.5 text-[14px] leading-[1.45] text-white">{msg.text}</p>
       </div>
     )
   }
   const text = msg.kind === 'unknown' ? t('Bu savolga hozircha javob topolmadim. Operatorimiz Telegram botda kecha-kunduz javob beradi.') : msg.kind === 'hello' ? t('Assalomu alaykum! Men TaxiLine yordamchisiman. Savolingizni yozing yoki quyidagilardan birini tanlang.') : t(topic?.a)
   return (
     <div className="flex items-end gap-2">
-      <span aria-hidden="true" className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-ink">
+      <span aria-hidden="true" className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-[#1a2b3c]">
         <Bot className="h-4 w-4" />
       </span>
       <div className="max-w-[82%] rounded-[18px] rounded-bl-md bg-[#f3f4f6] px-3.5 py-2.5 text-[14px] leading-[1.45] text-ink">
         {text}
-        {msg.kind === 'unknown' || topic?.link || topic?.bot ? <BotLinks topic={msg.kind === 'unknown' ? null : topic} /> : null}
+        {msg.kind === 'unknown' || (topic?.link && !(inApp && topic.link.landingOnly)) || topic?.bot ? <BotLinks topic={msg.kind === 'unknown' ? null : topic} inApp={inApp} /> : null}
       </div>
     </div>
   )
 }
 
-export function SupportChat() {
+export function SupportChat({ placement = 'landing' }) {
+  const pos = PLACEMENT[placement] ?? PLACEMENT.landing
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState(readHistory)
   const [draft, setDraft] = useState('')
@@ -211,7 +233,7 @@ export function SupportChat() {
   }
 
   const asked = new Set(messages.filter((m) => m.topic).map((m) => m.topic))
-  const chips = QUICK.filter((id) => !asked.has(id)).slice(0, 4)
+  const chips = (placement === 'landing' ? QUICK : QUICK_IN_APP).filter((id) => !asked.has(id)).slice(0, 4)
 
   return (
     <>
@@ -219,12 +241,12 @@ export function SupportChat() {
         role="dialog"
         aria-modal="false"
         aria-label={t('TaxiLine yordamchisi')}
-        className={`fixed bottom-[calc(max(20px,env(safe-area-inset-bottom))+136px)] right-4 z-50 flex max-h-[min(560px,calc(100svh-180px))] w-[calc(100vw-32px)] max-w-[380px] origin-bottom-right flex-col overflow-hidden rounded-[24px] bg-white text-ink shadow-[0_30px_70px_-20px_rgba(15,29,42,0.45)] ring-1 ring-line transition-all duration-300 ease-[cubic-bezier(.22,.8,.3,1)] sm:bottom-[164px] sm:right-6 2xl:bottom-[180px] ${
+        className={`fixed ${pos.panel} z-50 flex max-h-[min(560px,calc(100svh-200px))] w-[calc(100vw-32px)] max-w-[380px] origin-bottom-right flex-col overflow-hidden rounded-[24px] bg-white text-ink shadow-[0_30px_70px_-20px_rgba(15,29,42,0.45)] ring-1 ring-line transition-all duration-300 ease-[cubic-bezier(.22,.8,.3,1)] ${
           open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible translate-y-3 scale-95 opacity-0'
         }`}
       >
         <header className="flex items-center gap-3 bg-[#1d2229] px-4 py-3.5 text-white">
-          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-ink">
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-[#1a2b3c]">
             <Bot className="h-5 w-5" />
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-[#22c55e] ring-2 ring-[#1d2229]" />
           </span>
@@ -245,11 +267,11 @@ export function SupportChat() {
         <div ref={listRef} aria-live="polite" className="min-h-[200px] flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4">
           {/* Salomlashish har doim birinchi turadi (tarixda saqlanmaydi) */}
           {[HELLO, ...messages].map((m, i) => (
-            <Message key={i} msg={m} />
+            <Message key={i} msg={m} inApp={placement !== 'landing'} />
           ))}
           {typing ? (
             <div className="flex items-end gap-2" aria-label={t('Yozmoqda…')}>
-              <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-ink">
+              <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-full bg-brand text-[#1a2b3c]">
                 <Bot className="h-4 w-4" />
               </span>
               <span className="flex gap-1 rounded-[18px] rounded-bl-md bg-[#f3f4f6] px-4 py-3.5">
@@ -298,7 +320,7 @@ export function SupportChat() {
             type="submit"
             disabled={!draft.trim() || typing}
             aria-label={t('Yuborish')}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-ink transition hover:bg-[#5ee3eb] disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-[#1a2b3c] transition hover:bg-[#5ee3eb] disabled:opacity-40"
           >
             <Send className="h-4.5 w-4.5" />
           </button>
@@ -312,7 +334,7 @@ export function SupportChat() {
         aria-expanded={open}
         aria-label={open ? t('Chatni yopish') : t('Yordamchi chat')}
         title={t('Yordamchi chat')}
-        className="group fixed bottom-[calc(max(20px,env(safe-area-inset-bottom))+68px)] right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-ink shadow-[0_14px_30px_-8px_rgba(0,163,174,0.6)] transition duration-300 hover:bg-[#5ee3eb] sm:bottom-[92px] sm:right-6 2xl:bottom-[100px] 2xl:h-16 2xl:w-16"
+        className={`group fixed ${pos.button} z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-[#1a2b3c] shadow-[0_14px_30px_-8px_rgba(0,163,174,0.6)] transition duration-300 hover:bg-[#5ee3eb] 2xl:h-16 2xl:w-16`}
       >
         {!open && !messages.length ? <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-full bg-brand/40 [animation-duration:2.4s]" /> : null}
         <span className={`absolute transition-all duration-300 ${open ? 'rotate-90 scale-50 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>

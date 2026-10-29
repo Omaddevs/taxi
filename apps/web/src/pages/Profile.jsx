@@ -1,6 +1,8 @@
-import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, Phone, Settings, User } from 'lucide-react'
+import { ChevronRight, CreditCard, Gift, HelpCircle, History, LogOut, MapPin, MessageCircle, Phone, Settings, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { askForPhone } from '../components/auth/PhoneRequiredDialog'
+import { SupportChat } from '../components/landing/SupportChat'
+import { openSupportChat } from '../components/landing/supportChatBus'
 import { Button, Card } from '../components/ui/Button'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { CoinCard } from '../components/ui/CoinCard'
@@ -86,11 +88,19 @@ export default function Profile() {
             <ChevronRight className="h-4 w-4 text-slate-400" />
           </Link>
         ))}
+        <button type="button" onClick={openSupportChat} className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
+            <MessageCircle className="h-4 w-4" />
+          </span>
+          <span className="flex-1 text-sm font-semibold">{t('Yordamchi chat')}</span>
+          <ChevronRight className="h-4 w-4 text-slate-400" />
+        </button>
       </Card>
 
       <Button variant="soft" className="mt-4 w-full" onClick={logout}>
         <LogOut className="h-4 w-4" /> {t('Chiqish')}
       </Button>
+      <SupportChat placement="app" />
     </div>
   )
 }
