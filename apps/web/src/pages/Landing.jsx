@@ -26,6 +26,7 @@ import { ScrollTopButton, SiteFooter, SiteHeader } from '../components/landing/S
 import { Regions } from '../components/landing/Regions'
 import { Testimonials } from '../components/landing/Testimonials'
 import { TelegramCommunities } from '../components/landing/TelegramCommunities'
+import { openSupportChat } from '../components/landing/supportChatBus'
 import { Logo, Wordmark } from '../components/ui/Logo'
 import { LanguageChip } from '../components/ui/LanguagePicker'
 import { SiteMobileMenu } from '../components/landing/SiteMobileMenu'
@@ -61,7 +62,7 @@ const FEATURES = [
   { icon: ShieldCheck, title: 'Xavfsiz safar', text: 'Tasdiqlangan haydovchilar, SOS va jonli kuzatuv', tone: 'brand' },
   { icon: Route, title: 'Shaharlar aro', text: 'Viloyatlar bo‘ylab ikki tomonlama yo‘nalishlar', tone: 'light' },
   { icon: Package, title: 'Yuk va pochta', text: 'Posilkalarni yo‘lovchi bilan birga yetkazing', tone: 'brand' },
-  { icon: Headphones, title: '24/7 yordam', text: 'Qo‘llab-quvvatlash kecha-kunduz aloqada', tone: 'light' },
+  { icon: Headphones, title: '24/7 yordam', text: 'Chat bot savollaringizga kecha-kunduz javob beradi', tone: 'light', chat: true },
 ]
 
 function CarImage({ className = '', sizes = '(min-width: 1024px) 720px, 100vw' }) {
@@ -112,18 +113,26 @@ function NavLinks({ onNavigate, className = '', desktop = false }) {
   )
 }
 
-function FeatureCard({ icon: Icon, title, text, tone }) {
+function FeatureCard({ icon: Icon, title, text, tone, chat }) {
   const brand = tone === 'brand'
+  // "24/7 yordam" kartasi — bosilganda yordamchi chat ochiladi.
+  const Tag = chat ? 'button' : 'article'
   return (
-    <article
-      className={`flex h-[214px] w-[158px] shrink-0 snap-start flex-col rounded-[16px] p-5 sm:h-[226px] sm:w-[168px] 2xl:h-[290px] 2xl:w-[216px] 2xl:rounded-[20px] 2xl:p-6 ${
+    <Tag
+      {...(chat ? { type: 'button', onClick: openSupportChat, 'aria-label': `${t(title)} — ${t('Chatni ochish')}` } : {})}
+      className={`flex h-[214px] text-left ${chat ? 'group cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-14px_rgba(0,199,212,0.7)]' : ''} w-[158px] shrink-0 snap-start flex-col rounded-[16px] p-5 sm:h-[226px] sm:w-[168px] 2xl:h-[290px] 2xl:w-[216px] 2xl:rounded-[20px] 2xl:p-6 ${
         brand ? 'bg-brand' : 'bg-white'
       } text-ink`}
     >
       <Icon className={`h-9 w-9 ${brand ? 'text-ink' : 'text-brand'}`} strokeWidth={1.7} />
       <h3 className="mt-auto text-[18px] font-extrabold leading-[1.15] 2xl:text-[23px] tracking-tight">{t(title)}</h3>
       <p className={`mt-2.5 text-[12px] leading-[1.4] 2xl:text-[14px] ${brand ? 'text-ink/85' : 'text-ink/70'}`}>{t(text)}</p>
-    </article>
+      {chat ? (
+        <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-brand-dark 2xl:text-[14px]">
+          {t('Chatni ochish')} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      ) : null}
+    </Tag>
   )
 }
 
