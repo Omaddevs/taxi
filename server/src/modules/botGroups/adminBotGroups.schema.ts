@@ -63,6 +63,10 @@ export const adsStatsQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(90).default(1),
 })
 
+export const adsTimelineQuerySchema = z.object({
+  unit: z.enum(['day', 'week', 'month']).default('day'),
+})
+
 export const repeatGuardUnmuteSchema = z.object({
   chatId: z.number().int(),
   telegramId: z.number().int().positive(),

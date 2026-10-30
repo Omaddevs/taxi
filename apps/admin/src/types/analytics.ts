@@ -53,3 +53,9 @@ export interface AdsStatsReport {
     series: Array<{ date: string; count: number }>
   }
 }
+
+// GET /admin/bot-settings/ads-timeline?unit= — e’lonlar kunlik / haftalik / oylik.
+export interface AdsTimeline {
+  unit: 'day' | 'week' | 'month'
+  buckets: Array<{ start: string; ads: number; driver: number; passenger: number; authors: number; calls: number }>
+}

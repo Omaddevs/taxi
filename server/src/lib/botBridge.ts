@@ -514,6 +514,15 @@ export async function getAdsStats(days: number): Promise<AdsStatsReport> {
   return botFetch<AdsStatsReport>(`/webapp/admin/ads-stats?days=${days}`, GROUP_TIMEOUT)
 }
 
+export interface AdsTimeline {
+  unit: 'day' | 'week' | 'month'
+  buckets: { start: string; ads: number; driver: number; passenger: number; authors: number; calls: number }[]
+}
+
+export async function getAdsTimeline(unit: string): Promise<AdsTimeline> {
+  return botFetch<AdsTimeline>(`/webapp/admin/ads-timeline?unit=${unit}`, GROUP_TIMEOUT)
+}
+
 export async function getRepeatGuardReport(days: number): Promise<RepeatGuardReport> {
   return botFetch<RepeatGuardReport>(`/webapp/admin/repeat-guard?days=${days}`, GROUP_TIMEOUT)
 }

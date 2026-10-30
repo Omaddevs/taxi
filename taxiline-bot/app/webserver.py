@@ -1525,6 +1525,15 @@ async def admin_ads_stats(request: web.Request) -> web.Response:
     return web.json_response(report)
 
 
+@routes.get("/webapp/admin/ads-timeline")
+async def admin_ads_timeline(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    async with session_scope() as session:
+        report = await ads_stats_service.timeline(session, request.query.get("unit", "day"))
+    return web.json_response(report)
+
+
 @routes.get("/webapp/admin/group-ads")
 async def admin_group_ads(request: web.Request) -> web.Response:
     if not _authorized(request):

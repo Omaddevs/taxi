@@ -10,7 +10,7 @@ E'lon manbalari:
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import BotUser, CallLog, FormattedAd, Group, GroupAd, GroupPostEvent
@@ -201,3 +201,80 @@ async def report(session: AsyncSession, days: int) -> dict:
             ],
         },
     }
+
+
+# ── Davrlar bo'yicha (kunlik / haftalik / oylik) ─────────────────────────────────────────
+
+TIMELINE_BUCKETS = {"day": 30, "week": 12, "month": 12}
+
+# Toshkent vaqtiga o'tkazib, Postgres date_trunc bilan guruhlaymiz (hafta dushanbadan boshlanadi).
+_TIMELINE_SQL = text(
+    """
+    WITH ads AS (
+        SELECT created_at, author_telegram_id,
+               CASE WHEN is_passenger THEN 'PASSENGER' ELSE 'DRIVER' END AS role
+          FROM formatted_ads WHERE created_at >= :since
+        UNION ALL
+        SELECT created_at, author_telegram_id, COALESCE(role, 'UNKNOWN')
+          FROM group_ads WHERE created_at >= :since
+    )
+    SELECT date_trunc(:unit, created_at + interval '5 hours') AS bucket,
+           count(*) FILTER (WHERE role = 'DRIVER') AS driver,
+           count(*) FILTER (WHERE role = 'PASSENGER') AS passenger,
+           count(*) FILTER (WHERE role = 'UNKNOWN') AS unknown,
+           count(DISTINCT author_telegram_id) FILTER (WHERE author_telegram_id <> 0) AS authors
+      FROM ads GROUP BY 1
+    """
+)
+_TIMELINE_CALLS_SQL = text(
+    """
+    SELECT date_trunc(:unit, created_at + interval '5 hours') AS bucket, count(*)
+      FROM call_logs WHERE created_at >= :since GROUP BY 1
+    """
+)
+
+
+def _bucket_starts(unit: str, now_local: datetime) -> list[datetime]:
+    """Naive Tashkent-local starts of the last N buckets, oldest first."""
+    today = now_local.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+    count = TIMELINE_BUCKETS[unit]
+    if unit == "day":
+        return [today - timedelta(days=count - 1 - i) for i in range(count)]
+    if unit == "week":
+        monday = today - timedelta(days=today.weekday())
+        return [monday - timedelta(weeks=count - 1 - i) for i in range(count)]
+    first = today.replace(day=1)
+    starts = []
+    year, month = first.year, first.month
+    for _ in range(count):
+        starts.append(datetime(year, month, 1))
+        year, month = (year - 1, 12) if month == 1 else (year, month - 1)
+    return starts[::-1]
+
+
+async def timeline(session: AsyncSession, unit: str) -> dict:
+    if unit not in TIMELINE_BUCKETS:
+        unit = "day"
+    starts = _bucket_starts(unit, _local(datetime.utcnow()))
+    since = starts[0] - timedelta(hours=5)  # local → naive UTC
+    params = {"unit": unit, "since": since}
+    rows = {r.bucket: r for r in (await session.execute(_TIMELINE_SQL, params)).all()}
+    calls = {bucket: count for bucket, count in (await session.execute(_TIMELINE_CALLS_SQL, params)).all()}
+
+    buckets = []
+    for start in starts:
+        row = rows.get(start)
+        driver = row.driver if row else 0
+        passenger = row.passenger if row else 0
+        unknown = row.unknown if row else 0
+        buckets.append(
+            {
+                "start": start.strftime("%Y-%m-%d"),
+                "ads": driver + passenger + unknown,
+                "driver": driver,
+                "passenger": passenger,
+                "authors": row.authors if row else 0,
+                "calls": calls.get(start, 0),
+            }
+        )
+    return {"unit": unit, "buckets": buckets}

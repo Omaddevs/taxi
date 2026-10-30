@@ -42,7 +42,7 @@ export function formatSom(value: number) {
 }
 
 const TZ = 'Asia/Tashkent'
-const MONTHS_UZ = [
+export const MONTHS_UZ = [
   'yanvar',
   'fevral',
   'mart',

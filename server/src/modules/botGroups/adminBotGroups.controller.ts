@@ -49,6 +49,11 @@ export async function adsStats(req: Request, res: Response) {
   res.json(await botBridge.getAdsStats(days))
 }
 
+export async function adsTimeline(req: Request, res: Response) {
+  const { unit } = req.query as unknown as { unit: string }
+  res.json(await botBridge.getAdsTimeline(unit))
+}
+
 export async function repeatGuardReport(req: Request, res: Response) {
   const { days } = req.query as unknown as { days: number }
   res.json(await botBridge.getRepeatGuardReport(days))

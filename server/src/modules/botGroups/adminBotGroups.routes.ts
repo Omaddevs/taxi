@@ -15,6 +15,7 @@ import {
   updateGroupSchema,
   repeatGuardQuerySchema,
   adsStatsQuerySchema,
+  adsTimelineQuerySchema,
   repeatGuardUnmuteSchema,
 } from './adminBotGroups.schema.js'
 
@@ -37,6 +38,13 @@ adminBotSettingsRouter.get(
   requireRole('ADMIN'),
   validate({ query: adsStatsQuerySchema }),
   asyncRoute(controller.adsStats),
+)
+adminBotSettingsRouter.get(
+  '/ads-timeline',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ query: adsTimelineQuerySchema }),
+  asyncRoute(controller.adsTimeline),
 )
 adminBotSettingsRouter.get(
   '/repeat-guard',

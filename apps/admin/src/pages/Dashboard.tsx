@@ -22,9 +22,10 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Card, Button } from '../components/ui/Button'
 import { FilterPills } from '../components/ui/Filters'
 import { SkeletonGrid } from '../components/ui/EmptyState'
-import { Donut, Legend, MetricTile, MiniBars, ProgressRow, SERIES, StackBar, TrendChart } from '../components/ui/DashCharts'
+import { Donut, Legend, MetricTile, MiniBars, ProgressRow, SERIES, StackBar } from '../components/ui/DashCharts'
 import { daysAgo, formatShortDay, displayName, startOfToday, initials } from '../lib/utils'
 import { PeopleSearch } from '../components/people/PeopleSearch'
+import { AdsPeriodStats } from '../components/dashboard/AdsPeriodStats'
 import type { AdsStatsReport, AnalyticsSummary, StaffKpiRow, StaffRow, TicketStats } from '../types'
 
 const RANGES = [
@@ -130,23 +131,12 @@ export default function Dashboard() {
     refetchInterval: 60_000,
   })
 
-  const trend = useMemo(() => {
-    const s = ads?.series ?? []
-    return {
-      labels: s.map((d) => formatShortDay(d.date)),
-      series: [
-        { key: 'driver', label: 'Haydovchi', color: SERIES.driver, values: s.map((d) => d.driver) },
-        { key: 'passenger', label: 'Yo‘lovchi', color: SERIES.passenger, values: s.map((d) => d.passenger) },
-      ],
-    }
-  }, [ads])
-
   const hourItems = useMemo(() => {
     const nowHour = (new Date().getUTCHours() + 5) % 24
     return {
       items: (ads?.hours ?? []).map((v, h) => ({
         key: String(h),
-        label: h % 3 === 0 ? String(h).padStart(2, '0') : '',
+        label: h % 6 === 0 ? String(h).padStart(2, '0') : '',
         tip: `${String(h).padStart(2, '0')}:00–${String(h).padStart(2, '0')}:59`,
         value: v,
       })),
@@ -252,23 +242,9 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-3">
-            <Card className="p-5 xl:col-span-2">
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-bold text-ink">Kunlik e’lonlar</h3>
-                  <p className="mt-0.5 text-xs text-muted">So‘nggi {ads.series.length} kun, Toshkent vaqti bilan</p>
-                </div>
-                <Legend
-                  items={[
-                    { label: 'Haydovchi', color: SERIES.driver },
-                    { label: 'Yo‘lovchi', color: SERIES.passenger },
-                  ]}
-                />
-              </div>
-              <TrendChart labels={trend.labels} series={trend.series} />
-            </Card>
+          <AdsPeriodStats />
 
+          <div className="mt-4 grid gap-4 xl:grid-cols-3">
             <Card className="p-5">
               <CardHead title="E’lonlar taqsimoti" subtitle="Tanlangan davr" />
               <Donut
@@ -311,6 +287,62 @@ export default function Dashboard() {
                 </div>
               </div>
             </Card>
+
+            <Card className="p-5">
+              <CardHead title="Eng faol mualliflar" subtitle="Ko‘p e’lon tashlaganlar" />
+              {ads.topAuthors.length === 0 ? (
+                <p className="py-6 text-sm text-muted">Hali muallif yo‘q</p>
+              ) : (
+                <ul className="space-y-2.5">
+                  {ads.topAuthors.map((a, i) => (
+                    <li key={a.telegramId} className="flex items-center gap-3 rounded-2xl px-3 py-2.5" style={{ background: AUTHOR_TINTS[i % AUTHOR_TINTS.length] }}>
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ background: a.role === 'PASSENGER' ? SERIES.passenger : SERIES.driver }}
+                      >
+                        {initials(a.name)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-ink">{a.name}</p>
+                        <p className="truncate text-[11px] text-muted">
+                          {a.role === 'PASSENGER' ? 'Yo‘lovchi' : a.role === 'DRIVER' ? 'Haydovchi' : 'Noma’lum'}
+                          {a.username ? ` · @${a.username}` : ''}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-xs font-extrabold text-ink">{a.ads}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+
+            <Card className="p-5">
+              <CardHead
+                title="Ochiq guruh so‘rovlari"
+                subtitle={`“Yo‘lovchimisiz yoki haydovchi?” — ${nf(routedTotal)} ta`}
+                onOpen={() => navigate('/bot-settings/ads-log')}
+              />
+              <StackBar items={ROUTED_META.map((m) => ({ ...m, value: ads.routed[m.key] ?? 0 }))} />
+              <ul className="mt-4 space-y-2">
+                {ROUTED_META.map((m) => {
+                  const v = ads.routed[m.key] ?? 0
+                  return (
+                    <li key={m.key} className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-muted">
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.color }} />
+                        {m.label}
+                      </span>
+                      <span className="font-semibold text-ink">
+                        {nf(v)}
+                        <span className="ml-1.5 text-xs font-medium text-muted">
+                          {routedTotal ? `${Math.round((v / routedTotal) * 100)}%` : ''}
+                        </span>
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </Card>
           </div>
 
           <div className="mt-4 grid gap-4 xl:grid-cols-3">
@@ -349,36 +381,6 @@ export default function Dashboard() {
             </Card>
 
             <Card className="p-5">
-              <CardHead title="Eng faol mualliflar" subtitle="Ko‘p e’lon tashlaganlar" />
-              {ads.topAuthors.length === 0 ? (
-                <p className="py-6 text-sm text-muted">Hali muallif yo‘q</p>
-              ) : (
-                <ul className="space-y-2.5">
-                  {ads.topAuthors.map((a, i) => (
-                    <li key={a.telegramId} className="flex items-center gap-3 rounded-2xl px-3 py-2.5" style={{ background: AUTHOR_TINTS[i % AUTHOR_TINTS.length] }}>
-                      <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                        style={{ background: a.role === 'PASSENGER' ? SERIES.passenger : SERIES.driver }}
-                      >
-                        {initials(a.name)}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-ink">{a.name}</p>
-                        <p className="truncate text-[11px] text-muted">
-                          {a.role === 'PASSENGER' ? 'Yo‘lovchi' : a.role === 'DRIVER' ? 'Haydovchi' : 'Noma’lum'}
-                          {a.username ? ` · @${a.username}` : ''}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-xs font-extrabold text-ink">{a.ads}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
-          </div>
-
-          <div className="mt-4 grid gap-4 xl:grid-cols-3">
-            <Card className="p-5 xl:col-span-2">
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold text-ink">Faollik soatlari</h3>
@@ -391,34 +393,6 @@ export default function Dashboard() {
                 ) : null}
               </div>
               <MiniBars items={hourItems.items} color="#00a9b5" height={140} highlight={hourItems.nowHour} />
-            </Card>
-
-            <Card className="p-5">
-              <CardHead
-                title="Ochiq guruh so‘rovlari"
-                subtitle={`“Yo‘lovchimisiz yoki haydovchi?” — ${nf(routedTotal)} ta`}
-                onOpen={() => navigate('/bot-settings/ads-log')}
-              />
-              <StackBar items={ROUTED_META.map((m) => ({ ...m, value: ads.routed[m.key] ?? 0 }))} />
-              <ul className="mt-4 space-y-2">
-                {ROUTED_META.map((m) => {
-                  const v = ads.routed[m.key] ?? 0
-                  return (
-                    <li key={m.key} className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-muted">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ background: m.color }} />
-                        {m.label}
-                      </span>
-                      <span className="font-semibold text-ink">
-                        {nf(v)}
-                        <span className="ml-1.5 text-xs font-medium text-muted">
-                          {routedTotal ? `${Math.round((v / routedTotal) * 100)}%` : ''}
-                        </span>
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
             </Card>
           </div>
         </>

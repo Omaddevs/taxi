@@ -362,3 +362,89 @@ export function MetricTile({
     </div>
   )
 }
+
+/** Davrlar bo‘yicha ustma-ust ustunlar (masalan haydovchi + yo‘lovchi), segmentlar orasida 2px. */
+export function StackedBars({
+  items,
+  series,
+  height = 200,
+}: {
+  items: { key: string; label: string; tip: string; values: Record<string, number> }[]
+  series: { key: string; label: string; color: string }[]
+  height?: number
+}) {
+  const [hover, setHover] = useState<number | null>(null)
+  const totals = items.map((i) => series.reduce((s, x) => s + (i.values[x.key] ?? 0), 0))
+  const top = niceCeil(Math.max(1, ...totals))
+  const labelEvery = items.length > 16 ? Math.ceil(items.length / 10) : 1
+  return (
+    <div>
+      <div className="flex gap-2" style={{ height }}>
+        <div className="flex w-7 shrink-0 flex-col justify-between text-right text-[10px] text-muted">
+          <span>{nf(top)}</span>
+          <span>{nf(top / 2)}</span>
+          <span>0</span>
+        </div>
+        <div className="relative flex min-w-0 flex-1 items-end gap-[3px] border-b border-line">
+          <div className="pointer-events-none absolute inset-x-0 top-0 border-t border-dashed border-line" />
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dashed border-line" />
+          {items.map((item, i) => (
+            <div
+              key={item.key}
+              className="relative flex h-full min-w-0 flex-1 flex-col justify-end"
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover(null)}
+            >
+              <div
+                className={cn('flex w-full flex-col-reverse gap-[2px] transition-opacity', hover !== null && hover !== i ? 'opacity-45' : '')}
+                style={{ height: `${(totals[i] / top) * 100}%` }}
+              >
+                {series.map((s, si) => {
+                  const v = item.values[s.key] ?? 0
+                  if (!v) return null
+                  const isTop = series.slice(si + 1).every((x) => !(item.values[x.key] ?? 0))
+                  return (
+                    <div
+                      key={s.key}
+                      className={cn('w-full', isTop ? 'rounded-t-[4px]' : '')}
+                      style={{ flexGrow: v, flexBasis: 0, minHeight: 2, background: s.color }}
+                    />
+                  )
+                })}
+              </div>
+              {hover === i ? (
+                <div
+                  className={cn(
+                    'pointer-events-none absolute bottom-full z-10 mb-2 min-w-40 rounded-xl border border-line bg-white px-3 py-2 shadow-lg',
+                    i > items.length * 0.6 ? 'right-0' : 'left-0',
+                  )}
+                >
+                  <p className="mb-1 text-xs font-bold whitespace-nowrap text-ink">{item.tip}</p>
+                  {series.map((s) => (
+                    <p key={s.key} className="flex items-center justify-between gap-3 text-xs text-muted">
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
+                        {s.label}
+                      </span>
+                      <span className="font-bold text-ink">{nf(item.values[s.key] ?? 0)}</span>
+                    </p>
+                  ))}
+                  <p className="mt-1 flex justify-between border-t border-line pt-1 text-xs text-muted">
+                    Jami <span className="font-bold text-ink">{nf(totals[i])}</span>
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-1.5 flex gap-[3px] pl-9">
+        {items.map((item, i) => (
+          <span key={item.key} className="min-w-0 flex-1 truncate text-center text-[10px] text-muted">
+            {i % labelEvery === 0 || i === items.length - 1 ? item.label : ''}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
