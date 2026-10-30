@@ -477,6 +477,43 @@ export interface RepeatGuardReport {
   }[]
 }
 
+// Bosh sahifa: guruhlardagi e'lonlar va bot foydalanuvchilari (taxiline-bot/app/services/ads_stats.py).
+export interface AdsStatsReport {
+  days: number
+  from: string
+  totals: {
+    ads: number
+    driver: number
+    passenger: number
+    unknown: number
+    withPhoto: number
+    authors: number
+    calls: number
+    blocked: number
+    activeGroups: number
+  }
+  previous: { ads: number; calls: number }
+  series: { date: string; driver: number; passenger: number; calls: number }[]
+  hours: number[]
+  groups: { chatId: string; title: string | null; kind: string | null; ads: number; driver: number; passenger: number; calls: number }[]
+  groupsTotal: number
+  topAuthors: { telegramId: string; name: string; username: string | null; ads: number; role: string | null }[]
+  routed: Record<string, number>
+  botUsers: {
+    total: number
+    drivers: number
+    clients: number
+    blocked: number
+    new: number
+    active: number
+    series: { date: string; count: number }[]
+  }
+}
+
+export async function getAdsStats(days: number): Promise<AdsStatsReport> {
+  return botFetch<AdsStatsReport>(`/webapp/admin/ads-stats?days=${days}`, GROUP_TIMEOUT)
+}
+
 export async function getRepeatGuardReport(days: number): Promise<RepeatGuardReport> {
   return botFetch<RepeatGuardReport>(`/webapp/admin/repeat-guard?days=${days}`, GROUP_TIMEOUT)
 }

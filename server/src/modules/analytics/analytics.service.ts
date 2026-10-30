@@ -46,6 +46,10 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
     seriesPayments,
     recentBookings,
     recentApplications,
+    usersNew,
+    usersActive,
+    sourceGroups,
+    seriesUsers,
   ] = await Promise.all([
     prisma.booking.count({ where: { createdAt } }),
     prisma.booking.count({ where: { createdAt, status: 'COMPLETED' } }),
@@ -90,7 +94,17 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
       take: 5,
       include: { user: { select: { id: true, name: true, phone: true } } },
     }),
+    prisma.user.count({ where: { createdAt, deletedAt: null } }),
+    prisma.user.count({ where: { lastSeenAt: { gte: from, lte: to }, deletedAt: null } }),
+    prisma.user.groupBy({ by: ['signupSource'], where: { deletedAt: null }, _count: { _all: true } }),
+    prisma.user.findMany({
+      where: { createdAt: { gte: seriesFrom, lte: to } },
+      select: { createdAt: true },
+    }),
   ])
+
+  const usersBySource: Record<string, number> = { WEBAPP: 0, BOT: 0, GROUP: 0 }
+  for (const row of sourceGroups) usersBySource[row.signupSource] = row._count._all
 
   const bookingsByStatus: Record<string, number> = {
     PENDING: 0,
@@ -111,7 +125,7 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
     .slice(0, 5)
     .map(([route, count]) => ({ route, count }))
 
-  const series: { date: string; bookings: number; completed: number; revenue: number }[] = []
+  const series: { date: string; bookings: number; completed: number; revenue: number; newUsers: number }[] = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(seriesFrom)
     d.setDate(seriesFrom.getDate() + i)
@@ -125,6 +139,7 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
       bookings: dayBookings.length,
       completed: dayBookings.filter((b) => b.status === 'COMPLETED').length,
       revenue: dayRev,
+      newUsers: seriesUsers.filter((u) => dayKey(u.createdAt) === key).length,
     })
   }
 
@@ -138,6 +153,9 @@ export async function getSummary(range: { from?: Date; to?: Date }) {
     driversCount,
     pendingApplications,
     telegramLinkedCount,
+    usersNew,
+    usersActive,
+    usersBySource,
     bookingsByStatus,
     series,
     topRoutes,

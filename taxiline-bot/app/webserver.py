@@ -28,6 +28,7 @@ from app.db.models import BotUser, DriverProfile, Group, GroupAd, Order, OrderDi
 from app.handlers.admin.groups import SETTING_LABELS
 from app.i18n.translations import t
 from app.kirish.handlers import push_code as kirish_push
+from app.services import ads_stats as ads_stats_service
 from app.services import bot_config
 from app.services import calls as calls_service
 from app.services import cargo as cargo_service
@@ -1509,6 +1510,19 @@ async def admin_repeat_guard_unmute(request: web.Request) -> web.Response:
         except TelegramAPIError as exc:
             return web.json_response({"error": f"Telegram cheklovni olib bo‘lmadi: {exc.message}"}, status=400)
     return web.json_response({"ok": True})
+
+
+@routes.get("/webapp/admin/ads-stats")
+async def admin_ads_stats(request: web.Request) -> web.Response:
+    if not _authorized(request):
+        return web.json_response({"error": "unauthorized"}, status=401)
+    try:
+        days = min(max(int(request.query.get("days", "1")), 1), 90)
+    except ValueError:
+        days = 1
+    async with session_scope() as session:
+        report = await ads_stats_service.report(session, days)
+    return web.json_response(report)
 
 
 @routes.get("/webapp/admin/group-ads")

@@ -14,6 +14,7 @@ import {
   updateGroupAdSchema,
   updateGroupSchema,
   repeatGuardQuerySchema,
+  adsStatsQuerySchema,
   repeatGuardUnmuteSchema,
 } from './adminBotGroups.schema.js'
 
@@ -29,6 +30,13 @@ adminBotSettingsRouter.patch(
   requireRole('ADMIN'),
   validate({ body: updateBotSettingsSchema }),
   asyncRoute(controller.updateBotSettings),
+)
+adminBotSettingsRouter.get(
+  '/ads-stats',
+  requireAuth,
+  requireRole('ADMIN'),
+  validate({ query: adsStatsQuerySchema }),
+  asyncRoute(controller.adsStats),
 )
 adminBotSettingsRouter.get(
   '/repeat-guard',

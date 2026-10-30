@@ -44,6 +44,11 @@ export async function deleteGroup(req: Request, res: Response) {
   res.json(result)
 }
 
+export async function adsStats(req: Request, res: Response) {
+  const { days } = req.query as unknown as { days: number }
+  res.json(await botBridge.getAdsStats(days))
+}
+
 export async function repeatGuardReport(req: Request, res: Response) {
   const { days } = req.query as unknown as { days: number }
   res.json(await botBridge.getRepeatGuardReport(days))

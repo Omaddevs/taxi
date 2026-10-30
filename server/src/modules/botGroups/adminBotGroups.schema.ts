@@ -59,6 +59,10 @@ export const repeatGuardQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(14).default(1),
 })
 
+export const adsStatsQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(90).default(1),
+})
+
 export const repeatGuardUnmuteSchema = z.object({
   chatId: z.number().int(),
   telegramId: z.number().int().positive(),
