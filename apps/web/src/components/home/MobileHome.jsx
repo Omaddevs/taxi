@@ -32,7 +32,8 @@ function TileBadge({ tone = 'soon', children }) {
 }
 
 // `soon` — xizmat hali ishga tushmagan: bosilmaydi va "Tez orada" yorlig‘i chiqadi.
-function Tile({ to, title, hint, badge, badgeTone, soon = false, className = '', children }) {
+// `badgeInline` — yorliq sarlavha yonida turadi (pastki qismni rasm to‘liq egallaganda).
+function Tile({ to, title, hint, badge, badgeTone, badgeInline = false, soon = false, className = '', children }) {
   const Root = soon ? 'div' : Link
   return (
     <Root
@@ -42,11 +43,14 @@ function Tile({ to, title, hint, badge, badgeTone, soon = false, className = '',
       } ${className}`}
     >
       <div className="relative z-10">
-        <p className="text-[15px] font-bold leading-tight text-ink">{t(title)}</p>
+        <p className="flex items-center justify-between gap-1 text-[15px] font-bold leading-tight text-ink">
+          {t(title)}
+          {badgeInline && badge ? <TileBadge tone={badgeTone}>{badge}</TileBadge> : null}
+        </p>
         <p className="mt-0.5 text-[12px] text-muted">{t(hint)}</p>
       </div>
       {children}
-      {soon || badge ? (
+      {soon || (badge && !badgeInline) ? (
         <div className="relative z-10">
           <TileBadge tone={soon ? 'soon' : badgeTone}>{soon ? t('Tez orada') : badge}</TileBadge>
         </div>
@@ -142,11 +146,12 @@ export function MobileHome() {
       </header>
 
       <section className="grid grid-cols-3 gap-2.5 px-3">
-        <Tile to="/taxi" title={t('Taxi')} hint={t('Shahar va viloyat')} badge={t('Tez')} badgeTone="hot">
+        <Tile to="/taxi" title={t('Taxi')} hint={t('Shahar va viloyat')} badge={t('Tez')} badgeTone="hot" badgeInline>
+          {/* Yandex Go uslubida: mashinaning orqa yarmi kartani to‘ldiradi, old qismi o‘ng chetdan chiqib ketadi. */}
           <img
-            src="/landing/taxi-car-sm.webp"
+            src="/home/taxi-rear.webp"
             alt=""
-            className="pointer-events-none absolute -right-10 bottom-9 w-[150px] max-w-none drop-shadow-lg"
+            className="pointer-events-none absolute -bottom-2.5 -left-1 w-[200px] max-w-none drop-shadow-[0_10px_12px_rgba(15,29,42,0.18)]"
           />
         </Tile>
         <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')}>
