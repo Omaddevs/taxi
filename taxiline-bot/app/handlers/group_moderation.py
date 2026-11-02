@@ -11,8 +11,8 @@ router = Router(name="group_moderation")
 # Yangi xabarlar GroupGuardMiddleware'da tekshiriladi. Bu yerda — tahrirlangan xabar: oddiy matn
 # yozib, keyin unga havola qo'shib qo'yish yo'lini yopadi.
 @router.edited_message(F.chat.type.in_({"group", "supergroup"}))
-async def moderate_edited(message: Message, session) -> None:
-    if message.from_user is None:
+async def moderate_edited(message: Message, session, bot_user) -> None:
+    if message.from_user is None or (bot_user is not None and bot_user.is_admin):
         return
     group = await groups_service.get_by_chat_id(session, message.chat.id)
     if group is None or not groups_service.setting(group.settings, "strict_moderation"):

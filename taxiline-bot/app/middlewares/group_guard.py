@@ -72,7 +72,13 @@ class GroupGuardMiddleware(BaseMiddleware):
                 return None
             return await handler(event, data)
 
-        if groups_service.setting(group.settings, "strict_moderation") and await moderation_service.enforce(bot, event):
+        # TaxiLine adminlari (botdagi admin) guruhda admin bo'lmasa ham taqiqdan ozod.
+        bot_user = data.get("bot_user")
+        if (
+            not (bot_user is not None and bot_user.is_admin)
+            and groups_service.setting(group.settings, "strict_moderation")
+            and await moderation_service.enforce(bot, event)
+        ):
             return None
 
         if group.settings.get("require_invites") and not await groups_service.has_met_invite_requirement(
