@@ -172,19 +172,18 @@ export function MobileHome() {
 
         <Tile
           to="/women/taxi"
-          title={t('Ayollar uchun Taxi')}
+          title={t('Oilaviy Taxi')}
           hint={t('Avval ayol haydovchilarga')}
           badge={t('Xavfsiz')}
           badgeTone="hot"
           badgeInline
           className="col-span-2 min-h-[166px] bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
         >
-          {/* Taxi kartasidagidek: pushti mashinaning orqasi chapda karta ichida, old qismi o‘ng chetda
-              kesiladi (keng ekranda mashina to‘liq ko‘rinadi). Karta biroz balandroq — tomdagi belgi yozuvga tegmaydi. */}
+          {/* Pushti taksi va oila — odamlar karta pastidan chiqib turadi, shuning uchun rasm pastki chetga tegadi. */}
           <img
-            src="/home/taxi-women.webp"
+            src="/home/taxi-family.webp"
             alt=""
-            className="pointer-events-none absolute bottom-2 left-1.5 h-[86px] w-auto max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.16)]"
+            className="pointer-events-none absolute bottom-0 right-2 h-[102px] w-auto max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.14)]"
           />
         </Tile>
         <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] dark:from-[#3a3218] to-[#ffe7a3] dark:to-[#2b2410]">
