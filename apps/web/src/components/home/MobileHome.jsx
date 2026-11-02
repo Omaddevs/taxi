@@ -178,11 +178,11 @@ export function MobileHome() {
           badgeTone="hot"
           className="col-span-2 bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
         >
+          {/* Taxi kartasidagi mashina — ayollar uchun pushti rangda; old qismi o‘ng chetda biroz kesiladi. */}
           <img
-            src="/landing/taxi-car-sm.webp"
+            src="/home/taxi-women.webp"
             alt=""
-            className="pointer-events-none absolute -right-8 bottom-1 w-[210px] max-w-none drop-shadow-lg"
-            style={{ filter: 'hue-rotate(150deg) saturate(1.2)' }}
+            className="pointer-events-none absolute -right-3 bottom-2 w-[184px] max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.16)]"
           />
         </Tile>
         <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] dark:from-[#3a3218] to-[#ffe7a3] dark:to-[#2b2410]">
