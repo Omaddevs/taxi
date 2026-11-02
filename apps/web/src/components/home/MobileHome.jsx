@@ -176,13 +176,15 @@ export function MobileHome() {
           hint={t('Avval ayol haydovchilarga')}
           badge={t('Xavfsiz')}
           badgeTone="hot"
-          className="col-span-2 bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
+          badgeInline
+          className="col-span-2 min-h-[166px] bg-gradient-to-br from-[#fff0f5] dark:from-[#3a1d2b] to-[#fde2ec] dark:to-[#2b1520]"
         >
-          {/* Taxi kartasidagi mashina — ayollar uchun pushti rangda; old qismi o‘ng chetda biroz kesiladi. */}
+          {/* Taxi kartasidagidek: pushti mashinaning orqasi chapda karta ichida, old qismi o‘ng chetda
+              kesiladi (keng ekranda mashina to‘liq ko‘rinadi). Karta biroz balandroq — tomdagi belgi yozuvga tegmaydi. */}
           <img
             src="/home/taxi-women.webp"
             alt=""
-            className="pointer-events-none absolute -right-3 bottom-2 w-[184px] max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.16)]"
+            className="pointer-events-none absolute bottom-2 left-1.5 h-[86px] w-auto max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.16)]"
           />
         </Tile>
         <Tile to="/drivers" title={t('Haydovchilar')} hint={t('E’lonlar va aloqa')} badge={t('Yangi')} badgeTone="hot" className="bg-gradient-to-br from-[#fff6d6] dark:from-[#3a3218] to-[#ffe7a3] dark:to-[#2b2410]">
