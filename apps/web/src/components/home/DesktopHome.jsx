@@ -18,6 +18,7 @@ import { DEFAULT_LOCATION } from '../../lib/geocode'
 import { formatPlace, isRegionActive, matchRegion } from '../../data/uzbekistan'
 import { RegionPicker } from '../ui/SearchPickers'
 import { SERVICES } from '../../data/services'
+import { showToast } from '../ui/Feedback'
 import { t } from '../../i18n'
 
 // Laptop/desktop version of MobileHome — the same visual language (soft canvas tiles with 3D
@@ -278,27 +279,37 @@ export function DesktopHome() {
           </div>
         </div>
         <div className="grid grid-cols-6 gap-3 xl:grid-cols-8">
-          {SERVICES.map(({ to, label, img, badge, wide }) => (
-            <Link
-              key={to}
-              to={to}
+          {SERVICES.map(({ to, label, img, badge, wide, soon, bleed }) => {
+            const Item = to ? Link : 'button'
+            const action = to ? { to } : { type: 'button', onClick: () => showToast(t(soon)) }
+            return (
+            <Item
+              key={label}
+              {...action}
               className="group relative flex flex-col items-center gap-2 rounded-[22px] bg-canvas px-2 pb-3 pt-4 transition hover:-translate-y-0.5 hover:bg-brand-soft/60"
             >
               {badge ? (
-                <span className="absolute -top-2 rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">{t(badge)}</span>
+                <span className="absolute -top-2 z-10 whitespace-nowrap rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">{t(badge)}</span>
               ) : null}
-              <span className="flex h-16 w-16 items-center justify-center">
-                <img
-                  src={img}
-                  alt=""
-                  className={`pointer-events-none max-w-none object-contain drop-shadow-md transition-transform group-hover:scale-110 ${
-                    wide ? 'w-[72px]' : 'h-14 w-14'
-                  }`}
-                />
-              </span>
+              {bleed ? (
+                <span className="relative h-16 w-16 overflow-hidden rounded-2xl">
+                  <img src={img} alt="" className="pointer-events-none absolute -bottom-1 right-1 h-[46px] w-auto max-w-none drop-shadow-sm transition-transform group-hover:translate-x-0.5" />
+                </span>
+              ) : (
+                <span className="flex h-16 w-16 items-center justify-center">
+                  <img
+                    src={img}
+                    alt=""
+                    className={`pointer-events-none max-w-none object-contain drop-shadow-md transition-transform group-hover:scale-110 ${
+                      wide ? 'w-[72px]' : 'h-14 w-14'
+                    }`}
+                  />
+                </span>
+              )}
               <span className="w-full truncate text-center text-[13px] font-semibold text-ink">{t(label)}</span>
-            </Link>
-          ))}
+            </Item>
+            )
+          })}
         </div>
       </section>
 

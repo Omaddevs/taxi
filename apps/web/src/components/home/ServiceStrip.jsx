@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SERVICES } from '../../data/services'
+import { showToast } from '../ui/Feedback'
 import { t } from '../../i18n'
 
 // Yandex Go uslubidagi gorizontal xizmatlar qatori.
@@ -26,29 +27,39 @@ export function ServiceStrip() {
         onScroll={onScroll}
         className="no-scrollbar flex snap-x snap-mandatory gap-1 overflow-x-auto px-3 pt-3"
       >
-        {SERVICES.map(({ to, label, img, badge, wide }) => (
-          <Link
-            key={to}
-            to={to}
+        {SERVICES.map(({ to, label, img, badge, wide, soon, bleed }) => {
+          const Item = to ? Link : 'button'
+          const action = to ? { to } : { type: 'button', onClick: () => showToast(t(soon)) }
+          return (
+          <Item
+            key={label}
+            {...action}
             className="flex w-[84px] shrink-0 snap-start flex-col items-center gap-1.5 active:scale-95 transition-transform"
           >
             <span className="relative flex h-[68px] w-[68px] items-center justify-center rounded-[20px] bg-canvas">
-              <img
-                src={img}
-                alt=""
-                className={`pointer-events-none max-w-none object-contain drop-shadow-md ${
-                  wide ? 'w-[76px]' : 'h-[54px] w-[54px]'
-                }`}
-              />
+              {bleed ? (
+                <span className="absolute inset-0 overflow-hidden rounded-[20px]">
+                  <img src={img} alt="" className="pointer-events-none absolute -bottom-1 right-1 h-[48px] w-auto max-w-none drop-shadow-sm" />
+                </span>
+              ) : (
+                <img
+                  src={img}
+                  alt=""
+                  className={`pointer-events-none max-w-none object-contain drop-shadow-md ${
+                    wide ? 'w-[76px]' : 'h-[54px] w-[54px]'
+                  }`}
+                />
+              )}
               {badge ? (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#ff5a1f] px-2 py-0.5 text-[10.5px] font-bold text-white shadow-sm">
                   {t(badge)}
                 </span>
               ) : null}
             </span>
             <span className="w-full truncate text-center text-[13px] font-medium text-ink">{t(label)}</span>
-          </Link>
-        ))}
+          </Item>
+          )
+        })}
       </div>
 
       {pages > 1 ? (
