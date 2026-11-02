@@ -293,7 +293,7 @@ export function DesktopHome() {
               ) : null}
               {bleed ? (
                 <span className="relative h-16 w-16 overflow-hidden rounded-2xl">
-                  <img src={img} alt="" className="pointer-events-none absolute -bottom-1 right-1 h-[46px] w-auto max-w-none drop-shadow-sm transition-transform group-hover:translate-x-0.5" />
+                  <img src={img} alt="" className="pointer-events-none absolute bottom-2 right-1 h-[40px] w-auto max-w-none drop-shadow-sm transition-transform group-hover:translate-x-0.5" />
                 </span>
               ) : (
                 <span className="flex h-16 w-16 items-center justify-center">

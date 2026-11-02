@@ -1,6 +1,6 @@
 // Home-screen services (mobile strip and desktop grid).
 // An item without `to` is not live yet: it carries a "Tez orada" badge and a tap shows `soon` as a toast.
-// `bleed` art fills the tile and is clipped by its edge (the vehicle drives in from the left).
+// `bleed` art sits low in the tile and is clipped by its left edge (the vehicle drives in from the left).
 export const SERVICES = [
   { to: '/cargo', label: 'Yetkazish', img: '/home/cargo-truck.webp', bleed: true },
   { to: '/promo', label: 'Promo kodlar', img: '/home/promo.webp' },

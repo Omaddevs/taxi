@@ -39,7 +39,7 @@ export function ServiceStrip() {
             <span className="relative flex h-[68px] w-[68px] items-center justify-center rounded-[20px] bg-canvas">
               {bleed ? (
                 <span className="absolute inset-0 overflow-hidden rounded-[20px]">
-                  <img src={img} alt="" className="pointer-events-none absolute -bottom-1 right-1 h-[48px] w-auto max-w-none drop-shadow-sm" />
+                  <img src={img} alt="" className="pointer-events-none absolute bottom-2 right-1 h-[42px] w-auto max-w-none drop-shadow-sm" />
                 </span>
               ) : (
                 <img

@@ -33,13 +33,12 @@ function TileBadge({ tone = 'soon', children }) {
 
 // `soon` — xizmat hali ishga tushmagan: bosilmaydi va "Tez orada" yorlig‘i chiqadi.
 // `badgeInline` — yorliq sarlavha yonida turadi (pastki qismni rasm to‘liq egallaganda).
-// `overflow` — rasm karta chetidan chiqishi mumkin (kesishni rasmning o‘zi boshqaradi).
-function Tile({ to, title, hint, badge, badgeTone, badgeInline = false, overflow = false, soon = false, className = '', children }) {
+function Tile({ to, title, hint, badge, badgeTone, badgeInline = false, soon = false, className = '', children }) {
   const Root = soon ? 'div' : Link
   return (
     <Root
       {...(soon ? { 'aria-disabled': true } : { to })}
-      className={`relative flex min-h-[148px] flex-col justify-between rounded-[22px] ${overflow ? '' : 'overflow-hidden'} bg-canvas p-3 ${
+      className={`relative flex min-h-[148px] flex-col justify-between overflow-hidden rounded-[22px] bg-canvas p-3 ${
         soon ? 'cursor-default' : 'active:scale-[0.98] transition-transform'
       } ${className}`}
     >
@@ -147,16 +146,14 @@ export function MobileHome() {
       </header>
 
       <section className="grid grid-cols-3 gap-2.5 px-3">
-        <Tile to="/taxi" title={t('Taxi')} hint={t('Shahar va viloyat')} badge={t('Tez')} badgeTone="hot" badgeInline overflow>
-          {/* Yandex Go uslubida: mashinaning orqasi kartadan biroz chiqib turadi, old qismi o‘ng chetda,
-              g‘ildirak to‘liq ko‘rinadi. Chap tomonda kesish yo‘q — o‘ram kartadan 10px chapga chiqadi. */}
-          <span className="pointer-events-none absolute -left-2.5 bottom-0 right-0 top-0 overflow-hidden rounded-br-[22px]">
-            <img
-              src="/home/taxi-rear.webp"
-              alt=""
-              className="absolute bottom-1 left-0 w-[172px] max-w-none drop-shadow-[0_10px_12px_rgba(15,29,42,0.18)]"
-            />
-          </span>
+        <Tile to="/taxi" title={t('Taxi')} hint={t('Shahar va viloyat')} badge={t('Tez')} badgeTone="hot" badgeInline>
+          {/* Yandex Go uslubida: mashinaning orqa yarmi karta ichida, old qismi o‘ng chetda kesiladi.
+              Pastki va chap chetdan joy qoldirilgan — kartaning yumaloq burchaklari ko‘rinib turadi. */}
+          <img
+            src="/home/taxi-rear.webp"
+            alt=""
+            className="pointer-events-none absolute bottom-2 left-1.5 w-[168px] max-w-none drop-shadow-[0_8px_10px_rgba(15,29,42,0.16)]"
+          />
         </Tile>
         <Tile to="/cargo" title={t('Yetkazish')} hint={t('Posilka, hujjat')}>
           <img
