@@ -14,6 +14,7 @@ import { useScrollUnlockOnNavigate } from './lib/scrollLock'
 import Landing from './pages/Landing'
 import News from './pages/News'
 import NewsDetail from './pages/NewsDetail'
+import InstagramLinks from './pages/InstagramLinks'
 import { BusinessPage, DriverPage, FaqPage, PrivacyPage, PromosPage, TermsPage } from './pages/PublicPages'
 import { ContactPage, TeamPage } from './pages/CompanyPages'
 import Home from './pages/Home'
@@ -98,7 +99,7 @@ function DriverShell() {
 
 // Public pages (landing, news, SEO pages, sign-in) are always light; the chosen theme applies
 // inside the app only.
-const LIGHT_ONLY = ['/welcome', '/news', '/haydovchi-bolish', '/aksiyalar', '/biznes', '/jamoa', '/aloqa', '/savollar', '/privacy', '/terms', '/login', '/register', '/google']
+const LIGHT_ONLY = ['/welcome', '/news', '/haydovchi-bolish', '/aksiyalar', '/biznes', '/jamoa', '/aloqa', '/savollar', '/privacy', '/terms', '/instagram-links', '/login', '/register', '/google']
 const isLightOnly = (pathname) => LIGHT_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
 export default function App() {
@@ -116,6 +117,7 @@ export default function App() {
       <Route path="/welcome" element={<WelcomeRedirect />} />
       <Route path="/news" element={<News />} />
       <Route path="/news/:slug" element={<NewsDetail />} />
+      <Route path="/instagram-links" element={<InstagramLinks />} />
       {/* Ommaviy SEO sahifalar — ro‘yxat: src/seo/pages.js */}
       <Route path="/haydovchi-bolish" element={<DriverPage />} />
       <Route path="/aksiyalar" element={<PromosPage />} />

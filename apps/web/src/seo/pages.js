@@ -71,6 +71,13 @@ export const SEO_PAGES = {
     h1: 'Yangiliklar',
     label: 'Yangiliklar',
   },
+  '/instagram-links': {
+    title: 'TaxiLine havolalari — sayt, Telegram bot, kanal va guruhlar',
+    description:
+      'TaxiLine’ning barcha havolalari bir joyda: taxiline.uz sayti, @taxiline_rasmiy_bot, rasmiy Telegram kanal va shaharlar aro yo‘nalish guruhlari.',
+    h1: 'TaxiLine havolalari',
+    label: 'Havolalar',
+  },
   '/login': {
     title: 'Kirish — TaxiLine',
     description: 'TaxiLine hisobingizga telefon raqamingiz orqali kiring va safar, yuk yoki pochta buyurtma qiling.',

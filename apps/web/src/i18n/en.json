@@ -2299,5 +2299,17 @@
   "Yordamchi chat": "Help chat",
   "Chat bot savollaringizga kecha-kunduz javob beradi": "Our chat bot answers your questions around the clock",
   "Chatni ochish": "Open chat",
-  "Savollaringizga darhol javob": "Instant answers to your questions"
+  "Savollaringizga darhol javob": "Instant answers to your questions",
+  "Yo‘nalish guruhi": "Route groups",
+  "Yo‘lga ishonch bilan.": "Travel with confidence.",
+  "Manzilga o‘z vaqtida.": "Arrive on time.",
+  "O‘zbekiston bo‘ylab shaharlar aro taksi, yuk va pochta xizmati": "Intercity taxi, cargo and parcel delivery across Uzbekistan",
+  "Rasmiy sayt — buyurtma bering": "Official website — place an order",
+  "{0} ta yo‘nalish": "{0} routes",
+  "Safarga tayyormisiz?": "Ready to travel?",
+  "Bir necha daqiqada joy band qiling": "Book a seat in a few minutes",
+  "TaxiLine havolalari — sayt, Telegram bot, kanal va guruhlar": "TaxiLine links — website, Telegram bot, channel and groups",
+  "TaxiLine’ning barcha havolalari bir joyda: taxiline.uz sayti, @taxiline_rasmiy_bot, rasmiy Telegram kanal va shaharlar aro yo‘nalish guruhlari.": "All TaxiLine links in one place: the taxiline.uz website, @taxiline_rasmiy_bot, the official Telegram channel and intercity route groups.",
+  "TaxiLine havolalari": "TaxiLine links",
+  "Havolalar": "Links"
 }

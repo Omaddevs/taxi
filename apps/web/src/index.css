@@ -791,6 +791,18 @@ html.dark .news-article blockquote {
   from { transform: translateX(-24px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+/* /instagram-links: bloklar pastdan ko‘tariladi, logo atrofidagi belgilar sekin suzadi. */
+@keyframes links-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes links-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+.links-rise { animation: links-rise 0.55s cubic-bezier(0.22, 0.8, 0.3, 1) both; }
+.links-float { animation: links-float 4s ease-in-out infinite; }
+.links-float-alt { animation: links-float 4.6s ease-in-out 0.8s infinite; }
 @media (prefers-reduced-motion: reduce) {
   .motion-safe-anim { animation: none !important; }
 }
