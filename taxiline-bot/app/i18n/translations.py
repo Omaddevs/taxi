@@ -901,6 +901,100 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     # ── Ayollar uchun taxi (women-only orders) + passenger/driver gender ───────────────────
     "menu_women_trip": {"uz": "🌸 Ayollar uchun taxi", "ru": "🌸 Такси для женщин", "en": "🌸 Women's taxi"},
+    "menu_parcel": {"uz": "📦 Pochta jo'natish", "ru": "📦 Отправить посылку", "en": "📦 Send a parcel"},
+    # "📦 Pochta jo'natish" (handlers/parcel_flow.py)
+    "parcel_intro": {
+        "uz": "📦 Pochta jo'natish\n\nPosilka, hujjat yoki buyumingizni shaharlararo haydovchilar olib boradi. Bir necha savolga javob bering.",
+        "ru": "📦 Отправка посылки\n\nПосылку, документы или вещи доставят междугородние водители. Ответьте на несколько вопросов.",
+        "en": "📦 Send a parcel\n\nIntercity drivers will carry your parcel, documents or items. Answer a few questions.",
+    },
+    "parcel_no_phone": {
+        "uz": "Pochta jo'natish uchun telefon raqamingiz kerak — /start bosib ro'yxatdan o'ting.",
+        "ru": "Для отправки посылки нужен ваш номер телефона — нажмите /start и зарегистрируйтесь.",
+        "en": "Sending a parcel needs your phone number — tap /start to register.",
+    },
+    "parcel_ask_from_region": {"uz": "📍 Pochta qaysi viloyatdan jo'natiladi?", "ru": "📍 Из какой области отправляется посылка?", "en": "📍 Which region is the parcel sent from?"},
+    "parcel_ask_from_district": {"uz": "📍 {region}: tuman yoki shaharni tanlang.", "ru": "📍 {region}: выберите район или город.", "en": "📍 {region}: choose the district or city."},
+    "parcel_ask_to_region": {"uz": "🏁 Pochta qaysi viloyatga yetkaziladi?", "ru": "🏁 В какую область доставить посылку?", "en": "🏁 Which region should it be delivered to?"},
+    "parcel_ask_to_district": {"uz": "🏁 {region}: tuman yoki shaharni tanlang.", "ru": "🏁 {region}: выберите район или город.", "en": "🏁 {region}: choose the district or city."},
+    "parcel_ask_type": {"uz": "🏷 Nima jo'natyapsiz?", "ru": "🏷 Что вы отправляете?", "en": "🏷 What are you sending?"},
+    "parcel_ask_weight": {"uz": "⚖️ Taxminiy og'irligi qancha?", "ru": "⚖️ Примерный вес?", "en": "⚖️ Approximate weight?"},
+    "parcel_ask_recipient_name": {"uz": "👤 Qabul qiluvchining ismini yozing.", "ru": "👤 Напишите имя получателя.", "en": "👤 Type the recipient's name."},
+    "parcel_invalid_name": {"uz": "Ism 2–80 belgidan iborat bo'lsin.", "ru": "Имя должно быть от 2 до 80 символов.", "en": "The name must be 2–80 characters."},
+    "parcel_ask_recipient_phone": {
+        "uz": "📞 Qabul qiluvchining telefon raqami (masalan: +998901234567).",
+        "ru": "📞 Номер телефона получателя (например: +998901234567).",
+        "en": "📞 Recipient's phone number (e.g. +998901234567).",
+    },
+    "parcel_ask_note": {
+        "uz": "📝 Haydovchi uchun izoh (manzil, mo'ljal, mo'rt narsa va h.k.) yozing yoki o'tkazib yuboring.",
+        "ru": "📝 Комментарий для водителя (адрес, ориентир, хрупкое и т.п.) или пропустите.",
+        "en": "📝 A note for the driver (address, landmark, fragile, etc.) or skip.",
+    },
+    "parcel_skip_btn": {"uz": "⏭ O'tkazib yuborish", "ru": "⏭ Пропустить", "en": "⏭ Skip"},
+    "parcel_ask_price": {
+        "uz": "💵 Yetkazish narxini tanlang. Tavsiya etilgan narx: {price}",
+        "ru": "💵 Выберите цену доставки. Рекомендуемая цена: {price}",
+        "en": "💵 Choose the delivery price. Suggested: {price}",
+    },
+    "parcel_price_other_btn": {"uz": "✏️ Boshqa narx", "ru": "✏️ Другая цена", "en": "✏️ Other price"},
+    "parcel_ask_price_text": {"uz": "💵 Narxni so'mda yozing (masalan: 70000).", "ru": "💵 Напишите цену в сумах (например: 70000).", "en": "💵 Type the price in so'm (e.g. 70000)."},
+    "parcel_invalid_price": {
+        "uz": "Narx 5 000 dan 5 000 000 so'mgacha bo'lsin. Faqat raqam yozing.",
+        "ru": "Цена должна быть от 5 000 до 5 000 000 сумов. Только цифры.",
+        "en": "The price must be 5,000–5,000,000 so'm. Digits only.",
+    },
+    "parcel_summary": {
+        "uz": (
+            "📦 <b>Pochta</b> — tekshiring:\n\n"
+            "🟢 <b>Qayerdan:</b> {from_label}\n🔴 <b>Qayerga:</b> {to_label}\n"
+            "🏷 {type_label} · {weight}\n"
+            "📤 <b>Jo'natuvchi:</b> {sender_name} — {sender_phone}\n"
+            "📥 <b>Qabul qiluvchi:</b> {recipient_name} — {recipient_phone}\n"
+            "{note_line}\n💵 <b>{price}</b>\n\n"
+            "Telefon raqamlarini faqat pochtani olgan haydovchi ko'radi."
+        ),
+        "ru": (
+            "📦 <b>Посылка</b> — проверьте:\n\n"
+            "🟢 <b>Откуда:</b> {from_label}\n🔴 <b>Куда:</b> {to_label}\n"
+            "🏷 {type_label} · {weight}\n"
+            "📤 <b>Отправитель:</b> {sender_name} — {sender_phone}\n"
+            "📥 <b>Получатель:</b> {recipient_name} — {recipient_phone}\n"
+            "{note_line}\n💵 <b>{price}</b>\n\n"
+            "Номера телефонов увидит только водитель, взявший посылку."
+        ),
+        "en": (
+            "📦 <b>Parcel</b> — please check:\n\n"
+            "🟢 <b>From:</b> {from_label}\n🔴 <b>To:</b> {to_label}\n"
+            "🏷 {type_label} · {weight}\n"
+            "📤 <b>Sender:</b> {sender_name} — {sender_phone}\n"
+            "📥 <b>Recipient:</b> {recipient_name} — {recipient_phone}\n"
+            "{note_line}\n💵 <b>{price}</b>\n\n"
+            "Only the driver who takes the parcel sees the phone numbers."
+        ),
+    },
+    "parcel_send_btn": {"uz": "✅ Haydovchilarga yuborish", "ru": "✅ Отправить водителям", "en": "✅ Send to drivers"},
+    "parcel_cancel_btn": {"uz": "❌ Bekor qilish", "ru": "❌ Отменить", "en": "❌ Cancel"},
+    "parcel_sent": {
+        "uz": "✅ Pochtangiz {route} yo'nalishidagi haydovchilarga yuborildi.\n\nHaydovchi qabul qilishi bilan uning ismi va raqamini shu yerga yuboramiz.",
+        "ru": "✅ Посылка отправлена водителям направления {route}.\n\nКак только водитель её примет, пришлём сюда его имя и номер.",
+        "en": "✅ Your parcel was sent to drivers on the {route} route.\n\nOnce a driver takes it, we'll send you their name and number here.",
+    },
+    "parcel_failed": {
+        "uz": "Pochtani yuborib bo'lmadi: {reason}\nBirozdan so'ng qayta urinib ko'ring yoki «🆘 Yordam» bo'limiga yozing.",
+        "ru": "Не удалось отправить посылку: {reason}\nПопробуйте позже или напишите в «🆘 Помощь».",
+        "en": "Couldn't send the parcel: {reason}\nTry again later or write to «🆘 Help».",
+    },
+    "parcel_failed_generic": {"uz": "server javob bermadi", "ru": "сервер не ответил", "en": "the server didn't respond"},
+    "parcel_cancelled": {"uz": "Pochta bekor qilindi.", "ru": "Отправка посылки отменена.", "en": "Parcel cancelled."},
+    "parcel_type_parcel": {"uz": "📦 Buyum", "ru": "📦 Вещь", "en": "📦 Item"},
+    "parcel_type_docs": {"uz": "📄 Hujjat", "ru": "📄 Документы", "en": "📄 Documents"},
+    "parcel_type_shopping": {"uz": "🛍 Xarid", "ru": "🛍 Покупки", "en": "🛍 Shopping"},
+    "parcel_type_flowers": {"uz": "💐 Gul", "ru": "💐 Цветы", "en": "💐 Flowers"},
+    "parcel_type_tech": {"uz": "💻 Texnika", "ru": "💻 Техника", "en": "💻 Electronics"},
+    "parcel_type_food": {"uz": "🍱 Oziq-ovqat", "ru": "🍱 Продукты", "en": "🍱 Food"},
+    "parcel_type_clothes": {"uz": "👕 Kiyim", "ru": "👕 Одежда", "en": "👕 Clothes"},
+    "parcel_type_other": {"uz": "🧳 Boshqa", "ru": "🧳 Другое", "en": "🧳 Other"},
     "women_trip_intro": {
         "uz": (
             "🌸 Ayollar uchun taxi\n\n"

@@ -129,6 +129,20 @@ class BackendClient:
             body = None
         return resp.status_code, body
 
+    async def cargo_create(self, telegram_id: int, payload: dict) -> tuple[int, dict | None]:
+        """Posts a "📦 Pochta jo'natish" order as this Telegram user's cargo order; the server
+        stores it and sends it to the route's driver group(s). Returns the HTTP status and body."""
+        try:
+            resp = await self._client.post("/bot/cargo-create", json={**payload, "telegramId": str(telegram_id)})
+        except Exception:
+            logger.exception("cargo create failed for %s", telegram_id)
+            return 503, None
+        try:
+            body = resp.json()
+        except ValueError:
+            body = None
+        return resp.status_code, body
+
     async def telegram_login_token(self, telegram_id: int) -> str | None:
         resp = await self._client.post("/bot/telegram-login-token", json={"telegramId": str(telegram_id)})
         if resp.status_code == 404:

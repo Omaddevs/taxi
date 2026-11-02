@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import * as cargoController from '../cargo/cargo.controller.js'
-import { botCargoActionSchema } from '../cargo/cargo.schema.js'
+import { botCargoActionSchema, botCreateCargoSchema } from '../cargo/cargo.schema.js'
 import { asyncRoute } from '../../middleware/asyncRoute.js'
 import { validate } from '../../middleware/validate.js'
 import { ingestGroupAdSchema } from '../groupDriverAds/groupDriverAds.schema.js'
@@ -49,6 +49,7 @@ botRouter.post('/kirish/autofill', validate({ body: kirishAutofillSchema }), asy
 botRouter.post('/kirish/phone-claim', validate({ body: kirishPhoneClaimSchema }), asyncRoute(botController.kirishPhoneClaim))
 botRouter.post('/rate', validate({ body: rateViaBotSchema }), asyncRoute(botController.rateViaBot))
 // Cargo "✅ Qabul qilish" / "✅ Yetkazildi" buttons in Telegram.
+botRouter.post('/cargo-create', validate({ body: botCreateCargoSchema }), asyncRoute(cargoController.createViaBot))
 botRouter.post('/cargo-claim', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.claimViaBot))
 botRouter.post('/cargo-complete', validate({ body: botCargoActionSchema }), asyncRoute(cargoController.completeViaBot))
 // A driver's ad from a Telegram group → admin panel "Haydovchilar e’lonlari" queue.

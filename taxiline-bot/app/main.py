@@ -8,7 +8,7 @@ from aiogram.types import BotCommand, BotCommandScopeAllChatAdministrators, Erro
 
 from app.config import settings
 from app.db.base import session_scope
-from app.handlers import cargo_claim, driver_flow, driver_menu, giveaway, group_ads, group_commands, group_moderation, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
+from app.handlers import cargo_claim, driver_flow, driver_menu, giveaway, group_ads, group_commands, group_moderation, main_menu, parcel_flow, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
 from app.handlers.admin import admins as admin_admins
 from app.handlers.admin import broadcast as admin_broadcast
 from app.handlers.admin import complaints as admin_complaints
@@ -75,6 +75,9 @@ def build_dispatcher() -> Dispatcher:
         settings_handlers.router,
         support.router,
         main_menu.router,
+        # After every menu router: a menu button tapped mid-parcel must not be taken as the
+        # recipient's name.
+        parcel_flow.router,
         admin_panel.router,
         admin_groups.router,
         admin_drivers.router,

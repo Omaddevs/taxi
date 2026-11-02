@@ -42,6 +42,11 @@ export const cancelCargoOrderSchema = z.object({
   reason: z.string().max(300).optional(),
 })
 
+// "📦 Pochta jo'natish" in the bot: the same order, posted for the Telegram user who sent it.
+export const botCreateCargoSchema = createCargoOrderSchema.extend({
+  telegramId: z.string().min(1),
+})
+
 export const botCargoActionSchema = z.object({
   cargoOrderId: z.string().min(1),
   telegramId: z.string().min(1),

@@ -46,6 +46,7 @@ def main_menu_kb(lang: str, webapp_code: str | None, is_admin: bool) -> ReplyKey
     builder = ReplyKeyboardBuilder()
     builder.button(text=t("menu_start_trip", lang))
     builder.button(text=t("menu_women_trip", lang))
+    builder.button(text=t("menu_parcel", lang))
     webapp_url = f"{settings.webapp_url}?tgc={webapp_code}" if webapp_code else settings.webapp_url
     if webapp_url.startswith("https://"):
         builder.button(text=t("menu_webapp", lang), web_app=WebAppInfo(url=webapp_url))

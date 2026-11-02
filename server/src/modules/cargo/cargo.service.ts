@@ -257,6 +257,15 @@ export async function releaseCargoOrder(userId: string, orderId: string, reason?
 // Driver (Telegram) — the bot's "Qabul qilish" / "Yetkazildi" buttons
 // ---------------------------------------------------------------------------------------------
 
+// The bot's "📦 Pochta jo'natish": the sender is the site user linked to this Telegram account
+// (the bot links it by phone first), so the order shows up on the site and goes through the same
+// driver-group dispatch, claim buttons and status messages as a website order.
+export async function createViaBot(telegramId: string, data: Parameters<typeof createCargoOrder>[1]) {
+  const user = await prisma.user.findUnique({ where: { telegramId }, select: { id: true } })
+  if (!user) throw new ForbiddenError('Avval botda ro‘yxatdan o‘ting: /start')
+  return createCargoOrder(user.id, data)
+}
+
 export async function claimViaBot(telegramId: string, orderId: string) {
   const driver = await driverByTelegram(telegramId)
   return stripTelegram(await claim(driver, orderId))

@@ -43,6 +43,12 @@ export async function releaseCargoOrder(req: Request, res: Response) {
   res.json(await cargoService.releaseCargoOrder(req.user!.id, req.params.id, req.body?.reason))
 }
 
+// Sender (the bot's "📦 Pochta jo'natish")
+export async function createViaBot(req: Request, res: Response) {
+  const { telegramId, ...data } = req.body
+  res.status(201).json(await cargoService.createViaBot(telegramId, data))
+}
+
 // Driver (Telegram buttons, via the bot)
 export async function claimViaBot(req: Request, res: Response) {
   res.json(await cargoService.claimViaBot(req.body.telegramId, req.body.cargoOrderId))
