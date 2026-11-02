@@ -9,7 +9,7 @@ import { SUPPORT_CHAT_OPEN_EVENT } from './supportChatBus'
    Javoblar saytdagi tayyor ma'lumotlardan (FAQ + bo‘limlar) kalit so‘zlar bo‘yicha topiladi;
    topilmasa — operatorga (Telegram bot) yo‘naltiradi. Server yoki AI ishlatilmaydi.
    Boshqa joydan ochish: openSupportChat() — ./supportChatBus.js. */
-const SUPPORT_BOT_URL = 'https://t.me/taxilines_bot'
+const SUPPORT_BOT_URL = 'https://t.me/taxiline_rasmiy_bot'
 const STORE_KEY = 'taxiline-support-chat'
 const HELLO = { from: 'bot', kind: 'hello' }
 

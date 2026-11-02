@@ -23,7 +23,7 @@ import { REFERRAL_ENABLED } from '../../lib/features'
 import { t } from '../../i18n'
 
 const BONUS = 20000
-const TELEGRAM_BOT_URL = `https://t.me/${import.meta.env.VITE_TELEGRAM_BOT || 'taxilines_bot'}`
+const TELEGRAM_BOT_URL = `https://t.me/${import.meta.env.VITE_TELEGRAM_BOT || 'taxiline_rasmiy_bot'}`
 const TELEGRAM_CHANNEL_URL = 'https://t.me/taxiline_uzbekistan'
 const INSTAGRAM_URL = 'https://www.instagram.com/'
 

@@ -287,7 +287,7 @@ export function TeamPage() {
 
 const CHANNELS = [
   { icon: Phone, title: 'Telefon', value: '+998 87 735 36 36', hint: 'Yordam xizmati', href: 'tel:+998877353636', action: 'Qo‘ng‘iroq qilish' },
-  { icon: Bot, title: 'Telegram bot', value: '@taxilines_bot', hint: 'Buyurtma va savollar uchun', href: 'https://t.me/taxilines_bot', action: 'Botga yozish' },
+  { icon: Bot, title: 'Telegram bot', value: '@taxiline_rasmiy_bot', hint: 'Buyurtma va savollar uchun', href: 'https://t.me/taxiline_rasmiy_bot', action: 'Botga yozish' },
   { icon: Send, title: 'Telegram kanal', value: '@taxiline_uzbekistan', hint: 'Yangiliklar va e’lonlar', href: 'https://t.me/taxiline_uzbekistan', action: 'Kanalga o‘tish' },
   { icon: InstagramIcon, title: 'Instagram', value: '@taxiline_uz', hint: 'Reels va lavhalar', href: 'https://www.instagram.com/taxiline_uz', action: 'Sahifani ochish' },
 ]

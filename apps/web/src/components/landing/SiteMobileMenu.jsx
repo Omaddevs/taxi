@@ -168,7 +168,7 @@ export function SiteMobileMenu({ buttonClassName = '' }) {
                       </span>
                     </a>
                     <a
-                      href="https://t.me/taxilines_bot"
+                      href="https://t.me/taxiline_rasmiy_bot"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex min-w-0 items-center gap-2 rounded-2xl bg-canvas px-3 py-2.5 transition hover:bg-line"
@@ -176,7 +176,7 @@ export function SiteMobileMenu({ buttonClassName = '' }) {
                       <Send className="h-4 w-4 shrink-0 text-[#2AABEE]" />
                       <span className="min-w-0">
                         <span className="block truncate text-[11px] font-semibold text-muted">Telegram</span>
-                        <span className="block truncate text-[12.5px] font-extrabold text-ink">@taxilines_bot</span>
+                        <span className="block truncate text-[12.5px] font-extrabold text-ink">@taxiline_rasmiy_bot</span>
                       </span>
                     </a>
                   </div>

@@ -317,7 +317,7 @@ async def help_view(message: Message) -> None:
     site = _site("/")
     if site:
         builder.button(text="🌐 taxiline.uz", url=site)
-    builder.button(text="🚕 Asosiy bot", url="https://t.me/taxilines_bot")
+    builder.button(text="🚕 Asosiy bot", url="https://t.me/taxiline_rasmiy_bot")
     builder.adjust(1)
     await message.answer(
         "🆘 <b>Yordam</b>\n\n"

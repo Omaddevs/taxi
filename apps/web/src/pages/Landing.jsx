@@ -431,7 +431,7 @@ function Steps() {
             <br />
             {t('va')}{' '}
             <a
-              href="https://t.me/taxilines_bot"
+              href="https://t.me/taxiline_rasmiy_bot"
               target="_blank"
               rel="noopener noreferrer"
               className="font-extrabold text-ink underline underline-offset-2"

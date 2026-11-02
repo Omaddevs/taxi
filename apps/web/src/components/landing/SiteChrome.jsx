@@ -153,7 +153,7 @@ function InstagramIcon(props) {
 
 const SOCIALS = [
   { label: 'Telegram kanal', href: 'https://t.me/taxiline_uzbekistan', icon: TelegramIcon },
-  { label: 'Telegram bot', href: 'https://t.me/taxilines_bot', icon: Bot },
+  { label: 'Telegram bot', href: 'https://t.me/taxiline_rasmiy_bot', icon: Bot },
   { label: 'Instagram', href: 'https://www.instagram.com/taxiline_uz', icon: InstagramIcon },
 ]
 

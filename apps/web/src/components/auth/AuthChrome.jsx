@@ -8,7 +8,7 @@ import { Logo, LogoPin, Wordmark } from '../ui/Logo'
 import { LanguageChip } from '../ui/LanguagePicker'
 import { t } from '../../i18n'
 
-export const TELEGRAM_BOT = import.meta.env.VITE_TELEGRAM_BOT || 'taxilines_bot'
+export const TELEGRAM_BOT = import.meta.env.VITE_TELEGRAM_BOT || 'taxiline_rasmiy_bot'
 // Sign-in / registration codes come from this bot (not the main one).
 export const KIRISH_BOT = import.meta.env.VITE_KIRISH_BOT || 'taxiline_kirish_bot'
 

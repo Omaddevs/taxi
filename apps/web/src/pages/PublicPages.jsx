@@ -113,7 +113,7 @@ const PRIVACY_SECTIONS = [
   {
     title: 'Biz kimmiz',
     body: [
-      'TaxiLine (taxiline.uz) — O‘zbekiston bo‘ylab shaharlar aro taksi, yuk va pochta yetkazish xizmatlarini birlashtiruvchi platforma. Ushbu siyosat sayt, veb-ilova va TaxiLine Telegram botlari (@taxilines_bot, @taxiline_kirish_bot) uchun amal qiladi.',
+      'TaxiLine (taxiline.uz) — O‘zbekiston bo‘ylab shaharlar aro taksi, yuk va pochta yetkazish xizmatlarini birlashtiruvchi platforma. Ushbu siyosat sayt, veb-ilova va TaxiLine Telegram botlari (@taxiline_rasmiy_bot, @taxiline_kirish_bot) uchun amal qiladi.',
     ],
   },
   {
@@ -274,8 +274,8 @@ function LegalPage({ path, sections }) {
               +998 87 735 36 36
             </a>
             {t(', Telegram')}{' '}
-            <a href="https://t.me/taxilines_bot" target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline decoration-brand underline-offset-4">
-              @taxilines_bot
+            <a href="https://t.me/taxiline_rasmiy_bot" target="_blank" rel="noopener noreferrer" className="font-semibold text-ink underline decoration-brand underline-offset-4">
+              @taxiline_rasmiy_bot
             </a>
             .
           </p>

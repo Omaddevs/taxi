@@ -29,7 +29,7 @@ export const CONSENT_SECTIONS = [
   },
   {
     title: '6. Sizning huquqlaringiz',
-    text: 'Istalgan vaqtda ma’lumotlaringizni ko‘rish, tuzatish yoki o‘chirishni so‘rashingiz hamda roziligingizni bekor qilishingiz mumkin. Buning uchun +998 87 735 36 36 raqamiga yoki Telegram’dagi @taxilines_bot ga murojaat qiling.',
+    text: 'Istalgan vaqtda ma’lumotlaringizni ko‘rish, tuzatish yoki o‘chirishni so‘rashingiz hamda roziligingizni bekor qilishingiz mumkin. Buning uchun +998 87 735 36 36 raqamiga yoki Telegram’dagi @taxiline_rasmiy_bot ga murojaat qiling.',
   },
   {
     title: '7. Qo‘shimcha ma’lumot',

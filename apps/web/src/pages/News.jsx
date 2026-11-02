@@ -266,7 +266,7 @@ export default function News() {
                 </button>
               ) : null}
               <a
-                href="https://t.me/taxilines_bot"
+                href="https://t.me/taxiline_rasmiy_bot"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 text-[14px] font-bold text-ink transition hover:bg-[#00b6c2]"

@@ -11,7 +11,7 @@ export const OG_IMAGE = `${SITE_URL}/og-image.png`
 export const PHONE = '+998877353636'
 export const SOCIAL_LINKS = [
   'https://t.me/taxiline_uzbekistan',
-  'https://t.me/taxilines_bot',
+  'https://t.me/taxiline_rasmiy_bot',
   'https://www.instagram.com/taxiline_uz',
 ]
 

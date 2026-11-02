@@ -1,7 +1,7 @@
 import { ArrowUpRight, Bot, CarFront, Clock, FileText, IdCard, ScrollText } from 'lucide-react'
 import { t } from '../../i18n'
 
-const BOT_URL = 'https://t.me/taxilines_bot'
+const BOT_URL = 'https://t.me/taxiline_rasmiy_bot'
 
 // What an applicant should have at hand. Same list as the FAQ's "Haydovchi bo‘lish uchun nima
 // kerak?" answer, plus the car details the application form itself asks for.
@@ -73,7 +73,7 @@ export function DriverRequirements() {
             rel="noopener noreferrer"
             className="relative mt-6 inline-flex h-12 w-fit items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(15,29,42,0.6)] transition hover:bg-black"
           >
-            @taxilines_bot <ArrowUpRight className="h-4 w-4" />
+            @taxiline_rasmiy_bot <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
       </div>
