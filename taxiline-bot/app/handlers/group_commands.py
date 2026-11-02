@@ -34,6 +34,7 @@ KIND_LABELS = {
 REQUIRED_BOT_RIGHTS = {
     "can_delete_messages": "xabarlarni o'chirish",
     "can_invite_users": "foydalanuvchilarni taklif qilish",
+    "can_restrict_members": "a'zolarni bloklash",
 }
 
 
@@ -86,7 +87,7 @@ async def _get_or_register(session, message: Message):
 
 def _panel_text(group, rights_warning: str | None) -> str:
     settings = group.settings or {}
-    enabled = [label for key, label in SETTING_LABELS.items() if settings.get(key)]
+    enabled = [label for key, label in SETTING_LABELS.items() if groups_service.setting(settings, key)]
     lines = [
         f"⚙️ Guruh sozlamalari: {group.title or group.chat_id}",
         f"Turi: {KIND_LABELS.get(group.kind, group.kind)}",
@@ -112,7 +113,7 @@ def _panel_kb(group):
     settings = group.settings or {}
     builder = InlineKeyboardBuilder()
     for key, label in SETTING_LABELS.items():
-        icon = "✅" if settings.get(key) else "⬜️"
+        icon = "✅" if groups_service.setting(settings, key) else "⬜️"
         builder.button(text=f"{icon} {label}", callback_data=f"grpset:t:{key}")
     builder.button(text="🚫 Hammasini o'chirish", callback_data="grpset:off")
     builder.button(text="✖️ Yopish", callback_data="grpset:close")
@@ -147,7 +148,7 @@ async def group_disable_all_command(message: Message, session, bot_user) -> None
         return
 
     group = await groups_service.get_by_chat_id(session, message.chat.id)
-    enabled = [key for key in SETTING_LABELS if group is not None and (group.settings or {}).get(key)]
+    enabled = [key for key in SETTING_LABELS if group is not None and groups_service.setting(group.settings, key)]
     if not enabled:
         await message.reply("ℹ️ Bu guruhda yoqilgan xizmat yo'q.")
         return
@@ -190,7 +191,7 @@ async def group_settings_callback(callback: CallbackQuery, session, bot_user) ->
         await callback.answer("Barcha xizmatlar o'chirildi ✅")
     elif action[1] == "t" and len(action) == 3 and action[2] in SETTING_LABELS:
         key = action[2]
-        new_value = not (group.settings or {}).get(key, False)
+        new_value = not groups_service.setting(group.settings, key)
         await groups_service.update_settings(session, group, **{key: new_value})
         await callback.answer(("✅ Yoqildi: " if new_value else "⬜️ O'chirildi: ") + SETTING_LABELS[key])
     else:

@@ -8,7 +8,7 @@ from aiogram.types import BotCommand, BotCommandScopeAllChatAdministrators, Erro
 
 from app.config import settings
 from app.db.base import session_scope
-from app.handlers import cargo_claim, driver_flow, driver_menu, giveaway, group_ads, group_commands, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
+from app.handlers import cargo_claim, driver_flow, driver_menu, giveaway, group_ads, group_commands, group_moderation, main_menu, order_claim, otp_confirm, profile, rating, settings as settings_handlers, start, support, trip_flow
 from app.handlers.admin import admins as admin_admins
 from app.handlers.admin import broadcast as admin_broadcast
 from app.handlers.admin import complaints as admin_complaints
@@ -40,6 +40,7 @@ def build_dispatcher() -> Dispatcher:
 
     for observer in (
         dp.message,
+        dp.edited_message,
         dp.callback_query,
         dp.my_chat_member,
         dp.chat_join_request,
@@ -58,6 +59,7 @@ def build_dispatcher() -> Dispatcher:
     # only matters for readability here, not correctness.
     dp.include_routers(
         group_commands.router,
+        group_moderation.router,
         # Before start.router: its /start gad_<id> deep link must win over the generic /start.
         group_ads.router,
         start.router,

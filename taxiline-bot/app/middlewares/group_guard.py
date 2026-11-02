@@ -10,13 +10,15 @@ from app.services import bot_config
 from app.services import formatted_ads as formatted_ads_service
 from app.services import group_ads as group_ads_service
 from app.services import groups as groups_service
+from app.services import moderation as moderation_service
 from app.services import repeat_guard as repeat_guard_service
 
 SPAM_MARKERS = ("http://", "https://", "t.me/", "@")
 
 
 class GroupGuardMiddleware(BaseMiddleware):
-    """Enforces the per-group toggles admins set from the admin panel: join/leave message
+    """Enforces the per-group toggles admins set from the admin panel: strict moderation
+    (forwards, videos and links from members are deleted and the sender banned), join/leave message
     deletion, naive link/mention anti-spam, a 1-message-per-minute rate limit, and — in closed
     driver groups — restricting free-text posting to chat admins (anything else gets deleted
     and reposted as a normalized card so the group stays readable). With `ad_router` on, every
@@ -69,6 +71,9 @@ class GroupGuardMiddleware(BaseMiddleware):
             ):
                 return None
             return await handler(event, data)
+
+        if groups_service.setting(group.settings, "strict_moderation") and await moderation_service.enforce(bot, event):
+            return None
 
         if group.settings.get("require_invites") and not await groups_service.has_met_invite_requirement(
             session, group.id, event.from_user.id

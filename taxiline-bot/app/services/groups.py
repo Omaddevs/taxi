@@ -9,6 +9,10 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.db.models import Group, GroupInviteJoin, GroupInviteLink
 
 DEFAULT_SETTINGS = {
+    # Forward, video, havola yuborgan oddiy a'zo — xabari o'chadi va guruhdan ban qilinadi
+    # (services/moderation.py). Yagona sukut bo'yicha yoqilgan xizmat: kalit yo'q guruhlarda ham
+    # ishlaydi, shuning uchun qiymatni doim setting() orqali o'qing.
+    "strict_moderation": True,
     "anti_spam": False,
     "delete_join_leave": False,
     "rate_limit_enabled": False,
@@ -22,6 +26,11 @@ DEFAULT_SETTINGS = {
     # Group.id of the closed driver group that receives this open group's passenger ads.
     "linked_group_id": None,
 }
+
+def setting(settings: dict | None, key: str) -> bool:
+    """Guruh sozlamasi; saqlanmagan bo'lsa — DEFAULT_SETTINGS dagi qiymat."""
+    return bool((settings or {}).get(key, DEFAULT_SETTINGS.get(key)))
+
 
 # Number of real, still-present invited members a non-admin must bring into a
 # `require_invites`-gated group before they're allowed to post there.
@@ -125,7 +134,7 @@ def serialize_group(group: Group) -> dict:
         "createdAt": created,
         # On/off group services (anti-spam, ad_router, …) and the closed group an open group's
         # passenger ads are routed to.
-        "settings": {key: bool(settings.get(key)) for key, default in DEFAULT_SETTINGS.items() if isinstance(default, bool)},
+        "settings": {key: setting(settings, key) for key, default in DEFAULT_SETTINGS.items() if isinstance(default, bool)},
         "linkedGroupId": settings.get("linked_group_id"),
     }
 

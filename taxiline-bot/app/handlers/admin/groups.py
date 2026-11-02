@@ -14,6 +14,7 @@ from app.states.admin_broadcast import AdminGroupSetup, AdminMandatorySub
 router = Router(name="admin_groups")
 
 SETTING_LABELS = {
+    "strict_moderation": "🛡 Forward, video, havola yuborganni o'chirish va ban qilish",
     "anti_spam": "🧹 Anti-spam (link/mention o'chirish)",
     "delete_join_leave": "🚪 Kirish/chiqish xabarlarini o'chirish",
     "rate_limit_enabled": "⏱ 1 daqiqada 1 xabar limiti",
@@ -81,7 +82,7 @@ def _routes_kb(group):
 def _settings_kb(group):
     builder = InlineKeyboardBuilder()
     for key, label in SETTING_LABELS.items():
-        state_icon = "✅" if group.settings.get(key) else "⬜️"
+        state_icon = "✅" if groups_service.setting(group.settings, key) else "⬜️"
         builder.button(text=f"{state_icon} {label}", callback_data=f"admingroupsetting:{group.id}:{key}")
     if group.kind == "MAIN":
         linked = "✅ biriktirilgan" if group.settings.get("linked_group_id") else "biriktirilmagan"
@@ -368,7 +369,7 @@ async def toggle_setting(callback: CallbackQuery, session, bot_user) -> None:
         await callback.answer("Topilmadi", show_alert=True)
         return
 
-    new_value = not group.settings.get(key, False)
+    new_value = not groups_service.setting(group.settings, key)
     await groups_service.update_settings(session, group, **{key: new_value})
     await callback.answer("Yangilandi ✅")
     await callback.message.edit_reply_markup(reply_markup=_settings_kb(group))
