@@ -81,3 +81,14 @@ sporton.uz {
 www.sporton.uz, api.sporton.uz {
 	redir https://sporton.uz{uri} permanent
 }
+
+# FiberTech (/opt/fibertech, its own compose project) — same arrangement on 172.18.0.1:8092. Its Node
+# server serves the built site, /admin and /api on one origin, with TRUST_PROXY=1 for real client IPs.
+fibertech.uz {
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy 172.18.0.1:8092
+}
+
+www.fibertech.uz {
+	redir https://fibertech.uz{uri} permanent
+}
