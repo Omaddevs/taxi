@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, ArrowUpRight, Megaphone, Send, Users } from 'lucide-react'
 import { t } from '../../i18n'
+import { api } from '../../lib/api'
 
 /* Telegram guruh va kanallarimiz — har bir karta yo‘nalishning ikki shahridagi mashhur joy
    rasmi bilan (yuqorida — qayerdan, pastda — qayerga). Har bir kartada Toshkent boshqa joy bilan.
@@ -52,7 +53,15 @@ function ClipDefs() {
   )
 }
 
-function Card({ item, index, clone }) {
+// 104745 → "104,7K", 10418 → "10,4K", 950 → "950"
+function compact(n) {
+  if (n == null) return null
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.', ',').replace(',0', '')}M`
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1).replace('.', ',').replace(',0', '')}K`
+  return String(n)
+}
+
+function Card({ item, index, clone, stat }) {
   const top = PLACES[item.top]
   const bottom = PLACES[item.bottom]
   const official = item.kind === 'channel'
@@ -115,6 +124,27 @@ function Card({ item, index, clone }) {
         <h3 className="mt-1 text-[22px] font-extrabold leading-[1.1] tracking-tight [text-shadow:0_2px_14px_rgba(0,0,0,0.35)] 2xl:text-[27px]">{title}</h3>
       </div>
 
+      {/* Obunachilar soni — yuqori o‘ng, strelka ostida, shisha effektli */}
+      <div
+        className={`absolute right-5 top-[17%] flex flex-col items-end transition-all duration-700 ${stat?.members ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}
+      >
+        <span className="rounded-2xl bg-black/35 px-3 py-2 text-right text-white ring-1 ring-white/25 backdrop-blur-md">
+          <span className="block text-[20px] font-extrabold leading-none tabular-nums tracking-tight 2xl:text-[24px]">{compact(stat?.members) ?? '—'}</span>
+          <span className="mt-1 block text-[10.5px] font-semibold uppercase tracking-[0.08em] text-white/75">
+            {official ? t('obunachi') : t('a’zo')}
+          </span>
+        </span>
+        {stat?.online ? (
+          <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10.5px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-md">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/80" />
+              <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            </span>
+            {compact(stat.online)} {t('onlayn')}
+          </span>
+        ) : null}
+      </div>
+
       {/* Pastki chap: qo‘shilish tugmasi */}
       <span
         className={`absolute bottom-[19%] left-5 inline-flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-bold shadow-[0_10px_24px_-12px_rgba(15,29,42,0.45)] transition-colors duration-300 2xl:h-11 2xl:text-[14px] bg-white text-ink group-hover:bg-ink group-hover:text-white`}
@@ -143,6 +173,12 @@ export function TelegramCommunities() {
   // Animatsiya holati React'dan tashqarida — har kadrda qayta chizish bo‘lmasin.
   const motion = useRef({ offset: 0, speed: 0, hover: false, drag: null, tween: null, moved: false })
   const [shown, setShown] = useState(false)
+  const [counts, setCounts] = useState({})
+  const total = Object.values(counts).reduce((a, c) => a + (c?.members ?? 0), 0)
+
+  useEffect(() => {
+    api.get('/stats/telegram').then((d) => setCounts(d || {})).catch(() => {})
+  }, [])
 
   // Ko‘rinishga kirganda yumshoq paydo bo‘ladi; ekrandan chiqsa lenta to‘xtaydi.
   useEffect(() => {
@@ -266,7 +302,19 @@ export function TelegramCommunities() {
             {t('Guruhlarda haydovchi va yo‘lovchilar bir-birini tez topadi, kanalda esa yangiliklar, aksiyalar va sovg‘ali o‘yinlar e’lon qilinadi.')}
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-4">
+            {total > 0 && (
+              <div className="flex items-center gap-3 rounded-full bg-brand-soft py-1.5 pl-1.5 pr-5 ring-1 ring-brand/20">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white">
+                  <Users className="h-4 w-4" />
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-[17px] font-extrabold tabular-nums text-ink">{total.toLocaleString('ru-RU')}+</span>
+                  <span className="block text-[11.5px] font-semibold text-muted">{t('jami obunachi va a’zo')}</span>
+                </span>
+              </div>
+            )}
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => step(-1)}
@@ -283,6 +331,7 @@ export function TelegramCommunities() {
               >
                 <ArrowRight className="h-5 w-5" />
               </button>
+            </div>
           </div>
         </div>
 
@@ -316,7 +365,7 @@ export function TelegramCommunities() {
         >
           <div ref={trackRef} className="flex w-max gap-4 px-4 will-change-transform sm:gap-5 sm:px-10 lg:px-14 2xl:px-20">
             {[...COMMUNITIES, ...COMMUNITIES].map((item, i) => (
-              <Card key={`${item.handle}-${i}`} item={item} index={i % COMMUNITIES.length} clone={i >= COMMUNITIES.length} />
+              <Card key={`${item.handle}-${i}`} item={item} index={i % COMMUNITIES.length} clone={i >= COMMUNITIES.length} stat={counts[item.handle]} />
             ))}
           </div>
         </div>

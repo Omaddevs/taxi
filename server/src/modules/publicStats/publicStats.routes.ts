@@ -41,3 +41,52 @@ publicStatsRouter.get(
     res.json(cache.data)
   }),
 )
+
+// Landing'dagi Telegram kartalari uchun obunachilar soni. Bot tokeni shart emas: t.me'ning ochiq
+// oldindan ko‘rish sahifasidagi "104 745 members, 102 online" / "10 418 subscribers" qatoridan
+// o‘qiladi. 10 daqiqa keshlanadi; Telegram javob bermasa oxirgi ma'lum qiymat qaytadi.
+const TG_HANDLES = [
+  'taxiline_uzbekistan',
+  'namangan_toshkent_taxiline',
+  'samarqand_toshkent_taxiline',
+  'andijon_toshkent_taxiline',
+  'toshkent_andijon_taxiline',
+  'fargona_toshkent_taxiline',
+]
+const TG_TTL_MS = 10 * 60_000
+type TgCount = { members: number | null; online: number | null }
+let tgCache: { at: number; data: Record<string, TgCount> } | null = null
+let tgPending: Promise<Record<string, TgCount>> | null = null
+
+const toInt = (s?: string) => (s ? Number(s.replace(/[^\d]/g, '')) || null : null)
+
+async function fetchTg(handle: string, prev?: TgCount): Promise<TgCount> {
+  try {
+    const res = await fetch(`https://t.me/${handle}`, { signal: AbortSignal.timeout(6000) })
+    const html = await res.text()
+    const extra = html.match(/tgme_page_extra">([^<]*)/)?.[1] ?? ''
+    const members = toInt(extra.match(/([\d\s ,.]+)\s*(?:members|subscribers)/)?.[1])
+    const online = toInt(extra.match(/([\d\s ,.]+)\s*online/)?.[1])
+    return members ? { members, online } : (prev ?? { members: null, online: null })
+  } catch {
+    return prev ?? { members: null, online: null }
+  }
+}
+
+async function computeTg() {
+  const prev = tgCache?.data ?? {}
+  const rows = await Promise.all(TG_HANDLES.map(async (h) => [h, await fetchTg(h, prev[h])] as const))
+  return Object.fromEntries(rows)
+}
+
+publicStatsRouter.get(
+  '/telegram',
+  asyncRoute(async (_req: Request, res: Response) => {
+    if (!tgCache || Date.now() - tgCache.at > TG_TTL_MS) {
+      tgPending ??= computeTg().finally(() => (tgPending = null))
+      tgCache = { at: Date.now(), data: await tgPending }
+    }
+    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.json(tgCache.data)
+  }),
+)
