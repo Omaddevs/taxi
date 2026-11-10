@@ -62,6 +62,9 @@ function Speedometer({ kmh }) {
 
 const glass = 'bg-white/80 shadow-[0_12px_32px_-14px_rgba(30,60,110,0.35)] ring-1 ring-white backdrop-blur-md'
 
+// Fades the backdrop and 3D street to transparent at the top and bottom edges: no visible seam with the page background.
+const EDGE_FADE = { maskImage: 'linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%)' }
+
 export function TourStage() {
   const stage = useRef(null)
   const canvas = useRef(null)
@@ -161,7 +164,10 @@ export function TourStage() {
   if (ui.wait && ui.wait !== lastWait) setLastWait(ui.wait)
 
   return (
-    <div ref={stage} className="relative h-[82svh] min-h-[540px] w-full overflow-hidden bg-[radial-gradient(ellipse_at_center,#ffffff_0%,#eef2f8_70%)] sm:h-[88svh] sm:max-h-[920px] sm:min-h-[620px]">
+    <div ref={stage} className="relative h-[82svh] min-h-[540px] w-full overflow-hidden sm:h-[88svh] sm:max-h-[920px] sm:min-h-[620px]">
+      {/* Backdrop — faded at the top and bottom so the stage melts into the page */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#ffffff_0%,#eef2f8_70%)]" style={EDGE_FADE} aria-hidden="true" />
+
       {/* Map */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-full">
@@ -170,7 +176,7 @@ export function TourStage() {
       </div>
 
       {/* Street scene */}
-      <div ref={street} className="absolute inset-0 opacity-0" aria-hidden={!driving}>
+      <div ref={street} className="absolute inset-0 opacity-0" style={EDGE_FADE} aria-hidden={!driving}>
         <canvas ref={canvas} className="h-full w-full" role="img" aria-label={t('{0} dan {1} ga yo‘l: TaxiLine mashinasi ketmoqda', t(REGION_NAME[leg.from]), t(REGION_NAME[leg.to]))} />
       </div>
 
