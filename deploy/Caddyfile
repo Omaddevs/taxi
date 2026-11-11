@@ -92,3 +92,18 @@ fibertech.uz {
 www.fibertech.uz {
 	redir https://fibertech.uz{uri} permanent
 }
+
+# MagicSlayd (/opt/magicslayd, its own compose project) — web on 172.18.0.1:8093 via a server-local
+# override that disables the project's own Caddy. Uploads up to 25 MB.
+magicslayd.uz {
+	header Strict-Transport-Security "max-age=31536000"
+	encode gzip zstd
+	request_body {
+		max_size 30MB
+	}
+	reverse_proxy 172.18.0.1:8093
+}
+
+www.magicslayd.uz {
+	redir https://magicslayd.uz{uri} permanent
+}
